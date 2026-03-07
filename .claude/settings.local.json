@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e \"const {ITEM_ICONS, WARRIOR_IMAGES, MARK_IMAGES} = require\\(''./src/data/images.js''\\); console.log\\(''ITEM_ICONS keys:'', Object.keys\\(ITEM_ICONS\\)\\); console.log\\(''WARRIOR_IMAGES keys:'', Object.keys\\(WARRIOR_IMAGES\\)\\);\")",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(where npm)",
+      "Bash(npm run build)",
+      "Bash(python3 -c \":*)",
+      "Bash(node -e \":*)",
+      "Bash(node -e \"const fs=require\\(''fs''\\);const c=fs.readFileSync\\(''D:/dev-led/1490doom-builder/1490_v1.html'',''utf8''\\);const ls=c.split\\(''\\\\n''\\);ls.forEach\\(\\(l,i\\)=>{if\\(l.indexOf\\(''Knight''\\)>-1&&l.indexOf\\(''Hedge''\\)===-1&&l.indexOf\\(''cantHave''\\)===-1&&l.length<200\\)console.log\\(i+1,l.trim\\(\\).slice\\(0,100\\)\\);}\\);\")",
+      "Bash(node -e \"const fs=require\\(''fs''\\);const c=fs.readFileSync\\(''D:/dev-led/1490doom-builder/1490_v1.html'',''utf8''\\);const m=c.match\\(/const WARRIORS = \\\\{\\([\\\\s\\\\S]*?\\)\\\\};/\\);const ls=\\(m?m[1]:''''\\).split\\(''\\\\n''\\);ls.forEach\\(l=>{const k=l.match\\(/^\\\\s+''\\([^'']+\\)'':/\\);if\\(k\\)console.log\\(k[1]\\);}\\);\")",
+      "Bash(node -e \"const fs=require\\(''fs''\\);const c=fs.readFileSync\\(''D:/dev-led/1490doom-builder/1490_v1.html'',''utf8''\\);const idx=c.indexOf\\(''const WARRIORS''\\);const chunk=c.slice\\(idx,idx+5000\\);const ls=chunk.split\\(''\\\\n''\\);ls.forEach\\(l=>{const k=l.match\\(/^\\\\s+''?\\([A-Za-z ]+\\)''?\\\\s*:/\\);if\\(k&&k[1].trim\\(\\).length>2\\)console.log\\(k[1]\\);}\\);\")",
+      "Bash(node -e \"const fs=require\\(''fs''\\);const c=fs.readFileSync\\(''D:/dev-led/1490doom-builder/1490_v1.html'',''utf8''\\);const idx=c.indexOf\\(''const WARRIORS''\\);const end=c.indexOf\\(''const WEAPONS'',idx\\);const chunk=c.slice\\(idx,end\\);const re=/^  ''\\([^'']+\\)''\\\\s*:/gm;let m;while\\(\\(m=re.exec\\(chunk\\)\\)!==null\\)console.log\\(m[1]\\);\")",
+      "Bash(dir \"D:\\\\dev-led\\\\1490doom-builder\\\\public\" /s /b)",
+      "Bash(dir \"D:\\\\dev-led\\\\1490doom-builder\\\\src\\\\assets\" /s /b)",
+      "Bash(node \"D:/dev-led/1490doom-builder/verify_weapons.js\")",
+      "Bash(node -e \"const f=require\\(''fs''\\).readFileSync\\(''D:/dev-led/1490doom-builder/src/data/images.js'',''utf8''\\);const m=f.match\\(/export const MARK_IMAGES = \\\\{\\([\\\\s\\\\S]*?\\)\\\\};/\\);if\\(m\\){const keys=m[1].match\\(/''\\([^'']+\\)'':/g\\);console.log\\(keys.join\\(''\\\\n''\\)\\);}\")",
+      "Bash(node -e \"const f=require\\(''fs''\\).readFileSync\\(''D:/dev-led/1490doom-builder/src/data/images.js'',''utf8''\\);const start=f.indexOf\\(''MARK_IMAGES''\\);const chunk=f.slice\\(start,start+800\\);console.log\\(chunk.slice\\(0,500\\)\\);\")",
+      "Bash(curl -s http://localhost:5173/1490doom-builder/)"
+    ]
+  }
+}

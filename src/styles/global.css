@@ -1,0 +1,120 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── CSS VARIABLES ────────────────────────────────────────────────────────── */
+:root {
+  --gold: #b8972a;
+  --gold-dim: #7a6012;
+  --gold-bg: #1f1900;
+  --gold-border: #3a2e00;
+  --cream: #e8dcc8;
+  --cream-dim: #a09880;
+  --bg: #0d0d0d;
+  --bg-card: #161616;
+  --bg-lift: #1a1a1a;
+  --bg-hover: #222;
+  --border: #2a2a2a;
+  --border-dim: #1e1e1e;
+  --text-muted: #666;
+  --text-dim: #888;
+  --text-mid: #999;
+  --green: #4a9a4a;
+  --green-bg: #1a3a1a;
+  --green-border: #2a5a2a;
+  --red: #c44;
+  --red-bg: #2a0a0a;
+  --purple: #9a9add;
+  --purple-bg: #12122a;
+  --purple-border: #2a2a5a;
+  --font-display: 'Oswald', sans-serif;
+  --font-body: 'Crimson Text', serif;
+}
+
+/* ── RESET & BASE ─────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--cream);
+  font-family: var(--font-body);
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+}
+
+input, select, textarea {
+  font-family: inherit;
+  background: var(--bg-lift);
+  color: var(--cream);
+  border: 1px solid var(--border);
+  border-radius: 0;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: 1px solid var(--gold-dim);
+}
+
+/* ── SHARED MODAL OVERLAY ─────────────────────────────────────────────────── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.88);
+  z-index: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modal-box {
+  background: #111;
+  border: 1px solid #444;
+  max-width: 340px;
+  width: 100%;
+  padding: 1.3rem;
+  font-family: var(--font-body);
+  color: var(--cream);
+}
+
+/* ── TOAST ────────────────────────────────────────────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--gold-bg);
+  border: 1px solid var(--gold-border);
+  color: var(--gold);
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  padding: 0.5rem 1.2rem;
+  z-index: 900;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* ── DISPLAY FONT UTILITIES ───────────────────────────────────────────────── */
+.font-display { font-family: var(--font-display); }
+.font-body { font-family: var(--font-body); }
+.text-gold { color: var(--gold); }
+.text-cream { color: var(--cream); }
+.text-muted { color: var(--text-muted); }
+.text-dim { color: var(--text-dim); }
+
+/* ── SCROLLBAR ────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: #333; }
