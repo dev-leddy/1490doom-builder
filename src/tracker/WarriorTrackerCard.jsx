@@ -110,10 +110,9 @@ export default function WarriorTrackerCard({ warrior: w, wi }) {
   const statKeys = ['MOV', 'ATK', 'VIT', 'SKL', 'DEF', 'COM']
 
   return (
-    <div className={`tk-card${w.dead ? ' tk-dead' : ''}`}>
+    <div className={`tk-card${w.dead ? ' tk-dead' : ''}${w.isCaptain ? ' is-captain' : ''}`}>
       {/* Card Header */}
       <div className="tk-card-header">
-        {w.isCaptain && <span className="tk-captain-badge">★ Captain</span>}
         {portrait && (
           <img
             src={portrait}

@@ -121,7 +121,21 @@
 .tk-cards-wrap { max-width: 640px; margin: 0 auto; }
 
 /* ── WARRIOR CARD ────────────────────────────────────────── */
-.tk-card { background: #111; border: 1px solid #2a2a2a; padding: 0.8rem; }
+.tk-card { background: #111; border: 1px solid #2a2a2a; padding: 0.8rem; position: relative; }
+.tk-card.is-captain { border-color: #b8972a; margin-top: 0.75rem; }
+.tk-card.is-captain::after {
+  content: 'CAPTAIN';
+  position: absolute;
+  top: -0.6rem;
+  right: 1rem;
+  background: #b8972a;
+  color: #000;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  padding: 0.1rem 0.5rem;
+  font-weight: 700;
+}
 .tk-dead { opacity: 0.5; filter: grayscale(0.5); }
 
 /* ── CARD HEADER ────────────────────────────────────────── */
