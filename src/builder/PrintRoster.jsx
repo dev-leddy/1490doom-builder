@@ -168,6 +168,20 @@ export default function PrintRoster() {
                 })}
               </div>
 
+              {upgradeLines.length ? (
+                <div className="pr-upgrades">
+                  <span className="pr-upgrades-label">UPGRADES</span>
+                  {upgradeLines.map(line => (
+                    <span key={line} className="pr-upgrade-tag">{line}</span>
+                  ))}
+                </div>
+              ) : (
+                <div className="pr-upgrades pr-upgrades-none">
+                  <span className="pr-upgrades-label">UPGRADES</span>
+                  <span className="pr-upgrade-none-text">None</span>
+                </div>
+              )}
+
               {wpnCards.length ? (
                 <div className="pr-wpn-specials">
                   {wpnCards.map(row => {
@@ -188,20 +202,6 @@ export default function PrintRoster() {
                 </div>
               ) : null}
 
-              {upgradeLines.length ? (
-                <div className="pr-upgrades">
-                  <span className="pr-upgrades-label">UPGRADES</span>
-                  {upgradeLines.map(line => (
-                    <span key={line} className="pr-upgrade-tag">{line}</span>
-                  ))}
-                </div>
-              ) : (
-                <div className="pr-upgrades pr-upgrades-none">
-                  <span className="pr-upgrades-label">UPGRADES</span>
-                  <span className="pr-upgrade-none-text">None</span>
-                </div>
-              )}
-
               <div className="pr-abilities">
                 {wdata.abilities.map(ab => (
                   <div key={ab.name} className="pr-ability">
@@ -212,7 +212,7 @@ export default function PrintRoster() {
                 ))}
               </div>
 
-              <div className="pr-vit-track">
+              <div className="pr-vit-track pr-vit-track-bottom">
                 {Array.from({ length: vit }).map((_, vi) => (
                   <div key={vi} className="pr-vit-box" />
                 ))}

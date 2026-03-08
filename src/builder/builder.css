@@ -603,13 +603,14 @@
   }
   .upgrade-card-label {
     font-family: 'Oswald', sans-serif;
-    font-size: 0.75rem;
-    letter-spacing: 0.1em;
+    font-size: 0.68rem;
+    letter-spacing: 0.03em;
     text-transform: uppercase;
     color: var(--parchment);
     display: block;
     line-height: 1.2;
     white-space: pre-line;
+    overflow-wrap: anywhere;
   }
   .upgrade-card.selected .upgrade-card-label { color: var(--gold); }
   .upgrade-card.selected .upgrade-card-icon { color: var(--gold); }
@@ -968,6 +969,8 @@
       position: relative;
       page-break-inside: avoid;
       break-inside: avoid;
+      display: flex;
+      flex-direction: column;
     }
     .pr-card.is-captain {
       border: 1.5pt solid black;
@@ -1155,13 +1158,13 @@
       font-style: italic;
     }
 
-    /* VITALITY TRACKER */
+    /* VITALITY TRACKER — pushed to bottom of flex card */
     .pr-vit-track {
       display: flex;
       flex-wrap: wrap;
       gap: 2pt;
-      margin-top: 3pt;
-      padding-top: 3pt;
+      margin-top: auto;
+      padding-top: 4pt;
       border-top: 0.5pt solid #ccc;
     }
     .pr-vit-box {

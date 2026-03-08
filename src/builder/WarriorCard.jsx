@@ -117,13 +117,6 @@ export default function WarriorCard({ slotIndex, slot }) {
             poolFull={poolFull}
           />
 
-          {/* Captain toggle — at the bottom, matches original */}
-          <button
-            className={`captain-toggle ${slot.isCaptain ? 'active' : ''}`}
-            onClick={() => setCaptain(slotIndex)}
-          >
-            {slot.isCaptain ? '★ Company Captain' : 'Set as Captain'}
-          </button>
         </>
       )}
     </div>
