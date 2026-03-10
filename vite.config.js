@@ -1,13 +1,40 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { VitePWA } from 'vite-plugin-pwa'
+
+const base = process.env.CF_PAGES ? '/' : '/1490doom-builder/'
 
 export default defineConfig(({ command }) => ({
-  plugins: [react()],
+  plugins: [
+    react(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      base: command === 'serve' ? '/' : base,
+      manifest: {
+        name: '1490 DOOM — Company Builder',
+        short_name: '1490 DOOM',
+        description: 'Doom Company builder and play tracker for 1490 DOOM by Buer Games',
+        theme_color: '#1a1006',
+        background_color: '#1a1006',
+        display: 'standalone',
+        orientation: 'portrait',
+        scope: command === 'serve' ? '/' : base,
+        start_url: command === 'serve' ? '/' : base,
+        icons: [
+          { src: 'pwa-64x64.png',            sizes: '64x64',   type: 'image/png' },
+          { src: 'pwa-192x192.png',           sizes: '192x192', type: 'image/png' },
+          { src: 'pwa-512x512.png',           sizes: '512x512', type: 'image/png' },
+          { src: 'maskable-icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+        ],
+      },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        navigateFallback: null,
+      },
+    }),
+  ],
 
-  // Cloudflare Pages sets CF_PAGES=1 — serve from root.
-  // GitHub Pages needs the repo-name sub-path.
-  // Local dev always uses '/'.
-  base: process.env.CF_PAGES ? '/' : (command === 'serve' ? '/' : '/1490doom-builder/'),
+  base: command === 'serve' ? '/' : base,
 
   server: {
     host: true,
