@@ -146,109 +146,111 @@ export default function PrintRoster() {
 
           return (
             <div key={`w-${i}-${orderIdx}`} className={`pr-card ${isCaptain ? 'is-captain' : ''}`}>
-              <div className="pr-card-header">
-                {portraitSrc ? <img className="pr-portrait" src={portraitSrc} alt={slot.type} /> : null}
-                <div className="pr-card-header-text">
-                  <div className="pr-warrior-name">{slot.type}</div>
-                  {isCaptain ? <span className="pr-captain-badge">★ Captain</span> : null}
+              {/* ── Main content ── */}
+              <div className="pr-card-main">
+                <div className="pr-card-header">
+                  {portraitSrc ? <img className="pr-portrait" src={portraitSrc} alt={slot.type} /> : null}
+                  <div className="pr-card-header-text">
+                    <div className="pr-warrior-name">{slot.type}</div>
+                    {isCaptain ? <span className="pr-captain-badge">★ Captain</span> : null}
+                  </div>
                 </div>
-              </div>
 
-              <div className="pr-stats">
-                {statKeys.map(s => {
-                  const base = wdata.stats[s]
-                  const improved = spent.includes('stat') && slot.statImprove === s
-                  const display = improved ? improveStatDisplayPrint(base, s) : base
-                  return (
-                    <div key={s} className="pr-stat">
-                      <span className="pr-stat-lbl">{s}</span>
-                      <span className={`pr-stat-val ${improved ? 'improved' : ''}`}>{display}</span>
-                    </div>
-                  )
-                })}
-              </div>
-
-              {upgradeLines.length ? (
-                <div className="pr-upgrades">
-                  <span className="pr-upgrades-label">UPGRADES</span>
-                  {upgradeLines.map(line => (
-                    <span key={line} className="pr-upgrade-tag">{line}</span>
-                  ))}
-                </div>
-              ) : (
-                <div className="pr-upgrades pr-upgrades-none">
-                  <span className="pr-upgrades-label">UPGRADES</span>
-                  <span className="pr-upgrade-none-text">None</span>
-                </div>
-              )}
-
-              {wpnCards.length ? (
-                <div className="pr-wpn-specials">
-                  {wpnCards.map(row => {
-                    const pills = [
-                      row.damage > 0 ? `DMG ${row.damage}` : null,
-                      row.range && row.range !== '—' ? `RNG ${row.range}` : null,
-                      row.extra || null,
-                    ].filter(Boolean)
+                <div className="pr-stats">
+                  {statKeys.map(s => {
+                    const base = wdata.stats[s]
+                    const improved = spent.includes('stat') && slot.statImprove === s
+                    const display = improved ? improveStatDisplayPrint(base, s) : base
                     return (
-                      <div key={row.key} className="pr-wpn-stat-row">
-                        {row.iconSrc ? <img src={row.iconSrc} className="pr-wpn-row-icon" alt="" /> : null}
-                        <span className="pr-upgrade-tag">{row.name}</span>
-                        {pills.map(p => <span key={p} className="pr-wpn-pill">{p}</span>)}
-                        {row.note ? <span className="pr-wpn-note">{row.note}</span> : null}
+                      <div key={s} className="pr-stat">
+                        <span className="pr-stat-lbl">{s}</span>
+                        <span className={`pr-stat-val ${improved ? 'improved' : ''}`}>{display}</span>
                       </div>
                     )
                   })}
                 </div>
-              ) : null}
 
-              <div className="pr-abilities">
-                {wdata.abilities.map(ab => (
-                  <div key={ab.name} className="pr-ability">
-                    <span className="pr-ability-name">{ab.name}</span>
-                    {isOPGDesc(ab.desc) ? <span className="pr-ability-opg"> [OPG]</span> : null}
-                    {' — '}{ab.desc}
+                {upgradeLines.length ? (
+                  <div className="pr-upgrades">
+                    <span className="pr-upgrades-label">UPGRADES</span>
+                    {upgradeLines.map(line => (
+                      <span key={line} className="pr-upgrade-tag">{line}</span>
+                    ))}
                   </div>
-                ))}
+                ) : (
+                  <div className="pr-upgrades pr-upgrades-none">
+                    <span className="pr-upgrades-label">UPGRADES</span>
+                    <span className="pr-upgrade-none-text">None</span>
+                  </div>
+                )}
+
+                {wpnCards.length ? (
+                  <div className="pr-wpn-specials">
+                    {wpnCards.map(row => {
+                      const pills = [
+                        row.damage > 0 ? `DMG ${row.damage}` : null,
+                        row.range && row.range !== '—' ? `RNG ${row.range}` : null,
+                        row.extra || null,
+                      ].filter(Boolean)
+                      return (
+                        <div key={row.key} className="pr-wpn-stat-row">
+                          {row.iconSrc ? <img src={row.iconSrc} className="pr-wpn-row-icon" alt="" /> : null}
+                          <span className="pr-upgrade-tag">{row.name}</span>
+                          {pills.map(p => <span key={p} className="pr-wpn-pill">{p}</span>)}
+                          {row.note ? <span className="pr-wpn-note">{row.note}</span> : null}
+                        </div>
+                      )
+                    })}
+                  </div>
+                ) : null}
+
+                <div className="pr-abilities">
+                  {wdata.abilities.map(ab => (
+                    <div key={ab.name} className="pr-ability">
+                      <span className="pr-ability-name">{ab.name}</span>
+                      {isOPGDesc(ab.desc) ? <span className="pr-ability-opg"> [OPG]</span> : null}
+                      {' — '}{ab.desc}
+                    </div>
+                  ))}
+                </div>
+
               </div>
 
-              <div className="pr-vit-track pr-vit-track-bottom">
-                {Array.from({ length: vit }).map((_, vi) => (
-                  <div key={vi} className="pr-vit-box" />
-                ))}
+              {/* ── Tracking panel ── */}
+              <div className="pr-card-tracking">
+                <div className="pr-vit-track">
+                  {Array.from({ length: vit }).map((_, vi) => (
+                    <div key={vi} className="pr-vit-box" />
+                  ))}
+                </div>
+                <div className="pr-tracking-header" style={{marginTop:'4pt'}}>Statuses / Cache</div>
+                <div className="pr-track-blank-box" />
               </div>
             </div>
           )
         })}
       </div>
 
+      <div className="pr-page-footer">
+        <span className="pr-footer-logo">Compatible with 1490 DOOM</span>
+        <span className="pr-footer-text">Independent production by Michael Leddy · Not affiliated with or endorsed by Buer Games · All related IP © Buer Games · Used under the Buer Games Third Party License · Warrior &amp; Mark artwork © Buer Games</span>
+      </div>
+
       <div className="pr-bottom">
         <div className="pr-ref">
           <div className="pr-ref-header">Quick Reference</div>
 
-          <div className="pr-ref-grid-top">
-            <div>
+          <div className="pr-ref-main-grid">
+            <div className="pr-ref-col-actions">
               <div className="pr-ref-panel-header">Actions</div>
-              <div className="pr-ref-actions-2col">
-                {ACTION_DEFS.map(([k, v]) => (
-                  <div key={k} className="pr-ref-item">
-                    <strong>{k}:</strong> {v}
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div>
-              <div className="pr-ref-panel-header">Statuses</div>
-              {STATUS_DEFS.map(([k, v]) => (
+              {ACTION_DEFS.map(([k, v]) => (
                 <div key={k} className="pr-ref-item">
                   <strong>{k}:</strong> {v}
                 </div>
               ))}
             </div>
-          </div>
 
-          <div className="pr-ref-grid-bottom">
-            <div>
+            <div className="pr-ref-col-right">
               <div className="pr-ref-panel-header">Falling (D6, 2″+ fall)</div>
               <div className="pr-ref-fall-note">
                 +1 if fell 4″+. +3 if fell 6″+, model becomes Immobilized. 8+ = Death.
@@ -260,9 +262,8 @@ export default function PrintRoster() {
                   ))}
                 </tbody>
               </table>
-            </div>
-            <div>
-              <div className="pr-ref-panel-header">Resource Caches (D6)</div>
+
+              <div className="pr-ref-panel-header" style={{marginTop:'6pt'}}>Resource Caches (D6)</div>
               <table className="pr-fall-table">
                 <tbody>
                   {CACHE_ITEMS.map(item => (
@@ -273,9 +274,21 @@ export default function PrintRoster() {
                   ))}
                 </tbody>
               </table>
+
+              <div className="pr-ref-panel-header" style={{marginTop:'6pt'}}>Statuses</div>
+              {STATUS_DEFS.map(([k, v]) => (
+                <div key={k} className="pr-ref-item">
+                  <strong>{k}:</strong> {v}
+                </div>
+              ))}
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="pr-page-footer">
+        <span className="pr-footer-logo">Compatible with 1490 DOOM</span>
+        <span className="pr-footer-text">Independent production by Michael Leddy · Not affiliated with or endorsed by Buer Games · All related IP © Buer Games · Used under the Buer Games Third Party License · Warrior &amp; Mark artwork © Buer Games</span>
       </div>
     </div>
   )

@@ -89,6 +89,8 @@
     display: flex;
     gap: 0.5rem;
     align-items: center;
+    flex: 1;
+    justify-content: flex-start;
   }
   .navbar-group-center {
     display: flex;
@@ -96,12 +98,13 @@
     align-items: center;
     flex: 1;
     justify-content: center;
-    flex-wrap: wrap;
   }
   .navbar-group-right {
     display: flex;
     gap: 0.5rem;
     align-items: center;
+    flex: 1;
+    justify-content: flex-end;
   }
   .navbar .btn {
     padding: 0.35rem 0.85rem;
@@ -836,26 +839,23 @@
     @page { size: Letter portrait; margin: 0.45in 0.4in; }
 
     /* show print roster, hide app chrome */
-    #print-roster { display: block !important; }
     body {
       background: white !important;
       color: black !important;
       font-family: 'Crimson Text', Georgia, serif;
       font-size: 9pt;
     }
-    body * { visibility: hidden; }
-    #print-roster, #print-roster * { visibility: visible; }
+    /* Remove non-print content from document flow entirely (prevents blank pages) */
+    .builder-page > *:not(#print-roster) { display: none !important; }
     #print-roster {
-      position: absolute;
-      left: 0;
-      top: 0;
+      display: block !important;
+      position: static !important;
       width: 100%;
     }
 
     /* ROSTER SHELL */
     .pr-page {
       width: 100%;
-      height: 100%;
     }
 
     /* TOP HEADER BAND */
@@ -863,14 +863,14 @@
       display: flex;
       justify-content: space-between;
       align-items: baseline;
-      border-bottom: 0.5pt solid #bbb;
+      border-bottom: 0.5pt solid #000;
       padding-bottom: 2pt;
       margin-bottom: 5pt;
       font-family: 'Oswald', sans-serif;
       font-size: 6pt;
       letter-spacing: 0.2em;
       text-transform: uppercase;
-      color: #999;
+      color: #000;
     }
     .pr-header {
       display: flex;
@@ -906,7 +906,7 @@
       font-size: 7pt;
       letter-spacing: 0.25em;
       text-transform: uppercase;
-      color: #555;
+      color: #000;
       margin-top: 2pt;
     }
     /* MARK IN HEADER */
@@ -914,7 +914,7 @@
       display: flex;
       align-items: center;
       gap: 5pt;
-      border-left: 1.5pt solid #ccc;
+      border-left: 1.5pt solid #000;
       padding-left: 10pt;
       max-width: 180pt;
     }
@@ -934,7 +934,7 @@
       font-size: 5.5pt;
       letter-spacing: 0.25em;
       text-transform: uppercase;
-      color: #777;
+      color: #000;
       line-height: 1;
       margin-bottom: 1pt;
     }
@@ -954,23 +954,55 @@
       color: #000;
     }
 
-    /* WARRIORS ROW */
+    /* WARRIORS — one per row, full width */
     .pr-warriors {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      display: flex;
+      flex-direction: column;
       gap: 5pt;
       margin-bottom: 5pt;
     }
 
-    /* SINGLE WARRIOR CARD */
+    /* SINGLE WARRIOR CARD — two columns: main content + tracking panel */
     .pr-card {
       border: 0.75pt solid #333;
-      padding: 3pt 4pt;
       position: relative;
       page-break-inside: avoid;
       break-inside: avoid;
       display: flex;
+      flex-direction: row;
+    }
+    .pr-card-main {
+      flex: 1;
+      padding: 3pt 4pt;
+      display: flex;
       flex-direction: column;
+      min-width: 0;
+    }
+
+    /* TRACKING PANEL — 30% of card width */
+    .pr-card-tracking {
+      flex: 0 0 30%;
+      border-left: 0.75pt solid #000;
+      padding: 5pt 6pt;
+      display: flex;
+      flex-direction: column;
+    }
+    .pr-tracking-header {
+      font-family: 'Oswald', sans-serif;
+      font-size: 7pt;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #000;
+      border-bottom: 0.5pt solid #000;
+      padding-bottom: 1.5pt;
+      margin-bottom: 4pt;
+    }
+    .pr-track-blank-box {
+      flex: 1;
+      border: 0.75pt solid #000;
+      background: white;
+      min-height: 24pt;
     }
     .pr-card.is-captain {
       border: 1.5pt solid black;
@@ -982,7 +1014,7 @@
       align-items: center;
       gap: 4pt;
       margin-bottom: 3pt;
-      border-bottom: 0.5pt solid #ccc;
+      border-bottom: 0.5pt solid #000;
       padding-bottom: 2pt;
     }
     .pr-portrait {
@@ -1003,7 +1035,7 @@
     }
     .pr-warrior-name {
       font-family: 'Oswald', sans-serif;
-      font-size: 9pt;
+      font-size: 11pt;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.05em;
@@ -1011,7 +1043,7 @@
     }
     .pr-captain-badge {
       font-family: 'Oswald', sans-serif;
-      font-size: 5pt;
+      font-size: 6.5pt;
       font-weight: 700;
       letter-spacing: 0.15em;
       text-transform: uppercase;
@@ -1040,23 +1072,22 @@
       margin-bottom: 3pt;
     }
     .pr-stat {
-      border: 0.75pt solid #aaa;
+      border: 0.75pt solid #000;
       text-align: center;
       padding: 1.5pt 1pt;
-      background: #f5f5f5;
     }
     .pr-stat-lbl {
       font-family: 'Oswald', sans-serif;
-      font-size: 4.5pt;
+      font-size: 6pt;
       letter-spacing: 0.08em;
-      color: #555;
+      color: #000;
       text-transform: uppercase;
       display: block;
       line-height: 1;
     }
     .pr-stat-val {
       font-family: 'Oswald', sans-serif;
-      font-size: 8pt;
+      font-size: 10pt;
       font-weight: 700;
       line-height: 1.1;
       display: block;
@@ -1074,16 +1105,15 @@
       gap: 2.5pt;
       margin-bottom: 3pt;
       padding: 2pt 3pt;
-      border-left: 1.5pt solid #888;
-      background: #efefef;
+      border-left: 1.5pt solid #000;
     }
     .pr-upgrades-label {
       font-family: 'Oswald', sans-serif;
-      font-size: 5.5pt;
+      font-size: 7pt;
       font-weight: 700;
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: #666;
+      color: #000;
       margin-right: 1.5pt;
       white-space: nowrap;
     }
@@ -1092,14 +1122,14 @@
       color: #fff;
       padding: 0.5pt 3pt;
       font-family: 'Oswald', sans-serif;
-      font-size: 6pt;
+      font-size: 7.5pt;
       letter-spacing: 0.04em;
       text-transform: uppercase;
       white-space: nowrap;
     }
     .pr-upgrade-none-text {
-      font-size: 6pt;
-      color: #999;
+      font-size: 7.5pt;
+      color: #000;
       font-style: italic;
     }
 
@@ -1107,8 +1137,7 @@
     .pr-wpn-specials {
       margin-bottom: 3pt;
       padding: 2pt 3pt;
-      border-left: 1.5pt solid #333;
-      background: #f5f5f5;
+      border-left: 1.5pt solid #000;
     }
     .pr-wpn-stat-row {
       display: flex;
@@ -1116,7 +1145,7 @@
       gap: 2.5pt;
       flex-wrap: wrap;
       margin-bottom: 1.5pt;
-      font-size: 6.5pt;
+      font-size: 8pt;
       line-height: 1.3;
     }
     .pr-wpn-stat-row:last-child { margin-bottom: 0; }
@@ -1124,15 +1153,15 @@
       background: #000;
       color: #fff;
       padding: 0.5pt 3pt;
-      font-size: 6pt;
+      font-size: 7.5pt;
       font-weight: 700;
       letter-spacing: 0.05em;
       white-space: nowrap;
       font-family: 'Oswald', sans-serif;
     }
     .pr-wpn-note {
-      color: #444;
-      font-size: 6pt;
+      color: #000;
+      font-size: 7.5pt;
       font-style: italic;
       line-height: 1.25;
     }
@@ -1141,36 +1170,35 @@
     .pr-abilities { margin-bottom: 1pt; }
     .pr-ability {
       margin-bottom: 2pt;
-      line-height: 1.3;
-      font-size: 7pt;
+      line-height: 1.35;
+      font-size: 8.5pt;
     }
     .pr-ability:last-child { margin-bottom: 0; }
     .pr-ability-name {
       font-family: 'Oswald', sans-serif;
-      font-size: 6.5pt;
+      font-size: 8pt;
       font-weight: 700;
       letter-spacing: 0.08em;
       text-transform: uppercase;
     }
     .pr-ability-opg {
-      font-size: 5.5pt;
-      color: #555;
+      font-size: 7pt;
+      color: #000;
       font-style: italic;
     }
 
-    /* VITALITY TRACKER — pushed to bottom of flex card */
+    /* VITALITY TRACKER — at top of tracking panel */
     .pr-vit-track {
       display: flex;
       flex-wrap: wrap;
       gap: 2pt;
-      margin-top: auto;
-      padding-top: 4pt;
-      border-top: 0.5pt solid #ccc;
+      padding-bottom: 4pt;
+      border-bottom: 0.5pt solid #000;
     }
     .pr-vit-box {
-      width: 9pt;
-      height: 9pt;
-      border: 0.75pt solid #333;
+      width: 18pt;
+      height: 18pt;
+      border: 0.75pt solid #000;
       background: white;
       flex-shrink: 0;
     }
@@ -1193,31 +1221,21 @@
       letter-spacing: 0.3em;
       text-transform: uppercase;
       color: #000;
-      margin-bottom: 8pt;
+      margin-bottom: 5pt;
       border-bottom: 2pt solid black;
-      padding-bottom: 3pt;
+      padding-bottom: 2pt;
     }
 
-    /* Top row: Actions + Statuses */
-    .pr-ref-grid-top {
+    /* Two-column ref layout: Actions | Falling + Caches + Statuses */
+    .pr-ref-main-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 14pt;
-      margin-bottom: 14pt;
-      padding-bottom: 12pt;
-      border-bottom: 0.5pt solid #ccc;
+      align-items: start;
     }
-    .pr-ref-actions-2col {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0 8pt;
-    }
-
-    /* Bottom row: Falling + Caches */
-    .pr-ref-grid-bottom {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14pt;
+    .pr-ref-col-actions,
+    .pr-ref-col-right {
+      width: 100%;
     }
 
     .pr-ref-panel-header {
@@ -1244,7 +1262,7 @@
     .pr-ref-fall-note {
       font-size: 7pt;
       font-style: italic;
-      color: #444;
+      color: #000;
       margin-bottom: 5pt;
       line-height: 1.4;
     }
@@ -1256,7 +1274,7 @@
     }
     .pr-fall-table td {
       padding: 2.5pt 4pt;
-      border: 0.5pt solid #999;
+      border: 0.5pt solid #000;
     }
     .pr-fall-table td:first-child {
       font-family: 'Oswald', sans-serif;
@@ -1270,6 +1288,63 @@
     .pr-fall-table td:last-child {
       text-align: left;
     }
+
+    /* COMPACT PAGE FOOTER (both pages) */
+    .pr-page-footer {
+      margin-top: 6pt;
+      padding-top: 4pt;
+      border-top: 0.5pt solid #000;
+      display: flex;
+      align-items: center;
+      gap: 6pt;
+    }
+    .pr-footer-logo {
+      flex-shrink: 0;
+      border: 0.75pt solid #000;
+      font-family: 'Oswald', sans-serif;
+      font-size: 5pt;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 1.5pt 4pt;
+      white-space: nowrap;
+    }
+    .pr-footer-text {
+      font-size: 5pt;
+      color: #000;
+      line-height: 1.4;
+    }
+  }
+
+  /* ATTRIBUTION FOOTER */
+  .builder-attribution {
+    margin-top: 3rem;
+    padding: 1.25rem 1rem;
+    border-top: 1px solid var(--dim);
+    text-align: center;
+    max-width: 680px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .attribution-logo-placeholder {
+    display: inline-block;
+    border: 2px solid var(--gold);
+    color: var(--gold);
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 0.35rem 0.85rem;
+    margin-bottom: 0.85rem;
+  }
+  .attribution-text {
+    font-size: 0.72rem;
+    color: var(--mist);
+    line-height: 1.6;
+    margin: 0;
+  }
+  .attribution-text a {
+    color: var(--gold);
+    text-decoration: underline;
   }
 
   /* SHARE MODAL */
@@ -1536,6 +1611,51 @@
   padding: 0 0.75rem;
   color: var(--blood);
   font-size: 1rem;
+}
+
+.save-load-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 0;
+}
+
+.sticky-name-bar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--ash);
+  border-bottom: 2px solid var(--gold);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.5);
+  padding: 0.5rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.sticky-name-bar label {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--gold);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.sticky-name-bar .name-input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--mist);
+  padding: 0.25rem 0.5rem;
+}
+.sticky-name-bar .name-input:focus { border-bottom-color: var(--gold); }
+.sticky-name-bar .unsaved-indicator {
+  margin-left: auto;
+  color: var(--blood);
+  font-size: 0.65rem;
+  flex-shrink: 0;
 }
 
 .builder-navbar { position:fixed;bottom:0;left:0;right:0;z-index:100;background:var(--ash);border-top:2px solid var(--gold);box-shadow:0 -4px 20px rgba(0,0,0,0.6); }

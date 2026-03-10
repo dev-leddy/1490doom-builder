@@ -137,6 +137,19 @@ export const WARRIORS = {
     allowedWeapons: ['Light Weapon', 'Bow', 'Crossbow', 'Shield'],
     cantHave: ['Heavy Weapon', 'Polearm'],
   },
+  Reaver: {
+    stats: { MOV: 5, ATK: 2, VIT: 6, SKL: '6+', COM: '4+', DEF: '5+' },
+    abilities: [
+      { name: 'BERSERKER', desc: 'If the Reaver begins their activation at 2 or less VITALITY, they get +1 to MOVEMENT and to ATTACKS.' },
+      { name: 'RELENTLESS', desc: 'If the Reaver uses both MOVE and DASH during their activation and ends in contact with an enemy, they may ATTACK, but with only a single die.' },
+      { name: 'BEARING DOWN', desc: 'Once per game, after a successful COMBAT Check, the Reaver may forgo dealing damage with that Attack. Instead, the target becomes Immobilized.' },
+    ],
+    restrictions: 'Comes with two Light Weapons at no additional cost. (This adds an additional ATTACK, which is already included in their profile.)',
+    allowedWeapons: ['Light Weapon', 'Shield'],
+    cantHave: ['Heavy Weapon', 'Polearm', 'Bow', 'Crossbow'],
+    fixedWeapon: 'Light Weapon',
+    fixedDualWield: true,
+  },
   'Warrior Priest': {
     stats: { MOV: 4, ATK: 1, VIT: 5, SKL: '4+', COM: '5+', DEF: '5+' },
     abilities: [

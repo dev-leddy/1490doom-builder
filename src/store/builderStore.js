@@ -50,8 +50,45 @@ export function isOPG(abilityName) {
   return a?.desc?.toLowerCase().includes('once per game') || false
 }
 
+// ── RANDOM NAME GENERATOR ─────────────────────────────────────────────────────
+
+const _ADJ = [
+  'Ashen','Blighted','Bone-Tired','Broken','Burned','Charred','Creeping',
+  'Crimson','Cursed','Damned','Doomed','Dread','Fallen','Festering',
+  'Forsaken','Gaunt','God-Cursed','Grim','Hollow','Howling','Hungry',
+  'Iron','Lost','Pale','Plague-Ridden','Rotting','Ruined','Scarred',
+  'Seething','Smoldering','Soot-Stained','Starving','Sunken','Tattered',
+  'Thorn-Crowned','War-Born','Wailing','Wretched','Blackened','Bitter',
+]
+const _NOUN = [
+  'Ashes','Axes','Bells','Blades','Bones','Brands','Chains','Claws',
+  'Crows','Curs','Dogs','Embers','Eyes','Fists','Flies','Graves','Hammers',
+  'Hounds','Kings','Knives','Maggots','Men','Nails','Nooses','Pikes',
+  'Ravens','Rats','Ruins','Skulls','Smoke','Teeth','Thorns','Toads',
+  'Tombs','Vipers','Wolves','Worms',
+]
+const _SUFFIX = [
+  'Band','Brotherhood','Company','Coven','Crew','Fellowship',
+  'Guard','Host','Legion','Order','Pack','Warband','Watch',
+]
+
+function _rnd(arr) { return arr[Math.floor(Math.random() * arr.length)] }
+
+function generateCompanyName() {
+  const pattern = Math.floor(Math.random() * 6)
+  switch (pattern) {
+    case 0: return `The ${_rnd(_ADJ)} ${_rnd(_NOUN)}`
+    case 1: return `${_rnd(_ADJ)} ${_rnd(_NOUN)}`
+    case 2: return `${_rnd(_ADJ)} ${_rnd(_NOUN)} ${_rnd(_SUFFIX)}`
+    case 3: return `The ${_rnd(_NOUN)} of ${_rnd(_ADJ)} ${_rnd(_NOUN)}`
+    case 4: return `${_rnd(_SUFFIX)} of ${_rnd(_ADJ)} ${_rnd(_NOUN)}`
+    default: return `The ${_rnd(_ADJ)} ${_rnd(_SUFFIX)}`
+  }
+}
+
 function defaultState() {
   return {
+    companyId: crypto.randomUUID(),
     mark: MARKS[0].name,
     companyName: '',
     ipLimit: 3,
@@ -99,12 +136,19 @@ export function encodeCompany(s) {
     const cap = slot.isCaptain ? '1' : '0'
     parts.push([wIdx, w1Idx, w2Idx, cIdx, clIdx, ipStr, cap].join(':'))
   })
-  return parts.join('|')
+  return btoa(parts.join('|')).replace(/=/g, '')
 }
 
 export function decodeCompany(code) {
   try {
-    const parts = code.split('|')
+    // Support both base64 (new) and raw pipe-delimited (legacy) formats
+    let raw = code
+    try {
+      const padded = code + '=='.slice(0, (4 - code.length % 4) % 4)
+      const decoded = atob(padded)
+      if (decoded.includes('|')) raw = decoded
+    } catch {}
+    const parts = raw.split('|')
     const mark = ALL_MARKS[parseInt(parts[0], 36)] || ALL_MARKS[0]
     const companyName = decodeURIComponent(parts[1] || '')
     const ipLimit = parseInt(parts[2], 36) || 3
@@ -160,6 +204,22 @@ export const useBuilderStore = create((set, get) => {
   }
 
   const initial = loadInitial()
+
+  if (initial._fromShare) {
+    setTimeout(() => get()._toast('Company loaded from shared link!'), 0)
+  }
+
+  // Handle share links pasted into an already-open tab (no full page reload)
+  window.addEventListener('hashchange', () => {
+    const hash = window.location.hash.replace('#', '')
+    if (!hash) return
+    const imported = decodeCompany(hash)
+    if (imported) {
+      history.replaceState(null, '', window.location.pathname + window.location.search)
+      set({ ...imported, _savedSnapshot: JSON.stringify(imported) })
+      get()._toast('Company loaded from shared link!')
+    }
+  })
 
   return {
     // ── STATE ──────────────────────────────────────────────────────────────────
@@ -287,20 +347,26 @@ export const useBuilderStore = create((set, get) => {
       const errors = get()._validate()
       if (errors) { set({ validationMsg: errors }); return false }
       const saves = getSaves()
-      const { mark, companyName, ipLimit, slots } = get()
-      saves.unshift({ mark, companyName, ipLimit, slots, savedAt: Date.now() })
-      if (saves.length > 10) saves.pop()
+      const { mark, companyName, ipLimit, slots, companyId } = get()
+      const saveData = { mark, companyName, ipLimit, slots, companyId, savedAt: Date.now() }
+      const existingIndex = saves.findIndex(s => s.companyId === companyId)
+      if (existingIndex >= 0) {
+        saves[existingIndex] = saveData
+      } else {
+        saves.unshift(saveData)
+        if (saves.length > 10) saves.pop()
+      }
       setSaves(saves)
       set({ saves, _savedSnapshot: JSON.stringify({ mark, companyName, ipLimit, slots }) })
-      get()._toast('Company saved to browser storage.')
+      get()._toast('Company saved.')
       return true
     },
     loadCompany(index) {
       const saves = getSaves()
       const save = saves[index]
       if (!save) return
-      const { mark, companyName, ipLimit, slots } = save
-      set({ mark, companyName, ipLimit, slots, _savedSnapshot: JSON.stringify({ mark, companyName, ipLimit, slots }) })
+      const { mark, companyName, ipLimit, slots, companyId } = save
+      set({ mark, companyName, ipLimit, slots, companyId: companyId || crypto.randomUUID(), _savedSnapshot: JSON.stringify({ mark, companyName, ipLimit, slots }) })
       get()._toast('Company loaded!')
     },
     deleteCompany(index) {
@@ -311,7 +377,8 @@ export const useBuilderStore = create((set, get) => {
     },
     clearBuilder() {
       const fresh = defaultState()
-      set({ ...fresh, _savedSnapshot: JSON.stringify(fresh) })
+      const { companyId, ...snapshot } = fresh
+      set({ ...fresh, _savedSnapshot: JSON.stringify(snapshot) })
       localStorage.removeItem('doom_draft')
     },
 
@@ -397,7 +464,7 @@ export const useBuilderStore = create((set, get) => {
 
         return { type, weapon1, weapon2, consumable: null, climbing: null, ip, isCaptain: i === 0 }
       })
-      set({ mark, companyName: '', ipLimit, slots })
+      set({ mark, companyName: generateCompanyName(), ipLimit, slots })
       get()._autoDraft()
     },
 
@@ -407,8 +474,8 @@ export const useBuilderStore = create((set, get) => {
       setTimeout(() => set({ toast: null }), 2500)
     },
     _autoDraft() {
-      const { mark, companyName, ipLimit, slots } = get()
-      try { localStorage.setItem('doom_draft', JSON.stringify({ mark, companyName, ipLimit, slots })) } catch {}
+      const { mark, companyName, ipLimit, slots, companyId } = get()
+      try { localStorage.setItem('doom_draft', JSON.stringify({ mark, companyName, ipLimit, slots, companyId })) } catch {}
     },
     _validate() {
       const { slots } = get()

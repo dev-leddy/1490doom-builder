@@ -2,8 +2,11 @@ import { useTrackerStore } from '../store/trackerStore'
 import { ACTION_DEFS, STATUS_DEFS, CACHE_ITEMS } from '../data/items'
 
 export default function QuickRefPanel() {
+  const closeRef = useTrackerStore(s => s.closeRef)
+
   return (
     <div className="tk-ref-overlay">
+      <button className="tk-ref-back-btn" onClick={closeRef}>← Back</button>
       <div className="tk-ref-section">
         <div className="tk-ref-section-title">Actions</div>
         <div className="tk-abilities-block">

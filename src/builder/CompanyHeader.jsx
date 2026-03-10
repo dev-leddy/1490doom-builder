@@ -3,23 +3,11 @@ import { MARK_IMAGES } from '../data/images'
 import { MARKS } from '../data/warriors'
 
 export default function CompanyHeader() {
-  const { mark, companyName, setMark, setCompanyName } = useBuilderStore()
+  const { mark, setMark } = useBuilderStore()
   const markData = MARKS.find(m => m.name === mark)
 
   return (
     <div className="company-header">
-      <div className="company-name-row">
-        <label className="field-label">Company Name</label>
-        <input
-          className="name-input"
-          type="text"
-          placeholder="Name your Doom Company…"
-          maxLength={40}
-          value={companyName}
-          onChange={e => setCompanyName(e.target.value)}
-        />
-      </div>
-
       <div className="mark-section">
         <div className="mark-header">Company Mark</div>
         <select

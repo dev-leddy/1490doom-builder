@@ -214,12 +214,16 @@ function IPOptions({ slotIndex, slot, wdata, poolFull }) {
   const primaryIsTwoHanded = TWO_HANDED.has(slot.weapon1)
   const primaryIsPolearmOneHanded = slot.weapon1 === 'Polearm (one-handed)'
   const hasFixedShield = wdata?.fixedShield || false
+  const hasFixedDualWield = wdata?.fixedDualWield || false
 
   // Build card configs with correct label + locked state
   const cards = UPGRADE_CARD_DEFS.map(card => {
     let label, locked
     if (card.id === 'weapon2') {
-      if (hasFixedShield) {
+      if (hasFixedDualWield) {
+        label = 'Dual Wield\n(Free)'
+        locked = true // Reaver gets second Light Weapon at no IP cost
+      } else if (hasFixedShield) {
         label = 'Shield\n(Free)'
         locked = true // warriors with fixedShield get it at no IP cost
       } else if (primaryIsPolearmOneHanded) {
@@ -247,9 +251,9 @@ function IPOptions({ slotIndex, slot, wdata, poolFull }) {
 
       <div className="upgrade-cards">
         {cards.map(card => {
-          // fixedShield warriors show weapon2 card as pre-selected (no IP cost)
-          const isFixedShieldCard = card.id === 'weapon2' && hasFixedShield
-          const checked = slot.ip?.includes(card.id) || isFixedShieldCard
+          // fixedShield / fixedDualWield warriors show weapon2 card as pre-selected (no IP cost)
+          const isFreeWeapon2Card = card.id === 'weapon2' && (hasFixedShield || hasFixedDualWield)
+          const checked = slot.ip?.includes(card.id) || isFreeWeapon2Card
           const isLocked = card.locked || (!checked && poolFull)
           return (
             <button
@@ -267,7 +271,7 @@ function IPOptions({ slotIndex, slot, wdata, poolFull }) {
       </div>
 
       {/* Second Weapon sub-panel */}
-      {slot.ip?.includes('weapon2') && !primaryIsPolearmOneHanded && !hasFixedShield && (
+      {slot.ip?.includes('weapon2') && !primaryIsPolearmOneHanded && !hasFixedShield && !hasFixedDualWield && (
         <WeaponSelector
           label="Choose Second Weapon"
           labelIcon={<SvgWeapon2 />}

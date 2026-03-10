@@ -1,7 +1,7 @@
 import { useTrackerStore } from '../store/trackerStore'
 
 export default function WarriorTabBar() {
-  const { warriors, activeWarriorIdx, refOpen, selectWarrior, openRef, closeRef } = useTrackerStore()
+  const { warriors, activeWarriorIdx, refOpen, selectWarrior } = useTrackerStore()
 
   return (
     <div className="tk-tab-bar">
@@ -17,20 +17,11 @@ export default function WarriorTabBar() {
             onClick={() => selectWarrior(i)}
           >
             {w.isCaptain && <span className="tk-tab-captain-dot">★</span>}
-            {isDead && <span className="tk-tab-dead-icon">☠</span>}
-            <span className="tk-tab-vit">{isDead ? '0' : w.currentVit}</span>
+            <span className="tk-tab-vit">{isDead ? '☠' : w.currentVit}</span>
             <span className="tk-tab-name">{shortName}</span>
           </button>
         )
       })}
-
-      <button
-        className={`tk-tab tk-tab-ref${refOpen ? ' tk-tab-active' : ''}`}
-        onClick={refOpen ? closeRef : openRef}
-      >
-        <span className="tk-tab-vit">{refOpen ? '✕' : '?'}</span>
-        <span className="tk-tab-name">{refOpen ? 'Back' : 'Ref'}</span>
-      </button>
     </div>
   )
 }
