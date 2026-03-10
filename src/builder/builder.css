@@ -409,7 +409,7 @@
     content: 'CAPTAIN';
     position: absolute;
     top: -0.55rem;
-    right: 1rem;
+    left: 1rem;
     background: var(--gold);
     color: var(--ash);
     font-family: 'Oswald', sans-serif;
