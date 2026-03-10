@@ -7,7 +7,21 @@ export default function InstallButton() {
 
   if (!canInstall) return null
 
-  const handleClick = () => isIOS ? setShowGuide(true) : install()
+  const handleClick = async () => {
+    if (!isIOS) { install(); return }
+    // Try Web Share API first — opens the native share sheet directly
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: '1490 DOOM Builder', url: window.location.href })
+      } catch (e) {
+        // AbortError = user dismissed, no need to show fallback
+        if (e.name !== 'AbortError') setShowGuide(true)
+      }
+    } else {
+      // Older iOS without Web Share — show manual guide
+      setShowGuide(true)
+    }
+  }
 
   return (
     <>
