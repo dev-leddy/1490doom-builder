@@ -9,6 +9,7 @@ import ShareModal from './ShareModal'
 import ImportModal from './ImportModal'
 import ConfirmModal from '../shared/ConfirmModal'
 import PrintRoster from './PrintRoster'
+import InstallButton from '../shared/InstallButton'
 import './builder.css'
 
 export default function BuilderPage() {
@@ -26,6 +27,7 @@ export default function BuilderPage() {
       <header className="builder-header">
         <div className="builder-title-main">1490 DOOM</div>
         <div className="builder-title-sub">Doom Company Builder</div>
+        <InstallButton />
       </header>
 
       <div className="save-load-wrapper">

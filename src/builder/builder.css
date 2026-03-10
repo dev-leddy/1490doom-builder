@@ -65,6 +65,91 @@
     opacity: 0.8;
   }
 
+  /* INSTALL BUTTON */
+  .install-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.9rem;
+    background: none;
+    border: 1px solid var(--mist);
+    color: var(--bone);
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 0.35rem 0.75rem;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.15s, border-color 0.15s, color 0.15s;
+  }
+  .install-btn:hover { opacity: 1; border-color: var(--gold); color: var(--gold); }
+
+  /* iOS INSTALL GUIDE MODAL */
+  .install-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 800;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .install-guide {
+    background: var(--fog);
+    border: 1px solid var(--mist);
+    border-bottom: 3px solid var(--gold);
+    width: 100%;
+    max-width: 360px;
+    padding: 1.25rem 1.4rem 1rem;
+    margin-bottom: 2rem;
+  }
+  .install-guide-header {
+    font-family: 'Oswald', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 1rem;
+  }
+  .install-guide-steps {
+    padding-left: 1.2rem;
+    margin: 0 0 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  .install-guide-steps li {
+    font-family: 'Crimson Text', serif;
+    font-size: 1.05rem;
+    color: var(--parchment);
+    line-height: 1.4;
+  }
+  .install-guide-steps strong { color: var(--bone); }
+  .install-share-icon {
+    display: inline-flex;
+    vertical-align: middle;
+    color: var(--gold);
+    position: relative;
+    top: -1px;
+  }
+  .install-guide-close {
+    display: block;
+    width: 100%;
+    background: var(--gold);
+    border: none;
+    color: var(--ash);
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.8rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .install-guide-close:hover { opacity: 0.85; }
+
   /* NAVBAR */
   .navbar {
     position: fixed;
