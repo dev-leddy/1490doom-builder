@@ -399,7 +399,7 @@
   .warrior-slot {
     background: var(--ash);
     border: 1px solid var(--dim);
-    padding: 1.25rem;
+    padding: 1.5rem;
     position: relative;
     transition: border-color 0.2s;
     min-width: 0;
