@@ -46,7 +46,7 @@ src/
 
 ## Features
 
-- **Builder Mode**: Build a 6-warrior Doom Company with mark, weapons, IP upgrades, consumables
+- **Builder Mode**: Build a 3+ warrior Doom Company with mark, weapons, IP upgrades, consumables
 - **Save/Load**: Up to 10 saved companies in localStorage
 - **Share/Import**: URL-based company sharing via encoded hash
 - **Random Generator**: True random company generation
