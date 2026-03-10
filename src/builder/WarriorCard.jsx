@@ -1,3 +1,4 @@
+import React, { useState } from 'react'
 import { useBuilderStore, getAvailableWarriorTypes, getAllowedWeapons, getSecondWeaponOptions } from '../store/builderStore'
 import { WARRIORS, STAT_IMPROVEMENT } from '../data/warriors'
 import { WEAPONS, CLIMBING_ITEMS, CLIMBING_DESCS, CONSUMABLES, CONSUMABLE_NAMES } from '../data/weapons'
@@ -36,8 +37,30 @@ const SvgStat = () => (
 
 // ── Main card ──────────────────────────────────────────────────────────────
 export default function WarriorCard({ slotIndex, slot }) {
-  const { selectWarrior, setCaptain, getTotalIPSpent, ipLimit } = useBuilderStore()
+  const { selectWarrior, setCaptain, setNotes, getTotalIPSpent, ipLimit } = useBuilderStore()
   const allSlots = useBuilderStore(s => s.slots)
+
+  const [expandedNotes, setExpandedNotes] = useState(() => new Set())
+  const notes = slot.notes || []
+
+  const addNote = () => {
+    setNotes(slotIndex, [{ title: '', body: '' }, ...notes])
+    setExpandedNotes(prev => {
+      const shifted = new Set(); prev.forEach(i => shifted.add(i + 1)); shifted.add(0); return shifted
+    })
+  }
+  const removeNote = (ni) => {
+    setNotes(slotIndex, notes.filter((_, i) => i !== ni))
+    setExpandedNotes(prev => {
+      const next = new Set()
+      prev.forEach(i => { if (i < ni) next.add(i); else if (i > ni) next.add(i - 1) })
+      return next
+    })
+  }
+  const updateNote = (ni, field, value) =>
+    setNotes(slotIndex, notes.map((n, i) => i === ni ? { ...n, [field]: value } : n))
+  const collapseNote = (ni) => setExpandedNotes(prev => { const s = new Set(prev); s.delete(ni); return s })
+  const expandNote  = (ni) => setExpandedNotes(prev => new Set([...prev, ni]))
 
   const wdata = slot.type ? WARRIORS[slot.type] : null
   const available = getAvailableWarriorTypes(slotIndex, allSlots)
@@ -47,8 +70,18 @@ export default function WarriorCard({ slotIndex, slot }) {
 
   return (
     <div className={`warrior-slot ${slot.isCaptain ? 'is-captain' : ''}`}>
-      {/* Warrior number — matches original exactly, no captain button here */}
-      <div className="slot-number">Warrior {slotIndex + 1}</div>
+      <div className="slot-header">
+        <div className="slot-number">Warrior {slotIndex + 1}</div>
+        {slot.type && (
+          <button
+            className={`captain-toggle ${slot.isCaptain ? 'is-captain' : ''}`}
+            onClick={() => setCaptain(slotIndex)}
+            title={slot.isCaptain ? 'Captain' : 'Set as Captain'}
+          >
+            ★
+          </button>
+        )}
+      </div>
 
       <select
         className="warrior-select"
@@ -116,6 +149,48 @@ export default function WarriorCard({ slotIndex, slot }) {
             wdata={wdata}
             poolFull={poolFull}
           />
+
+          {/* Notes */}
+          <div className="notes-section">
+            {notes.map((note, ni) =>
+              expandedNotes.has(ni) ? (
+                <div key={ni} className="note-panel">
+                  <div className="note-panel-header">
+                    <span className="note-panel-label">Note</span>
+                    <button className="note-panel-close" title="Remove" onClick={() => removeNote(ni)}>×</button>
+                  </div>
+                  <input
+                    className="note-title-input"
+                    type="text"
+                    value={note.title}
+                    onChange={e => updateNote(ni, 'title', e.target.value)}
+                    placeholder="Title (e.g. Poisoned, Inspired…)"
+                  />
+                  <div className="note-body-wrap">
+                    <textarea
+                      className="warrior-note"
+                      rows={3}
+                      value={note.body}
+                      onChange={e => updateNote(ni, 'body', e.target.value)}
+                      placeholder="Effect, conditions, house rules…"
+                    />
+                    <button className="note-save-btn" title="Save" onClick={() => collapseNote(ni)}>
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="13" height="13"><path d="M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4zm-5 16a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm3-10H5V5h10v4z"/></svg>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div key={ni} className="note-chip">
+                  <span className="note-chip-title">{note.title || 'Note'}</span>
+                  <div className="note-chip-actions">
+                    <button className="note-chip-edit" title="Edit" onClick={() => expandNote(ni)}>✎</button>
+                    <button className="note-chip-remove" title="Remove" onClick={() => removeNote(ni)}>×</button>
+                  </div>
+                </div>
+              )
+            )}
+            <button className="note-toggle" onClick={addNote}>+ Add Note</button>
+          </div>
 
         </>
       )}

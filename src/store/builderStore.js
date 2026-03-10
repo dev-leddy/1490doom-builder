@@ -100,6 +100,7 @@ function defaultState() {
       climbing: null,
       ip: [],
       isCaptain: i === 0,
+      notes: [],
     })),
   }
 }
@@ -134,7 +135,10 @@ export function encodeCompany(s) {
     const clIdx = slot.climbing ? _idx(Object.keys(CLIMBING_ITEMS), slot.climbing).toString(36) : '-'
     const ipStr = slot.ip.map(id => _idx(ALL_IP_IDS, id).toString(36)).join('') || '-'
     const cap = slot.isCaptain ? '1' : '0'
-    parts.push([wIdx, w1Idx, w2Idx, cIdx, clIdx, ipStr, cap].join(':'))
+    const notesEnc = (slot.notes && slot.notes.length)
+      ? encodeURIComponent(JSON.stringify(slot.notes))
+      : '-'
+    parts.push([wIdx, w1Idx, w2Idx, cIdx, clIdx, ipStr, cap, notesEnc].join(':'))
   })
   return btoa(parts.join('|')).replace(/=/g, '')
 }
@@ -154,15 +158,22 @@ export function decodeCompany(code) {
     const ipLimit = parseInt(parts[2], 36) || 3
     const slots = Array.from({ length: 3 }, (_, i) => {
       const raw = parts[3 + i]
-      if (!raw || raw === '_') return { type: null, weapon1: null, weapon2: null, consumable: null, climbing: null, ip: [], isCaptain: i === 0 }
-      const [wIdx, w1Idx, w2Idx, cIdx, clIdx, ipStr, cap] = raw.split(':')
+      if (!raw || raw === '_') return { type: null, weapon1: null, weapon2: null, consumable: null, climbing: null, ip: [], isCaptain: i === 0, notes: [] }
+      const [wIdx, w1Idx, w2Idx, cIdx, clIdx, ipStr, cap, notesEnc] = raw.split(':')
       const type = ALL_WARRIORS[parseInt(wIdx, 36)] || null
       const weapon1 = WEAPON_NAMES[parseInt(w1Idx, 36)] || null
       const weapon2 = w2Idx === '-' ? null : WEAPON_NAMES[parseInt(w2Idx, 36)] || null
       const consumable = cIdx === '-' ? null : ALL_CONSUMABLES[parseInt(cIdx, 36)] || null
       const climbing = clIdx === '-' ? null : Object.keys(CLIMBING_ITEMS)[parseInt(clIdx, 36)] || null
       const ip = ipStr === '-' ? [] : ipStr.split('').map(c => ALL_IP_IDS[parseInt(c, 36)]).filter(Boolean)
-      return { type, weapon1, weapon2, consumable, climbing, ip, isCaptain: cap === '1' }
+      let notes = []
+      if (notesEnc && notesEnc !== '-') {
+        try {
+          const dec = decodeURIComponent(notesEnc)
+          notes = dec.startsWith('[') ? JSON.parse(dec) : [{ title: '', body: dec }]
+        } catch {}
+      }
+      return { type, weapon1, weapon2, consumable, climbing, ip, isCaptain: cap === '1', notes }
     })
     return { mark, companyName, ipLimit, slots }
   } catch (e) {
@@ -341,6 +352,12 @@ export const useBuilderStore = create((set, get) => {
       set({ slots })
       get()._autoDraft()
     },
+    setNotes(slotIndex, notes) {
+      const slots = [...get().slots]
+      slots[slotIndex] = { ...slots[slotIndex], notes }
+      set({ slots })
+      get()._autoDraft()
+    },
 
     // ── SAVE / LOAD ────────────────────────────────────────────────────────────
     saveCompany() {
@@ -419,7 +436,7 @@ export const useBuilderStore = create((set, get) => {
 
       const slots = Array.from({ length: 3 }, (_, i) => {
         const type = picked[i] || null
-        if (!type) return { type: null, weapon1: null, weapon2: null, consumable: null, climbing: null, ip: [], isCaptain: i === 0 }
+        if (!type) return { type: null, weapon1: null, weapon2: null, consumable: null, climbing: null, ip: [], isCaptain: i === 0, notes: [] }
         const wdata = WARRIORS[type]
         const allowed = getAllowedWeapons(wdata)
         const twoHanded = ['Heavy Weapon', 'Polearm (two-handed)', 'Bow', 'Crossbow']
@@ -462,7 +479,7 @@ export const useBuilderStore = create((set, get) => {
           if (Math.random() > 0.6) { ip.push(opt.id); ipPool-- }
         }
 
-        return { type, weapon1, weapon2, consumable: null, climbing: null, ip, isCaptain: i === 0 }
+        return { type, weapon1, weapon2, consumable: null, climbing: null, ip, isCaptain: i === 0, notes: [] }
       })
       set({ mark, companyName: generateCompanyName(), ipLimit, slots })
       get()._autoDraft()

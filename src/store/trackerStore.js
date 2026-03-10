@@ -39,6 +39,7 @@ function buildWarriorTrackerState(slot, index, builderState) {
     cacheItems: [],
     statuses: [],
     isCaptain: slot.isCaptain,
+    notes: slot.notes || [],
   }
 }
 

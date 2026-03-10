@@ -212,6 +212,12 @@ export default function PrintRoster() {
                       {' — '}{ab.desc}
                     </div>
                   ))}
+                  {(slot.notes || []).map((n, ni) => (
+                    <div key={ni} className="pr-ability pr-ability-note">
+                      <span className="pr-ability-name">{n.title || 'Note'}</span>
+                      {n.body ? <>{' — '}{n.body}</> : null}
+                    </div>
+                  ))}
                 </div>
 
               </div>

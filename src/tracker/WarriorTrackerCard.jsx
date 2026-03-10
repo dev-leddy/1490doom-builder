@@ -174,6 +174,23 @@ export default function WarriorTrackerCard({ warrior: w, wi }) {
       <div className="tk-section-label" style={{ marginTop: '0.7rem' }}>Abilities</div>
       <AbilityBlock wi={wi} warrior={w} wdata={wdata} />
 
+      {/* Homebrew Notes */}
+      {(w.notes || []).length > 0 && (
+        <>
+          <div className="tk-section-label" style={{ marginTop: '0.7rem', color: '#b8972a' }}>Notes</div>
+          <div className="tk-abilities-block">
+            {(w.notes || []).map((n, ni) => (
+              <div key={ni} className="tk-ability">
+                <div className="tk-ability-header">
+                  <span className="tk-ability-name">{n.title || 'Note'}</span>
+                </div>
+                {n.body && <div className="tk-ability-desc">{n.body}</div>}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
       {/* Consumable */}
       {w.consumable && (
         <>
