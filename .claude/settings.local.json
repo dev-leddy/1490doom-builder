@@ -16,7 +16,11 @@
       "Bash(node \"D:/dev-led/1490doom-builder/verify_weapons.js\")",
       "Bash(node -e \"const f=require\\(''fs''\\).readFileSync\\(''D:/dev-led/1490doom-builder/src/data/images.js'',''utf8''\\);const m=f.match\\(/export const MARK_IMAGES = \\\\{\\([\\\\s\\\\S]*?\\)\\\\};/\\);if\\(m\\){const keys=m[1].match\\(/''\\([^'']+\\)'':/g\\);console.log\\(keys.join\\(''\\\\n''\\)\\);}\")",
       "Bash(node -e \"const f=require\\(''fs''\\).readFileSync\\(''D:/dev-led/1490doom-builder/src/data/images.js'',''utf8''\\);const start=f.indexOf\\(''MARK_IMAGES''\\);const chunk=f.slice\\(start,start+800\\);console.log\\(chunk.slice\\(0,500\\)\\);\")",
-      "Bash(curl -s http://localhost:5173/1490doom-builder/)"
+      "Bash(curl -s http://localhost:5173/1490doom-builder/)",
+      "Bash(node -e \"const {WARRIOR_IMAGES} = require\\(''./src/data/images.js''\\); console.log\\(Object.keys\\(WARRIOR_IMAGES\\)\\)\")",
+      "Bash(node -e \"const {WARRIOR_IMAGES} = require\\(''./src/data/images.js''\\); console.log\\(Object.keys\\(WARRIOR_IMAGES\\)\\); console.log\\(''Reaver starts with:'', WARRIOR_IMAGES[''Reaver'']?.substring\\(0,40\\)\\)\")",
+      "Bash(npm install -D vite-plugin-pwa)",
+      "Bash(npm install -D @vite-pwa/assets-generator)"
     ]
   }
 }
