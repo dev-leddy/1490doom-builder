@@ -656,24 +656,131 @@
   }
   .stat-val.modified { color: var(--gold); }
 
-  /* ABILITIES */
-  .abilities-list {
-    margin-bottom: 1rem;
+  /* ABILITIES — play-mode style */
+  .bd-abilities {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-bottom: 0.75rem;
   }
-  .ability-item {
-    font-size: 1rem;
-    color: var(--parchment);
-    padding: 0.2rem 0;
-    border-bottom: 1px solid var(--dim);
-    line-height: 1.4;
+  .bd-ability {
+    background: var(--ash);
+    border-left: 3px solid var(--dim);
+    padding: 0.45rem 0.65rem;
   }
-  .ability-item:last-child { border-bottom: none; }
-  .ability-name {
+  .bd-ability-name {
     font-family: 'Oswald', sans-serif;
-    font-size: 0.9rem;
-    color: var(--gold);
-    letter-spacing: 0.1em;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--bone);
     display: block;
+    margin-bottom: 0.2rem;
+  }
+  .bd-ability-desc {
+    font-size: 0.9rem;
+    color: var(--parchment);
+    line-height: 1.5;
+  }
+
+  /* BUILD CONFIG TABS */
+  .build-config {
+    margin-top: 1rem;
+  }
+  .build-tabs {
+    display: flex;
+    gap: 0.2rem;
+    flex-wrap: wrap;
+  }
+  .build-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15rem;
+    padding: 0.4rem 0.35rem;
+    background: var(--fog);
+    border: 1px solid var(--dim);
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    flex: 1;
+    min-width: 42px;
+    color: var(--mist);
+    position: relative;
+    user-select: none;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .build-tab:hover:not(.bd-locked) {
+    border-color: var(--mist);
+    color: var(--bone);
+  }
+  .build-tab.bd-selected {
+    color: var(--gold);
+    border-color: var(--gold);
+    border-bottom-color: transparent;
+  }
+  .build-tab.bd-active {
+    background: var(--dim);
+    border-bottom-color: var(--gold);
+  }
+  .build-tab.bd-locked {
+    opacity: 0.25;
+    cursor: not-allowed;
+  }
+  .build-tab-icon {
+    font-size: 1.1em;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+  }
+  .build-tab-label {
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.58rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.1rem;
+    line-height: 1.1;
+  }
+  .build-tab-free {
+    font-size: 0.52rem;
+    color: var(--mist);
+    letter-spacing: 0.04em;
+  }
+  .build-tab.bd-selected .build-tab-free { color: var(--gold); opacity: 0.7; }
+  .build-tab-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--gold);
+    display: inline-block;
+  }
+  .build-tab-x {
+    position: absolute;
+    top: 2px;
+    right: 3px;
+    font-size: 0.8rem;
+    color: var(--mist);
+    line-height: 1;
+    padding: 0 2px;
+  }
+  .build-tab-x:hover { color: var(--blood); }
+  .build-tab-panel {
+    background: var(--fog);
+    border: 1px solid var(--dim);
+    border-top: 2px solid var(--gold);
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+  /* Weapon selector inside tab panel — strip duplicate container */
+  .build-tab-panel .upgrade-detail {
+    border: none;
+    background: transparent;
+    padding: 0;
+    margin: 0;
   }
 
   /* PRIMARY WEAPON SELECT — kept for weapon dropdown */
