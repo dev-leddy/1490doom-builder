@@ -35,8 +35,8 @@ export function getSecondWeaponOptions(wdata, primaryWeapon) {
   // Polearm (one-handed) is always paired with Shield only
   if (primaryWeapon === 'Polearm (one-handed)') return ['Shield']
   const allowed = getAllowedWeapons(wdata)
-  // Light Weapon primary: dual wield only (another Light Weapon)
-  if (primaryWeapon === 'Light Weapon') return allowed.filter(w => w === 'Light Weapon')
+  // Light Weapon primary: can dual wield OR pair with a Shield
+  if (primaryWeapon === 'Light Weapon') return allowed.filter(w => w === 'Light Weapon' || w === 'Shield')
   // Other one-handed primaries: Light Weapon or Shield offhand
   return allowed.filter(w => ['Light Weapon', 'Shield'].includes(w))
 }
