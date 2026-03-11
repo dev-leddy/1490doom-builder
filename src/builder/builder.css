@@ -164,7 +164,7 @@
   .navbar-inner {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0.6rem 1.5rem;
+    padding: 1.5rem 1rem;
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -379,7 +379,7 @@
   /* ── Phone-specific (≤480px) ───────────────────────────── */
   @media (max-width: 480px) {
     /* Force entire navbar onto one row */
-    .navbar-inner { flex-wrap: nowrap; gap: 0.15rem; padding: 0.5rem 0.4rem; }
+    .navbar-inner { flex-wrap: nowrap; gap: 0.15rem; padding: 1.5rem 0.5rem; }
     .navbar-group-left { flex: 0 0 auto; gap: 0.15rem; }
     .navbar-group-center { flex: 1; flex-wrap: nowrap; gap: 0.15rem; justify-content: center; }
     .navbar-group-right { flex: 0 0 auto; }
@@ -395,7 +395,7 @@
     /* Minimal side padding on mobile */
     .builder-main { padding-left: 0.25rem !important; padding-right: 0.25rem !important; }
     .builder-content { padding: 0.5rem !important; }
-    .warrior-slot { padding: 0.5rem !important; }
+    .warrior-slot { padding: 0.8rem !important; }
   }
 
   .warrior-slot {
@@ -1910,7 +1910,7 @@
   flex-shrink: 0;
 }
 
-.builder-navbar { position:fixed;bottom:0;left:0;right:0;z-index:100;background:var(--ash);border-top:2px solid var(--gold);box-shadow:0 -4px 20px rgba(0,0,0,0.6); }
+.builder-navbar { position:fixed;bottom:0;left:0;right:0;z-index:100;background:var(--ash);border-top:2px solid var(--gold);box-shadow:0 -4px 20px rgba(0,0,0,0.6);padding-bottom:env(safe-area-inset-bottom);padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right); }
 
 .unsaved-indicator { font-family:'Oswald',sans-serif;font-size:0.7rem;letter-spacing:0.1em;color:#666;white-space:nowrap; }
 
