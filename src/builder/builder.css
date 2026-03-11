@@ -739,6 +739,11 @@
     opacity: 0.7;
     line-height: 1.5;
   }
+  .bd-equip-ability {
+    margin-top: 0.2rem;
+    opacity: 0.55;
+    font-style: italic;
+  }
 
   /* BUILD CONFIG TABS */
   .build-config {
@@ -761,13 +766,13 @@
     cursor: pointer;
     flex: 1;
     min-width: 42px;
-    color: var(--mist);
+    color: #7a7068;
     position: relative;
     user-select: none;
     transition: border-color 0.15s, color 0.15s;
   }
   .build-tab:hover:not(.bd-locked) {
-    border-color: var(--mist);
+    border-color: #7a7068;
     color: var(--bone);
   }
   .build-tab.bd-selected {

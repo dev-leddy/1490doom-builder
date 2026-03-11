@@ -17,9 +17,9 @@ const SvgWeapon1 = () => (
     <path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/>
   </svg>
 )
-const SvgWeapon2 = () => (
+const SvgOffhand = () => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="1.2em" height="1.2em">
-    <path d="M2 2l7 7-1.5 1.5L2 5V2h3l5 5.5L8.5 9 2 2zm20 0v3l-5.5 5.5L15 9l-7-7h3l4.5 5L17 5.5 14.5 3 17 2h3l2 2zM8.5 13.5l-6 6 1 1 6-6-1-1zm7 0l-1 1 6 6 1-1-6-6z"/>
+    <path d="M21 7c0-1.1-.9-2-2-2h-1V4c0-1.1-.9-2-2-2s-2 .9-2 2v1h-1c-1.1 0-2 .9-2 2v.03C10.55 6.4 9.57 6 8.5 6 6.57 6 5 7.57 5 9.5V11c-1.66.44-3 1.95-3 3.75V17c0 2.76 2.24 5 5 5h8c2.76 0 5-2.24 5-5V7zm-2 10c0 1.65-1.35 3-3 3H7c-1.65 0-3-1.35-3-3v-2.25C4 13.68 4.68 13 5.5 13H6v-3.5C6 8.67 7.17 8 8.5 8S11 8.67 11 9.5V13h1V7c0-.55.45-1 1-1s1 .45 1 1v6h1V4c0-.55.45-1 1-1s1 .45 1 1v9h1V7z"/>
   </svg>
 )
 const SvgClimbing = () => (
@@ -37,11 +37,6 @@ const SvgStat = () => (
     <path d="M12 4l-8 8h5v8h6v-8h5z"/>
   </svg>
 )
-const SvgNotes = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="1.2em" height="1.2em">
-    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
-  </svg>
-)
 
 // ── Equipment preview row (mirrors play mode WeaponRow) ─────────────────────
 function EquipRow({ name, iconKey, wpnData, overrideNote }) {
@@ -52,6 +47,9 @@ function EquipRow({ name, iconKey, wpnData, overrideNote }) {
   const noteText = overrideNote !== undefined
     ? overrideNote
     : wpnData ? [wpnData.note, wpnData.special].filter(Boolean).join(' — ') : ''
+  const abilityNote = overrideNote === undefined && wpnData?.abilityName
+    ? `${wpnData.abilityName}: ${wpnData.abilityDesc}`
+    : null
   return (
     <div className="bd-equip-row">
       {ic && <img src={ic} className="bd-equip-icon" alt="" />}
@@ -62,6 +60,7 @@ function EquipRow({ name, iconKey, wpnData, overrideNote }) {
           {rngPill && <span className="bd-equip-pill">{rngPill}</span>}
         </div>
         {noteText && <div className="bd-equip-note">{noteText}</div>}
+        {abilityNote && <div className="bd-equip-note bd-equip-ability">{abilityNote}</div>}
       </div>
     </div>
   )
@@ -227,19 +226,49 @@ export default function WarriorCard({ slotIndex, slot }) {
           <SlotEquipment slot={slot} wdata={wdata} />
 
           {/* Build config — tabbed */}
-          <BuildConfig
-            slotIndex={slotIndex}
-            slot={slot}
-            wdata={wdata}
-            poolFull={poolFull}
-            notes={notes}
-            addNote={addNote}
-            removeNote={removeNote}
-            updateNote={updateNote}
-            expandedNotes={expandedNotes}
-            collapseNote={collapseNote}
-            expandNote={expandNote}
-          />
+          <BuildConfig slotIndex={slotIndex} slot={slot} wdata={wdata} poolFull={poolFull} />
+
+          {/* Notes — standalone at bottom */}
+          <div className="notes-section">
+            {notes.map((note, ni) =>
+              expandedNotes.has(ni) ? (
+                <div key={ni} className="note-panel">
+                  <div className="note-panel-header">
+                    <span className="note-panel-label">Note</span>
+                    <button className="note-panel-close" title="Remove" onClick={() => removeNote(ni)}>×</button>
+                  </div>
+                  <input
+                    className="note-title-input"
+                    type="text"
+                    value={note.title}
+                    onChange={e => updateNote(ni, 'title', e.target.value)}
+                    placeholder="Title (e.g. Poisoned, Inspired…)"
+                  />
+                  <div className="note-body-wrap">
+                    <textarea
+                      className="warrior-note"
+                      rows={3}
+                      value={note.body}
+                      onChange={e => updateNote(ni, 'body', e.target.value)}
+                      placeholder="Effect, conditions, house rules…"
+                    />
+                    <button className="note-save-btn" title="Save" onClick={() => collapseNote(ni)}>
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="13" height="13"><path d="M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4zm-5 16a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm3-10H5V5h10v4z"/></svg>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div key={ni} className="note-chip">
+                  <span className="note-chip-title">{note.title || 'Note'}</span>
+                  <div className="note-chip-actions">
+                    <button className="note-chip-edit" title="Edit" onClick={() => expandNote(ni)}>✎</button>
+                    <button className="note-chip-remove" title="Remove" onClick={() => removeNote(ni)}>×</button>
+                  </div>
+                </div>
+              )
+            )}
+            <button className="note-toggle" onClick={addNote}>+ Add Note</button>
+          </div>
         </>
       )}
     </div>
@@ -286,7 +315,9 @@ function WeaponSelector({ label, labelIcon, slotIndex, slot, options, propKey, p
           const ic = ITEM_ICONS[wn]
           const isPolearmOneHand = wn === 'Polearm (one-handed)'
           const needsIP = isPolearmOneHand && current !== wn && poolFull && !slot.ip?.includes('weapon2')
-          const stats = wd && wd.damage > 0 ? `${wd.range} · DMG ${wd.damage}` : wd?.note || null
+          const stats = wd && wd.damage > 0
+            ? `${wd.range} · DMG ${wd.damage}`
+            : wd?.range && wd.range !== '—' ? wd.range : null
           const abilityLine = wd?.abilityName ? `${wd.abilityName}: ${wd.abilityDesc}` : null
           return (
             <button
@@ -325,7 +356,7 @@ function WeaponSelector({ label, labelIcon, slotIndex, slot, options, propKey, p
 // ── Build config — tabbed ────────────────────────────────────────────────────
 const IP_TAB_IDS = ['weapon2', 'climbing', 'consumable', 'stat']
 
-function BuildConfig({ slotIndex, slot, wdata, poolFull, notes, addNote, removeNote, updateNote, expandedNotes, collapseNote, expandNote }) {
+function BuildConfig({ slotIndex, slot, wdata, poolFull }) {
   const [activeTab, setActiveTab] = useState(() => slot.weapon1 ? null : 'weapon1')
   const { toggleIP, setWarriorProp } = useBuilderStore()
 
@@ -381,16 +412,15 @@ function BuildConfig({ slotIndex, slot, wdata, poolFull, notes, addNote, removeN
     if (activeTab === id) setActiveTab(null)
   }
 
-  const weapon2Label  = hasFixedDualWield ? 'Dual Wield' : (hasFixedShield || primaryIsPolearmOne) ? 'Shield' : '2nd Wpn'
+  const weapon2Label  = hasFixedDualWield ? 'Dual Wield' : (hasFixedShield || primaryIsPolearmOne) ? 'Shield' : 'Off-hand'
   const weapon2IsFree = hasFixedShield || hasFixedDualWield || primaryIsPolearmOne
 
   const tabs = [
     { id: 'weapon1',    label: 'Weapon',   SvgIcon: SvgWeapon1 },
-    { id: 'weapon2',    label: weapon2Label, SvgIcon: SvgWeapon2, isFree: weapon2IsFree },
+    { id: 'weapon2',    label: weapon2Label, SvgIcon: SvgOffhand, isFree: weapon2IsFree },
     { id: 'climbing',   label: 'Gear',     SvgIcon: SvgClimbing },
     { id: 'consumable', label: 'Supply',   SvgIcon: SvgConsumable },
     { id: 'stat',       label: 'Stat',     SvgIcon: SvgStat },
-    { id: 'notes',      label: 'Notes',    SvgIcon: SvgNotes },
   ]
 
   return (
@@ -402,7 +432,6 @@ function BuildConfig({ slotIndex, slot, wdata, poolFull, notes, addNote, removeN
           const active    = activeTab === tab.id
           // × shows on any non-fixed IP tab when an item is selected
           const canRemove = isIPTab(tab.id) && isTabSelected(tab.id) && !isFixed(tab.id)
-          const hasNotesDot = tab.id === 'notes' && notes.length > 0
           return (
             <button
               key={tab.id}
@@ -415,7 +444,6 @@ function BuildConfig({ slotIndex, slot, wdata, poolFull, notes, addNote, removeN
               <span className="build-tab-label">
                 {tab.label}
                 {tab.isFree && <span className="build-tab-free">FREE</span>}
-                {hasNotesDot && <span className="build-tab-dot" />}
               </span>
               {canRemove && (
                 <span className="build-tab-x" onClick={e => removeUpgrade(e, tab.id)}>×</span>
@@ -538,48 +566,6 @@ function BuildConfig({ slotIndex, slot, wdata, poolFull, notes, addNote, removeN
             </div>
           )}
 
-          {activeTab === 'notes' && (
-            <div className="notes-section">
-              {notes.map((note, ni) =>
-                expandedNotes.has(ni) ? (
-                  <div key={ni} className="note-panel">
-                    <div className="note-panel-header">
-                      <span className="note-panel-label">Note</span>
-                      <button className="note-panel-close" title="Remove" onClick={() => removeNote(ni)}>×</button>
-                    </div>
-                    <input
-                      className="note-title-input"
-                      type="text"
-                      value={note.title}
-                      onChange={e => updateNote(ni, 'title', e.target.value)}
-                      placeholder="Title (e.g. Poisoned, Inspired…)"
-                    />
-                    <div className="note-body-wrap">
-                      <textarea
-                        className="warrior-note"
-                        rows={3}
-                        value={note.body}
-                        onChange={e => updateNote(ni, 'body', e.target.value)}
-                        placeholder="Effect, conditions, house rules…"
-                      />
-                      <button className="note-save-btn" title="Save" onClick={() => collapseNote(ni)}>
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="13" height="13"><path d="M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4zm-5 16a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm3-10H5V5h10v4z"/></svg>
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div key={ni} className="note-chip">
-                    <span className="note-chip-title">{note.title || 'Note'}</span>
-                    <div className="note-chip-actions">
-                      <button className="note-chip-edit" title="Edit" onClick={() => expandNote(ni)}>✎</button>
-                      <button className="note-chip-remove" title="Remove" onClick={() => removeNote(ni)}>×</button>
-                    </div>
-                  </div>
-                )
-              )}
-              <button className="note-toggle" onClick={addNote}>+ Add Note</button>
-            </div>
-          )}
         </div>
       )}
     </div>
