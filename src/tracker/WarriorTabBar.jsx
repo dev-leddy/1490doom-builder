@@ -8,8 +8,6 @@ export default function WarriorTabBar() {
       {warriors.map((w, i) => {
         const isActive = !refOpen && activeWarriorIdx === i
         const isDead = w.dead || w.currentVit <= 0
-        const shortName = w.type.split(' ')[0]
-
         return (
           <button
             key={i}
@@ -18,7 +16,7 @@ export default function WarriorTabBar() {
           >
             {w.isCaptain && <span className="tk-tab-captain-dot">★</span>}
             <span className="tk-tab-vit">{isDead ? '☠' : w.currentVit}</span>
-            <span className="tk-tab-name">{shortName}</span>
+            <span className="tk-tab-name">{w.type}</span>
           </button>
         )
       })}

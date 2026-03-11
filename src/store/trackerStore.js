@@ -34,6 +34,7 @@ function buildWarriorTrackerState(slot, index, builderState) {
     currentVit: maxVit,
     dead: false,
     opgUsed: {},
+    oprUsed: {},
     consumableUsed: false,
     reliquaryUsed: false,
     cacheItems: [],
@@ -93,6 +94,7 @@ export const useTrackerStore = create((set, get) => ({
         currentVit: w.maxVit,
         dead: false,
         opgUsed: {},
+        oprUsed: {},
         consumableUsed: false,
         reliquaryUsed: false,
         cacheItems: [],
@@ -103,7 +105,10 @@ export const useTrackerStore = create((set, get) => ({
 
   // ── ROUND ──────────────────────────────────────────────────────────────────
   changeRound(delta) {
-    set(state => ({ round: Math.max(1, state.round + delta) }))
+    set(state => ({
+      round: Math.max(1, state.round + delta),
+      warriors: state.warriors.map(w => ({ ...w, oprUsed: {} })),
+    }))
   },
 
   // ── NAVIGATION ─────────────────────────────────────────────────────────────
@@ -155,6 +160,45 @@ export const useTrackerStore = create((set, get) => ({
         })
       }
     )
+  },
+
+  // ── TPG (TWICE PER GAME) ABILITIES ─────────────────────────────────────────
+  tapTPG(wi, abilityName) {
+    const w = get().warriors[wi]
+    if (w.dead) return
+    const count = w.opgUsed[abilityName] || 0
+    const next = count >= 2 ? 0 : count + 1
+    const msg = next === 0
+      ? `Restore ${abilityName}?`
+      : next === 1
+        ? `Use ${abilityName} (1st of 2)?`
+        : `Use ${abilityName} (2nd of 2)?`
+    const sub = next === 0
+      ? 'Mark both uses as available again.'
+      : next === 2
+        ? 'Both uses will now be spent.'
+        : 'One use will be spent. One remains.'
+    get().openConfirm(msg, sub, () => {
+      set(state => {
+        const warriors = [...state.warriors]
+        const w = { ...warriors[wi], opgUsed: { ...warriors[wi].opgUsed } }
+        w.opgUsed[abilityName] = next
+        warriors[wi] = w
+        return { warriors }
+      })
+    })
+  },
+
+  // ── OPR (ONCE PER ROUND) ABILITIES ─────────────────────────────────────────
+  toggleOPR(wi, abilityName) {
+    set(state => {
+      const warriors = [...state.warriors]
+      const w = { ...warriors[wi], oprUsed: { ...warriors[wi].oprUsed } }
+      if (w.dead) return state
+      w.oprUsed[abilityName] = !w.oprUsed[abilityName]
+      warriors[wi] = w
+      return { warriors }
+    })
   },
 
   // ── CONSUMABLE ─────────────────────────────────────────────────────────────

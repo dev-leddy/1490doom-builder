@@ -395,13 +395,13 @@
     /* Minimal side padding on mobile */
     .builder-main { padding-left: 0.25rem !important; padding-right: 0.25rem !important; }
     .builder-content { padding: 0.5rem !important; }
-    .warrior-slot { padding: 0.8rem !important; }
+    .warrior-slot { padding: 1rem !important; }
   }
 
   .warrior-slot {
     background: var(--ash);
     border: 1px solid var(--dim);
-    padding: 1.5rem 1.5rem 1.5rem;
+    padding: 1rem;
     padding-top: 1.85rem;
     position: relative;
     transition: border-color 0.2s;
@@ -434,6 +434,19 @@
     letter-spacing: 0.3em;
     color: var(--bone);
     text-transform: uppercase;
+  }
+  .slot-name-input {
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.8rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--bone);
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--gold);
+    outline: none;
+    width: 12ch;
+    padding: 0;
   }
   .captain-toggle {
     background: none;

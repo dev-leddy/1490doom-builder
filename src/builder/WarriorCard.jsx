@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { useBuilderStore, getAvailableWarriorTypes, getAllowedWeapons, getSecondWeaponOptions } from '../store/builderStore'
 import { WARRIORS, STAT_IMPROVEMENT } from '../data/warriors'
 import { WEAPONS, CLIMBING_ITEMS, CLIMBING_DESCS, CONSUMABLES, CONSUMABLE_NAMES } from '../data/weapons'
@@ -37,10 +37,12 @@ const SvgStat = () => (
 
 // ── Main card ──────────────────────────────────────────────────────────────
 export default function WarriorCard({ slotIndex, slot }) {
-  const { selectWarrior, setCaptain, setNotes, getTotalIPSpent, ipLimit } = useBuilderStore()
+  const { selectWarrior, setCaptain, setNotes, setWarriorProp, getTotalIPSpent, ipLimit } = useBuilderStore()
   const allSlots = useBuilderStore(s => s.slots)
 
   const [expandedNotes, setExpandedNotes] = useState(() => new Set())
+  const [editingName, setEditingName] = useState(false)
+  const longPressRef = useRef(null)
   const notes = slot.notes || []
 
   const addNote = () => {
@@ -71,7 +73,29 @@ export default function WarriorCard({ slotIndex, slot }) {
   return (
     <div className={`warrior-slot ${slot.isCaptain ? 'is-captain' : ''}`}>
       <div className="slot-header">
-        <div className="slot-number">Warrior {slotIndex + 1}</div>
+        <div className="slot-number">
+          {editingName ? (
+            <input
+              className="slot-name-input"
+              autoFocus
+              value={slot.customName || ''}
+              placeholder={`Warrior ${slotIndex + 1}`}
+              onChange={e => setWarriorProp(slotIndex, 'customName', e.target.value)}
+              onBlur={() => setEditingName(false)}
+              onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') setEditingName(false) }}
+            />
+          ) : (
+            <span
+              onDoubleClick={() => setEditingName(true)}
+              onTouchStart={() => { longPressRef.current = setTimeout(() => setEditingName(true), 500) }}
+              onTouchEnd={() => clearTimeout(longPressRef.current)}
+              onTouchMove={() => clearTimeout(longPressRef.current)}
+              title="Double-click to rename"
+            >
+              {slot.customName || `Warrior ${slotIndex + 1}`}
+            </span>
+          )}
+        </div>
         {slot.type && (
           <button
             className={`captain-toggle ${slot.isCaptain ? 'is-captain' : ''}`}
@@ -239,7 +263,8 @@ function WeaponSelector({ label, labelIcon, slotIndex, slot, options, propKey, p
           const needsIP = isPolearmOneHand && current !== wn && poolFull && !slot.ip?.includes('weapon2')
           const stats = wd && wd.damage > 0
             ? `${wd.range} · DMG ${wd.damage}`
-            : null
+            : wd?.note || null
+          const abilityLine = wd?.abilityName ? `${wd.abilityName}: ${wd.abilityDesc}` : null
 
           return (
             <button
@@ -259,6 +284,7 @@ function WeaponSelector({ label, labelIcon, slotIndex, slot, options, propKey, p
               <span className="upgrade-btn-text">
                 <span className="upgrade-btn-name">{wn}</span>
                 {stats && <span className="upgrade-btn-stats">{stats}</span>}
+                {abilityLine && <span className="upgrade-btn-stats">{abilityLine}</span>}
                 {needsIP && <span className="polearm-ip-note">Requires 1 IP (Shield)</span>}
               </span>
             </button>
@@ -346,13 +372,17 @@ function IPOptions({ slotIndex, slot, wdata, poolFull }) {
       </div>
 
       {/* Second Weapon sub-panel */}
-      {slot.ip?.includes('weapon2') && !primaryIsPolearmOneHanded && !hasFixedShield && !hasFixedDualWield && (
+      {(slot.ip?.includes('weapon2') || hasFixedShield || hasFixedDualWield) && (
         <WeaponSelector
           label="Choose Second Weapon"
           labelIcon={<SvgWeapon2 />}
           slotIndex={slotIndex}
           slot={slot}
-          options={getSecondWeaponOptions(wdata, slot.weapon1)}
+          options={
+            hasFixedShield ? ['Shield'] :
+            hasFixedDualWield ? ['Light Weapon'] :
+            getSecondWeaponOptions(wdata, slot.weapon1)
+          }
           propKey="weapon2"
           poolFull={poolFull}
           iconSize={28}

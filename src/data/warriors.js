@@ -153,7 +153,7 @@ export const WARRIORS = {
   'Warrior Priest': {
     stats: { MOV: 4, ATK: 1, VIT: 5, SKL: '4+', COM: '5+', DEF: '5+' },
     abilities: [
-      { name: 'HEAL THE FLOCK', desc: 'A Warrior Priest may spend one action per turn to heal a friendly model in base to base contact for 2 VITALITY, or heal itself for 1 VITALITY.' },
+      { name: 'HEAL THE FLOCK', desc: 'Once per round, a Warrior Priest may spend one action to heal a friendly model in base to base contact for 2 VITALITY, or heal itself for 1 VITALITY.' },
       { name: 'LAST RITES', desc: 'Once per game, a Warrior Priest may perform LAST RITES within 6 inches of where a friendly model Perished after the Warrior Priest\'s last activation. That Perished model is revived with 1 VITALITY. Place them exactly where they Perished. This does not cost an action. (Until your Warrior Priest has used LAST RITES, mark where friendly models have Perished until the Warrior Priest finishes their next activation.)' },
       { name: 'FEAR OF GOD', desc: 'Once per game, a Warrior Priest may intimidate an enemy within 1 inch instilling the FEAR OF GOD. Push that model 2 inches directly away from the Warrior Priest ignoring Barriers. If that model comes in contact with an edge they fall. They may not make a SKILL Check to prevent themselves from falling. This ability cannot be prevented by a shield.' },
     ],

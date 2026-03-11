@@ -16,7 +16,7 @@ export default function CacheBlock({ wi, warrior: w }) {
           <div className="tk-ability-header">
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
               {ITEM_ICONS[item.name] && (
-                <img src={ITEM_ICONS[item.name]} style={{ width: '1.1rem', height: '1.1rem', opacity: 0.8 }} alt="" />
+                <img src={ITEM_ICONS[item.name]} style={{ width: '1.1rem', height: '1.1rem', filter: 'brightness(0) invert(1)', opacity: 0.9 }} alt="" />
               )}
               <span className="tk-ability-name">{item.name}</span>
             </div>

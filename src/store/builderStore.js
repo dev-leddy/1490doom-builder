@@ -34,11 +34,14 @@ export function getSecondWeaponOptions(wdata, primaryWeapon) {
   if (twoHanded.includes(primaryWeapon)) return []
   // Polearm (one-handed) is always paired with Shield only
   if (primaryWeapon === 'Polearm (one-handed)') return ['Shield']
-  const allowed = getAllowedWeapons(wdata)
-  // Light Weapon primary: can dual wield OR pair with a Shield
-  if (primaryWeapon === 'Light Weapon') return allowed.filter(w => w === 'Light Weapon' || w === 'Shield')
+  const allowed = getAllowedWeapons(wdata) // Shield is stripped here (primary-only filter)
+  const canShield = (wdata.allowedWeapons || []).includes('Shield')
+  // Light Weapon primary: can dual wield OR pair with a Shield (if class allows it)
+  if (primaryWeapon === 'Light Weapon') {
+    return [...allowed.filter(w => w === 'Light Weapon'), ...(canShield ? ['Shield'] : [])]
+  }
   // Other one-handed primaries: Light Weapon or Shield offhand
-  return allowed.filter(w => ['Light Weapon', 'Shield'].includes(w))
+  return [...allowed.filter(w => w === 'Light Weapon'), ...(canShield ? ['Shield'] : [])]
 }
 
 export function isOPG(abilityName) {
@@ -101,6 +104,7 @@ function defaultState() {
       ip: [],
       isCaptain: i === 0,
       notes: [],
+      customName: null,
     })),
   }
 }
@@ -138,7 +142,8 @@ export function encodeCompany(s) {
     const notesEnc = (slot.notes && slot.notes.length)
       ? encodeURIComponent(JSON.stringify(slot.notes))
       : '-'
-    parts.push([wIdx, w1Idx, w2Idx, cIdx, clIdx, ipStr, cap, notesEnc].join(':'))
+    const nameEnc = slot.customName ? encodeURIComponent(slot.customName) : '-'
+    parts.push([wIdx, w1Idx, w2Idx, cIdx, clIdx, ipStr, cap, notesEnc, nameEnc].join(':'))
   })
   return btoa(parts.join('|')).replace(/=/g, '')
 }
@@ -159,7 +164,7 @@ export function decodeCompany(code) {
     const slots = Array.from({ length: 3 }, (_, i) => {
       const raw = parts[3 + i]
       if (!raw || raw === '_') return { type: null, weapon1: null, weapon2: null, consumable: null, climbing: null, ip: [], isCaptain: i === 0, notes: [] }
-      const [wIdx, w1Idx, w2Idx, cIdx, clIdx, ipStr, cap, notesEnc] = raw.split(':')
+      const [wIdx, w1Idx, w2Idx, cIdx, clIdx, ipStr, cap, notesEnc, nameEnc] = raw.split(':')
       const type = ALL_WARRIORS[parseInt(wIdx, 36)] || null
       const weapon1 = WEAPON_NAMES[parseInt(w1Idx, 36)] || null
       const weapon2 = w2Idx === '-' ? null : WEAPON_NAMES[parseInt(w2Idx, 36)] || null
@@ -173,7 +178,8 @@ export function decodeCompany(code) {
           notes = dec.startsWith('[') ? JSON.parse(dec) : [{ title: '', body: dec }]
         } catch {}
       }
-      return { type, weapon1, weapon2, consumable, climbing, ip, isCaptain: cap === '1', notes }
+      const customName = nameEnc && nameEnc !== '-' ? decodeURIComponent(nameEnc) : null
+      return { type, weapon1, weapon2, consumable, climbing, ip, isCaptain: cap === '1', notes, customName }
     })
     return { mark, companyName, ipLimit, slots }
   } catch (e) {

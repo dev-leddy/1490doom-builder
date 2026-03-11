@@ -1,5 +1,6 @@
 import { useTrackerStore } from '../store/trackerStore'
 import { ACTION_DEFS, STATUS_DEFS, CACHE_ITEMS } from '../data/items'
+import { ITEM_ICONS } from '../data/images'
 
 export default function QuickRefPanel() {
   const closeRef = useTrackerStore(s => s.closeRef)
@@ -27,7 +28,12 @@ export default function QuickRefPanel() {
           {[...STATUS_DEFS].sort(([a], [b]) => a.localeCompare(b)).map(([name, desc]) => (
             <div key={name} className="tk-ability">
               <div className="tk-ability-header">
-                <span className="tk-ability-name">{name}</span>
+                <span className="tk-ability-name" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                  {ITEM_ICONS[name] && (
+                    <img src={ITEM_ICONS[name]} style={{ width: '1.1rem', height: '1.1rem', filter: 'brightness(0) invert(1)', opacity: 0.9 }} alt="" />
+                  )}
+                  {name}
+                </span>
               </div>
               <div className="tk-ability-desc">{desc}</div>
             </div>
@@ -61,7 +67,12 @@ export default function QuickRefPanel() {
               <tr key={item.roll}>
                 <td>{item.roll}</td>
                 <td>
-                  <strong>{item.name}</strong>
+                  <strong style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                    {ITEM_ICONS[item.name] && (
+                      <img src={ITEM_ICONS[item.name]} style={{ width: '1.1rem', height: '1.1rem', filter: 'brightness(0) invert(1)', opacity: 0.9 }} alt="" />
+                    )}
+                    {item.name}
+                  </strong>
                   {' — '}{item.desc}
                 </td>
               </tr>
