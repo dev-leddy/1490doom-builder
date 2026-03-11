@@ -427,7 +427,8 @@ function BuildConfig({ slotIndex, slot, wdata, poolFull }) {
     <div className="build-config">
       <div className="build-tabs">
         {tabs.map(tab => {
-          const selected  = isTabSelected(tab.id)
+          const isFreeEquipped = isFixed(tab.id)
+          const selected  = isTabSelected(tab.id) && !isFreeEquipped
           const locked    = isTabLocked(tab.id)
           const active    = activeTab === tab.id
           // × shows on any non-fixed IP tab when an item is selected
@@ -435,7 +436,7 @@ function BuildConfig({ slotIndex, slot, wdata, poolFull }) {
           return (
             <button
               key={tab.id}
-              className={`build-tab${selected ? ' bd-selected' : ''}${active ? ' bd-active' : ''}${locked ? ' bd-locked' : ''}`}
+              className={`build-tab${selected ? ' bd-selected' : ''}${isFreeEquipped ? ' bd-free' : ''}${active ? ' bd-active' : ''}${locked ? ' bd-locked' : ''}`}
               onClick={() => handleTabClick(tab.id)}
               disabled={locked}
               title={locked ? (primaryIsTwoHanded ? 'Two-handed weapon equipped' : 'IP pool full') : ''}
