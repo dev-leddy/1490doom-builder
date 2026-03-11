@@ -5,9 +5,7 @@ import { WEAPONS, CLIMBING_ITEMS, CLIMBING_DESCS, CONSUMABLES, CONSUMABLE_NAMES 
 import { WARRIOR_IMAGES, ITEM_ICONS } from '../data/images'
 
 function improveStatDisplay(base, stat) {
-  if (stat === 'SKL' || stat === 'DEF' || stat === 'COM') {
-    return (parseInt(base) - 1) + '+'
-  }
+  if (stat === 'SKL' || stat === 'DEF' || stat === 'COM') return (parseInt(base) - 1) + '+'
   return parseInt(base) + 1
 }
 
@@ -44,6 +42,70 @@ const SvgNotes = () => (
     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
   </svg>
 )
+
+// ── Equipment preview row (mirrors play mode WeaponRow) ─────────────────────
+function EquipRow({ name, iconKey, wpnData, overrideNote }) {
+  if (!name) return null
+  const ic = ITEM_ICONS[iconKey || name]
+  const dmgPill = wpnData?.damage > 0 ? `DMG ${wpnData.damage}` : null
+  const rngPill = wpnData?.range && wpnData.range !== '—' ? `RNG ${wpnData.range}` : null
+  const noteText = overrideNote !== undefined
+    ? overrideNote
+    : wpnData ? [wpnData.note, wpnData.special].filter(Boolean).join(' — ') : ''
+  return (
+    <div className="bd-equip-row">
+      {ic && <img src={ic} className="bd-equip-icon" alt="" />}
+      <div className="bd-equip-body">
+        <div className="bd-equip-name-line">
+          <span className="bd-equip-name">{name}</span>
+          {dmgPill && <span className="bd-equip-pill">{dmgPill}</span>}
+          {rngPill && <span className="bd-equip-pill">{rngPill}</span>}
+        </div>
+        {noteText && <div className="bd-equip-note">{noteText}</div>}
+      </div>
+    </div>
+  )
+}
+
+function SlotEquipment({ slot, wdata }) {
+  const isDualWield = slot.weapon1 === 'Light Weapon' && slot.weapon2 === 'Light Weapon'
+  const hasGear = slot.weapon1 || slot.weapon2 || (slot.climbing && slot.climbing !== 'None') || slot.consumable || (slot.statImprove && slot.ip?.includes('stat'))
+  if (!hasGear) return null
+
+  return (
+    <div className="bd-equip-block">
+      {isDualWield ? (
+        <EquipRow
+          name="Dual Light Weapons"
+          iconKey="Dual Wield"
+          wpnData={{ damage: 1, range: 'Contact' }}
+          overrideNote="Two light weapons. +1 Attack die on all attacks."
+        />
+      ) : (
+        <>
+          {slot.weapon1 && <EquipRow name={slot.weapon1} wpnData={WEAPONS[slot.weapon1]} />}
+          {slot.weapon2 && <EquipRow name={slot.weapon2} wpnData={WEAPONS[slot.weapon2]} />}
+        </>
+      )}
+      {slot.climbing && slot.climbing !== 'None' && (() => {
+        const cd = CLIMBING_ITEMS[slot.climbing]
+        const cdesc = CLIMBING_DESCS[slot.climbing] || ''
+        const pills = cd ? `HT ${cd.height} · SKILL ${cd.skillCheck}` : ''
+        return <EquipRow name={slot.climbing} overrideNote={[pills, cdesc].filter(Boolean).join(' — ')} />
+      })()}
+      {slot.consumable && (
+        <EquipRow name={slot.consumable} overrideNote={CONSUMABLES[slot.consumable] || ''} />
+      )}
+      {slot.statImprove && slot.ip?.includes('stat') && (
+        <EquipRow
+          name={STAT_IMPROVEMENT[slot.statImprove]}
+          iconKey={null}
+          overrideNote="Stat improvement applied"
+        />
+      )}
+    </div>
+  )
+}
 
 // ── Main card ──────────────────────────────────────────────────────────────
 export default function WarriorCard({ slotIndex, slot }) {
@@ -111,9 +173,7 @@ export default function WarriorCard({ slotIndex, slot }) {
             className={`captain-toggle ${slot.isCaptain ? 'is-captain' : ''}`}
             onClick={() => setCaptain(slotIndex)}
             title={slot.isCaptain ? 'Captain' : 'Set as Captain'}
-          >
-            ★
-          </button>
+          >★</button>
         )}
       </div>
 
@@ -123,9 +183,7 @@ export default function WarriorCard({ slotIndex, slot }) {
         onChange={e => selectWarrior(slotIndex, e.target.value || null)}
       >
         <option value="">— Choose Warrior —</option>
-        {available.map(wt => (
-          <option key={wt} value={wt}>{wt}</option>
-        ))}
+        {available.map(wt => <option key={wt} value={wt}>{wt}</option>)}
         {slot.type && !available.includes(slot.type) && (
           <option value={slot.type}>{slot.type}</option>
         )}
@@ -164,6 +222,9 @@ export default function WarriorCard({ slotIndex, slot }) {
           {wdata.restrictions && (
             <div className="restriction-note">{wdata.restrictions}</div>
           )}
+
+          {/* Equipment preview — play-mode style */}
+          <SlotEquipment slot={slot} wdata={wdata} />
 
           {/* Build config — tabbed */}
           <BuildConfig
@@ -206,7 +267,7 @@ function StatsRow({ slot, wdata }) {
 }
 
 // ── Weapon selector ──────────────────────────────────────────────────────────
-function WeaponSelector({ label, labelIcon, slotIndex, slot, options, propKey, poolFull, iconSize = 28 }) {
+function WeaponSelector({ label, labelIcon, slotIndex, slot, options, propKey, poolFull, iconSize = 28, onSelect }) {
   const setWarriorProp = useBuilderStore(s => s.setWarriorProp)
   const current = slot[propKey]
   const wpnData = current ? WEAPONS[current] : null
@@ -225,26 +286,22 @@ function WeaponSelector({ label, labelIcon, slotIndex, slot, options, propKey, p
           const ic = ITEM_ICONS[wn]
           const isPolearmOneHand = wn === 'Polearm (one-handed)'
           const needsIP = isPolearmOneHand && current !== wn && poolFull && !slot.ip?.includes('weapon2')
-          const stats = wd && wd.damage > 0
-            ? `${wd.range} · DMG ${wd.damage}`
-            : wd?.note || null
+          const stats = wd && wd.damage > 0 ? `${wd.range} · DMG ${wd.damage}` : wd?.note || null
           const abilityLine = wd?.abilityName ? `${wd.abilityName}: ${wd.abilityDesc}` : null
-
           return (
             <button
               key={wn}
               className={`upgrade-choice-btn ${current === wn ? 'active' : ''}`}
               disabled={needsIP}
               title={needsIP ? 'Requires 1 IP for mandatory Shield — pool full' : ''}
-              onClick={() => !needsIP && setWarriorProp(slotIndex, propKey, wn === 'None' ? null : wn)}
+              onClick={() => {
+                if (needsIP) return
+                const newVal = wn === 'None' ? null : wn
+                setWarriorProp(slotIndex, propKey, newVal)
+                onSelect?.(newVal)
+              }}
             >
-              {ic && (
-                <img
-                  src={ic}
-                  alt=""
-                  style={{ width: iconSize, height: iconSize, filter: 'sepia(0.3) brightness(0.95)', opacity: 0.9, flexShrink: 0 }}
-                />
-              )}
+              {ic && <img src={ic} alt="" style={{ width: iconSize, height: iconSize, filter: 'sepia(0.3) brightness(0.95)', opacity: 0.9, flexShrink: 0 }} />}
               <span className="upgrade-btn-text">
                 <span className="upgrade-btn-name">{wn}</span>
                 {stats && <span className="upgrade-btn-stats">{stats}</span>}
@@ -272,19 +329,24 @@ function BuildConfig({ slotIndex, slot, wdata, poolFull, notes, addNote, removeN
   const [activeTab, setActiveTab] = useState(() => slot.weapon1 ? null : 'weapon1')
   const { toggleIP, setWarriorProp } = useBuilderStore()
 
-  const hasFixedShield       = wdata?.fixedShield || false
-  const hasFixedDualWield    = wdata?.fixedDualWield || false
-  const primaryIsTwoHanded   = TWO_HANDED.has(slot.weapon1)
-  const primaryIsPolearmOne  = slot.weapon1 === 'Polearm (one-handed)'
+  const hasFixedShield    = wdata?.fixedShield || false
+  const hasFixedDualWield = wdata?.fixedDualWield || false
+  const primaryIsTwoHanded  = TWO_HANDED.has(slot.weapon1)
+  const primaryIsPolearmOne = slot.weapon1 === 'Polearm (one-handed)'
 
-  const isIPTab   = id => IP_TAB_IDS.includes(id)
-  const isFixed   = id => id === 'weapon2' && (hasFixedShield || hasFixedDualWield || primaryIsPolearmOne)
+  const isIPTab = id => IP_TAB_IDS.includes(id)
+  const isFixed = id => id === 'weapon2' && (hasFixedShield || hasFixedDualWield || primaryIsPolearmOne)
 
+  // Tab is "selected" (highlighted gold) when an actual item is chosen
   const isTabSelected = id => {
-    if (id === 'weapon2') return slot.ip?.includes('weapon2') || hasFixedShield || hasFixedDualWield
-    return slot.ip?.includes(id) || false
+    if (id === 'weapon2') return !!slot.weapon2 || hasFixedShield || hasFixedDualWield
+    if (id === 'climbing')   return !!slot.climbing && slot.climbing !== 'None'
+    if (id === 'consumable') return !!slot.consumable
+    if (id === 'stat')       return !!slot.statImprove && slot.ip?.includes('stat')
+    return false
   }
 
+  // Tab is locked (can't open) when pool is full and nothing selected yet
   const isTabLocked = id => {
     if (id === 'weapon2') {
       if (isFixed(id)) return false
@@ -297,20 +359,29 @@ function BuildConfig({ slotIndex, slot, wdata, poolFull, notes, addNote, removeN
 
   const handleTabClick = id => {
     if (isTabLocked(id)) return
-    if (activeTab === id) { setActiveTab(null); return }
-    if (isIPTab(id) && !isTabSelected(id) && !isFixed(id) && !poolFull) {
-      toggleIP(slotIndex, id, true)
-    }
-    setActiveTab(id)
+    setActiveTab(prev => prev === id ? null : id)
   }
 
+  // Spend IP when a specific item is picked (called from panel handlers)
+  const spendIP = id => {
+    if (!slot.ip?.includes(id) && !poolFull) toggleIP(slotIndex, id, true)
+  }
+  const freeIP = id => {
+    if (slot.ip?.includes(id)) toggleIP(slotIndex, id, false)
+  }
+
+  // × button: clear the item + return the IP
   const removeUpgrade = (e, id) => {
     e.stopPropagation()
-    if (slot.ip?.includes(id)) toggleIP(slotIndex, id, false)
+    if (id === 'climbing')   setWarriorProp(slotIndex, 'climbing',    null)
+    if (id === 'consumable') setWarriorProp(slotIndex, 'consumable',  null)
+    if (id === 'stat')       setWarriorProp(slotIndex, 'statImprove', null)
+    if (id === 'weapon2')    setWarriorProp(slotIndex, 'weapon2',     null)
+    freeIP(id)
     if (activeTab === id) setActiveTab(null)
   }
 
-  const weapon2Label = hasFixedDualWield ? 'Dual Wield' : (hasFixedShield || primaryIsPolearmOne) ? 'Shield' : '2nd Wpn'
+  const weapon2Label  = hasFixedDualWield ? 'Dual Wield' : (hasFixedShield || primaryIsPolearmOne) ? 'Shield' : '2nd Wpn'
   const weapon2IsFree = hasFixedShield || hasFixedDualWield || primaryIsPolearmOne
 
   const tabs = [
@@ -329,7 +400,8 @@ function BuildConfig({ slotIndex, slot, wdata, poolFull, notes, addNote, removeN
           const selected  = isTabSelected(tab.id)
           const locked    = isTabLocked(tab.id)
           const active    = activeTab === tab.id
-          const canRemove = isIPTab(tab.id) && slot.ip?.includes(tab.id) && !isFixed(tab.id)
+          // × shows on any non-fixed IP tab when an item is selected
+          const canRemove = isIPTab(tab.id) && isTabSelected(tab.id) && !isFixed(tab.id)
           const hasNotesDot = tab.id === 'notes' && notes.length > 0
           return (
             <button
@@ -355,6 +427,7 @@ function BuildConfig({ slotIndex, slot, wdata, poolFull, notes, addNote, removeN
 
       {activeTab && (
         <div className="build-tab-panel">
+
           {activeTab === 'weapon1' && (
             <WeaponSelector
               label="Primary Weapon"
@@ -374,14 +447,20 @@ function BuildConfig({ slotIndex, slot, wdata, poolFull, notes, addNote, removeN
               slotIndex={slotIndex}
               slot={slot}
               options={
-                hasFixedShield     ? ['Shield'] :
-                hasFixedDualWield  ? ['Light Weapon'] :
+                hasFixedShield      ? ['Shield'] :
+                hasFixedDualWield   ? ['Light Weapon'] :
                 primaryIsPolearmOne ? ['Shield'] :
                 getSecondWeaponOptions(wdata, slot.weapon1)
               }
               propKey="weapon2"
               poolFull={poolFull}
               iconSize={28}
+              onSelect={newVal => {
+                if (!isFixed('weapon2')) {
+                  if (newVal) spendIP('weapon2')
+                  else freeIP('weapon2')
+                }
+              }}
             />
           )}
 
@@ -392,11 +471,14 @@ function BuildConfig({ slotIndex, slot, wdata, poolFull, notes, addNote, removeN
                   <button
                     key={opt}
                     className={`upgrade-choice-btn ${slot.climbing === opt ? 'active' : ''}`}
-                    onClick={() => setWarriorProp(slotIndex, 'climbing', slot.climbing === opt ? null : opt)}
+                    onClick={() => {
+                      const newVal = slot.climbing === opt ? null : opt
+                      setWarriorProp(slotIndex, 'climbing', newVal)
+                      if (newVal) spendIP('climbing')
+                      else freeIP('climbing')
+                    }}
                   >
-                    {ITEM_ICONS[opt] && (
-                      <img src={ITEM_ICONS[opt]} alt="" style={{ width: 28, height: 28, filter: 'sepia(0.3) brightness(0.95)', opacity: 0.9, flexShrink: 0 }} />
-                    )}
+                    {ITEM_ICONS[opt] && <img src={ITEM_ICONS[opt]} alt="" style={{ width: 28, height: 28, filter: 'sepia(0.3) brightness(0.95)', opacity: 0.9, flexShrink: 0 }} />}
                     <span className="upgrade-btn-text">
                       <span className="upgrade-btn-name">{opt}</span>
                       {CLIMBING_ITEMS[opt] && <span className="upgrade-btn-stats">Max {CLIMBING_ITEMS[opt].height}</span>}
@@ -417,11 +499,14 @@ function BuildConfig({ slotIndex, slot, wdata, poolFull, notes, addNote, removeN
                   <button
                     key={opt}
                     className={`upgrade-choice-btn ${slot.consumable === opt ? 'active' : ''}`}
-                    onClick={() => setWarriorProp(slotIndex, 'consumable', slot.consumable === opt ? null : opt)}
+                    onClick={() => {
+                      const newVal = slot.consumable === opt ? null : opt
+                      setWarriorProp(slotIndex, 'consumable', newVal)
+                      if (newVal) spendIP('consumable')
+                      else freeIP('consumable')
+                    }}
                   >
-                    {ITEM_ICONS[opt] && (
-                      <img src={ITEM_ICONS[opt]} alt="" style={{ width: 28, height: 28, filter: 'sepia(0.3) brightness(0.95)', opacity: 0.9, flexShrink: 0 }} />
-                    )}
+                    {ITEM_ICONS[opt] && <img src={ITEM_ICONS[opt]} alt="" style={{ width: 28, height: 28, filter: 'sepia(0.3) brightness(0.95)', opacity: 0.9, flexShrink: 0 }} />}
                     <span className="upgrade-btn-text">
                       <span className="upgrade-btn-name">{opt}</span>
                     </span>
@@ -440,7 +525,12 @@ function BuildConfig({ slotIndex, slot, wdata, poolFull, notes, addNote, removeN
                 <button
                   key={k}
                   className={`upgrade-choice-btn ${slot.statImprove === k ? 'active' : ''}`}
-                  onClick={() => setWarriorProp(slotIndex, 'statImprove', k)}
+                  onClick={() => {
+                    const newVal = slot.statImprove === k ? null : k
+                    setWarriorProp(slotIndex, 'statImprove', newVal)
+                    if (newVal) spendIP('stat')
+                    else freeIP('stat')
+                  }}
                 >
                   {v}
                 </button>

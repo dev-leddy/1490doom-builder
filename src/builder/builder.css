@@ -684,6 +684,62 @@
     line-height: 1.5;
   }
 
+  /* EQUIPMENT PREVIEW — mirrors play-mode tk-wpn styles */
+  .bd-equip-block {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-bottom: 0.75rem;
+  }
+  .bd-equip-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.55rem;
+    background: var(--ash);
+    border: 1px solid var(--dim);
+    padding: 0.55rem 0.7rem;
+  }
+  .bd-equip-icon {
+    width: 18px;
+    height: 18px;
+    filter: sepia(0.3) brightness(0.95);
+    opacity: 0.85;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .bd-equip-body { flex: 1; min-width: 0; }
+  .bd-equip-name-line {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 3px;
+  }
+  .bd-equip-name {
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--bone);
+  }
+  .bd-equip-pill {
+    background: var(--fog);
+    color: var(--parchment);
+    padding: 1px 5px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+  }
+  .bd-equip-note {
+    font-size: 0.85rem;
+    color: var(--bone);
+    opacity: 0.7;
+    line-height: 1.5;
+  }
+
   /* BUILD CONFIG TABS */
   .build-config {
     margin-top: 1rem;
