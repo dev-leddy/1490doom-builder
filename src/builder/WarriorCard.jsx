@@ -208,6 +208,12 @@ export default function WarriorCard({ slotIndex, slot }) {
             </div>
           </div>
 
+          {/* Build config — tabbed (above abilities so content doesn't shift) */}
+          <BuildConfig slotIndex={slotIndex} slot={slot} wdata={wdata} poolFull={poolFull} />
+
+          {/* Equipment preview — play-mode style */}
+          <SlotEquipment slot={slot} wdata={wdata} />
+
           {/* Abilities — play-mode style */}
           <div className="bd-abilities">
             {wdata.abilities.map((ab, i) => (
@@ -221,12 +227,6 @@ export default function WarriorCard({ slotIndex, slot }) {
           {wdata.restrictions && (
             <div className="restriction-note">{wdata.restrictions}</div>
           )}
-
-          {/* Equipment preview — play-mode style */}
-          <SlotEquipment slot={slot} wdata={wdata} />
-
-          {/* Build config — tabbed */}
-          <BuildConfig slotIndex={slotIndex} slot={slot} wdata={wdata} poolFull={poolFull} />
 
           {/* Notes — standalone at bottom */}
           <div className="notes-section">
