@@ -343,7 +343,7 @@
     .company-name-row { gap: 0.5rem; margin-bottom: 1rem; }
     .name-input { font-size: 1.1rem; }
     .mark-section { padding: 0.85rem; margin-bottom: 1.25rem; }
-    .mark-desc-row { flex-direction: column; gap: 0.5rem; }
+    .mark-select-row { align-items: flex-start; }
 
     /* IP pool */
     .ip-pool { padding: 0.6rem 0.75rem; margin-bottom: 1rem; }
@@ -991,6 +991,31 @@
     padding-right: 2rem;
     margin-bottom: 0.75rem;
     cursor: pointer;
+    margin-bottom: 0;
+  }
+  .mark-select-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .mark-select-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+    min-width: 0;
+  }
+  .mark-placeholder-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    border: 1px solid var(--dim);
+    background: var(--fog);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--mist);
   }
   .mark-desc {
     font-size: 1rem;
@@ -1892,9 +1917,8 @@
 .btn-icon-only { display: none; vertical-align: middle; }
 .btn-text-hide-xs { }
 
-/* Mark description row — image beside the description text */
-.mark-desc-row { display:flex;align-items:flex-start;gap:0.75rem; }
-.mark-preview-img { width:2.5rem;height:2.5rem;border-radius:50%;object-fit:cover;object-position:top;border:1px solid var(--gold);flex-shrink:0;margin-top:0.1rem; }
+/* Mark select row — image/placeholder to the left of dropdown */
+.mark-preview-img { width:2.5rem;height:2.5rem;border-radius:50%;object-fit:cover;object-position:top;border:1px solid var(--gold);flex-shrink:0; }
 
 /* Company header */
 .company-header { margin-bottom:1rem; }
