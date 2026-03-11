@@ -343,7 +343,6 @@
     .company-name-row { gap: 0.5rem; margin-bottom: 1rem; }
     .name-input { font-size: 1.1rem; }
     .mark-section { padding: 0.85rem; margin-bottom: 1.25rem; }
-    .mark-select-row { align-items: flex-start; }
 
     /* IP pool */
     .ip-pool { padding: 0.6rem 0.75rem; margin-bottom: 1rem; }
@@ -402,7 +401,8 @@
   .warrior-slot {
     background: var(--ash);
     border: 1px solid var(--dim);
-    padding: 1.5rem;
+    padding: 1.5rem 1.5rem 1.5rem;
+    padding-top: 1.85rem;
     position: relative;
     transition: border-color 0.2s;
     min-width: 0;
@@ -411,8 +411,8 @@
   .warrior-slot.is-captain::after {
     content: 'CAPTAIN';
     position: absolute;
-    top: -0.55rem;
-    left: 1rem;
+    top: -0.65rem;
+    right: 1rem;
     background: var(--gold);
     color: var(--ash);
     font-family: 'Oswald', sans-serif;
@@ -998,7 +998,7 @@
   }
   .mark-select-row {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 0.75rem;
   }
   .mark-select-col {
