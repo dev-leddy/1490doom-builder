@@ -20,7 +20,14 @@
       "Bash(node -e \"const {WARRIOR_IMAGES} = require\\(''./src/data/images.js''\\); console.log\\(Object.keys\\(WARRIOR_IMAGES\\)\\)\")",
       "Bash(node -e \"const {WARRIOR_IMAGES} = require\\(''./src/data/images.js''\\); console.log\\(Object.keys\\(WARRIOR_IMAGES\\)\\); console.log\\(''Reaver starts with:'', WARRIOR_IMAGES[''Reaver'']?.substring\\(0,40\\)\\)\")",
       "Bash(npm install -D vite-plugin-pwa)",
-      "Bash(npm install -D @vite-pwa/assets-generator)"
+      "Bash(npm install -D @vite-pwa/assets-generator)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:57495/1490doom-builder/)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173/1490doom-builder/)",
+      "Bash(for port in 5175 5176 5177 5178 5179 5180)",
+      "Bash(do netstat -an)",
+      "Bash(echo \"$port IN USE\")",
+      "Bash(echo \"$port FREE\")",
+      "Bash(done)"
     ]
   }
 }

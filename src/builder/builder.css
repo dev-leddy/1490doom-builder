@@ -29,6 +29,9 @@
   .builder-header {
     text-align: center;
     padding: 3rem 1rem 2rem;
+    padding-top: max(3rem, env(safe-area-inset-top));
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
     border-bottom: 1px solid var(--mist);
     position: relative;
     overflow: hidden;
@@ -330,7 +333,7 @@
     .builder-content::before { display: none; }
 
     /* Header */
-    .builder-header { padding: 1.5rem 1rem 1.25rem; }
+    .builder-header { padding: 1.5rem 1rem 1.25rem; padding-top: max(1.5rem, env(safe-area-inset-top)); padding-left: max(1rem, env(safe-area-inset-left)); padding-right: max(1rem, env(safe-area-inset-right)); }
     .builder-title-main { font-size: clamp(2rem, 10vw, 3.5rem); }
 
     /* Navbar */
@@ -856,6 +859,36 @@
   }
   .lr-row.lr-open > .lr-header .lr-chevron { color: var(--gold); }
 
+  /* Collapsed selected-item strip */
+  .lr-collapsed-sel {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.55rem 0.3rem 2rem;
+    background: var(--ash);
+    border-bottom: 1px solid var(--dim);
+  }
+  .lr-csel-icon {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+    opacity: 0.85;
+    filter: sepia(0.3) brightness(0.95);
+    flex-shrink: 0;
+  }
+  .lr-csel-name {
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--gold);
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   /* Inline picker panel */
   .lr-panel {
     background: var(--ash);
@@ -1113,7 +1146,7 @@
     align-items: center;
     gap: 0.4rem;
   }
-  .upgrade-choice-btn:hover { border-color: var(--mist); }
+  .upgrade-choice-btn:hover { border-color: var(--gold); background: rgba(184, 151, 42, 0.05); }
   .upgrade-choice-btn.active {
     border-color: var(--gold);
     background: var(--dim);
@@ -2163,3 +2196,37 @@
 .mark-popup-img { width:3.5rem;height:3.5rem;border-radius:50%;object-fit:cover;object-position:top;border:2px solid var(--gold);flex-shrink:0; }
 .mark-popup-name { font-family:'Oswald',sans-serif;font-size:1.1rem;letter-spacing:0.08em;color:var(--gold); }
 .mark-popup-desc { font-size:1rem;color:#ccc;line-height:1.6; }
+/* -- NEW CHIP UI FOR UPGRADES -- */
+.eq-chips-list { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem; }
+.eq-chip { display: flex; align-items: stretch; background: var(--ash); border: 1px solid var(--dim); cursor: pointer; transition: border-color 0.15s; position: relative; }
+.eq-chip:hover { border-color: var(--gold); background: rgba(184, 151, 42, 0.05); }
+.eq-chip-main { border-color: var(--dim); cursor: pointer; } /* Make main weapon clickable to change it too */
+.eq-chip-icon { width: 40px; display: flex; align-items: center; justify-content: center; background: var(--dim); color: var(--bone); border-right: 1px solid var(--dim); font-size: 1.2rem; }
+.eq-chip-content { flex: 1; padding: 0.35rem 0.5rem; padding-right: 2.2rem; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+.eq-chip-label { font-family: 'Oswald', sans-serif; font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--mist); line-height: 1; margin-bottom: 0.15rem; }
+.eq-chip-value { font-family: 'Oswald', sans-serif; font-size: 0.85rem; letter-spacing: 0.05em; color: var(--bone); line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.eq-chip-pills { display: flex; gap: 0.25rem; margin-top: 0.25rem; flex-wrap: wrap; }
+.eq-chip-desc { font-family: 'Crimson Text', serif; font-size: 0.85rem; color: #a9a29a; line-height: 1.3; margin-top: 0.3rem; }
+.eq-chip-remove { position: absolute; right: 0.3rem; top: 50%; transform: translateY(-50%); width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: var(--mist); font-size: 1.4rem; line-height: 1; cursor: pointer; border-radius: 50%; transition: background 0.15s, color 0.15s; }
+.eq-chip-remove:hover { background: rgba(190, 65, 39, 0.15); color: var(--blood); }
+.eq-chip-badge { position: absolute; right: 2.3rem; top: 0.35rem; font-family: 'Oswald', sans-serif; font-size: 0.55rem; padding: 0.1rem 0.3rem; border-radius: 2px; text-transform: uppercase; letter-spacing: 0.05em; background: var(--fog); border: 1px solid var(--dim); color: var(--mist); pointer-events: none; }
+.eq-badge-spent { color: var(--gold); border-color: var(--gold); background: rgba(184, 151, 42, 0.1); }
+.eq-badge-free { color: #8a8580; border-style: dashed; }
+.eq-add-row { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.75rem; }
+.eq-add-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.3rem; background: transparent; border: 1px dashed var(--dim); color: var(--parchment); font-family: 'Oswald', sans-serif; font-size: 0.65rem; letter-spacing: 0.05em; text-transform: uppercase; padding: 0.5rem 0.2rem; cursor: pointer; transition: all 0.15s; text-align: center; white-space: normal; line-height: 1.2; min-width: 0; opacity: 0.85; }
+.eq-add-btn:hover:not(:disabled) { border-color: var(--gold); color: var(--gold); background: rgba(184, 151, 42, 0.05); opacity: 1; }
+.eq-add-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.eq-add-btn .lr-icon { font-size: 1.5rem; color: var(--mist); transition: color 0.15s; }
+.eq-add-btn:hover:not(:disabled) .lr-icon { color: var(--gold); }
+
+/* -- UPGRADE MODAL -- */
+.upgrade-modal { max-width: 420px; width: 100%; padding: 1.5rem; background: var(--fog); border: 1px solid var(--mist); border-top: 3px solid var(--gold); box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+.upgrade-modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--dim); padding-bottom: 0.75rem; }
+.upgrade-modal-close { background: none; border: none; color: var(--mist); font-size: 1.5rem; line-height: 1; cursor: pointer; transition: color 0.15s; }
+.upgrade-modal-close:hover { color: var(--parchment); }
+.upgrade-modal-body { max-height: 60vh; overflow-y: auto; padding-right: 0.25rem; display: flex; flex-direction: column; gap: 0.75rem; }
+.upgrade-modal-body::-webkit-scrollbar { width: 4px; }
+.upgrade-modal-body::-webkit-scrollbar-thumb { background: var(--dim); }
+
+/* Modal body overrides */
+.upgrade-modal-body .upgrade-choice-grid { grid-template-columns: 1fr; }
