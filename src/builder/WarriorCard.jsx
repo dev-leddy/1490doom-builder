@@ -235,7 +235,7 @@ function LoadoutPanel({ slotIndex, slot, wdata, poolFull }) {
     freeIP(id)
   }
 
-  const weapon2Label  = hasFixedDualWield ? 'Dual Wield' : 'Off-hand'
+  const weapon2Label  = 'Off-hand'
   const weapon2IsFree = hasFixedShield || hasFixedDualWield || primaryIsPolearmOne
 
   const wpnDisplayDesc = wname => {
@@ -258,12 +258,9 @@ function LoadoutPanel({ slotIndex, slot, wdata, poolFull }) {
     return { value: wname, pills }
   }
 
-  const isDualWield = slot.weapon1 === 'Light Weapon' && slot.weapon2 === 'Light Weapon'
-
-  const w1 = isDualWield
-    ? { value: 'Dual Light Weapons', pills: ['RNG Contact', 'DMG 1'] }
-    : wpnDisplay(slot.weapon1)
+  const w1 = wpnDisplay(slot.weapon1)
   const w2 = wpnDisplay(slot.weapon2)
+  const isDualWield = slot.weapon1 === 'Light Weapon' && slot.weapon2 === 'Light Weapon'
 
   const climbVal = (slot.climbing && slot.climbing !== 'None') ? slot.climbing : null
   const climbPills = climbVal
@@ -323,11 +320,11 @@ function LoadoutPanel({ slotIndex, slot, wdata, poolFull }) {
             </div>
             <div className="eq-chip-content">
               <span className="eq-chip-label">{weapon2Label.toUpperCase()}</span>
-              <span className="eq-chip-value">{isDualWield ? 'Dual Wield' : w2.value}</span>
+              <span className="eq-chip-value">{w2.value}</span>
               <div className="eq-chip-pills">
-                {isDualWield ? ['RNG Contact', 'DMG 1'].map(p => <span key={p} className="lr-pill">{p}</span>) : w2.pills?.map(p => <span key={p} className="lr-pill">{p}</span>)}
+                {w2.pills?.map(p => <span key={p} className="lr-pill">{p}</span>)}
               </div>
-              {wpnDisplayDesc(slot.weapon2) && !isDualWield && <div className="eq-chip-desc">{wpnDisplayDesc(slot.weapon2)}</div>}
+              {wpnDisplayDesc(slot.weapon2) && <div className="eq-chip-desc">{wpnDisplayDesc(slot.weapon2)}</div>}
             </div>
             {!isFixed('weapon2') && (
               <div className="eq-chip-remove" onClick={e => { e.stopPropagation(); removeUpgrade('weapon2') }}>×</div>
@@ -633,15 +630,24 @@ export default function WarriorCard({ slotIndex, slot }) {
 
 // ── Stats row ────────────────────────────────────────────────────────────────
 function StatsRow({ slot, wdata }) {
+  const isDualWielding = slot.weapon1 === 'Light Weapon' && slot.weapon2 === 'Light Weapon'
+  const dualWieldBonus = (isDualWielding && !wdata.fixedDualWield) ? 1 : 0
+
   return (
     <div className="stats-row">
       {['MOV', 'ATK', 'VIT', 'SKL', 'DEF', 'COM'].map(s => {
-        const base = wdata.stats[s]
+        let base = wdata.stats[s]
         const improved = slot.ip?.includes('stat') && slot.statImprove === s
+        
+        // Apply dual wield bonus to ATK
+        if (s === 'ATK') {
+          base = parseInt(base) + dualWieldBonus
+        }
+
         return (
           <div key={s} className="stat-box">
             <span className="stat-label">{s}</span>
-            <span className={`stat-val ${improved ? 'modified' : ''}`}>
+            <span className={`stat-val ${improved || (s === 'ATK' && dualWieldBonus > 0) ? 'modified' : ''}`}>
               {improved ? improveStatDisplay(base, s) : base}
             </span>
           </div>

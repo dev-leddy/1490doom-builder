@@ -290,11 +290,12 @@ export const useBuilderStore = create((set, get) => {
       const wdata = type ? WARRIORS[type] : null
       const firstWeapon = wdata ? (wdata.fixedWeapon || getAllowedWeapons(wdata)[0]) : null
       const fixedShield = wdata?.fixedShield || false
+      const fixedDualWield = wdata?.fixedDualWield || false
       slots[slotIndex] = {
         ...slots[slotIndex],
         type,
         weapon1: firstWeapon,
-        weapon2: fixedShield ? 'Shield' : null,
+        weapon2: fixedShield ? 'Shield' : fixedDualWield ? 'Light Weapon' : null,
         consumable: null,
         climbing: null,
         ip: [],
@@ -463,6 +464,9 @@ export const useBuilderStore = create((set, get) => {
         if (wdata.fixedShield) {
           // Fixed shield warriors (Knight, Hedge Knight) get Shield free
           weapon2 = 'Shield'
+        } else if (wdata.fixedDualWield) {
+          // Fixed dual wield warriors (Reaver) get second Light Weapon free
+          weapon2 = 'Light Weapon'
         } else if (weapon1 === 'Polearm (one-handed)') {
           // Mandatory Shield costs 1 IP
           weapon2 = 'Shield'

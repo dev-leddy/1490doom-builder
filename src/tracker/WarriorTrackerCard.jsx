@@ -128,12 +128,23 @@ export default function WarriorTrackerCard({ warrior: w, wi }) {
       {/* Stat Strip */}
       <div className="tk-stats-strip">
         {statKeys.map(s => {
-          const base = wdata.stats[s]
+          let base = wdata.stats[s]
+          
+          if (s === 'ATK') {
+            const isDualWielding = w.weapon1 === 'Light Weapon' && w.weapon2 === 'Light Weapon'
+            const dualWieldBonus = (isDualWielding && !wdata.fixedDualWield) ? 1 : 0
+            base = parseInt(base) + dualWieldBonus
+          }
+          
           let val = base
           if (improvedStat === s) val = improveStatDisplay(base, s)
           const isVit = s === 'VIT'
+          
+          const isDualWieldImproved = s === 'ATK' && w.weapon1 === 'Light Weapon' && w.weapon2 === 'Light Weapon' && !wdata.fixedDualWield
+          const isStatImproved = improvedStat === s || isDualWieldImproved
+          
           return (
-            <div key={s} className={`tk-stat${improvedStat === s ? ' tk-stat-improved' : ''}`}>
+            <div key={s} className={`tk-stat${isStatImproved ? ' tk-stat-improved' : ''}`}>
               <span className="tk-stat-lbl">{s}</span>
               <span className="tk-stat-val">
                 {isVit ? w.maxVit : val}
