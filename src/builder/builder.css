@@ -382,7 +382,8 @@
   /* ── Phone-specific (≤480px) ───────────────────────────── */
   @media (max-width: 480px) {
     /* Force entire navbar onto one row */
-    .navbar-inner { flex-wrap: nowrap; gap: 0.15rem; padding: 1.5rem 0.5rem; }
+    .navbar-inner { flex-wrap: nowrap; gap: 0.15rem; padding: 0.5rem 0.2rem; overflow-x: auto; scrollbar-width: none; }
+    .navbar-inner::-webkit-scrollbar { display: none; }
     .navbar-group-left { flex: 0 0 auto; gap: 0.15rem; }
     .navbar-group-center { flex: 1; flex-wrap: nowrap; gap: 0.15rem; justify-content: center; }
     .navbar-group-right { flex: 0 0 auto; }
