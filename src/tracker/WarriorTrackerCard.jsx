@@ -13,6 +13,11 @@ function improveStatDisplay(base, stat) {
   return parseInt(base) + 1
 }
 
+function debuffStatDisplay(base, stat) {
+  if (stat === 'SKL' || stat === 'DEF' || stat === 'COM') return (parseInt(base) + 1) + '+'
+  return Math.max(0, parseInt(base) - 1)
+}
+
 function IPUpgradeNote({ warrior: w }) {
   const wdata = WARRIORS[w.type]
   const upgrades = w.ip || []
@@ -136,15 +141,22 @@ export default function WarriorTrackerCard({ warrior: w, wi }) {
             base = parseInt(base) + dualWieldBonus
           }
           
+          const isVit = s === 'VIT'
+          const polearmDebuff = w.weapon1 === 'Polearm (one-handed)' && s === 'COM'
+          
           let val = base
           if (improvedStat === s) val = improveStatDisplay(base, s)
-          const isVit = s === 'VIT'
+          else if (polearmDebuff && !isVit) val = debuffStatDisplay(base, s)
           
           const isDualWieldImproved = s === 'ATK' && w.weapon1 === 'Light Weapon' && w.weapon2 === 'Light Weapon' && !wdata.fixedDualWield
           const isStatImproved = improvedStat === s || isDualWieldImproved
           
+          let statClass = ''
+          if (isStatImproved) statClass = 'tk-stat-improved'
+          else if (polearmDebuff) statClass = 'tk-stat-debuffed'
+          
           return (
-            <div key={s} className={`tk-stat${isStatImproved ? ' tk-stat-improved' : ''}`}>
+            <div key={s} className={`tk-stat ${statClass}`}>
               <span className="tk-stat-lbl">{s}</span>
               <span className="tk-stat-val">
                 {isVit ? w.maxVit : val}
@@ -188,7 +200,7 @@ export default function WarriorTrackerCard({ warrior: w, wi }) {
       {/* Homebrew Notes */}
       {(w.notes || []).length > 0 && (
         <>
-          <div className="tk-section-label" style={{ marginTop: '0.7rem', color: '#b8972a' }}>Notes</div>
+          <div className="tk-section-label" style={{ marginTop: '0.7rem', color: '#be4127' }}>Notes</div>
           <div className="tk-abilities-block">
             {(w.notes || []).map((n, ni) => (
               <div key={ni} className="tk-ability">

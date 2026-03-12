@@ -9,6 +9,11 @@ function improveStatDisplay(base, stat) {
   return parseInt(base) + 1
 }
 
+function debuffStatDisplay(base, stat) {
+  if (stat === 'SKL' || stat === 'DEF' || stat === 'COM') return (parseInt(base) + 1) + '+'
+  return Math.max(0, parseInt(base) - 1)
+}
+
 const TWO_HANDED = new Set(['Heavy Weapon', 'Polearm (two-handed)', 'Crossbow', 'Bow'])
 
 // ── Inline SVGs ─────────────────────────────────────────────────────────────
@@ -638,17 +643,26 @@ function StatsRow({ slot, wdata }) {
       {['MOV', 'ATK', 'VIT', 'SKL', 'DEF', 'COM'].map(s => {
         let base = wdata.stats[s]
         const improved = slot.ip?.includes('stat') && slot.statImprove === s
+        const polearmDebuff = slot.weapon1 === 'Polearm (one-handed)' && s === 'COM'
         
         // Apply dual wield bonus to ATK
         if (s === 'ATK') {
           base = parseInt(base) + dualWieldBonus
         }
 
+        let displayVal = base
+        if (improved) displayVal = improveStatDisplay(base, s)
+        else if (polearmDebuff) displayVal = debuffStatDisplay(base, s)
+
+        let statClass = ''
+        if (improved || (s === 'ATK' && dualWieldBonus > 0)) statClass = 'modified'
+        else if (polearmDebuff) statClass = 'debuffed'
+
         return (
           <div key={s} className="stat-box">
             <span className="stat-label">{s}</span>
-            <span className={`stat-val ${improved || (s === 'ATK' && dualWieldBonus > 0) ? 'modified' : ''}`}>
-              {improved ? improveStatDisplay(base, s) : base}
+            <span className={`stat-val ${statClass}`}>
+              {displayVal}
             </span>
           </div>
         )

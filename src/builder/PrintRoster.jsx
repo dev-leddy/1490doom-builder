@@ -12,6 +12,12 @@ function improveStatDisplayPrint(base, stat) {
   return Math.max(2, num - 1) + '+'
 }
 
+function debuffStatDisplayPrint(base, stat) {
+  if (stat === 'MOV' || stat === 'VIT' || stat === 'ATK') return Math.max(0, parseInt(base) - 1)
+  const num = parseInt(base)
+  return (num + 1) + '+'
+}
+
 function isOPGDesc(desc) {
   return (desc || '').toLowerCase().includes('once per game')
 }
@@ -159,15 +165,23 @@ export default function PrintRoster() {
                     }
 
                     const improved = spent.includes('stat') && slot.statImprove === s
+                    const polearmDebuff = slot.weapon1 === 'Polearm (one-handed)' && s === 'COM'
                     
                     const isDualWieldImproved = s === 'ATK' && dualWieldBonus > 0
                     const isStatImproved = improved || isDualWieldImproved
                     
-                    const display = isStatImproved ? improveStatDisplayPrint(base, s) : base
+                    let display = base
+                    if (isStatImproved) display = improveStatDisplayPrint(base, s)
+                    else if (polearmDebuff) display = debuffStatDisplayPrint(base, s)
+                    
+                    let statClass = ''
+                    if (isStatImproved) statClass = 'improved'
+                    else if (polearmDebuff) statClass = 'debuffed'
+
                     return (
                       <div key={s} className="pr-stat">
                         <span className="pr-stat-lbl">{s}</span>
-                        <span className={`pr-stat-val ${isStatImproved ? 'improved' : ''}`}>{display}</span>
+                        <span className={`pr-stat-val ${statClass}`}>{display}</span>
                       </div>
                     )
                   })}
