@@ -2146,7 +2146,7 @@
   flex-shrink: 0;
 }
 
-.builder-navbar { position:fixed;bottom:0;left:0;right:0;z-index:100;background:var(--ash);border-top:2px solid var(--gold);box-shadow:0 -4px 20px rgba(0,0,0,0.6);padding-bottom:env(safe-area-inset-bottom);padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right); }
+.builder-navbar { position:fixed;bottom:0;left:0;right:0;z-index:100;background:var(--ash);border-top:2px solid var(--gold);box-shadow:0 -4px 20px rgba(0,0,0,0.6);padding-bottom:env(safe-area-inset-bottom);padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right); overflow: hidden; }
 
 .unsaved-indicator { font-family:'Oswald',sans-serif;font-size:0.7rem;letter-spacing:0.1em;color:#666;white-space:nowrap; }
 
