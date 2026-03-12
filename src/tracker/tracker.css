@@ -279,9 +279,14 @@
   border-top: 1px solid #222;
   flex-shrink: 0;
   width: 100%;
-  padding-bottom: env(safe-area-inset-bottom);
+  padding-bottom: max(0.4rem, env(safe-area-inset-bottom));
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
+  overflow-x: auto;
+  scrollbar-width: none; /* Hide scrollbar in Firefox */
+}
+.tk-tab-bar::-webkit-scrollbar {
+  display: none; /* Hide scrollbar in Chrome/Safari/Webkit */
 }
 .tk-tab {
   flex: 1;
@@ -289,7 +294,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem 0.1rem 0.6rem;
+  padding: 0.6rem 0.1rem 0.2rem;
   cursor: pointer;
   border-right: 1px solid #1a1a1a;
   border: none;
