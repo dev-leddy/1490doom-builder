@@ -1,14 +1,14 @@
 
   :root {
     --blood: #be4127;
-    --ash: #1a1714;
-    --fog: #2e2a26;
-    --bone: #c9b99a;
-    --parchment: #e8dcc8;
-    --rust: #7a3d1a;
-    --gold: #b8972a;
-    --mist: #4a4540;
-    --dim: #3a3530;
+    --ash: #000000;
+    --fog: #111111;
+    --bone: #dcdcdc;
+    --parchment: #ffffff;
+    --rust: #5c180e;
+    --gold: #be4127;
+    --mist: #444444;
+    --dim: #222222;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -16,7 +16,7 @@
   body {
     background-color: var(--ash);
     color: var(--bone);
-    font-family: 'Crimson Text', serif;
+    font-family: 'Caslon Antique', serif;
     font-size: 18px;
     min-height: 100vh;
     background-image: 
@@ -51,7 +51,7 @@
     background: linear-gradient(90deg, transparent, var(--mist), transparent);
   }
   .builder-title-main {
-    font-family: 'UnifrakturMaguntia', cursive;
+    font-family: 'UnifrakturMaguntia', serif;
     font-size: clamp(2.5rem, 6vw, 5rem);
     color: var(--parchment);
     text-shadow: 0 0 40px rgba(139,26,26,0.5), 2px 2px 0 rgba(0,0,0,0.8);
@@ -59,9 +59,9 @@
     line-height: 1;
   }
   .builder-title-sub {
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
     font-size: 0.85rem;
-    letter-spacing: 0.4em;
+    letter-spacing: 0.2em;
     color: var(--gold);
     text-transform: uppercase;
     margin-top: 0.5rem;
@@ -77,7 +77,7 @@
     background: none;
     border: 1px solid var(--mist);
     color: var(--bone);
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
     font-size: 0.7rem;
     letter-spacing: 0.18em;
     text-transform: uppercase;
@@ -109,7 +109,7 @@
     margin-bottom: 2rem;
   }
   .install-guide-header {
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
     font-size: 1rem;
     letter-spacing: 0.2em;
     text-transform: uppercase;
@@ -124,7 +124,7 @@
     gap: 0.6rem;
   }
   .install-guide-steps li {
-    font-family: 'Crimson Text', serif;
+    font-family: 'Caslon Antique', serif;
     font-size: 1.05rem;
     color: var(--parchment);
     line-height: 1.4;
@@ -143,7 +143,7 @@
     background: var(--gold);
     border: none;
     color: var(--ash);
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
     font-size: 0.8rem;
     letter-spacing: 0.2em;
     text-transform: uppercase;
@@ -154,20 +154,10 @@
   .install-guide-close:hover { opacity: 0.85; }
 
   /* NAVBAR */
-  .navbar {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 100;
-    background: var(--ash);
-    border-top: 2px solid var(--gold);
-    box-shadow: 0 -4px 20px rgba(0,0,0,0.6);
-  }
-  .navbar-inner {
+.navbar-inner {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 1.5rem 1rem;
+    padding: 0.75rem 1rem;
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -194,20 +184,15 @@
     flex: 1;
     justify-content: flex-end;
   }
-  .navbar .btn {
+  .builder-navbar .btn {
     padding: 0.35rem 0.85rem;
     font-size: 0.8rem;
   }
-  .navbar .validation-msg {
+  .builder-navbar .validation-msg {
     font-size: 0.8rem;
   }
 
-  /* LAYOUT */
-  .app {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem 1.5rem 6rem;
-  }
+
 
   /* SAVED COMPANIES */
   .saved-section {
@@ -220,7 +205,7 @@
     margin-bottom: 1rem;
   }
   .section-title {
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
     font-size: 0.9rem;
     letter-spacing: 0.35em;
     text-transform: uppercase;
@@ -242,7 +227,7 @@
     border-radius: 2px;
     padding: 0.5rem 1rem;
     cursor: pointer;
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
     font-size: 1rem;
     color: var(--parchment);
     transition: all 0.2s;
@@ -256,6 +241,7 @@
     font-size: 0.75rem;
     opacity: 0.7;
     cursor: pointer;
+    margin-left: auto;
   }
   .saved-chip .chip-delete:hover { opacity: 1; }
   .no-saves {
@@ -294,9 +280,9 @@
     flex-wrap: wrap;
   }
   .company-name-row label {
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
     font-size: 0.75rem;
-    letter-spacing: 0.3em;
+    letter-spacing: 0.15em;
     text-transform: uppercase;
     color: var(--gold);
     white-space: nowrap;
@@ -308,7 +294,7 @@
     border: 1px solid var(--mist);
     border-bottom: 2px solid var(--blood);
     color: var(--parchment);
-    font-family: 'Crimson Text', serif;
+    font-family: 'Caslon Antique', serif;
     font-size: 1.3rem;
     padding: 0.4rem 0.75rem;
     outline: none;
@@ -326,9 +312,9 @@
   }
   @media (max-width: 800px) {
     /* Layout */
-    .app { padding-left: 0.6rem !important; padding-right: 0.6rem !important; }
+    .builder-scroll-area { padding-left: 0.6rem !important; padding-right: 0.6rem !important; }
     .warriors-grid { grid-template-columns: minmax(0, 1fr); }
-    .builder-main { padding: 1rem 0.25rem 5rem !important; }
+    .builder-main { padding: 1rem 0.25rem 2rem !important; }
     .builder-content { padding: 0.5rem !important; }
     .builder-content::before { display: none; }
 
@@ -337,10 +323,28 @@
     .builder-title-main { font-size: clamp(2rem, 10vw, 3.5rem); }
 
     /* Navbar */
-    .navbar-inner { padding: 0.8rem 0.75rem; gap: 0.3rem; }
-    .navbar-group-left { gap: 0.3rem; }
-    .navbar-group-center { gap: 0.3rem; flex-wrap: wrap; }
-    .builder-navbar .btn { padding: 0.9rem 1.4rem; font-size: 1rem; letter-spacing: 0.1em; min-height: 72px; }
+    .navbar-inner { 
+      padding: 0.6rem 0.5rem; 
+      gap: 0.25rem; 
+      flex-wrap: nowrap; 
+      overflow-x: auto; 
+      scrollbar-width: none; 
+    }
+    .navbar-inner::-webkit-scrollbar { display: none; }
+    .navbar-group-left { flex: 0 0 auto; gap: 0.25rem; }
+    .navbar-group-center { 
+      flex: 1; 
+      flex-wrap: nowrap; 
+      gap: 0.25rem; 
+      justify-content: center; 
+    }
+    .navbar-group-right { flex: 0 0 auto; }
+    .builder-navbar .btn { 
+      padding: 0.6rem 0.8rem; 
+      font-size: 0.9rem; 
+      letter-spacing: 0.05em; 
+      min-height: 52px; 
+    }
 
     /* Company header */
     .company-name-row { gap: 0.5rem; margin-bottom: 1rem; }
@@ -348,8 +352,8 @@
     .mark-section { padding: 0.85rem; margin-bottom: 1.25rem; }
 
     /* IP pool */
-    .ip-pool { padding: 0.6rem 0.75rem; margin-bottom: 1rem; }
-    .ip-limit-btn { width: 36px; height: 36px; font-size: 1.2rem; }
+    .ip-pool { padding: 0.4rem 0.75rem; margin-bottom: 1rem; gap: 0.75rem; }
+    .ip-limit-btn { width: 28px; height: 28px; font-size: 1rem; }
 
     /* Warrior card */
     .warrior-slot { padding: 0.5rem !important; }
@@ -382,7 +386,8 @@
   /* ── Phone-specific (≤480px) ───────────────────────────── */
   @media (max-width: 480px) {
     /* Force entire navbar onto one row */
-    .navbar-inner { flex-wrap: nowrap; gap: 0.15rem; padding: 1.5rem 0.5rem; }
+    .navbar-inner { flex-wrap: nowrap; gap: 0.15rem; padding: 0.5rem 0.2rem; overflow-x: auto; scrollbar-width: none; }
+    .navbar-inner::-webkit-scrollbar { display: none; }
     .navbar-group-left { flex: 0 0 auto; gap: 0.15rem; }
     .navbar-group-center { flex: 1; flex-wrap: nowrap; gap: 0.15rem; justify-content: center; }
     .navbar-group-right { flex: 0 0 auto; }
@@ -396,7 +401,7 @@
     .btn-icon-only { display: inline-block !important; }
     .btn-text-hide-xs { display: none !important; }
     /* Minimal side padding on mobile */
-    .builder-main { padding-left: 0.25rem !important; padding-right: 0.25rem !important; }
+    .builder-scroll-area { padding-left: 0.25rem !important; padding-right: 0.25rem !important; }
     .builder-content { padding: 0.5rem !important; }
     .warrior-slot { padding: 1rem !important; }
   }
@@ -418,7 +423,7 @@
     right: 1rem;
     background: var(--gold);
     color: var(--ash);
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
     font-size: 0.75rem;
     letter-spacing: 0.2em;
     padding: 0.15rem 0.5rem;
@@ -432,16 +437,16 @@
     margin-bottom: 0.75rem;
   }
   .slot-number {
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
     font-size: 0.8rem;
-    letter-spacing: 0.3em;
+    letter-spacing: 0.15em;
     color: var(--bone);
     text-transform: uppercase;
   }
   .slot-name-input {
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
     font-size: 0.8rem;
-    letter-spacing: 0.3em;
+    letter-spacing: 0.15em;
     text-transform: uppercase;
     color: var(--bone);
     background: transparent;
@@ -473,7 +478,7 @@
     background: none;
     border: 1px dashed var(--mist);
     color: var(--bone);
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
     font-size: 0.72rem;
     letter-spacing: 0.2em;
     text-transform: uppercase;
@@ -498,7 +503,7 @@
     border-bottom: 1px solid var(--dim);
   }
   .note-panel-label {
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
     font-size: 0.7rem;
     letter-spacing: 0.2em;
     text-transform: uppercase;
@@ -522,7 +527,7 @@
     border: none;
     border-bottom: 1px solid var(--dim);
     color: var(--parchment);
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
     font-size: 0.85rem;
     letter-spacing: 0.05em;
     padding: 0.4rem 0.5rem;
@@ -530,7 +535,7 @@
     box-sizing: border-box;
   }
   .note-title-input:focus { border-bottom-color: var(--gold); }
-  .note-title-input::placeholder { color: #7a7268; font-family: 'Crimson Text', serif; font-style: italic; letter-spacing: 0; }
+  .note-title-input::placeholder { color: #7a7268; font-family: 'Caslon Antique', serif; font-style: italic; letter-spacing: 0; }
 
   /* NOTES SECTION */
   .notes-section { margin-top: 0.75rem; }
@@ -569,7 +574,7 @@
     margin-bottom: 0.4rem;
   }
   .note-chip-title {
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
     font-size: 0.78rem;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -596,7 +601,7 @@
     background: transparent;
     border: none;
     color: var(--parchment);
-    font-family: 'Crimson Text', serif;
+    font-family: 'Caslon Antique', serif;
     font-size: 0.95rem;
     padding: 0.4rem 0.5rem;
     padding-bottom: 2rem;
@@ -614,7 +619,7 @@
     background: var(--fog);
     border: 1px solid var(--mist);
     color: var(--parchment);
-    font-family: 'Crimson Text', serif;
+    font-family: 'Caslon Antique', serif;
     font-size: 1.1rem;
     padding: 0.5rem 0.75rem;
     outline: none;
@@ -644,7 +649,7 @@
     min-width: 40px;
   }
   .stat-label {
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
     font-size: 0.75rem;
     letter-spacing: 0.15em;
     color: var(--parchment);
@@ -652,12 +657,13 @@
     display: block;
   }
   .stat-val {
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
     font-size: 1rem;
     color: var(--bone);
     font-weight: 700;
   }
-  .stat-val.modified { color: var(--gold); }
+  .stat-val.modified { color: var(--green); }
+  .stat-val.debuffed { color: var(--blood); }
 
   /* ABILITIES — play-mode style */
   .bd-abilities {
@@ -672,7 +678,7 @@
     padding: 0.45rem 0.65rem;
   }
   .bd-ability-name {
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
     font-size: 0.85rem;
     font-weight: 700;
     letter-spacing: 0.08em;
@@ -702,10 +708,10 @@
   }
   .lr-section-title {
     font-family: 'Oswald', sans-serif;
-    font-size: 0.62rem;
+    font-size: 0.8rem;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: var(--mist);
+    color: var(--bone);
   }
   .lr-pips {
     display: flex;
@@ -727,7 +733,7 @@
     border-color: var(--gold);
   }
   .lr-section-ip {
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
     font-size: 0.6rem;
     letter-spacing: 0.08em;
     color: #5a5550;
@@ -779,7 +785,7 @@
   .lr-row.lr-open     > .lr-header .lr-icon { color: #9a8f80; }
 
   .lr-label {
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
     font-size: 0.65rem;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -789,7 +795,7 @@
   }
 
   .lr-value {
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
     font-size: 0.78rem;
     letter-spacing: 0.05em;
     text-transform: uppercase;
@@ -812,7 +818,7 @@
     border: 1px solid var(--dim);
     color: #7a7068;
     padding: 0 4px;
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
     font-size: 0.58rem;
     font-weight: 700;
     letter-spacing: 0.05em;
@@ -829,7 +835,7 @@
     margin-left: auto;
   }
   .lr-badge {
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
     font-size: 0.56rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -877,7 +883,7 @@
     flex-shrink: 0;
   }
   .lr-csel-name {
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
     font-size: 0.72rem;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -898,7 +904,7 @@
 
   /* PRIMARY WEAPON SELECT — kept for weapon dropdown */
   .opt-label {
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
     font-size: 0.85rem;
     letter-spacing: 0.25em;
     color: var(--parchment);
@@ -911,7 +917,7 @@
     background: var(--fog);
     border: 1px solid var(--dim);
     color: var(--bone);
-    font-family: 'Crimson Text', serif;
+    font-family: 'Caslon Antique', serif;
     font-size: 1rem;
     padding: 0.4rem 0.6rem;
     outline: none;
@@ -930,72 +936,75 @@
     background: var(--fog);
     border: 1px solid var(--dim);
     border-top: 2px solid var(--gold);
-    padding: 0.75rem 1rem;
+    padding: 0.45rem 1rem;
     margin-bottom: 1.5rem;
-  }
-  .ip-pool-top {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    margin-bottom: 0.5rem;
-    gap: 0.75rem;
+    justify-content: center;
+    gap: 1.25rem;
     flex-wrap: wrap;
   }
-  .ip-pool-bottom {
+  .ip-pool-group {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .ip-pool-divider {
+    width: 1px;
+    height: 1.4rem;
+    background: #333;
+    flex-shrink: 0;
   }
   .ip-pool-label {
     font-family: 'Oswald', sans-serif;
-    font-size: 0.85rem;
-    letter-spacing: 0.25em;
+    font-size: 0.68rem;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: var(--gold);
+    color: #666;
     white-space: nowrap;
   }
   .ip-limit-ctrl {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: 0.3rem;
   }
   .ip-limit-btn {
-    background: var(--ash);
-    border: 1px solid var(--mist);
-    color: var(--parchment);
-    width: 32px;
-    height: 32px;
-    font-size: 1.1rem;
+    background: transparent;
+    border: 1px solid #333;
+    color: #888;
+    width: 20px;
+    height: 20px;
+    font-size: 0.85rem;
     line-height: 1;
     cursor: pointer;
     font-family: 'Oswald', sans-serif;
-    transition: border-color 0.15s;
+    transition: border-color 0.15s, color 0.15s;
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   .ip-limit-btn:hover { border-color: var(--gold); color: var(--gold); }
   .ip-limit-display {
     font-family: 'Oswald', sans-serif;
-    font-size: 0.85rem;
+    font-size: 0.95rem;
+    font-weight: 600;
     color: var(--bone);
     white-space: nowrap;
-    letter-spacing: 0.05em;
-  }
-  .ip-limit-display strong {
-    color: var(--gold);
-    font-size: 1rem;
+    min-width: 1.2rem;
+    text-align: center;
   }
   .ip-pool-pips {
     display: flex;
-    gap: 0.35rem;
+    gap: 0.22rem;
     align-items: center;
     flex-wrap: wrap;
   }
   .ip-pool-pip {
-    width: 16px;
-    height: 16px;
+    width: 9px;
+    height: 9px;
     border-radius: 50%;
-    border: 1.5px solid var(--mist);
+    border: 1.5px solid #3a3a3a;
     background: transparent;
     transition: background 0.15s, border-color 0.15s;
     flex-shrink: 0;
@@ -1004,8 +1013,9 @@
   .ip-pool-pip.over { background: var(--blood); border-color: var(--blood); }
   .ip-pool-count {
     font-family: 'Oswald', sans-serif;
-    font-size: 0.85rem;
-    color: var(--parchment);
+    font-size: 0.68rem;
+    color: #4a4a4a;
+    white-space: nowrap;
   }
 
   /* UPGRADE TRAY */
@@ -1020,14 +1030,14 @@
     margin-bottom: 0.6rem;
   }
   .upgrade-tray-label {
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
     font-size: 0.85rem;
     letter-spacing: 0.2em;
     text-transform: uppercase;
     color: var(--gold);
   }
   .upgrade-tray-count {
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
     font-size: 0.8rem;
     color: var(--mist);
     margin-left: auto;
@@ -1087,7 +1097,7 @@
     line-height: 1;
   }
   .upgrade-card-label {
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
     font-size: 0.68rem;
     letter-spacing: 0.03em;
     text-transform: uppercase;
@@ -1118,7 +1128,7 @@
     margin-top: 0.5rem;
   }
   .upgrade-detail-label {
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
     font-size: 0.9rem;
     letter-spacing: 0.15em;
     text-transform: uppercase;
@@ -1135,7 +1145,7 @@
     background: var(--ash);
     border: 1px solid var(--dim);
     color: var(--parchment);
-    font-family: 'Crimson Text', serif;
+    font-family: 'Caslon Antique', serif;
     font-size: 0.95rem;
     padding: 0.3rem 0.45rem;
     cursor: pointer;
@@ -1146,7 +1156,9 @@
     align-items: center;
     gap: 0.4rem;
   }
-  .upgrade-choice-btn:hover { border-color: var(--gold); background: rgba(184, 151, 42, 0.05); }
+  @media (hover: hover) {
+    .upgrade-choice-btn:hover { border-color: var(--gold); background: rgba(184, 151, 42, 0.05); }
+  }
   .upgrade-choice-btn.active {
     border-color: var(--gold);
     background: var(--dim);
@@ -1166,7 +1178,7 @@
     min-width: 0;
   }
   .upgrade-btn-name {
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
     font-size: 0.8rem;
     letter-spacing: 0.05em;
     text-transform: uppercase;
@@ -1204,7 +1216,7 @@
     margin-bottom: 2rem;
   }
   .mark-header {
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
     font-size: 0.95rem;
     letter-spacing: 0.3em;
     color: var(--blood);
@@ -1216,7 +1228,7 @@
     background: var(--fog);
     border: 1px solid var(--mist);
     color: var(--parchment);
-    font-family: 'Crimson Text', serif;
+    font-family: 'Caslon Antique', serif;
     font-size: 1rem;
     padding: 0.5rem 0.75rem;
     outline: none;
@@ -1271,7 +1283,7 @@
     flex-wrap: wrap;
   }
   .btn {
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
     font-size: 0.9rem;
     letter-spacing: 0.25em;
     text-transform: uppercase;
@@ -1348,7 +1360,7 @@
       border-bottom: 0.5pt solid #000;
       padding-bottom: 2pt;
       margin-bottom: 5pt;
-      font-family: 'Oswald', sans-serif;
+      font-family: 'Oswald', sans-serif; text-transform: uppercase;
       font-size: 6pt;
       letter-spacing: 0.2em;
       text-transform: uppercase;
@@ -1376,7 +1388,7 @@
       flex: 1;
     }
     .pr-company-name {
-      font-family: 'Oswald', sans-serif;
+      font-family: 'Oswald', sans-serif; text-transform: uppercase;
       font-size: 18pt;
       font-weight: 700;
       text-transform: uppercase;
@@ -1384,7 +1396,7 @@
       line-height: 1;
     }
     .pr-company-sub {
-      font-family: 'Oswald', sans-serif;
+      font-family: 'Oswald', sans-serif; text-transform: uppercase;
       font-size: 7pt;
       letter-spacing: 0.25em;
       text-transform: uppercase;
@@ -1412,7 +1424,7 @@
     }
     .pr-header-mark-text {}
     .pr-header-mark-label {
-      font-family: 'Oswald', sans-serif;
+      font-family: 'Oswald', sans-serif; text-transform: uppercase;
       font-size: 5.5pt;
       letter-spacing: 0.25em;
       text-transform: uppercase;
@@ -1421,7 +1433,7 @@
       margin-bottom: 1pt;
     }
     .pr-header-mark-name {
-      font-family: 'Oswald', sans-serif;
+      font-family: 'Oswald', sans-serif; text-transform: uppercase;
       font-size: 11pt;
       font-weight: 700;
       text-transform: uppercase;
@@ -1470,7 +1482,7 @@
       flex-direction: column;
     }
     .pr-tracking-header {
-      font-family: 'Oswald', sans-serif;
+      font-family: 'Oswald', sans-serif; text-transform: uppercase;
       font-size: 7pt;
       font-weight: 700;
       letter-spacing: 0.12em;
@@ -1516,7 +1528,7 @@
       flex: 1;
     }
     .pr-warrior-name {
-      font-family: 'Oswald', sans-serif;
+      font-family: 'Oswald', sans-serif; text-transform: uppercase;
       font-size: 11pt;
       font-weight: 700;
       text-transform: uppercase;
@@ -1524,7 +1536,7 @@
       line-height: 1;
     }
     .pr-captain-badge {
-      font-family: 'Oswald', sans-serif;
+      font-family: 'Oswald', sans-serif; text-transform: uppercase;
       font-size: 6.5pt;
       font-weight: 700;
       letter-spacing: 0.15em;
@@ -1559,7 +1571,7 @@
       padding: 1.5pt 1pt;
     }
     .pr-stat-lbl {
-      font-family: 'Oswald', sans-serif;
+      font-family: 'Oswald', sans-serif; text-transform: uppercase;
       font-size: 6pt;
       letter-spacing: 0.08em;
       color: #000;
@@ -1568,7 +1580,7 @@
       line-height: 1;
     }
     .pr-stat-val {
-      font-family: 'Oswald', sans-serif;
+      font-family: 'Oswald', sans-serif; text-transform: uppercase;
       font-size: 10pt;
       font-weight: 700;
       line-height: 1.1;
@@ -1577,6 +1589,9 @@
     .pr-stat-val.improved {
       color: #000;
       text-decoration: underline;
+    }
+    .pr-stat-val.debuffed {
+      color: #900;
     }
 
     /* UPGRADES */
@@ -1590,7 +1605,7 @@
       border-left: 1.5pt solid #000;
     }
     .pr-upgrades-label {
-      font-family: 'Oswald', sans-serif;
+      font-family: 'Oswald', sans-serif; text-transform: uppercase;
       font-size: 7pt;
       font-weight: 700;
       letter-spacing: 0.1em;
@@ -1603,7 +1618,7 @@
       background: #333;
       color: #fff;
       padding: 0.5pt 3pt;
-      font-family: 'Oswald', sans-serif;
+      font-family: 'Oswald', sans-serif; text-transform: uppercase;
       font-size: 7.5pt;
       letter-spacing: 0.04em;
       text-transform: uppercase;
@@ -1639,7 +1654,7 @@
       font-weight: 700;
       letter-spacing: 0.05em;
       white-space: nowrap;
-      font-family: 'Oswald', sans-serif;
+      font-family: 'Oswald', sans-serif; text-transform: uppercase;
     }
     .pr-wpn-note {
       color: #000;
@@ -1657,7 +1672,7 @@
     }
     .pr-ability:last-child { margin-bottom: 0; }
     .pr-ability-name {
-      font-family: 'Oswald', sans-serif;
+      font-family: 'Oswald', sans-serif; text-transform: uppercase;
       font-size: 8pt;
       font-weight: 700;
       letter-spacing: 0.08em;
@@ -1700,7 +1715,7 @@
       width: 100%;
     }
     .pr-ref-header {
-      font-family: 'Oswald', sans-serif;
+      font-family: 'Oswald', sans-serif; text-transform: uppercase;
       font-size: 12pt;
       font-weight: 700;
       letter-spacing: 0.3em;
@@ -1724,7 +1739,7 @@
     }
 
     .pr-ref-panel-header {
-      font-family: 'Oswald', sans-serif;
+      font-family: 'Oswald', sans-serif; text-transform: uppercase;
       font-size: 8.5pt;
       font-weight: 700;
       letter-spacing: 0.2em;
@@ -1739,7 +1754,7 @@
       margin-bottom: 3pt;
     }
     .pr-ref-item strong {
-      font-family: 'Oswald', sans-serif;
+      font-family: 'Oswald', sans-serif; text-transform: uppercase;
       font-size: 7.5pt;
       text-transform: uppercase;
       letter-spacing: 0.06em;
@@ -1762,7 +1777,7 @@
       border: 0.5pt solid #000;
     }
     .pr-fall-table td:first-child {
-      font-family: 'Oswald', sans-serif;
+      font-family: 'Oswald', sans-serif; text-transform: uppercase;
       font-weight: 700;
       background: #222;
       color: #fff;
@@ -1786,7 +1801,7 @@
     .pr-footer-logo {
       flex-shrink: 0;
       border: 0.75pt solid #000;
-      font-family: 'Oswald', sans-serif;
+      font-family: 'Oswald', sans-serif; text-transform: uppercase;
       font-size: 5pt;
       letter-spacing: 0.12em;
       text-transform: uppercase;
@@ -1814,7 +1829,7 @@
     display: inline-block;
     border: 2px solid var(--gold);
     color: var(--gold);
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
     font-size: 0.75rem;
     letter-spacing: 0.2em;
     text-transform: uppercase;
@@ -1852,7 +1867,7 @@
     width: 90%;
   }
   .share-modal-title {
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
     font-size: 1rem;
     letter-spacing: 0.25em;
     text-transform: uppercase;
@@ -1912,9 +1927,9 @@
   }
   .archetype-banner-backdrop.show { display: block; }
   .archetype-eyebrow {
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
     font-size: 0.7rem;
-    letter-spacing: 0.4em;
+    letter-spacing: 0.15em;
     text-transform: uppercase;
     color: var(--mist);
     margin-bottom: 0.5rem;
@@ -1927,7 +1942,7 @@
     margin-bottom: 0.5rem;
   }
   .archetype-tagline {
-    font-family: 'Crimson Text', serif;
+    font-family: 'Caslon Antique', serif;
     font-size: 1rem;
     color: var(--parchment);
     font-style: italic;
@@ -1935,7 +1950,7 @@
     line-height: 1.4;
   }
   .archetype-dismiss {
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
     font-size: 0.8rem;
     letter-spacing: 0.2em;
     text-transform: uppercase;
@@ -1956,7 +1971,7 @@
     border: 1px solid var(--gold);
     border-left: 3px solid var(--gold);
     color: var(--parchment);
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
     font-size: 0.8rem;
     letter-spacing: 0.15em;
     padding: 0.75rem 1.25rem;
@@ -2062,7 +2077,7 @@
     font-style: italic;
   }
   .item-desc-stats {
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
     font-size: 0.9rem;
     letter-spacing: 0.1em;
     color: var(--gold);
@@ -2071,12 +2086,31 @@
     margin-bottom: 0.2rem;
   }
 
-.builder-page { min-height: 100vh; padding-bottom: 5rem; }
+.builder-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  width: 100%;
+  overflow: hidden;
+}
+
+.builder-scroll-area {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
 
 .builder-main {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem 1.5rem 6rem;
+  padding: 2rem 1.5rem 2rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .builder-content {
@@ -2101,49 +2135,27 @@
 .save-load-wrapper {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem 1.5rem 0;
-}
-
-.sticky-name-bar {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  width: 100%;
+  padding: 0 0 2rem;
   box-sizing: border-box;
-  background: var(--ash);
-  border-bottom: 2px solid var(--gold);
-  box-shadow: 0 2px 12px rgba(0,0,0,0.5);
-  padding: 0.5rem 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-.sticky-name-bar label {
-  font-family: 'Oswald', sans-serif;
-  font-size: 0.75rem;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: var(--gold);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-.sticky-name-bar .name-input {
-  flex: 1;
-  min-width: 0;
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid var(--mist);
-  padding: 0.25rem 0.5rem;
-}
-.sticky-name-bar .name-input:focus { border-bottom-color: var(--gold); }
-.sticky-name-bar .unsaved-indicator {
-  margin-left: auto;
-  color: var(--blood);
-  font-size: 0.65rem;
-  flex-shrink: 0;
+  width: 100%;
 }
 
-.builder-navbar { position:fixed;bottom:0;left:0;right:0;z-index:100;background:var(--ash);border-top:2px solid var(--gold);box-shadow:0 -4px 20px rgba(0,0,0,0.6);padding-bottom:env(safe-area-inset-bottom);padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right); }
+/* sticky-name-bar removed — merged into topbar */
+
+
+
+
+
+.builder-navbar {
+  flex-shrink: 0;
+  background: var(--ash);
+  border-top: 2px solid var(--gold);
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.6);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  overflow: hidden;
+}
 
 .unsaved-indicator { font-family:'Oswald',sans-serif;font-size:0.7rem;letter-spacing:0.1em;color:#666;white-space:nowrap; }
 
@@ -2199,34 +2211,230 @@
 /* -- NEW CHIP UI FOR UPGRADES -- */
 .eq-chips-list { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem; }
 .eq-chip { display: flex; align-items: stretch; background: var(--ash); border: 1px solid var(--dim); cursor: pointer; transition: border-color 0.15s; position: relative; }
-.eq-chip:hover { border-color: var(--gold); background: rgba(184, 151, 42, 0.05); }
+@media (hover: hover) { .eq-chip:hover { border-color: var(--gold); background: rgba(184, 151, 42, 0.05); } }
 .eq-chip-main { border-color: var(--dim); cursor: pointer; } /* Make main weapon clickable to change it too */
 .eq-chip-icon { width: 40px; display: flex; align-items: center; justify-content: center; background: var(--dim); color: var(--bone); border-right: 1px solid var(--dim); font-size: 1.2rem; }
 .eq-chip-content { flex: 1; padding: 0.35rem 0.5rem; padding-right: 2.2rem; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
-.eq-chip-label { font-family: 'Oswald', sans-serif; font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--mist); line-height: 1; margin-bottom: 0.15rem; }
-.eq-chip-value { font-family: 'Oswald', sans-serif; font-size: 0.85rem; letter-spacing: 0.05em; color: var(--bone); line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.eq-chip-label { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--mist); line-height: 1; margin-bottom: 0.15rem; }
+.eq-chip-value { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.05em; color: var(--bone); line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .eq-chip-pills { display: flex; gap: 0.25rem; margin-top: 0.25rem; flex-wrap: wrap; }
-.eq-chip-desc { font-family: 'Crimson Text', serif; font-size: 0.85rem; color: #a9a29a; line-height: 1.3; margin-top: 0.3rem; }
+.eq-chip-desc { font-family: 'Caslon Antique', serif; font-size: 0.85rem; color: #a9a29a; line-height: 1.3; margin-top: 0.3rem; }
 .eq-chip-remove { position: absolute; right: 0.3rem; top: 50%; transform: translateY(-50%); width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: var(--mist); font-size: 1.4rem; line-height: 1; cursor: pointer; border-radius: 50%; transition: background 0.15s, color 0.15s; }
-.eq-chip-remove:hover { background: rgba(190, 65, 39, 0.15); color: var(--blood); }
-.eq-chip-badge { position: absolute; right: 2.3rem; top: 0.35rem; font-family: 'Oswald', sans-serif; font-size: 0.55rem; padding: 0.1rem 0.3rem; border-radius: 2px; text-transform: uppercase; letter-spacing: 0.05em; background: var(--fog); border: 1px solid var(--dim); color: var(--mist); pointer-events: none; }
+@media (hover: hover) { .eq-chip-remove:hover { background: rgba(190, 65, 39, 0.15); color: var(--blood); } }
+.eq-chip-badge { position: absolute; right: 2.3rem; top: 0.35rem; font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.55rem; padding: 0.1rem 0.3rem; border-radius: 2px; text-transform: uppercase; letter-spacing: 0.05em; background: var(--fog); border: 1px solid var(--dim); color: var(--mist); pointer-events: none; }
 .eq-badge-spent { color: var(--gold); border-color: var(--gold); background: rgba(184, 151, 42, 0.1); }
 .eq-badge-free { color: #8a8580; border-style: dashed; }
 .eq-add-row { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.75rem; }
-.eq-add-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.3rem; background: transparent; border: 1px dashed var(--dim); color: var(--parchment); font-family: 'Oswald', sans-serif; font-size: 0.65rem; letter-spacing: 0.05em; text-transform: uppercase; padding: 0.5rem 0.2rem; cursor: pointer; transition: all 0.15s; text-align: center; white-space: normal; line-height: 1.2; min-width: 0; opacity: 0.85; }
-.eq-add-btn:hover:not(:disabled) { border-color: var(--gold); color: var(--gold); background: rgba(184, 151, 42, 0.05); opacity: 1; }
-.eq-add-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-.eq-add-btn .lr-icon { font-size: 1.5rem; color: var(--mist); transition: color 0.15s; }
-.eq-add-btn:hover:not(:disabled) .lr-icon { color: var(--gold); }
+.eq-add-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.3rem; background: transparent; border: 1px dashed var(--dim); color: var(--parchment); font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.05em; text-transform: uppercase; padding: 0.5rem 0.2rem; cursor: pointer; transition: all 0.15s; text-align: center; white-space: normal; line-height: 1.2; min-width: 0; opacity: 0.85; }
+@media (hover: hover) {
+  .eq-add-btn:hover:not(:disabled) { border-color: var(--gold); color: var(--gold); background: rgba(184, 151, 42, 0.05); opacity: 1; }
+  .eq-add-btn:hover:not(:disabled) .lr-icon { color: var(--gold); }
+}
 
 /* -- UPGRADE MODAL -- */
 .upgrade-modal { max-width: 420px; width: 100%; padding: 1.5rem; background: var(--fog); border: 1px solid var(--mist); border-top: 3px solid var(--gold); box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
 .upgrade-modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--dim); padding-bottom: 0.75rem; }
 .upgrade-modal-close { background: none; border: none; color: var(--mist); font-size: 1.5rem; line-height: 1; cursor: pointer; transition: color 0.15s; }
-.upgrade-modal-close:hover { color: var(--parchment); }
+@media (hover: hover) { .upgrade-modal-close:hover { color: var(--parchment); } }
 .upgrade-modal-body { max-height: 60vh; overflow-y: auto; padding-right: 0.25rem; display: flex; flex-direction: column; gap: 0.75rem; }
 .upgrade-modal-body::-webkit-scrollbar { width: 4px; }
 .upgrade-modal-body::-webkit-scrollbar-thumb { background: var(--dim); }
 
 /* Modal body overrides */
 .upgrade-modal-body .upgrade-choice-grid { grid-template-columns: 1fr; }
+
+/* ── BUILDER TOPBAR ──────────────────────────────────────── */
+.builder-topbar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  padding-top: max(0.5rem, env(safe-area-inset-top));
+  padding-left: max(0.75rem, env(safe-area-inset-left));
+  padding-right: max(0.75rem, env(safe-area-inset-right));
+  background: var(--ash);
+  border-bottom: 1px solid var(--dim);
+  flex-shrink: 0;
+  min-height: 52px;
+  box-sizing: border-box;
+}
+
+.topbar-spacer {
+  width: 36px;
+  justify-self: end;
+}
+
+.topbar-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  flex-shrink: 0;
+  line-height: 1;
+  align-items: center;
+  justify-self: center;
+}
+.topbar-brand-logo {
+  height: 45px;
+  width: auto;
+  filter: invert(1);
+  display: block;
+  align-self: flex-start;
+}
+.topbar-brand-sub {
+  font-family: 'Oswald', sans-serif; text-transform: uppercase;
+  font-size: 1rem;
+  letter-spacing: 0.1em;
+  color: var(--gold);
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+.topbar-name-group {
+  flex: 1;
+  min-width: 0;
+}
+.topbar-name-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--dim);
+  color: var(--parchment);
+  font-family: 'Oswald', sans-serif; text-transform: uppercase;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 0.25rem 0.4rem;
+  text-overflow: ellipsis;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.topbar-name-input:focus {
+  border-bottom-color: var(--gold);
+}
+.topbar-name-input::placeholder {
+  color: var(--mist);
+  font-weight: 400;
+  font-style: italic;
+}
+
+.topbar-menu-btn {
+  background: none;
+  border: 1px solid var(--dim);
+  color: var(--mist);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color 0.15s, color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+@media (hover: hover) {
+  .topbar-menu-btn:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+}
+.topbar-menu-btn:active {
+  color: var(--parchment);
+  border-color: var(--parchment);
+}
+
+/* ── SIDEBAR (Saved Companies Drawer) ────────────────────── */
+.sidebar-overlay {
+  position: fixed;
+  top: 78px;
+  left: 0;
+  right: 0;
+  bottom: 62px;
+  background: rgba(0,0,0,0.7);
+  z-index: 500;
+  display: flex;
+  justify-content: flex-start;
+}
+.sidebar-panel {
+  width: 320px;
+  max-width: 85vw;
+  height: 100%;
+  background: var(--ash);
+  border-right: 1px solid var(--dim);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 4px 0 20px rgba(0,0,0,0.5);
+  animation: sidebar-slide-in 0.2s ease-out;
+}
+@keyframes sidebar-slide-in {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1rem 0.75rem;
+  border-bottom: 1px solid var(--dim);
+}
+.sidebar-title {
+  font-family: 'Oswald', sans-serif; text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.25em;
+  color: var(--gold);
+  text-transform: uppercase;
+}
+.sidebar-close {
+  background: none;
+  border: none;
+  color: var(--mist);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.25rem;
+  -webkit-tap-highlight-color: transparent;
+}
+.sidebar-close:active { color: var(--parchment); }
+.sidebar-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── BUILDER NAME ROW (inside scroll area) ────────────── */
+.builder-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+.builder-name-row label {
+  font-family: 'Oswald', sans-serif; text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--gold);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.builder-name-input {
+  flex: 1;
+  min-width: 0;
+  background: var(--ash);
+  border: 1px solid var(--mist);
+  border-bottom: 2px solid var(--blood);
+  color: var(--parchment);
+  font-family: 'Caslon Antique', serif;
+  font-size: 1.3rem;
+  padding: 0.4rem 0.75rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.builder-name-input:focus { border-bottom-color: var(--gold); }
+.builder-name-input::placeholder { color: var(--mist); font-style: italic; }
+
+
+/* Normalize saved company chips inside sidebar */
+.sidebar-body .saved-list { flex-direction: column; }
+.sidebar-body .saved-chip { width: 100%; box-sizing: border-box; }

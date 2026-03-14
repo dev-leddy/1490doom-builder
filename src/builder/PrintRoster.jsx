@@ -12,6 +12,12 @@ function improveStatDisplayPrint(base, stat) {
   return Math.max(2, num - 1) + '+'
 }
 
+function debuffStatDisplayPrint(base, stat) {
+  if (stat === 'MOV' || stat === 'VIT' || stat === 'ATK') return Math.max(0, parseInt(base) - 1)
+  const num = parseInt(base)
+  return (num + 1) + '+'
+}
+
 function isOPGDesc(desc) {
   return (desc || '').toLowerCase().includes('once per game')
 }
@@ -80,32 +86,26 @@ export default function PrintRoster() {
           const statKeys = ['MOV', 'ATK', 'VIT', 'SKL', 'DEF', 'COM']
           const spent = slot.ip || []
 
-          const isDualWield = slot.weapon1 === 'Light Weapon' && slot.weapon2 === 'Light Weapon'
+          const isDualWielding = slot.weapon1 === 'Light Weapon' && slot.weapon2 === 'Light Weapon'
+          const dualWieldBonus = (isDualWielding && !wdata.fixedDualWield) ? 1 : 0
+
           const wpn1 = slot.weapon1 ? WEAPONS[slot.weapon1] : null
-          const wpn2 = !isDualWield && slot.weapon2 ? WEAPONS[slot.weapon2] : null
-
-          const wpnStripData = isDualWield
-            ? { name: 'Dual Light Weapons', damage: 1, range: 'Contact', note: 'Two light weapons. Grants +1 Attack die.', special: null }
-            : wpn1
-
-          const wpnStripName = isDualWield ? 'Dual Light Weapons' : (slot.weapon1 || '')
-          const wpnIconSrc = ITEM_ICONS[isDualWield ? 'Dual Wield' : slot.weapon1] || ''
-          const wpn2IconSrc = (!isDualWield && slot.weapon2) ? (ITEM_ICONS[slot.weapon2] || '') : ''
+          const wpn2 = slot.weapon2 ? WEAPONS[slot.weapon2] : null
 
           const wpnCards = []
-          if (wpnStripData && wpnStripName) {
+          if (wpn1 && slot.weapon1) {
             wpnCards.push({
               key: 'w1',
-              iconSrc: wpnIconSrc,
-              name: wpnStripName,
-              damage: wpnStripData.damage,
-              range: wpnStripData.range,
+              iconSrc: ITEM_ICONS[slot.weapon1] || '',
+              name: slot.weapon1,
+              damage: wpn1.damage,
+              range: wpn1.range,
             })
           }
-          if (!isDualWield && wpn2 && slot.weapon2) {
+          if (wpn2 && slot.weapon2) {
             wpnCards.push({
               key: 'w2',
-              iconSrc: wpn2IconSrc,
+              iconSrc: ITEM_ICONS[slot.weapon2] || '',
               name: slot.weapon2,
               damage: wpn2.damage,
               range: wpn2.range,
@@ -158,13 +158,30 @@ export default function PrintRoster() {
 
                 <div className="pr-stats">
                   {statKeys.map(s => {
-                    const base = wdata.stats[s]
+                    let base = wdata.stats[s]
+
+                    if (s === 'ATK') {
+                      base = parseInt(base) + dualWieldBonus
+                    }
+
                     const improved = spent.includes('stat') && slot.statImprove === s
-                    const display = improved ? improveStatDisplayPrint(base, s) : base
+                    const polearmDebuff = slot.weapon1 === 'Polearm (one-handed)' && s === 'COM'
+                    
+                    const isDualWieldImproved = s === 'ATK' && dualWieldBonus > 0
+                    const isStatImproved = improved || isDualWieldImproved
+                    
+                    let display = base
+                    if (isStatImproved) display = improveStatDisplayPrint(base, s)
+                    else if (polearmDebuff) display = debuffStatDisplayPrint(base, s)
+                    
+                    let statClass = ''
+                    if (isStatImproved) statClass = 'improved'
+                    else if (polearmDebuff) statClass = 'debuffed'
+
                     return (
                       <div key={s} className="pr-stat">
                         <span className="pr-stat-lbl">{s}</span>
-                        <span className={`pr-stat-val ${improved ? 'improved' : ''}`}>{display}</span>
+                        <span className={`pr-stat-val ${statClass}`}>{display}</span>
                       </div>
                     )
                   })}

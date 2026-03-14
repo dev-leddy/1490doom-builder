@@ -16,6 +16,7 @@ export default function BuilderPage() {
   const { validationMsg, dismissValidation } = useBuilderStore()
   const openTracker = useTrackerStore(s => s.openTracker)
   const builderState = useBuilderStore(s => s)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   function handlePlay() {
     const result = openTracker(builderState)
@@ -24,45 +25,58 @@ export default function BuilderPage() {
 
   return (
     <div className="builder-page">
-      <header className="builder-header">
-        <div className="builder-title-main">1490 DOOM</div>
-        <div className="builder-title-sub">Doom Company Builder</div>
-        <InstallButton />
-      </header>
+      {/* ── TOPBAR ─────────────────────────────────────── */}
+      <BuilderTopbar onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
 
-      <div className="save-load-wrapper">
-        <SaveLoadPanel />
+      {/* ── SCROLLABLE AREA ────────────────────────────── */}
+      <div className="builder-scroll-area">
+        <main className="builder-main">
+          <div className="builder-content">
+            <CompanyHeader />
+            <IPPool />
+            <WarriorRoster />
+          </div>
+        </main>
+
+        <div id="print-roster">
+          <PrintRoster />
+        </div>
+
+        <footer className="builder-attribution">
+          <div className="attribution-logo-placeholder">Compatible with 1490 DOOM</div>
+          <p className="attribution-text">
+            This is an independent production by{' '}
+            <a href="https://www.linkedin.com/in/michaelleddy/" target="_blank" rel="noopener noreferrer">Michael Leddy</a>
+            {' '}and is not affiliated with or endorsed by Buer Games. All related IP is © Buer Games.
+            Used with permission under the Buer Games Third Party License.
+            Warrior and Mark artwork © Buer Games.
+          </p>
+        </footer>
       </div>
 
-      <StickyNameBar />
-
+      {/* ── BOTTOM NAVBAR ──────────────────────────────── */}
       <BuilderNavbar onPlay={handlePlay} />
 
-      <main className="builder-main">
-        <div className="builder-content">
-          <CompanyHeader />
-          <IPPool />
-          <WarriorRoster />
+      {/* ── SIDEBAR (Saved Companies) ──────────────────── */}
+      {sidebarOpen && (
+        <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)}>
+          <div className="sidebar-panel" onClick={e => e.stopPropagation()}>
+            <div className="sidebar-header">
+              <span className="sidebar-title">SAVED COMPANIES</span>
+              <button className="sidebar-close" onClick={() => setSidebarOpen(false)}>×</button>
+            </div>
+            <div className="sidebar-body">
+              <SaveLoadPanel onSelect={() => setSidebarOpen(false)} />
+              <div style={{ marginTop: '1.5rem' }}>
+                <InstallButton />
+              </div>
+            </div>
+          </div>
         </div>
-      </main>
-
-      <div id="print-roster">
-        <PrintRoster />
-      </div>
+      )}
 
       <ShareModal />
       <ImportModal />
-
-      <footer className="builder-attribution">
-        <div className="attribution-logo-placeholder">Compatible with 1490 DOOM</div>
-        <p className="attribution-text">
-          This is an independent production by{' '}
-          <a href="https://www.linkedin.com/in/michaelleddy/" target="_blank" rel="noopener noreferrer">Michael Leddy</a>
-          {' '}and is not affiliated with or endorsed by Buer Games. All related IP is © Buer Games.
-          Used with permission under the Buer Games Third Party License.
-          Warrior and Mark artwork © Buer Games.
-        </p>
-      </footer>
 
       {validationMsg && (
         <ConfirmModal
@@ -72,11 +86,33 @@ export default function BuilderPage() {
           onCancel={dismissValidation}
         />
       )}
-
     </div>
   )
 }
 
+/* ── TOPBAR ────────────────────────────────────────────── */
+function BuilderTopbar({ onMenuToggle }) {
+  const { companyName, setCompanyName } = useBuilderStore()
+
+  return (
+    <div className="builder-topbar">
+      <button className="topbar-menu-btn" onClick={onMenuToggle} title="Saved Companies">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+          <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+        </svg>
+      </button>
+
+      <div className="topbar-brand">
+        <img src={`${import.meta.env.BASE_URL}logo.png`} alt="1490 DOOM" className="topbar-brand-logo" />
+        <span className="topbar-brand-sub">Company Builder</span>
+      </div>
+
+      <div className="topbar-spacer" aria-hidden="true" />
+    </div>
+  )
+}
+
+/* ── BOTTOM NAVBAR ─────────────────────────────────────── */
 function BuilderNavbar({ onPlay }) {
   const { saveCompany, rollRandom, openShare, openImport, clearBuilder, isDirty } = useBuilderStore()
   const dirty = isDirty()
@@ -147,24 +183,5 @@ function BuilderNavbar({ onPlay }) {
         />
       )}
     </nav>
-  )
-}
-
-function StickyNameBar() {
-  const { companyName, setCompanyName } = useBuilderStore()
-
-  return (
-    <div className="sticky-name-bar">
-      <label htmlFor="sticky-company-name">Company Name</label>
-      <input
-        id="sticky-company-name"
-        className="name-input"
-        type="text"
-        placeholder="Name your Doom Company…"
-        maxLength={40}
-        value={companyName}
-        onChange={e => setCompanyName(e.target.value)}
-      />
-    </div>
   )
 }

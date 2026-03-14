@@ -14,12 +14,24 @@ function MarkPlaceholder() {
 }
 
 export default function CompanyHeader() {
-  const { mark, setMark } = useBuilderStore()
+  const { mark, setMark, companyName, setCompanyName } = useBuilderStore()
   const markData = MARKS.find(m => m.name === mark)
   const markImg = mark && MARK_IMAGES[mark]
 
   return (
     <div className="company-header">
+      <div className="company-name-row">
+        <label htmlFor="builder-company-name">Company Name</label>
+        <input
+          id="builder-company-name"
+          className="name-input"
+          type="text"
+          placeholder="Name your Doom Company…"
+          maxLength={40}
+          value={companyName}
+          onChange={e => setCompanyName(e.target.value)}
+        />
+      </div>
       <div className="mark-section">
         <div className="mark-header">Company Mark</div>
         <div className="mark-select-row">

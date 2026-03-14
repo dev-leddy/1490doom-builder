@@ -31,7 +31,7 @@
   color: #888;
   padding: 0.25rem 0.55rem;
   cursor: pointer;
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Oswald', sans-serif; text-transform: uppercase;
   font-size: 0.85rem;
   flex-shrink: 0;
   line-height: 1;
@@ -40,7 +40,7 @@
   min-width: 36px;
   min-height: 36px;
 }
-.tk-topbar-btn:active { color: #e8dcc8; border-color: #666; }
+.tk-topbar-btn:active { color: #ffffff; border-color: #666; }
 .tk-topbar-identity {
   display: flex;
   align-items: center;
@@ -65,7 +65,7 @@
   min-width: 0;
 }
 .tk-topbar-name {
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Oswald', sans-serif; text-transform: uppercase;
   font-size: 0.95rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -73,15 +73,15 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: #e8dcc8;
+  color: #ffffff;
   line-height: 1.1;
 }
 .tk-topbar-mark-name {
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Oswald', sans-serif; text-transform: uppercase;
   font-size: 0.6rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #b8972a;
+  color: #be4127;
   line-height: 1;
   white-space: nowrap;
   overflow: hidden;
@@ -94,7 +94,7 @@
 .tk-round-btn {
   background: #1a1a1a;
   border: 1px solid #333;
-  color: #e8dcc8;
+  color: #ffffff;
   width: 32px;
   height: 32px;
   cursor: pointer;
@@ -104,8 +104,8 @@
 }
 .tk-round-btn:active { background: #2a2a2a; }
 .tk-round-display { text-align: center; min-width: 36px; }
-.tk-round-label { font-family: 'Oswald', sans-serif; font-size: 0.5rem; letter-spacing: 0.15em; color: #555; display: block; line-height: 1; }
-.tk-round-num { font-family: 'Oswald', sans-serif; font-size: 1.3rem; font-weight: 700; display: block; line-height: 1; }
+.tk-round-label { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.5rem; letter-spacing: 0.15em; color: #555; display: block; line-height: 1; }
+.tk-round-num { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 1.3rem; font-weight: 700; display: block; line-height: 1; }
 
 /* ── CARD AREA ───────────────────────────────────────────── */
 .tracker-card-area {
@@ -122,15 +122,15 @@
 
 /* ── WARRIOR CARD ────────────────────────────────────────── */
 .tk-card { background: #111; border: 1px solid #2a2a2a; padding: 0.8rem; position: relative; }
-.tk-card.is-captain { border-color: #b8972a; margin-top: 0.75rem; }
+.tk-card.is-captain { border-color: #be4127; margin-top: 0.75rem; }
 .tk-card.is-captain::after {
   content: 'CAPTAIN';
   position: absolute;
   top: -0.6rem;
   right: 1rem;
-  background: #b8972a;
+  background: #be4127;
   color: #000;
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Oswald', sans-serif; text-transform: uppercase;
   font-size: 0.7rem;
   letter-spacing: 0.2em;
   padding: 0.1rem 0.5rem;
@@ -140,14 +140,14 @@
 
 /* ── CARD HEADER ────────────────────────────────────────── */
 .tk-card-header { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
-.tk-name { font-family: 'Oswald', sans-serif; font-size: 1.25rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; flex: 1; }
-.tk-dead-badge { font-family: 'Oswald', sans-serif; font-size: 0.65rem; letter-spacing: 0.12em; background: #5a0000; color: #ff8888; padding: 2px 7px; text-transform: uppercase; }
-.tk-captain-badge { font-family: 'Oswald', sans-serif; font-size: 0.65rem; letter-spacing: 0.12em; background: #b8972a; color: #000; padding: 2px 6px; text-transform: uppercase; font-weight: 700; }
+.tk-name { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 1.25rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; flex: 1; }
+.tk-dead-badge { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.12em; background: #5a0000; color: #ff8888; padding: 2px 7px; text-transform: uppercase; }
+.tk-captain-badge { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.12em; background: #be4127; color: #000; padding: 2px 6px; text-transform: uppercase; font-weight: 700; }
 
 .tk-hdr-btn {
   padding: 0.3rem 0.6rem;
   cursor: pointer;
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Oswald', sans-serif; text-transform: uppercase;
   font-size: 0.7rem;
   letter-spacing: 0.1em;
   flex-shrink: 0;
@@ -167,7 +167,7 @@
   margin-bottom: 0.6rem;
 }
 .tk-ip-tag {
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Oswald', sans-serif; text-transform: uppercase;
   font-size: 0.75rem;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -182,13 +182,13 @@
 /* ── STAT STRIP ─────────────────────────────────────────── */
 .tk-stats-strip { display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px; margin-bottom: 0.85rem; }
 .tk-stat { background: #1a1a1a; border: 1px solid #2a2a2a; text-align: center; padding: 5px 2px; }
-.tk-stat-improved { border-color: #b8972a; }
-.tk-stat-lbl { font-family: 'Oswald', sans-serif; font-size: 0.7rem; letter-spacing: 0.08em; color: #777; text-transform: uppercase; display: block; line-height: 1; margin-bottom: 3px; }
-.tk-stat-val { font-family: 'Oswald', sans-serif; font-size: 1.2rem; font-weight: 700; line-height: 1; display: block; }
-.tk-stat-improved .tk-stat-val { color: #b8972a; }
+.tk-stat-improved { border-color: var(--green); }
+.tk-stat-lbl { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.08em; color: #777; text-transform: uppercase; display: block; line-height: 1; margin-bottom: 3px; }
+.tk-stat-val { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 1.2rem; font-weight: 700; line-height: 1; display: block; }
+.tk-stat-improved .tk-stat-val { color: var(--green); }
 
 /* ── VITALITY ───────────────────────────────────────────── */
-.tk-section-label { font-family: 'Oswald', sans-serif; font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: #6a6a6a; margin-top: 0.9rem; margin-bottom: 0.45rem; }
+.tk-section-label { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: #6a6a6a; margin-top: 0.9rem; margin-bottom: 0.45rem; }
 .tk-vit-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 0.8rem; }
 .tk-vit-box {
   width: 44px;
@@ -213,15 +213,15 @@
     linear-gradient(135deg, transparent 45%, #2a2a2a 45%, #2a2a2a 55%, transparent 55%),
     linear-gradient(45deg, transparent 45%, #2a2a2a 45%, #2a2a2a 55%, transparent 55%);
 }
-.tk-vit-count { font-family: 'Oswald', sans-serif; font-size: 1.1rem; color: #4a9a4a; margin-left: 6px; font-weight: 700; }
+.tk-vit-count { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 1.1rem; color: #4a9a4a; margin-left: 6px; font-weight: 700; }
 
 /* ── WEAPONS ────────────────────────────────────────────── */
 .tk-equip-block { display: flex; flex-direction: column; gap: 0.5rem; }
 .tk-wpn-row { display: flex; align-items: flex-start; gap: 0.55rem; background: #1a1a1a; border: 1px solid #2a2a2a; padding: 0.65rem 0.75rem; }
 .tk-wpn-body { flex: 1; min-width: 0; }
 .tk-wpn-name-line { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; margin-bottom: 4px; }
-.tk-wpn-name { font-family: 'Oswald', sans-serif; font-size: 1rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
-.tk-wpn-pill { background: #333; color: #e8dcc8; padding: 2px 6px; font-family: 'Oswald', sans-serif; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; white-space: nowrap; }
+.tk-wpn-name { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 1rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.tk-wpn-pill { background: #333; color: #ffffff; padding: 2px 6px; font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; white-space: nowrap; }
 .tk-wpn-note { font-size: 1rem; color: #b0a080; line-height: 1.6; }
 .tk-wpn-icon { width: 18px; height: 18px; filter: sepia(0.3) brightness(0.95); opacity: 0.85; flex-shrink: 0; }
 
@@ -237,11 +237,11 @@
 }
 .tk-ability.tk-ability-used { background: #0f0f0f; border-left-color: #222; }
 .tk-ability-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.4rem; }
-.tk-ability-name { font-family: 'Oswald', sans-serif; font-size: 1rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; line-height: 1.2; }
+.tk-ability-name { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 1rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; line-height: 1.2; }
 .tk-ability.tk-ability-used .tk-ability-name { color: #3a3a3a; text-decoration: line-through; }
 .tk-ability-desc { font-size: 1rem; color: #c8b890; line-height: 1.6; overflow-wrap: break-word; word-break: break-word; }
 .tk-ability.tk-ability-used .tk-ability-desc { color: #2a2a2a; }
-.tk-opg-badge { font-family: 'Oswald', sans-serif; font-size: 0.6rem; letter-spacing: 0.1em; background: #1f1900; color: #b8972a; border: 1px solid #3a2e00; padding: 2px 6px; white-space: nowrap; flex-shrink: 0; }
+.tk-opg-badge { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.6rem; letter-spacing: 0.1em; background: #1f1900; color: #be4127; border: 1px solid #3a2e00; padding: 2px 6px; white-space: nowrap; flex-shrink: 0; }
 .tk-opg-badge.tk-opg-used { background: #0d0d0d; color: #2a2a2a; border-color: #1a1a1a; }
 .tk-opg-badge.tk-opg-permanent { background: #1a0000; color: #7a2a2a; border-color: #3a1010; }
 /* TWICE PER GAME — copper/orange */
@@ -257,12 +257,12 @@
 
 /* ── RELIQUARY BUTTON ───────────────────────────────────── */
 .tk-reliquary-btn {
-  border: 1px solid #b8972a;
+  border: 1px solid #be4127;
   background: #1a1510;
-  color: #b8972a;
+  color: #be4127;
   padding: 0.3rem 0.8rem;
   cursor: pointer;
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Oswald', sans-serif; text-transform: uppercase;
   font-size: 0.7rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -279,9 +279,14 @@
   border-top: 1px solid #222;
   flex-shrink: 0;
   width: 100%;
-  padding-bottom: env(safe-area-inset-bottom);
+  padding-bottom: max(0.4rem, env(safe-area-inset-bottom));
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
+  overflow-x: auto;
+  scrollbar-width: none; /* Hide scrollbar in Firefox */
+}
+.tk-tab-bar::-webkit-scrollbar {
+  display: none; /* Hide scrollbar in Chrome/Safari/Webkit */
 }
 .tk-tab {
   flex: 1;
@@ -289,7 +294,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem 0.1rem 0.6rem;
+  padding: 0.6rem 0.1rem 0.2rem;
   cursor: pointer;
   border-right: 1px solid #1a1a1a;
   border: none;
@@ -305,18 +310,18 @@
 }
 .tk-tab:last-child { border-right: none; }
 .tk-tab:active { background: #1a1a1a; }
-.tk-tab.tk-tab-active { background: #1a1a1a; border-top-color: #b8972a; }
+.tk-tab.tk-tab-active { background: #1a1a1a; border-top-color: #be4127; }
 .tk-tab.tk-tab-dead { opacity: 0.35; }
 .tk-tab-vit {
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Oswald', sans-serif; text-transform: uppercase;
   font-size: 1rem;
   font-weight: 700;
   line-height: 1;
-  color: #e8dcc8;
+  color: #ffffff;
 }
-.tk-tab.tk-tab-active .tk-tab-vit { color: #b8972a; }
+.tk-tab.tk-tab-active .tk-tab-vit { color: #be4127; }
 .tk-tab-name {
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Oswald', sans-serif; text-transform: uppercase;
   font-size: 0.5rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -332,14 +337,14 @@
 }
 .tk-tab.tk-tab-active .tk-tab-name { color: #888; }
 .tk-tab-dead-icon { position: absolute; top: 3px; right: 3px; font-size: 0.55rem; color: #5a0000; }
-.tk-tab-captain-dot { position: absolute; top: 3px; left: 3px; font-size: 0.5rem; color: #b8972a; }
+.tk-tab-captain-dot { position: absolute; top: 3px; left: 3px; font-size: 0.5rem; color: #be4127; }
 
 /* REF tab */
 .tk-tab-ref { border-left: 1px solid #2a2a2a; }
 .tk-tab-ref .tk-tab-vit { font-size: 0.85rem; color: #555; }
-.tk-tab-ref.tk-tab-active .tk-tab-vit { color: #b8972a; }
+.tk-tab-ref.tk-tab-active .tk-tab-vit { color: #be4127; }
 .tk-tab-ref .tk-tab-name { color: #444; }
-.tk-tab-ref.tk-tab-active .tk-tab-name { color: #b8972a; }
+.tk-tab-ref.tk-tab-active .tk-tab-name { color: #be4127; }
 
 /* ── QUICK REF ───────────────────────────────────────────── */
 .tk-ref-back-btn {
@@ -349,7 +354,7 @@
   background: #1a1a1a;
   border: 1px solid #444;
   color: #c8b890;
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Oswald', sans-serif; text-transform: uppercase;
   font-size: 0.8rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -370,11 +375,11 @@
 }
 .tk-ref-section { margin-bottom: 1.1rem; }
 .tk-ref-section-title {
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Oswald', sans-serif; text-transform: uppercase;
   font-size: 0.65rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: #b8972a;
+  color: #be4127;
   border-bottom: 1px solid #2a2a2a;
   padding-bottom: 0.3rem;
   margin-bottom: 0.6rem;
@@ -389,12 +394,12 @@
 }
 .tk-ref-item:last-child { border-bottom: none; margin-bottom: 0; }
 .tk-ref-item strong {
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Oswald', sans-serif; text-transform: uppercase;
   font-size: 0.85rem;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: #e8dcc8;
+  color: #ffffff;
   display: block;
   margin-bottom: 2px;
 }
@@ -403,10 +408,10 @@
 
 .tk-ref-table { width: 100%; border-collapse: collapse; font-size: 1rem; }
 .tk-ref-table td { padding: 0.5rem 0.65rem; border: 1px solid #2a2a2a; background: #1a1a1a; color: #c8b890; line-height: 1.6; font-size: 1rem; }
-.tk-ref-table td:first-child { font-family: 'Oswald', sans-serif; font-size: 1rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; background: #1e1e1e; color: #e8dcc8; text-align: center; white-space: nowrap; width: 20%; }
+.tk-ref-table td:first-child { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 1rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; background: #1e1e1e; color: #ffffff; text-align: center; white-space: nowrap; width: 20%; }
 .tk-ref-table tr:nth-child(even) td { background: #141414; }
 .tk-ref-table tr:nth-child(even) td:first-child { background: #161616; }
-.tk-ref-table strong { font-family: 'Oswald', sans-serif; font-size: 1rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #e8dcc8; display: inline; }
+.tk-ref-table strong { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 1rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #ffffff; display: inline; }
 .tk-ref-fall-note { font-size: 1rem; color: #c8b890; font-style: italic; margin-bottom: 0.5rem; line-height: 1.6; }
 
 /* ── MARK POPUP ──────────────────────────────────────────── */
@@ -416,8 +421,8 @@
   max-width: 340px;
   width: 100%;
   padding: 1.4rem;
-  font-family: 'Crimson Text', serif;
-  color: #e8dcc8;
+  font-family: 'Caslon Antique', serif;
+  color: #ffffff;
 }
 .mark-popup-header {
   display: flex;
@@ -431,19 +436,19 @@
   border-radius: 50%;
   object-fit: cover;
   object-position: top;
-  border: 2px solid #b8972a;
+  border: 2px solid #be4127;
   flex-shrink: 0;
 }
 .mark-popup-label {
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Oswald', sans-serif; text-transform: uppercase;
   font-size: 0.6rem;
   letter-spacing: 0.18em;
-  color: #b8972a;
+  color: #be4127;
   text-transform: uppercase;
   margin-bottom: 2px;
 }
 .mark-popup-name {
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Oswald', sans-serif; text-transform: uppercase;
   font-size: 1.2rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -464,18 +469,18 @@
   color: #666;
   padding: 0.45rem;
   cursor: pointer;
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Oswald', sans-serif; text-transform: uppercase;
   font-size: 0.75rem;
   letter-spacing: 0.1em;
 }
 
 /* ── TRACKER MODALS (Cache / Status) ─────────────────────── */
 .tracker-modal-title {
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Oswald', sans-serif; text-transform: uppercase;
   font-size: 0.65rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: #b8972a;
+  color: #be4127;
   border-bottom: 1px solid #2a2a2a;
   padding-bottom: 0.5rem;
   margin-bottom: 0.6rem;
@@ -504,7 +509,7 @@
   margin-bottom: 0.3rem;
 }
 .cache-item-roll {
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Oswald', sans-serif; text-transform: uppercase;
   font-size: 0.8rem;
   font-weight: 700;
   background: #0d1a0d;
@@ -516,12 +521,12 @@
   flex-shrink: 0;
 }
 .cache-item-name {
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Oswald', sans-serif; text-transform: uppercase;
   font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #e8dcc8;
+  color: #ffffff;
 }
 .cache-item-desc {
   font-size: 0.95rem;
@@ -546,7 +551,7 @@
 }
 .status-item-btn:active, .status-item-btn:hover { background: #1a1a3a; border-left-color: #9a9add; }
 .status-item-name {
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Oswald', sans-serif; text-transform: uppercase;
   font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -569,7 +574,7 @@
   border: 1px solid #2a2a2a;
   color: #555;
   padding: 0.5rem;
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Oswald', sans-serif; text-transform: uppercase;
   font-size: 0.75rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
