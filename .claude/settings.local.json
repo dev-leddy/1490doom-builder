@@ -27,7 +27,8 @@
       "Bash(do netstat -an)",
       "Bash(echo \"$port IN USE\")",
       "Bash(echo \"$port FREE\")",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5176/1490doom-builder/)"
     ]
   }
 }

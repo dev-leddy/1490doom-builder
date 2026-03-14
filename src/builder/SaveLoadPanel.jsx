@@ -15,7 +15,6 @@ export default function SaveLoadPanel() {
 
   return (
     <div className="saved-section">
-      <SectionHeader title="Saved Companies" />
       {!saves.length ? (
         <span className="no-saves">No companies saved yet.</span>
       ) : (

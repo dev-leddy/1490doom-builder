@@ -269,6 +269,18 @@ export const useBuilderStore = create((set, get) => {
       set({ companyName: name })
       get()._autoDraft()
     },
+    addSlot() {
+      const { slots } = get()
+      if (slots.length >= 8) return
+      set({ slots: [...slots, { type: null, weapon1: null, weapon2: null, consumable: null, climbing: null, ip: [], isCaptain: false, notes: [], customName: null }] })
+      get()._autoDraft()
+    },
+    removeSlot() {
+      const { slots } = get()
+      if (slots.length <= 1) return
+      set({ slots: slots.slice(0, -1) })
+      get()._autoDraft()
+    },
     changeIPLimit(delta) {
       const { ipLimit, slots } = get()
       const newLimit = Math.max(0, Math.min(20, ipLimit + delta))
@@ -372,6 +384,14 @@ export const useBuilderStore = create((set, get) => {
       if (errors) { set({ validationMsg: errors }); return false }
       const saves = getSaves()
       const { mark, companyName, ipLimit, slots, companyId } = get()
+      const nameConflict = saves.find(s =>
+        s.companyId !== companyId &&
+        s.companyName?.trim().toLowerCase() === (companyName || '').trim().toLowerCase()
+      )
+      if (nameConflict) {
+        set({ validationMsg: `A company named "${nameConflict.companyName}" already exists. Rename your company before saving.` })
+        return false
+      }
       const saveData = { mark, companyName, ipLimit, slots, companyId, savedAt: Date.now() }
       const existingIndex = saves.findIndex(s => s.companyId === companyId)
       if (existingIndex >= 0) {
@@ -491,7 +511,7 @@ export const useBuilderStore = create((set, get) => {
 
         return { type, weapon1, weapon2, consumable: null, climbing: null, ip, isCaptain: i === 0, notes: [] }
       })
-      set({ mark, companyName: generateCompanyName(), ipLimit, slots })
+      set({ mark, companyName: generateCompanyName(), ipLimit, slots, companyId: crypto.randomUUID() })
       get()._autoDraft()
     },
 

@@ -13,7 +13,7 @@ import InstallButton from '../shared/InstallButton'
 import './builder.css'
 
 export default function BuilderPage() {
-  const { validationMsg, dismissValidation, companyName, setCompanyName } = useBuilderStore()
+  const { validationMsg, dismissValidation } = useBuilderStore()
   const openTracker = useTrackerStore(s => s.openTracker)
   const builderState = useBuilderStore(s => s)
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -31,18 +31,6 @@ export default function BuilderPage() {
       {/* ── SCROLLABLE AREA ────────────────────────────── */}
       <div className="builder-scroll-area">
         <main className="builder-main">
-          <div className="builder-name-row">
-            <label htmlFor="builder-company-name">Company Name</label>
-            <input
-              id="builder-company-name"
-              className="builder-name-input"
-              type="text"
-              placeholder="Name your Doom Company…"
-              maxLength={40}
-              value={companyName}
-              onChange={e => setCompanyName(e.target.value)}
-            />
-          </div>
           <div className="builder-content">
             <CompanyHeader />
             <IPPool />
@@ -108,16 +96,18 @@ function BuilderTopbar({ onMenuToggle }) {
 
   return (
     <div className="builder-topbar">
-      <div className="topbar-brand">
-        <span className="topbar-brand-main">1490 DOOM</span>
-        <span className="topbar-brand-sub">Company Builder</span>
-      </div>
-
       <button className="topbar-menu-btn" onClick={onMenuToggle} title="Saved Companies">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
           <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
         </svg>
       </button>
+
+      <div className="topbar-brand">
+        <img src={`${import.meta.env.BASE_URL}logo.png`} alt="1490 DOOM" className="topbar-brand-logo" />
+        <span className="topbar-brand-sub">Company Builder</span>
+      </div>
+
+      <div className="topbar-spacer" aria-hidden="true" />
     </div>
   )
 }
