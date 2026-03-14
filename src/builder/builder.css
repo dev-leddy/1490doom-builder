@@ -77,7 +77,7 @@
     background: none;
     border: 1px solid var(--mist);
     color: var(--bone);
-    font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+    font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
     font-size: 0.7rem;
     letter-spacing: 0.18em;
     text-transform: uppercase;
@@ -109,7 +109,7 @@
     margin-bottom: 2rem;
   }
   .install-guide-header {
-    font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+    font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
     font-size: 1rem;
     letter-spacing: 0.2em;
     text-transform: uppercase;
@@ -124,7 +124,7 @@
     gap: 0.6rem;
   }
   .install-guide-steps li {
-    font-family: 'Caslon Antique', serif;
+    font-family: var(--font-body);
     font-size: 1.05rem;
     color: var(--parchment);
     line-height: 1.4;
@@ -143,7 +143,7 @@
     background: var(--gold);
     border: none;
     color: var(--ash);
-    font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+    font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
     font-size: 0.8rem;
     letter-spacing: 0.2em;
     text-transform: uppercase;
@@ -205,7 +205,7 @@
     margin-bottom: 1rem;
   }
   .section-title {
-    font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+    font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
     font-size: 0.9rem;
     letter-spacing: 0.35em;
     text-transform: uppercase;
@@ -227,7 +227,7 @@
     border-radius: 2px;
     padding: 0.5rem 1rem;
     cursor: pointer;
-    font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+    font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
     font-size: 1rem;
     color: var(--parchment);
     transition: all 0.2s;
@@ -280,7 +280,7 @@
     flex-wrap: wrap;
   }
   .company-name-row label {
-    font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+    font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
     font-size: 0.75rem;
     letter-spacing: 0.3em;
     text-transform: uppercase;
@@ -294,7 +294,7 @@
     border: 1px solid var(--mist);
     border-bottom: 2px solid var(--blood);
     color: var(--parchment);
-    font-family: 'Caslon Antique', serif;
+    font-family: var(--font-body);
     font-size: 1.3rem;
     padding: 0.4rem 0.75rem;
     outline: none;
@@ -423,7 +423,7 @@
     right: 1rem;
     background: var(--gold);
     color: var(--ash);
-    font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+    font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
     font-size: 0.75rem;
     letter-spacing: 0.2em;
     padding: 0.15rem 0.5rem;
@@ -437,14 +437,14 @@
     margin-bottom: 0.75rem;
   }
   .slot-number {
-    font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+    font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
     font-size: 0.8rem;
     letter-spacing: 0.3em;
     color: var(--bone);
     text-transform: uppercase;
   }
   .slot-name-input {
-    font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+    font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
     font-size: 0.8rem;
     letter-spacing: 0.3em;
     text-transform: uppercase;
@@ -478,7 +478,7 @@
     background: none;
     border: 1px dashed var(--mist);
     color: var(--bone);
-    font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+    font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
     font-size: 0.72rem;
     letter-spacing: 0.2em;
     text-transform: uppercase;
@@ -503,7 +503,7 @@
     border-bottom: 1px solid var(--dim);
   }
   .note-panel-label {
-    font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+    font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
     font-size: 0.7rem;
     letter-spacing: 0.2em;
     text-transform: uppercase;
@@ -527,7 +527,7 @@
     border: none;
     border-bottom: 1px solid var(--dim);
     color: var(--parchment);
-    font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+    font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
     font-size: 0.85rem;
     letter-spacing: 0.05em;
     padding: 0.4rem 0.5rem;
@@ -535,7 +535,7 @@
     box-sizing: border-box;
   }
   .note-title-input:focus { border-bottom-color: var(--gold); }
-  .note-title-input::placeholder { color: #7a7268; font-family: 'Caslon Antique', serif; font-style: italic; letter-spacing: 0; }
+  .note-title-input::placeholder { color: #7a7268; font-family: var(--font-body); font-style: italic; letter-spacing: 0; }
 
   /* NOTES SECTION */
   .notes-section { margin-top: 0.75rem; }
@@ -574,7 +574,7 @@
     margin-bottom: 0.4rem;
   }
   .note-chip-title {
-    font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+    font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
     font-size: 0.78rem;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -601,7 +601,7 @@
     background: transparent;
     border: none;
     color: var(--parchment);
-    font-family: 'Caslon Antique', serif;
+    font-family: var(--font-body);
     font-size: 0.95rem;
     padding: 0.4rem 0.5rem;
     padding-bottom: 2rem;
@@ -619,7 +619,7 @@
     background: var(--fog);
     border: 1px solid var(--mist);
     color: var(--parchment);
-    font-family: 'Caslon Antique', serif;
+    font-family: var(--font-body);
     font-size: 1.1rem;
     padding: 0.5rem 0.75rem;
     outline: none;
@@ -649,7 +649,7 @@
     min-width: 40px;
   }
   .stat-label {
-    font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+    font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
     font-size: 0.75rem;
     letter-spacing: 0.15em;
     color: var(--parchment);
@@ -657,7 +657,7 @@
     display: block;
   }
   .stat-val {
-    font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+    font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
     font-size: 1rem;
     color: var(--bone);
     font-weight: 700;
@@ -678,7 +678,7 @@
     padding: 0.45rem 0.65rem;
   }
   .bd-ability-name {
-    font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+    font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
     font-size: 0.85rem;
     font-weight: 700;
     letter-spacing: 0.08em;
@@ -707,7 +707,7 @@
     margin-bottom: 0.1rem;
   }
   .lr-section-title {
-    font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+    font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
     font-size: 0.62rem;
     letter-spacing: 0.18em;
     text-transform: uppercase;
@@ -733,7 +733,7 @@
     border-color: var(--gold);
   }
   .lr-section-ip {
-    font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+    font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
     font-size: 0.6rem;
     letter-spacing: 0.08em;
     color: #5a5550;
@@ -785,7 +785,7 @@
   .lr-row.lr-open     > .lr-header .lr-icon { color: #9a8f80; }
 
   .lr-label {
-    font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+    font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
     font-size: 0.65rem;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -795,7 +795,7 @@
   }
 
   .lr-value {
-    font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+    font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
     font-size: 0.78rem;
     letter-spacing: 0.05em;
     text-transform: uppercase;
@@ -818,7 +818,7 @@
     border: 1px solid var(--dim);
     color: #7a7068;
     padding: 0 4px;
-    font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+    font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
     font-size: 0.58rem;
     font-weight: 700;
     letter-spacing: 0.05em;
@@ -835,7 +835,7 @@
     margin-left: auto;
   }
   .lr-badge {
-    font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+    font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
     font-size: 0.56rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -883,7 +883,7 @@
     flex-shrink: 0;
   }
   .lr-csel-name {
-    font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+    font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
     font-size: 0.72rem;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -904,7 +904,7 @@
 
   /* PRIMARY WEAPON SELECT — kept for weapon dropdown */
   .opt-label {
-    font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+    font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
     font-size: 0.85rem;
     letter-spacing: 0.25em;
     color: var(--parchment);
@@ -917,7 +917,7 @@
     background: var(--fog);
     border: 1px solid var(--dim);
     color: var(--bone);
-    font-family: 'Caslon Antique', serif;
+    font-family: var(--font-body);
     font-size: 1rem;
     padding: 0.4rem 0.6rem;
     outline: none;
@@ -954,7 +954,7 @@
     flex-wrap: wrap;
   }
   .ip-pool-label {
-    font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+    font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
     font-size: 0.85rem;
     letter-spacing: 0.25em;
     text-transform: uppercase;
@@ -975,13 +975,13 @@
     font-size: 1.1rem;
     line-height: 1;
     cursor: pointer;
-    font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+    font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
     transition: border-color 0.15s;
     flex-shrink: 0;
   }
   .ip-limit-btn:hover { border-color: var(--gold); color: var(--gold); }
   .ip-limit-display {
-    font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+    font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
     font-size: 0.85rem;
     color: var(--bone);
     white-space: nowrap;
@@ -1009,7 +1009,7 @@
   .ip-pool-pip.filled { background: var(--gold); border-color: var(--gold); }
   .ip-pool-pip.over { background: var(--blood); border-color: var(--blood); }
   .ip-pool-count {
-    font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+    font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
     font-size: 0.85rem;
     color: var(--parchment);
   }
@@ -1026,14 +1026,14 @@
     margin-bottom: 0.6rem;
   }
   .upgrade-tray-label {
-    font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+    font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
     font-size: 0.85rem;
     letter-spacing: 0.2em;
     text-transform: uppercase;
     color: var(--gold);
   }
   .upgrade-tray-count {
-    font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+    font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
     font-size: 0.8rem;
     color: var(--mist);
     margin-left: auto;
@@ -1093,7 +1093,7 @@
     line-height: 1;
   }
   .upgrade-card-label {
-    font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+    font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
     font-size: 0.68rem;
     letter-spacing: 0.03em;
     text-transform: uppercase;
@@ -1124,7 +1124,7 @@
     margin-top: 0.5rem;
   }
   .upgrade-detail-label {
-    font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+    font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
     font-size: 0.9rem;
     letter-spacing: 0.15em;
     text-transform: uppercase;
@@ -1141,7 +1141,7 @@
     background: var(--ash);
     border: 1px solid var(--dim);
     color: var(--parchment);
-    font-family: 'Caslon Antique', serif;
+    font-family: var(--font-body);
     font-size: 0.95rem;
     padding: 0.3rem 0.45rem;
     cursor: pointer;
@@ -1174,7 +1174,7 @@
     min-width: 0;
   }
   .upgrade-btn-name {
-    font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+    font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
     font-size: 0.8rem;
     letter-spacing: 0.05em;
     text-transform: uppercase;
@@ -1212,7 +1212,7 @@
     margin-bottom: 2rem;
   }
   .mark-header {
-    font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+    font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
     font-size: 0.95rem;
     letter-spacing: 0.3em;
     color: var(--blood);
@@ -1224,7 +1224,7 @@
     background: var(--fog);
     border: 1px solid var(--mist);
     color: var(--parchment);
-    font-family: 'Caslon Antique', serif;
+    font-family: var(--font-body);
     font-size: 1rem;
     padding: 0.5rem 0.75rem;
     outline: none;
@@ -1279,7 +1279,7 @@
     flex-wrap: wrap;
   }
   .btn {
-    font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+    font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
     font-size: 0.9rem;
     letter-spacing: 0.25em;
     text-transform: uppercase;
@@ -1356,7 +1356,7 @@
       border-bottom: 0.5pt solid #000;
       padding-bottom: 2pt;
       margin-bottom: 5pt;
-      font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+      font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
       font-size: 6pt;
       letter-spacing: 0.2em;
       text-transform: uppercase;
@@ -1384,7 +1384,7 @@
       flex: 1;
     }
     .pr-company-name {
-      font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+      font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
       font-size: 18pt;
       font-weight: 700;
       text-transform: uppercase;
@@ -1392,7 +1392,7 @@
       line-height: 1;
     }
     .pr-company-sub {
-      font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+      font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
       font-size: 7pt;
       letter-spacing: 0.25em;
       text-transform: uppercase;
@@ -1420,7 +1420,7 @@
     }
     .pr-header-mark-text {}
     .pr-header-mark-label {
-      font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+      font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
       font-size: 5.5pt;
       letter-spacing: 0.25em;
       text-transform: uppercase;
@@ -1429,7 +1429,7 @@
       margin-bottom: 1pt;
     }
     .pr-header-mark-name {
-      font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+      font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
       font-size: 11pt;
       font-weight: 700;
       text-transform: uppercase;
@@ -1478,7 +1478,7 @@
       flex-direction: column;
     }
     .pr-tracking-header {
-      font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+      font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
       font-size: 7pt;
       font-weight: 700;
       letter-spacing: 0.12em;
@@ -1524,7 +1524,7 @@
       flex: 1;
     }
     .pr-warrior-name {
-      font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+      font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
       font-size: 11pt;
       font-weight: 700;
       text-transform: uppercase;
@@ -1532,7 +1532,7 @@
       line-height: 1;
     }
     .pr-captain-badge {
-      font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+      font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
       font-size: 6.5pt;
       font-weight: 700;
       letter-spacing: 0.15em;
@@ -1567,7 +1567,7 @@
       padding: 1.5pt 1pt;
     }
     .pr-stat-lbl {
-      font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+      font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
       font-size: 6pt;
       letter-spacing: 0.08em;
       color: #000;
@@ -1576,7 +1576,7 @@
       line-height: 1;
     }
     .pr-stat-val {
-      font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+      font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
       font-size: 10pt;
       font-weight: 700;
       line-height: 1.1;
@@ -1601,7 +1601,7 @@
       border-left: 1.5pt solid #000;
     }
     .pr-upgrades-label {
-      font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+      font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
       font-size: 7pt;
       font-weight: 700;
       letter-spacing: 0.1em;
@@ -1614,7 +1614,7 @@
       background: #333;
       color: #fff;
       padding: 0.5pt 3pt;
-      font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+      font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
       font-size: 7.5pt;
       letter-spacing: 0.04em;
       text-transform: uppercase;
@@ -1650,7 +1650,7 @@
       font-weight: 700;
       letter-spacing: 0.05em;
       white-space: nowrap;
-      font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+      font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
     }
     .pr-wpn-note {
       color: #000;
@@ -1668,7 +1668,7 @@
     }
     .pr-ability:last-child { margin-bottom: 0; }
     .pr-ability-name {
-      font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+      font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
       font-size: 8pt;
       font-weight: 700;
       letter-spacing: 0.08em;
@@ -1711,7 +1711,7 @@
       width: 100%;
     }
     .pr-ref-header {
-      font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+      font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
       font-size: 12pt;
       font-weight: 700;
       letter-spacing: 0.3em;
@@ -1735,7 +1735,7 @@
     }
 
     .pr-ref-panel-header {
-      font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+      font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
       font-size: 8.5pt;
       font-weight: 700;
       letter-spacing: 0.2em;
@@ -1750,7 +1750,7 @@
       margin-bottom: 3pt;
     }
     .pr-ref-item strong {
-      font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+      font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
       font-size: 7.5pt;
       text-transform: uppercase;
       letter-spacing: 0.06em;
@@ -1773,7 +1773,7 @@
       border: 0.5pt solid #000;
     }
     .pr-fall-table td:first-child {
-      font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+      font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
       font-weight: 700;
       background: #222;
       color: #fff;
@@ -1797,7 +1797,7 @@
     .pr-footer-logo {
       flex-shrink: 0;
       border: 0.75pt solid #000;
-      font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+      font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
       font-size: 5pt;
       letter-spacing: 0.12em;
       text-transform: uppercase;
@@ -1825,7 +1825,7 @@
     display: inline-block;
     border: 2px solid var(--gold);
     color: var(--gold);
-    font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+    font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
     font-size: 0.75rem;
     letter-spacing: 0.2em;
     text-transform: uppercase;
@@ -1863,7 +1863,7 @@
     width: 90%;
   }
   .share-modal-title {
-    font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+    font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
     font-size: 1rem;
     letter-spacing: 0.25em;
     text-transform: uppercase;
@@ -1923,7 +1923,7 @@
   }
   .archetype-banner-backdrop.show { display: block; }
   .archetype-eyebrow {
-    font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+    font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
     font-size: 0.7rem;
     letter-spacing: 0.4em;
     text-transform: uppercase;
@@ -1931,14 +1931,14 @@
     margin-bottom: 0.5rem;
   }
   .archetype-name {
-    font-family: 'UnifrakturMaguntia', serif;
+    font-family: var(--font-body);
     font-size: 2rem;
     color: var(--gold);
     line-height: 1.1;
     margin-bottom: 0.5rem;
   }
   .archetype-tagline {
-    font-family: 'Caslon Antique', serif;
+    font-family: var(--font-body);
     font-size: 1rem;
     color: var(--parchment);
     font-style: italic;
@@ -1946,7 +1946,7 @@
     line-height: 1.4;
   }
   .archetype-dismiss {
-    font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+    font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
     font-size: 0.8rem;
     letter-spacing: 0.2em;
     text-transform: uppercase;
@@ -1967,7 +1967,7 @@
     border: 1px solid var(--gold);
     border-left: 3px solid var(--gold);
     color: var(--parchment);
-    font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+    font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
     font-size: 0.8rem;
     letter-spacing: 0.15em;
     padding: 0.75rem 1.25rem;
@@ -2073,7 +2073,7 @@
     font-style: italic;
   }
   .item-desc-stats {
-    font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+    font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
     font-size: 0.9rem;
     letter-spacing: 0.1em;
     color: var(--gold);
@@ -2153,7 +2153,7 @@
   overflow: hidden;
 }
 
-.unsaved-indicator { font-family:'Oswald',sans-serif;font-size:0.7rem;letter-spacing:0.1em;color:#666;white-space:nowrap; }
+.unsaved-indicator { font-family: var(--font-body);font-size:0.7rem;letter-spacing:0.1em;color:#666;white-space:nowrap; }
 
 .btn-play { padding: 0.45rem 1rem !important; }
 
@@ -2170,39 +2170,39 @@
 /* Saved section */
 .saved-mark-img { width:2rem;height:2rem;border-radius:50%;object-fit:cover;object-position:top;border:1px solid #333;flex-shrink:0; }
 .saved-item-info { flex:1;min-width:0; }
-.saved-item-name { display:block;font-family:'Oswald',sans-serif;font-size:0.85rem;letter-spacing:0.05em;color:var(--parchment); }
+.saved-item-name { display:block;font-family: var(--font-body);font-size:0.85rem;letter-spacing:0.05em;color:var(--parchment); }
 .saved-item-meta { display:block;font-size:0.8rem;color:#666; }
 .btn-sm { padding:0.25rem 0.6rem !important;font-size:0.7rem !important; }
 .btn-full { width:100%;margin-top:0.4rem; }
 
 /* Share/Import modals */
 .share-modal { max-width:400px; }
-.share-modal-title { font-family:'Oswald',sans-serif;font-size:0.9rem;letter-spacing:0.15em;color:var(--gold);margin-bottom:0.75rem;text-transform:uppercase; }
+.share-modal-title { font-family: var(--font-body);font-size:0.9rem;letter-spacing:0.15em;color:var(--gold);margin-bottom:0.75rem;text-transform:uppercase; }
 .share-code-box { width:100%;min-height:80px;background:#0a0a0a;border:1px solid #333;color:#888;font-family:monospace;font-size:0.8rem;padding:0.5rem;resize:vertical; }
 .share-modal-note { font-size:0.85rem;color:#666;margin:0.5rem 0; }
 .share-modal-actions { display:flex;gap:0.5rem;margin-top:0.75rem; }
 .share-modal-actions .btn { flex:1; }
 
 /* Tracker modal items */
-.tracker-modal-title { font-family:'Oswald',sans-serif;font-size:0.7rem;letter-spacing:0.15em;color:#888;margin-bottom:0.75rem;text-transform:uppercase; }
+.tracker-modal-title { font-family: var(--font-body);font-size:0.7rem;letter-spacing:0.15em;color:#888;margin-bottom:0.75rem;text-transform:uppercase; }
 
 .cache-item-btn { display:block;width:100%;text-align:left;background:#1a1a1a;border:1px solid #2a2a2a;color:var(--parchment);padding:0.65rem 0.75rem;margin-bottom:0.4rem;cursor:pointer; }
 .cache-item-btn:active { background:#222; }
 .cache-item-header { display:flex;align-items:baseline;gap:0.5rem;margin-bottom:3px; }
-.cache-item-roll { font-family:'Oswald',sans-serif;font-size:0.65rem;color:var(--gold); }
-.cache-item-name { font-family:'Oswald',sans-serif;font-size:0.95rem;letter-spacing:0.05em; }
+.cache-item-roll { font-family: var(--font-body);font-size:0.65rem;color:var(--gold); }
+.cache-item-name { font-family: var(--font-body);font-size:0.95rem;letter-spacing:0.05em; }
 .cache-item-desc { font-size:0.95rem;color:#777;line-height:1.5; }
 
 .status-item-btn { display:block;width:100%;text-align:left;background:#1a1a1a;border:1px solid #2a2a2a;color:var(--parchment);padding:0.65rem 0.75rem;margin-bottom:0.4rem;cursor:pointer; }
 .status-item-btn:active { background:#222; }
-.status-item-name { font-family:'Oswald',sans-serif;font-size:0.95rem;color:#9a9add;letter-spacing:0.06em;display:block;margin-bottom:3px; }
+.status-item-name { font-family: var(--font-body);font-size:0.95rem;color:#9a9add;letter-spacing:0.06em;display:block;margin-bottom:3px; }
 .status-item-desc { font-size:0.95rem;color:#777;line-height:1.5; }
 
 /* Mark popup */
 .mark-popup { max-width:340px; }
 .mark-popup-header { display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem; }
 .mark-popup-img { width:3.5rem;height:3.5rem;border-radius:50%;object-fit:cover;object-position:top;border:2px solid var(--gold);flex-shrink:0; }
-.mark-popup-name { font-family:'Oswald',sans-serif;font-size:1.1rem;letter-spacing:0.08em;color:var(--gold); }
+.mark-popup-name { font-family: var(--font-body);font-size:1.1rem;letter-spacing:0.08em;color:var(--gold); }
 .mark-popup-desc { font-size:1rem;color:#ccc;line-height:1.6; }
 /* -- NEW CHIP UI FOR UPGRADES -- */
 .eq-chips-list { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem; }
@@ -2211,17 +2211,17 @@
 .eq-chip-main { border-color: var(--dim); cursor: pointer; } /* Make main weapon clickable to change it too */
 .eq-chip-icon { width: 40px; display: flex; align-items: center; justify-content: center; background: var(--dim); color: var(--bone); border-right: 1px solid var(--dim); font-size: 1.2rem; }
 .eq-chip-content { flex: 1; padding: 0.35rem 0.5rem; padding-right: 2.2rem; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
-.eq-chip-label { font-family: 'Gothicus Roman', serif; text-transform: uppercase; font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--mist); line-height: 1; margin-bottom: 0.15rem; }
-.eq-chip-value { font-family: 'Gothicus Roman', serif; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.05em; color: var(--bone); line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.eq-chip-label { font-family: var(--font-body); font-weight: 600; text-transform: uppercase; font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--mist); line-height: 1; margin-bottom: 0.15rem; }
+.eq-chip-value { font-family: var(--font-body); font-weight: 600; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.05em; color: var(--bone); line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .eq-chip-pills { display: flex; gap: 0.25rem; margin-top: 0.25rem; flex-wrap: wrap; }
-.eq-chip-desc { font-family: 'Caslon Antique', serif; font-size: 0.85rem; color: #a9a29a; line-height: 1.3; margin-top: 0.3rem; }
+.eq-chip-desc { font-family: var(--font-body); font-size: 0.85rem; color: #a9a29a; line-height: 1.3; margin-top: 0.3rem; }
 .eq-chip-remove { position: absolute; right: 0.3rem; top: 50%; transform: translateY(-50%); width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: var(--mist); font-size: 1.4rem; line-height: 1; cursor: pointer; border-radius: 50%; transition: background 0.15s, color 0.15s; }
 @media (hover: hover) { .eq-chip-remove:hover { background: rgba(190, 65, 39, 0.15); color: var(--blood); } }
-.eq-chip-badge { position: absolute; right: 2.3rem; top: 0.35rem; font-family: 'Gothicus Roman', serif; text-transform: uppercase; font-size: 0.55rem; padding: 0.1rem 0.3rem; border-radius: 2px; text-transform: uppercase; letter-spacing: 0.05em; background: var(--fog); border: 1px solid var(--dim); color: var(--mist); pointer-events: none; }
+.eq-chip-badge { position: absolute; right: 2.3rem; top: 0.35rem; font-family: var(--font-body); font-weight: 600; text-transform: uppercase; font-size: 0.55rem; padding: 0.1rem 0.3rem; border-radius: 2px; text-transform: uppercase; letter-spacing: 0.05em; background: var(--fog); border: 1px solid var(--dim); color: var(--mist); pointer-events: none; }
 .eq-badge-spent { color: var(--gold); border-color: var(--gold); background: rgba(184, 151, 42, 0.1); }
 .eq-badge-free { color: #8a8580; border-style: dashed; }
 .eq-add-row { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.75rem; }
-.eq-add-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.3rem; background: transparent; border: 1px dashed var(--dim); color: var(--parchment); font-family: 'Gothicus Roman', serif; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.05em; text-transform: uppercase; padding: 0.5rem 0.2rem; cursor: pointer; transition: all 0.15s; text-align: center; white-space: normal; line-height: 1.2; min-width: 0; opacity: 0.85; }
+.eq-add-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.3rem; background: transparent; border: 1px dashed var(--dim); color: var(--parchment); font-family: var(--font-body); font-weight: 600; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.05em; text-transform: uppercase; padding: 0.5rem 0.2rem; cursor: pointer; transition: all 0.15s; text-align: center; white-space: normal; line-height: 1.2; min-width: 0; opacity: 0.85; }
 @media (hover: hover) {
   .eq-add-btn:hover:not(:disabled) { border-color: var(--gold); color: var(--gold); background: rgba(184, 151, 42, 0.05); opacity: 1; }
   .eq-add-btn:hover:not(:disabled) .lr-icon { color: var(--gold); }
@@ -2258,16 +2258,15 @@
 .topbar-brand {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 2px;
   flex-shrink: 0;
   line-height: 1;
 }
-.topbar-brand-main {
-  font-family: 'Gothicus', serif;
-  font-size: 1.2rem;
-  color: var(--parchment);
-  line-height: 1;
-  text-shadow: 0 0 12px rgba(139,26,26,0.4);
+.topbar-brand-logo {
+  height: 24px;
+  width: auto;
+  object-fit: contain;
+  object-position: left;
 }
 .topbar-brand-sub {
   font-family: 'Gothicus Roman', serif; text-transform: uppercase;
@@ -2288,7 +2287,7 @@
   border: none;
   border-bottom: 1px solid var(--dim);
   color: var(--parchment);
-  font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+  font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
   font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -2366,7 +2365,7 @@
   border-bottom: 1px solid var(--dim);
 }
 .sidebar-title {
-  font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+  font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
   font-size: 0.75rem;
   letter-spacing: 0.25em;
   color: var(--gold);
@@ -2398,7 +2397,7 @@
   margin-bottom: 1.25rem;
 }
 .builder-name-row label {
-  font-family: 'Gothicus Roman', serif; text-transform: uppercase;
+  font-family: var(--font-body); font-weight: 600; text-transform: uppercase;
   font-size: 0.7rem;
   letter-spacing: 0.25em;
   text-transform: uppercase;
@@ -2413,7 +2412,7 @@
   border: 1px solid var(--mist);
   border-bottom: 2px solid var(--blood);
   color: var(--parchment);
-  font-family: 'Caslon Antique', serif;
+  font-family: var(--font-body);
   font-size: 1.3rem;
   padding: 0.4rem 0.75rem;
   outline: none;

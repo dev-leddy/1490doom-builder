@@ -109,7 +109,7 @@ function BuilderTopbar({ onMenuToggle }) {
   return (
     <div className="builder-topbar">
       <div className="topbar-brand">
-        <span className="topbar-brand-main">1490 DOOM</span>
+        <img src="/src/assets/1490doom_logo.png" alt="1490 DOOM" className="topbar-brand-logo" />
         <span className="topbar-brand-sub">Company Builder</span>
       </div>
 
