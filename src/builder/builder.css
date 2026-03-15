@@ -3200,25 +3200,27 @@
 /* ============================================================
    LANDING PAGE
    ============================================================ */
-.landing-page {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  background: var(--ash);
-  color: var(--bone);
+
+/* Landing content lives inside .builder-scroll-area */
+.landing-content {
+  padding: 1.5rem 1rem 1rem;
+  max-width: 520px;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
 }
 
-.landing-header {
+/* Logo block — centered branding above the saves list */
+.landing-logo-block {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 2.5rem 1rem 1.25rem;
-  gap: 0.4rem;
-  flex-shrink: 0;
+  gap: 0.35rem;
+  margin-bottom: 1.75rem;
 }
 
 .landing-logo {
-  width: 180px;
+  width: 160px;
   height: auto;
   display: block;
   filter: invert(1);
@@ -3226,20 +3228,10 @@
 
 .landing-subtitle {
   font-family: 'Oswald', sans-serif;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   letter-spacing: 0.28em;
   text-transform: uppercase;
   color: var(--mist);
-}
-
-.landing-body {
-  flex: 1;
-  overflow-y: auto;
-  padding: 0.75rem 1rem 0.5rem;
-  max-width: 520px;
-  width: 100%;
-  margin: 0 auto;
-  box-sizing: border-box;
 }
 
 .landing-section-label {
@@ -3323,23 +3315,7 @@
   padding: 2.5rem 0;
 }
 
-/* Footer */
-.landing-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.8rem 1rem;
-  border-top: 1px solid var(--fog);
-  background: var(--ash);
-  flex-shrink: 0;
-  max-width: 520px;
-  width: 100%;
-  margin: 0 auto;
-  box-sizing: border-box;
-}
-
-/* Normalized footer buttons — both equal weight */
+/* Normalized landing navbar buttons — sit inside .builder-navbar */
 .landing-footer-btn {
   display: flex;
   align-items: center;
@@ -3372,41 +3348,14 @@
   background: var(--rust);
   color: var(--parchment);
 }
+.landing-footer-btn--active {
+  border-color: var(--bone);
+  color: var(--parchment);
+}
 
-/* Quick Reference full page */
-.landing-ref-topbar {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.7rem 1rem;
-  border-bottom: 1px solid var(--fog);
-  flex-shrink: 0;
-}
-.landing-ref-back {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  background: transparent;
-  border: none;
-  color: var(--bone);
-  font-family: 'Oswald', sans-serif;
-  font-size: 0.8rem;
-  letter-spacing: 0.06em;
-  cursor: pointer;
-  padding: 0.25rem 0;
-  transition: color 0.15s;
-}
-.landing-ref-back:hover { color: var(--parchment); }
-.landing-ref-topbar-title {
-  font-family: 'Oswald', sans-serif;
-  font-size: 0.78rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--mist);
-}
+/* Quick Reference — scrolls inside .builder-scroll-area */
 .landing-ref-body {
-  flex: 1;
-  overflow-y: auto;
+  padding: 0 1rem;
   max-width: 520px;
   width: 100%;
   margin: 0 auto;
