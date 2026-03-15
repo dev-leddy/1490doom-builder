@@ -5,74 +5,86 @@ import { ACTION_DEFS, STATUS_DEFS, CACHE_ITEMS } from '../data/items'
 import { ITEM_ICONS } from '../data/images'
 import SaveLoadPanel from './SaveLoadPanel'
 
-function RefPanel() {
+function RefPage({ onBack }) {
   return (
-    <div className="landing-ref-content">
-      <div className="landing-ref-section">
-        <div className="landing-ref-title">Actions</div>
-        <div className="landing-ref-items">
-          {[...ACTION_DEFS].sort(([a], [b]) => a.localeCompare(b)).map(([name, desc]) => (
-            <div key={name} className="landing-ref-item">
-              <span className="landing-ref-name">{name}</span>
-              <span className="landing-ref-desc">{desc}</span>
-            </div>
-          ))}
-        </div>
+    <div className="landing-page">
+      <div className="landing-ref-topbar">
+        <button className="landing-ref-back" onClick={onBack}>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16" aria-hidden="true">
+            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+          </svg>
+          Back
+        </button>
+        <span className="landing-ref-topbar-title">Quick Reference</span>
       </div>
 
-      <div className="landing-ref-section">
-        <div className="landing-ref-title">Statuses</div>
-        <div className="landing-ref-items">
-          {[...STATUS_DEFS].sort(([a], [b]) => a.localeCompare(b)).map(([name, desc]) => (
-            <div key={name} className="landing-ref-item">
-              <span className="landing-ref-name" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                {ITEM_ICONS[name] && (
-                  <img src={ITEM_ICONS[name]} style={{ width: '1rem', height: '1rem', filter: 'brightness(0) invert(1)', opacity: 0.85 }} alt="" />
-                )}
-                {name}
-              </span>
-              <span className="landing-ref-desc">{desc}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="landing-ref-section">
-        <div className="landing-ref-title">Falling (D6, 2″+ fall)</div>
-        <p className="landing-ref-note">
-          +1 if fell 4″+. &nbsp;+3 if fell 6″+ (model becomes Immobilized). &nbsp;8+ = Death.
-        </p>
-        <table className="landing-ref-table">
-          <tbody>
-            <tr><td>1–2</td><td>0 dmg</td></tr>
-            <tr><td>3–4</td><td>1 dmg</td></tr>
-            <tr><td>5–6</td><td>2 dmg</td></tr>
-            <tr><td>7</td><td>3 dmg</td></tr>
-            <tr><td>8+</td><td>☠ Death</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div className="landing-ref-section">
-        <div className="landing-ref-title">Resource Caches (D6)</div>
-        <table className="landing-ref-table">
-          <tbody>
-            {CACHE_ITEMS.map(item => (
-              <tr key={item.roll}>
-                <td>{item.roll}</td>
-                <td>
-                  <strong style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                    {ITEM_ICONS[item.name] && (
-                      <img src={ITEM_ICONS[item.name]} style={{ width: '1rem', height: '1rem', filter: 'brightness(0) invert(1)', opacity: 0.85 }} alt="" />
-                    )}
-                    {item.name}
-                  </strong>
-                  {' — '}{item.desc}
-                </td>
-              </tr>
+      <div className="landing-ref-body">
+        <div className="landing-ref-section">
+          <div className="landing-ref-title">Actions</div>
+          <div className="landing-ref-items">
+            {[...ACTION_DEFS].sort(([a], [b]) => a.localeCompare(b)).map(([name, desc]) => (
+              <div key={name} className="landing-ref-item">
+                <span className="landing-ref-name">{name}</span>
+                <span className="landing-ref-desc">{desc}</span>
+              </div>
             ))}
-          </tbody>
-        </table>
+          </div>
+        </div>
+
+        <div className="landing-ref-section">
+          <div className="landing-ref-title">Statuses</div>
+          <div className="landing-ref-items">
+            {[...STATUS_DEFS].sort(([a], [b]) => a.localeCompare(b)).map(([name, desc]) => (
+              <div key={name} className="landing-ref-item">
+                <span className="landing-ref-name" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                  {ITEM_ICONS[name] && (
+                    <img src={ITEM_ICONS[name]} style={{ width: '1rem', height: '1rem', filter: 'brightness(0) invert(1)', opacity: 0.85 }} alt="" />
+                  )}
+                  {name}
+                </span>
+                <span className="landing-ref-desc">{desc}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="landing-ref-section">
+          <div className="landing-ref-title">Falling (D6, 2″+ fall)</div>
+          <p className="landing-ref-note">
+            +1 if fell 4″+. &nbsp;+3 if fell 6″+ (model becomes Immobilized). &nbsp;8+ = Death.
+          </p>
+          <table className="landing-ref-table">
+            <tbody>
+              <tr><td>1–2</td><td>0 dmg</td></tr>
+              <tr><td>3–4</td><td>1 dmg</td></tr>
+              <tr><td>5–6</td><td>2 dmg</td></tr>
+              <tr><td>7</td><td>3 dmg</td></tr>
+              <tr><td>8+</td><td>☠ Death</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div className="landing-ref-section">
+          <div className="landing-ref-title">Resource Caches (D6)</div>
+          <table className="landing-ref-table">
+            <tbody>
+              {CACHE_ITEMS.map(item => (
+                <tr key={item.roll}>
+                  <td>{item.roll}</td>
+                  <td>
+                    <strong style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                      {ITEM_ICONS[item.name] && (
+                        <img src={ITEM_ICONS[item.name]} style={{ width: '1rem', height: '1rem', filter: 'brightness(0) invert(1)', opacity: 0.85 }} alt="" />
+                      )}
+                      {item.name}
+                    </strong>
+                    {' — '}{item.desc}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   )
@@ -80,10 +92,14 @@ function RefPanel() {
 
 export default function LandingPage({ onNew, onLoad }) {
   const { saves, companyName, companyAvatar } = useBuilderStore()
-  const [refOpen, setRefOpen] = useState(false)
+  const [view, setView] = useState('home') // 'home' | 'reference'
 
   const hasDraft = !!localStorage.getItem('doom_draft')
   const avatarSrc = hasDraft ? getAvatarSrc(companyAvatar) : null
+
+  if (view === 'reference') {
+    return <RefPage onBack={() => setView('home')} />
+  }
 
   return (
     <div className="landing-page">
@@ -127,22 +143,17 @@ export default function LandingPage({ onNew, onLoad }) {
             Your companies will appear here once saved.
           </div>
         )}
-
-        {refOpen && <RefPanel />}
       </div>
 
       <div className="landing-footer">
-        <button
-          className={`btn landing-ref-btn${refOpen ? ' active' : ''}`}
-          onClick={() => setRefOpen(r => !r)}
-        >
+        <button className="btn landing-footer-btn" onClick={() => setView('reference')}>
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="14" height="14" aria-hidden="true">
             <path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 14H7v-2h10v2zm0-4H7v-2h10v2zm0-4H7V6h10v2z"/>
           </svg>
           Quick Reference
         </button>
-        <button className="btn btn-primary landing-new-btn" onClick={onNew}>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="15" height="15" aria-hidden="true">
+        <button className="btn landing-footer-btn landing-footer-btn--primary" onClick={onNew}>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="14" height="14" aria-hidden="true">
             <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/>
           </svg>
           New Company
