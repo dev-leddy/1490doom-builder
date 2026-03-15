@@ -3196,3 +3196,244 @@
   width: 100%;
   margin-top: 0.5rem;
 }
+
+/* ============================================================
+   LANDING PAGE
+   ============================================================ */
+.landing-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--ash);
+  color: var(--bone);
+}
+
+.landing-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2.5rem 1rem 1.25rem;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.landing-logo {
+  width: 130px;
+  height: auto;
+  display: block;
+}
+
+.landing-subtitle {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--mist);
+}
+
+.landing-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.75rem 1rem 0.5rem;
+  max-width: 520px;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.landing-section-label {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--mist);
+  margin-bottom: 0.45rem;
+}
+
+/* Resume chip */
+.landing-resume {
+  margin-bottom: 1.25rem;
+}
+
+.landing-resume-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0.85rem;
+  background: var(--fog);
+  border: 1px solid var(--blood);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.landing-resume-chip:hover {
+  background: var(--dim);
+  border-color: var(--gold);
+}
+
+.landing-resume-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--blood);
+  flex-shrink: 0;
+}
+
+.landing-resume-avatar-ph {
+  background: var(--dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--mist);
+}
+
+.landing-resume-name {
+  flex: 1;
+  font-family: 'Caslon Antique', serif;
+  font-size: 1rem;
+  color: var(--parchment);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.landing-resume-arrow {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.75rem;
+  color: var(--blood);
+  letter-spacing: 0.06em;
+  flex-shrink: 0;
+}
+
+/* Saves section */
+.landing-saves {
+  margin-bottom: 1.25rem;
+}
+/* Hide SaveLoadPanel's own empty-state in landing context — we handle it */
+.landing-saves .no-saves { display: none; }
+
+/* Empty state */
+.landing-empty {
+  text-align: center;
+  color: var(--mist);
+  font-size: 0.82rem;
+  font-style: italic;
+  padding: 2.5rem 0;
+}
+
+/* Footer */
+.landing-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.8rem 1rem;
+  border-top: 1px solid var(--fog);
+  background: var(--ash);
+  flex-shrink: 0;
+  max-width: 520px;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.landing-ref-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  color: var(--bone);
+  background: transparent;
+  border: 1px solid var(--mist);
+  padding: 0.4rem 0.75rem;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.landing-ref-btn:hover,
+.landing-ref-btn.active {
+  border-color: var(--bone);
+  color: var(--parchment);
+}
+
+.landing-new-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.88rem;
+  padding: 0.5rem 1.1rem;
+}
+
+/* Quick Reference inline panel */
+.landing-ref-content {
+  margin-bottom: 1.25rem;
+  border: 1px solid var(--fog);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.landing-ref-section {
+  padding: 0.7rem 0.9rem;
+  border-bottom: 1px solid var(--fog);
+}
+.landing-ref-section:last-child { border-bottom: none; }
+
+.landing-ref-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--blood);
+  margin-bottom: 0.5rem;
+}
+
+.landing-ref-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.landing-ref-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.08rem;
+}
+
+.landing-ref-name {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.78rem;
+  color: var(--parchment);
+  letter-spacing: 0.04em;
+}
+
+.landing-ref-desc {
+  font-size: 0.73rem;
+  color: var(--mist);
+  line-height: 1.45;
+}
+
+.landing-ref-note {
+  font-size: 0.73rem;
+  color: var(--mist);
+  margin: 0 0 0.5rem;
+  line-height: 1.5;
+}
+
+.landing-ref-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.76rem;
+}
+.landing-ref-table td {
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--fog);
+  color: var(--bone);
+}
+.landing-ref-table tr td:first-child {
+  color: var(--mist);
+  white-space: nowrap;
+  width: 2.5rem;
+}

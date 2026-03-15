@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useBuilderStore } from '../store/builderStore'
 import { COMPANY_AVATARS, getAvatarSrc } from '../data/avatars'
 import { MARKS } from '../data/warriors'
@@ -15,14 +15,18 @@ import InstallButton from '../shared/InstallButton'
 import EndOfGameModal from './EndOfGameModal'
 import './builder.css'
 
-export default function BuilderPage() {
+export default function BuilderPage({ initialWizardOpen = false, onWizardMounted }) {
   const { validationMsg, dismissValidation, openShare, openImport, clearBuilder, setCompanyMode, companyMode, campaignGame } = useBuilderStore()
   const openTracker = useTrackerStore(s => s.openTracker)
   const builderState = useBuilderStore(s => s)
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [modeSelectOpen, setModeSelectOpen] = useState(false)
+  const [modeSelectOpen, setModeSelectOpen] = useState(initialWizardOpen)
   const [endOfGameOpen, setEndOfGameOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
+
+  useEffect(() => {
+    if (initialWizardOpen) onWizardMounted?.()
+  }, [])
 
   function handlePlay() {
     const result = openTracker(builderState)
