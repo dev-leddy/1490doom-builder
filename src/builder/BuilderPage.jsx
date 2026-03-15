@@ -82,7 +82,7 @@ export default function BuilderPage() {
   return (
     <div className="builder-page">
       {/* ── TOPBAR ─────────────────────────────────────── */}
-      <BuilderTopbar onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
+      <BuilderTopbar onMenuToggle={() => setSidebarOpen(!sidebarOpen)} onHome={() => setView('landing')} />
 
       {/* ── SCROLLABLE AREA ────────────────────────────── */}
       <div className="builder-scroll-area">
@@ -282,7 +282,7 @@ function CompanySettingsModal({ onClose }) {
 }
 
 /* ── TOPBAR ────────────────────────────────────────────── */
-function BuilderTopbar({ onMenuToggle }) {
+function BuilderTopbar({ onMenuToggle, onHome }) {
   return (
     <div className="builder-topbar">
       <button className="topbar-menu-btn" onClick={onMenuToggle} title="Saved Companies">
@@ -291,10 +291,10 @@ function BuilderTopbar({ onMenuToggle }) {
         </svg>
       </button>
 
-      <div className="topbar-brand">
+      <button className="topbar-brand" onClick={onHome} title="Home">
         <img src={`${import.meta.env.BASE_URL}logo.png`} alt="1490 DOOM" className="topbar-brand-logo" />
         <span className="topbar-brand-sub">Company Builder</span>
-      </div>
+      </button>
 
       <div className="topbar-spacer" aria-hidden="true" />
     </div>
