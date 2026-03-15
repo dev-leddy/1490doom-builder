@@ -3360,74 +3360,24 @@
   color: var(--parchment);
 }
 
-/* Quick Reference — scrolls inside .builder-scroll-area */
-.landing-ref-body {
-  padding: 0 1rem;
-  max-width: 520px;
-  width: 100%;
-  margin: 0 auto;
-  box-sizing: border-box;
-}
-
-.landing-ref-section {
-  padding: 0.7rem 0.9rem;
-  border-bottom: 1px solid var(--fog);
-}
-.landing-ref-section:last-child { border-bottom: none; }
-
-.landing-ref-title {
+/* ── BUILDER HOME BUTTON ─────────────────────────────────── */
+/* Back-to-landing arrow at top of builder content */
+.builder-home-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: none;
+  border: none;
+  color: #555;
   font-family: 'Oswald', sans-serif;
-  font-size: 0.68rem;
-  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--blood);
-  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  padding: 0.5rem 0 0.75rem;
+  cursor: pointer;
+  transition: color 0.15s;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
-
-.landing-ref-items {
-  display: flex;
-  flex-direction: column;
-  gap: 0.45rem;
-}
-
-.landing-ref-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.08rem;
-}
-
-.landing-ref-name {
-  font-family: 'Oswald', sans-serif;
-  font-size: 0.78rem;
-  color: var(--parchment);
-  letter-spacing: 0.04em;
-}
-
-.landing-ref-desc {
-  font-size: 0.73rem;
-  color: var(--mist);
-  line-height: 1.45;
-}
-
-.landing-ref-note {
-  font-size: 0.73rem;
-  color: var(--mist);
-  margin: 0 0 0.5rem;
-  line-height: 1.5;
-}
-
-.landing-ref-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.76rem;
-}
-.landing-ref-table td {
-  padding: 0.2rem 0.5rem;
-  border: 1px solid var(--fog);
-  color: var(--bone);
-}
-.landing-ref-table tr td:first-child {
-  color: var(--mist);
-  white-space: nowrap;
-  width: 2.5rem;
-}
+.builder-home-btn:hover { color: #999; }
+.builder-home-btn:active { color: #ffffff; }

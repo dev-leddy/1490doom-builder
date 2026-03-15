@@ -16,7 +16,7 @@ import LandingPage, { RefContent } from './LandingPage'
 import './builder.css'
 
 export default function BuilderPage() {
-  const { validationMsg, dismissValidation, openShare, openImport, clearBuilder, setCompanyMode, companyMode, campaignGame } = useBuilderStore()
+  const { validationMsg, dismissValidation, openShare, openImport, clearBuilder, setCompanyMode, companyMode, campaignGame, isDirty } = useBuilderStore()
   const openTracker = useTrackerStore(s => s.openTracker)
   const builderState = useBuilderStore(s => s)
 
@@ -31,8 +31,18 @@ export default function BuilderPage() {
   const [modeSelectOpen, setModeSelectOpen] = useState(false)
   const [endOfGameOpen, setEndOfGameOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [backConfirmOpen, setBackConfirmOpen] = useState(false)
 
   function goBuilder() { setView('builder') }
+
+  function handleGoHome() {
+    if (isDirty()) {
+      setBackConfirmOpen(true)
+    } else {
+      setView('landing')
+      setLandingSubView('home')
+    }
+  }
 
   function handlePlay() {
     const result = openTracker(builderState)
@@ -82,17 +92,18 @@ export default function BuilderPage() {
   return (
     <div className="builder-page">
       {/* ── TOPBAR ─────────────────────────────────────── */}
-      <BuilderTopbar onMenuToggle={() => setSidebarOpen(!sidebarOpen)} onHome={() => setView('landing')} />
+      <BuilderTopbar onMenuToggle={() => setSidebarOpen(!sidebarOpen)} onHome={view === 'builder' ? handleGoHome : () => setLandingSubView('home')} />
 
       {/* ── SCROLLABLE AREA ────────────────────────────── */}
       <div className="builder-scroll-area">
         {view === 'landing' ? (
           landingSubView === 'reference'
-            ? <RefContent />
+            ? <RefContent onBack={() => setLandingSubView('home')} />
             : <LandingPage onLoad={goBuilder} />
         ) : (
           <main className="builder-main">
             <div className="builder-content">
+              <button className="builder-home-btn" onClick={handleGoHome}>← Home</button>
               <CompanyHeader onSettings={() => setSettingsOpen(true)} />
               <WarriorRoster />
             </div>
@@ -185,6 +196,15 @@ export default function BuilderPage() {
 
       {settingsOpen && (
         <CompanySettingsModal onClose={() => setSettingsOpen(false)} />
+      )}
+
+      {backConfirmOpen && (
+        <ConfirmModal
+          title="Unsaved Changes"
+          subtitle="You have unsaved changes. Return to home? Your work is auto-saved as a draft."
+          onConfirm={() => { setBackConfirmOpen(false); setView('landing'); setLandingSubView('home') }}
+          onCancel={() => setBackConfirmOpen(false)}
+        />
       )}
 
       {validationMsg && (

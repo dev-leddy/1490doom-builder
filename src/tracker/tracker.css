@@ -347,72 +347,14 @@
 .tk-tab-ref.tk-tab-active .tk-tab-name { color: #be4127; }
 
 /* ── QUICK REF ───────────────────────────────────────────── */
-.tk-ref-back-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  background: #1a1a1a;
-  border: 1px solid #444;
-  color: #c8b890;
-  font-family: 'Oswald', sans-serif; text-transform: uppercase;
-  font-size: 0.8rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 0.3rem 0.65rem;
-  cursor: pointer;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  margin-bottom: 0.75rem;
-}
-.tk-ref-back-btn:hover { border-color: #c8b890; }
+/* Content styles live in src/shared/quickref.css (qr-* classes) */
 .tk-ref-overlay {
   overflow-y: auto;
-  padding: 0.75rem;
   height: 100%;
   -webkit-overflow-scrolling: touch;
   box-sizing: border-box;
+  overscroll-behavior-y: contain;
 }
-.tk-ref-section { margin-bottom: 1.1rem; }
-.tk-ref-section-title {
-  font-family: 'Oswald', sans-serif; text-transform: uppercase;
-  font-size: 0.65rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: #be4127;
-  border-bottom: 1px solid #2a2a2a;
-  padding-bottom: 0.3rem;
-  margin-bottom: 0.6rem;
-}
-.tk-ref-item {
-  font-size: 1rem;
-  line-height: 1.55;
-  color: #999;
-  margin-bottom: 0.5rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid #1a1a1a;
-}
-.tk-ref-item:last-child { border-bottom: none; margin-bottom: 0; }
-.tk-ref-item strong {
-  font-family: 'Oswald', sans-serif; text-transform: uppercase;
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: #ffffff;
-  display: block;
-  margin-bottom: 2px;
-}
-/* Definition list striping (Actions / Statuses) */
-.tk-ref-overlay .tk-abilities-block .tk-ability:nth-child(even) { background: #141414; }
-
-.tk-ref-table { width: 100%; border-collapse: collapse; font-size: 1rem; }
-.tk-ref-table td { padding: 0.5rem 0.65rem; border: 1px solid #2a2a2a; background: #1a1a1a; color: #c8b890; line-height: 1.6; font-size: 1rem; }
-.tk-ref-table td:first-child { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 1rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; background: #1e1e1e; color: #ffffff; text-align: center; white-space: nowrap; width: 20%; }
-.tk-ref-table tr:nth-child(even) td { background: #141414; }
-.tk-ref-table tr:nth-child(even) td:first-child { background: #161616; }
-.tk-ref-table strong { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 1rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #ffffff; display: inline; }
-.tk-ref-fall-note { font-size: 1rem; color: #c8b890; font-style: italic; margin-bottom: 0.5rem; line-height: 1.6; }
 
 /* ── MARK POPUP ──────────────────────────────────────────── */
 .mark-popup-box {

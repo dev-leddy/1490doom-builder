@@ -1,0 +1,129 @@
+/* ── SHARED QUICK REFERENCE ──────────────────────────────── */
+
+.qr-wrap {
+  padding: 0.85rem 0.85rem 2rem;
+  max-width: 640px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.qr-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: #1a1a1a;
+  border: 1px solid #444;
+  color: #c8b890;
+  font-family: 'Oswald', sans-serif;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  padding: 0.35rem 0.75rem;
+  cursor: pointer;
+  margin-bottom: 1.25rem;
+  transition: border-color 0.15s, color 0.15s;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.qr-back-btn:hover { border-color: #c8b890; }
+.qr-back-btn:active { color: #ffffff; border-color: #ffffff; }
+
+/* ── SECTIONS ─────────────────────────────────────────────── */
+
+.qr-section { margin-bottom: 1.75rem; }
+
+.qr-section-title {
+  font-family: 'Oswald', sans-serif;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.22em;
+  color: #be4127;
+  border-bottom: 1px solid #2a2a2a;
+  padding-bottom: 0.4rem;
+  margin-bottom: 0.85rem;
+}
+
+/* ── ITEM LIST (Actions / Statuses) ───────────────────────── */
+
+.qr-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.qr-item {
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-left: 3px solid #333;
+  padding: 0.8rem 1rem;
+}
+.qr-item:nth-child(even) { background: #141414; }
+
+.qr-item-name {
+  font-family: 'Oswald', sans-serif;
+  text-transform: uppercase;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #ffffff;
+  display: block;
+  margin-bottom: 0.35rem;
+  line-height: 1.2;
+}
+
+.qr-item-desc {
+  font-size: 1.05rem;
+  color: #c8b890;
+  line-height: 1.65;
+  display: block;
+}
+
+/* ── TABLES (Falling / Resource Caches) ───────────────────── */
+
+.qr-fall-note {
+  font-size: 1.05rem;
+  color: #c8b890;
+  font-style: italic;
+  margin-bottom: 0.65rem;
+  line-height: 1.65;
+}
+
+.qr-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 1.05rem;
+}
+
+.qr-table td {
+  padding: 0.6rem 0.8rem;
+  border: 1px solid #2a2a2a;
+  background: #1a1a1a;
+  color: #c8b890;
+  line-height: 1.6;
+}
+
+.qr-table td:first-child {
+  font-family: 'Oswald', sans-serif;
+  text-transform: uppercase;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  background: #1e1e1e;
+  color: #ffffff;
+  text-align: center;
+  white-space: nowrap;
+  width: 20%;
+}
+
+.qr-table tr:nth-child(even) td { background: #141414; }
+.qr-table tr:nth-child(even) td:first-child { background: #161616; }
+
+.qr-table strong {
+  font-family: 'Oswald', sans-serif;
+  text-transform: uppercase;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #ffffff;
+  display: inline;
+}
