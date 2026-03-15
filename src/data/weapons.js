@@ -1,11 +1,11 @@
 // ── WEAPON & EQUIPMENT DATA ──────────────────────────────────────────────────
 
 export const WEAPONS = {
-  'Light Weapon': { range: 'Contact', damage: 1, note: 'One-handed. Can be paired with a second light weapon or shield via IP spend.', special: null },
+  'Light Weapon': { range: 'Contact', damage: 1, note: 'One-handed. Can be paired with a second light weapon or shield.', offhandNote: 'One-handed. Adds +1 Attack.', special: null },
   'Heavy Weapon': { range: 'Contact', damage: 2, note: 'Two-handed. Cannot equip a second weapon.', special: null },
   'Polearm (two-handed)': { range: '2"', damage: 1, note: 'Two-handed. Cannot equip a second weapon.', special: null },
   'Polearm (one-handed)': { range: '2"', damage: 1, note: 'One-handed — must be paired with a Shield. Requires the Shield upgrade.', special: 'STAFF DEBUFF: -1 to all Combat Checks while equipped.' },
-  'Shield': { range: '—', damage: 0, note: 'On the first ATTACK targeting this model each round, gain +1 DEFENSE.', abilityName: 'GUARDED', abilityDesc: 'Once per round, the model may use their shield to prevent a PUSH action that targets them.' },
+  'Shield': { range: '—', damage: 0, note: 'On the first ATTACK targeting this model each round, gain +1 DEFENSE. Grants the GUARDED ability.', abilityName: 'GUARDED', abilityDesc: 'Once per round, the model may use their shield to prevent a PUSH action that targets them.' },
   'Crossbow': { range: '1–5"', damage: 2, note: 'Two-handed ranged. Cannot equip a second weapon.', special: 'RELOAD: After firing, must use the Reload action before firing again.' },
   'Bow': { range: '2–5"', damage: 1, note: 'Two-handed ranged. Cannot equip a second weapon.', special: 'OVERDRAW: Spend an action to double your maximum range for your next ranged Attack this round.' },
 }

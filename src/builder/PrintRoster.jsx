@@ -44,22 +44,21 @@ export default function PrintRoster() {
     return [captainIndex, ...all.filter(i => i !== captainIndex)]
   }, [slots, captainIndex])
 
-  const name = companyName || 'Unnamed Company'
+  const name = companyName || null
   const markImgSrc = getMarkImg(mark)
   const markRule = mark ? (MARKS_MAP[mark] || '') : ''
 
   return (
     <div className="pr-page">
-      <div className="pr-meta-bar">
-        <span>1490 DOOM — Doom Company Builder</span>
-        <span>Doom Company Roster</span>
-      </div>
 
       <div className="pr-header">
         <div className="pr-header-left">
           <div className="pr-game-title">1490 DOOM</div>
           <div className="pr-company-block">
-            <div className="pr-company-name">{name}</div>
+            {name
+              ? <div className="pr-company-name">{name}</div>
+              : <div className="pr-company-name-blank" />
+            }
             <div className="pr-company-sub">Doom Company Roster</div>
           </div>
         </div>

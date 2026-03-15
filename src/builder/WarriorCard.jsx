@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react'
 import { useBuilderStore, getAvailableWarriorTypes, getAllowedWeapons, getSecondWeaponOptions } from '../store/builderStore'
-import { WARRIORS, STAT_IMPROVEMENT } from '../data/warriors'
+import { WARRIORS, STAT_IMPROVEMENT, IP_OPTIONS } from '../data/warriors'
 import { WEAPONS, CLIMBING_ITEMS, CLIMBING_DESCS, CONSUMABLES, CONSUMABLE_NAMES } from '../data/weapons'
 import { WARRIOR_IMAGES, ITEM_ICONS } from '../data/images'
 
@@ -50,7 +50,8 @@ function UpgradeModal({
   removeUpgrade, spendIP, freeIP,
   hasFixedShield, hasFixedDualWield, primaryIsPolearmOne, isDualWield
 }) {
-  const setWarriorProp = useBuilderStore(s => s.setWarriorProp)
+  const { setWarriorProp, addStatImprove } = useBuilderStore()
+  const companyMode = useBuilderStore(s => s.companyMode)
 
   if (!isOpen) return null
 
@@ -151,7 +152,27 @@ function UpgradeModal({
             </div>
           )}
 
-          {category === 'stat' && (
+          {category === 'stat' && companyMode === 'campaign' && (
+            <div className="upgrade-choice-grid">
+              {Object.entries(STAT_IMPROVEMENT).map(([k, v]) => {
+                const taken = slot.statImproves?.includes(k)
+                return (
+                  <button
+                    key={k}
+                    className={`upgrade-choice-btn ${taken ? 'active' : ''}`}
+                    disabled={taken}
+                    onClick={() => {
+                      if (!taken) { addStatImprove(slotIndex, k); onClose() }
+                    }}
+                  >
+                    {v}
+                    {taken && <span style={{ display: 'block', fontSize: '0.65em', opacity: 0.6 }}>Taken</span>}
+                  </button>
+                )
+              })}
+            </div>
+          )}
+          {category === 'stat' && companyMode !== 'campaign' && (
             <div className="upgrade-choice-grid">
               {Object.entries(STAT_IMPROVEMENT).map(([k, v]) => (
                 <button
@@ -201,7 +222,7 @@ const IP_ROW_IDS = ['weapon2', 'climbing', 'consumable', 'stat']
 
 function LoadoutPanel({ slotIndex, slot, wdata, poolFull }) {
   const [modalCategory, setModalCategory] = useState(null)
-  const { toggleIP, setWarriorProp, getTotalIPSpent, ipLimit } = useBuilderStore()
+  const { toggleIP, setWarriorProp, getTotalIPSpent, ipLimit, companyMode, addStatImprove, removeStatImprove } = useBuilderStore()
   const totalSpent = getTotalIPSpent()
 
   const hasFixedShield    = wdata?.fixedShield || false
@@ -211,11 +232,16 @@ function LoadoutPanel({ slotIndex, slot, wdata, poolFull }) {
 
   const isFixed  = id => id === 'weapon2' && (hasFixedShield || hasFixedDualWield || primaryIsPolearmOne)
 
+  const isCampaign = companyMode === 'campaign'
+  const statImproves = slot.statImproves || []
+  const allStatKeys = Object.keys(STAT_IMPROVEMENT)
+  const campaignStatFull = statImproves.length >= allStatKeys.length
+
   const isRowSelected = id => {
     if (id === 'weapon2')    return !!slot.weapon2
     if (id === 'climbing')   return !!slot.climbing && slot.climbing !== 'None'
     if (id === 'consumable') return !!slot.consumable
-    if (id === 'stat')       return !!slot.statImprove && slot.ip?.includes('stat')
+    if (id === 'stat')       return isCampaign ? statImproves.length > 0 : (!!slot.statImprove && slot.ip?.includes('stat'))
     return false
   }
 
@@ -225,6 +251,7 @@ function LoadoutPanel({ slotIndex, slot, wdata, poolFull }) {
       if (primaryIsTwoHanded)  return true
       return !isRowSelected(id) && poolFull
     }
+    if (id === 'stat' && isCampaign) return poolFull || campaignStatFull
     if (IP_ROW_IDS.includes(id)) return !isRowSelected(id) && poolFull
     return false
   }
@@ -241,7 +268,7 @@ function LoadoutPanel({ slotIndex, slot, wdata, poolFull }) {
   }
 
   const weapon2Label  = 'Off-hand'
-  const weapon2IsFree = hasFixedShield || hasFixedDualWield || primaryIsPolearmOne
+  const weapon2IsFree = hasFixedShield || hasFixedDualWield
 
   const wpnDisplayDesc = wname => {
     if (!wname) return null
@@ -250,7 +277,6 @@ function LoadoutPanel({ slotIndex, slot, wdata, poolFull }) {
     const parts = []
     if (wd.note) parts.push(wd.note)
     if (wd.special) parts.push(wd.special)
-    if (wd.abilityName) parts.push(`${wd.abilityName}: ${wd.abilityDesc}`)
     return parts.join(' ') || null
   }
 
@@ -329,7 +355,10 @@ function LoadoutPanel({ slotIndex, slot, wdata, poolFull }) {
               <div className="eq-chip-pills">
                 {w2.pills?.map(p => <span key={p} className="lr-pill">{p}</span>)}
               </div>
-              {wpnDisplayDesc(slot.weapon2) && <div className="eq-chip-desc">{wpnDisplayDesc(slot.weapon2)}</div>}
+              {(slot.weapon2 === 'Light Weapon' && slot.weapon1 === 'Light Weapon'
+                ? 'One-handed. Adds +1 Attack.'
+                : wpnDisplayDesc(slot.weapon2)
+              ) && <div className="eq-chip-desc">{slot.weapon2 === 'Light Weapon' && slot.weapon1 === 'Light Weapon' ? 'One-handed. Adds +1 Attack.' : wpnDisplayDesc(slot.weapon2)}</div>}
             </div>
             {!isFixed('weapon2') && (
               <div className="eq-chip-remove" onClick={e => { e.stopPropagation(); removeUpgrade('weapon2') }}>×</div>
@@ -372,17 +401,30 @@ function LoadoutPanel({ slotIndex, slot, wdata, poolFull }) {
           </div>
         )}
 
-        {/* Stat Chip */}
-        {isRowSelected('stat') && (
-          <div className="eq-chip" onClick={() => setModalCategory('stat')}>
-             {getBadge('stat') && <span className={`eq-chip-badge eq-badge-${getBadge('stat').variant}`}>{getBadge('stat').text}</span>}
-            <div className="eq-chip-icon"><SvgStat /></div>
-            <div className="eq-chip-content">
-              <span className="eq-chip-label">STAT</span>
-              <span className="eq-chip-value">{statVal}</span>
+        {/* Stat Chip(s) */}
+        {isCampaign ? (
+          statImproves.map((stat, i) => (
+            <div key={i} className="eq-chip">
+              <div className="eq-chip-icon"><SvgStat /></div>
+              <div className="eq-chip-content">
+                <span className="eq-chip-label">STAT</span>
+                <span className="eq-chip-value">{STAT_IMPROVEMENT[stat]}</span>
+              </div>
+              <div className="eq-chip-remove" onClick={e => { e.stopPropagation(); removeStatImprove(slotIndex, stat) }}>×</div>
             </div>
-            <div className="eq-chip-remove" onClick={e => { e.stopPropagation(); removeUpgrade('stat') }}>×</div>
-          </div>
+          ))
+        ) : (
+          isRowSelected('stat') && (
+            <div className="eq-chip" onClick={() => setModalCategory('stat')}>
+               {getBadge('stat') && <span className={`eq-chip-badge eq-badge-${getBadge('stat').variant}`}>{getBadge('stat').text}</span>}
+              <div className="eq-chip-icon"><SvgStat /></div>
+              <div className="eq-chip-content">
+                <span className="eq-chip-label">STAT</span>
+                <span className="eq-chip-value">{statVal}</span>
+              </div>
+              <div className="eq-chip-remove" onClick={e => { e.stopPropagation(); removeUpgrade('stat') }}>×</div>
+            </div>
+          )
         )}
       </div>
 
@@ -406,11 +448,20 @@ function LoadoutPanel({ slotIndex, slot, wdata, poolFull }) {
             <span>Supply</span>
           </button>
         )}
-        {!isRowSelected('stat') && !isRowLocked('stat') && (
-          <button className="eq-add-btn" onClick={() => setModalCategory('stat')}>
-            <span className="lr-icon"><SvgStat /></span>
-            <span>Stat</span>
-          </button>
+        {isCampaign ? (
+          !poolFull && !campaignStatFull && (
+            <button className="eq-add-btn" onClick={() => setModalCategory('stat')}>
+              <span className="lr-icon"><SvgStat /></span>
+              <span>Stat</span>
+            </button>
+          )
+        ) : (
+          !isRowSelected('stat') && !isRowLocked('stat') && (
+            <button className="eq-add-btn" onClick={() => setModalCategory('stat')}>
+              <span className="lr-icon"><SvgStat /></span>
+              <span>Stat</span>
+            </button>
+          )
         )}
       </div>
 
@@ -470,10 +521,12 @@ export default function WarriorCard({ slotIndex, slot }) {
   const collapseNote = (ni) => setExpandedNotes(prev => { const s = new Set(prev); s.delete(ni); return s })
   const expandNote  = (ni) => setExpandedNotes(prev => new Set([...prev, ni]))
 
+  const companyMode = useBuilderStore(s => s.companyMode)
   const wdata = slot.type ? WARRIORS[slot.type] : null
   const available = getAvailableWarriorTypes(slotIndex, allSlots)
-  const totalSpent = getTotalIPSpent()
-  const poolFull = totalSpent >= ipLimit
+  const poolFull = companyMode === 'campaign'
+    ? (slot.ip?.length || 0) >= (slot.earnedIP || 0)
+    : getTotalIPSpent() >= ipLimit
   const portraitSrc = slot.type ? WARRIOR_IMAGES[slot.type] : null
 
   const allAbilities = [...(wdata?.abilities || [])]
@@ -518,6 +571,11 @@ export default function WarriorCard({ slotIndex, slot }) {
             </span>
           )}
         </div>
+        {companyMode === 'campaign' && slot.type && (
+          <span className="warrior-campaign-ip">
+            {slot.earnedIP || 0} earned · {slot.ip?.length || 0} spent · {Math.max(0, (slot.earnedIP || 0) - (slot.ip?.length || 0))} free
+          </span>
+        )}
         {slot.type && (
           <button
             className={`captain-toggle ${slot.isCaptain ? 'is-captain' : ''}`}
@@ -642,7 +700,7 @@ function StatsRow({ slot, wdata }) {
     <div className="stats-row">
       {['MOV', 'ATK', 'VIT', 'SKL', 'DEF', 'COM'].map(s => {
         let base = wdata.stats[s]
-        const improved = slot.ip?.includes('stat') && slot.statImprove === s
+        const improved = (slot.ip?.includes('stat') && slot.statImprove === s) || (slot.statImproves?.includes(s))
         const polearmDebuff = slot.weapon1 === 'Polearm (one-handed)' && s === 'COM'
         
         // Apply dual wield bonus to ATK
@@ -694,7 +752,7 @@ function WeaponSelector({ label, labelIcon, slotIndex, slot, options, propKey, p
           const stats = wd && wd.damage > 0
             ? `${wd.range} · DMG ${wd.damage}`
             : wd?.range && wd.range !== '—' ? wd.range : null
-          const abilityLine = wd?.abilityName ? `${wd.abilityName}: ${wd.abilityDesc}` : null
+          const abilityLine = null
           return (
             <button
               key={wn}
@@ -716,7 +774,7 @@ function WeaponSelector({ label, labelIcon, slotIndex, slot, options, propKey, p
                   {abilityLine && <span className="upgrade-btn-stats">{abilityLine}</span>}
                   {needsIP && <span className="polearm-ip-note">Requires 1 IP (Shield)</span>}
                 </div>
-                {(wd?.special || wd?.note) && <div className="upgrade-btn-desc" style={{marginTop: '0.4rem'}}>{[wd.note, wd.special].filter(Boolean).join(' ')}</div>}
+                {(wd?.special || wd?.note) && <div className="upgrade-btn-desc" style={{marginTop: '0.4rem'}}>{[propKey === 'weapon2' && wd.offhandNote ? wd.offhandNote : wd.note, wd.special].filter(Boolean).join(' ')}</div>}
               </div>
             </button>
           )
@@ -725,7 +783,11 @@ function WeaponSelector({ label, labelIcon, slotIndex, slot, options, propKey, p
       {wpnData && (
         <div className="upgrade-choice-note">
           {isDualWield && <strong>Dual Wield: +1 Attack die. </strong>}
-          {wpnData.note}
+          {propKey === 'weapon2' && wpnData.abilityName
+            ? <><strong>{wpnData.abilityName}: </strong>{wpnData.abilityDesc}</>
+            : propKey === 'weapon2' && wpnData.offhandNote
+            ? wpnData.offhandNote
+            : wpnData.note}
         </div>
       )}
     </div>

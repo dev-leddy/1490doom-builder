@@ -31,6 +31,21 @@ export default defineConfig(({ command }) => ({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         navigateFallback: null,
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MiB (images.js is ~3.3 MB)
+        runtimeCaching: [
+          {
+            // Company avatars — CacheFirst so they're served instantly after first load
+            urlPattern: /\/company-avatars\/.+\.png$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'company-avatars-v1',
+              expiration: {
+                maxEntries: 30,
+                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+              },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+        ],
       },
     }),
   ],

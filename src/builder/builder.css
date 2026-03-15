@@ -1292,6 +1292,7 @@
     cursor: pointer;
     transition: all 0.2s;
   }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; }
   .btn-primary {
     background: var(--blood);
     color: var(--parchment);
@@ -1314,6 +1315,14 @@
     border: 1px solid var(--gold);
     color: var(--ash);
     font-weight: 700;
+  }
+  .btn-play {
+    color: #fff !important;
+    font-family: 'Oswald', sans-serif !important;
+    font-weight: 400 !important;
+    font-size: 0.85rem !important;
+    letter-spacing: 0.1em !important;
+    text-transform: uppercase !important;
   }
   .btn-gold:hover { background: var(--bone); border-color: var(--bone); }
 
@@ -1394,6 +1403,12 @@
       text-transform: uppercase;
       letter-spacing: 0.08em;
       line-height: 1;
+    }
+    .pr-company-name-blank {
+      display: block;
+      height: 18pt;
+      width: 220pt;
+      border-bottom: 1.5pt solid #000;
     }
     .pr-company-sub {
       font-family: 'Oswald', sans-serif; text-transform: uppercase;
@@ -1615,8 +1630,9 @@
       white-space: nowrap;
     }
     .pr-upgrade-tag {
-      background: #333;
-      color: #fff;
+      background: none;
+      color: #000;
+      border: 0.5pt solid #000;
       padding: 0.5pt 3pt;
       font-family: 'Oswald', sans-serif; text-transform: uppercase;
       font-size: 7.5pt;
@@ -1644,11 +1660,13 @@
       margin-bottom: 1.5pt;
       font-size: 8pt;
       line-height: 1.3;
+      color: #000;
     }
     .pr-wpn-stat-row:last-child { margin-bottom: 0; }
     .pr-wpn-pill {
-      background: #000;
-      color: #fff;
+      background: none;
+      color: #000;
+      border: 0.5pt solid #000;
       padding: 0.5pt 3pt;
       font-size: 7.5pt;
       font-weight: 700;
@@ -1705,8 +1723,8 @@
 
     /* === PAGE 2: QUICK REFERENCE === */
     .pr-bottom {
-      page-break-before: always;
-      break-before: page;
+      page-break-before: always !important;
+      break-before: page !important;
       padding-top: 6pt;
     }
 
@@ -2179,6 +2197,55 @@
 .btn-sm { padding:0.25rem 0.6rem !important;font-size:0.7rem !important; }
 .btn-full { width:100%;margin-top:0.4rem; }
 
+.saved-section-group { margin-bottom: 1rem; }
+.saved-section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #fff;
+  margin-bottom: 0.4rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--fog);
+}
+.saved-section-header.campaign { color: #fff; border-bottom-color: rgba(139,0,0,0.5); }
+
+.saved-avatar-img {
+  width: 28px;
+  height: 28px;
+  border-radius: 2px;
+  object-fit: cover;
+  object-position: center;
+  flex-shrink: 0;
+}
+.saved-avatar-placeholder {
+  width: 28px;
+  height: 28px;
+  border-radius: 2px;
+  background: var(--fog);
+  color: var(--mist);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.saved-chip-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.saved-chip-game {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  color: var(--rust);
+  flex-shrink: 0;
+}
+
 /* Share/Import modals */
 .share-modal { max-width:400px; }
 .share-modal-title { font-family:'Oswald',sans-serif;font-size:0.9rem;letter-spacing:0.15em;color:var(--gold);margin-bottom:0.75rem;text-transform:uppercase; }
@@ -2320,7 +2387,7 @@
 .topbar-menu-btn {
   background: none;
   border: 1px solid var(--dim);
-  color: var(--mist);
+  color: #fff;
   width: 36px;
   height: 36px;
   display: flex;
@@ -2402,6 +2469,29 @@
   -webkit-overflow-scrolling: touch;
 }
 
+/* ── SIDEBAR ACTION BUTTONS ───────────────────────────── */
+.sidebar-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--fog);
+}
+
+.sidebar-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.5rem;
+}
+
+.sidebar-action-btn svg {
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+}
+
 /* ── BUILDER NAME ROW (inside scroll area) ────────────── */
 .builder-name-row {
   display: flex;
@@ -2438,3 +2528,671 @@
 /* Normalize saved company chips inside sidebar */
 .sidebar-body .saved-list { flex-direction: column; }
 .sidebar-body .saved-chip { width: 100%; box-sizing: border-box; }
+
+/* ── CAMPAIGN / MODE STYLES ─────────────────────────────── */
+
+/* Company Header mode badge */
+.company-mode-badge {
+  display: inline-block;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  padding: 0.15rem 0.5rem;
+  border-radius: 2px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.company-mode-badge.standard {
+  background: var(--ash);
+  border: 1px solid var(--fog);
+  color: var(--mist);
+}
+.company-mode-badge.campaign {
+  background: var(--blood);
+  border: 1px solid var(--rust);
+  color: var(--parchment);
+}
+
+/* Sidebar campaign badge */
+.sidebar-mode-badge {
+  display: block;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  margin-top: 0.2rem;
+  color: var(--gold);
+}
+
+/* IPPool campaign mode */
+.campaign-mode-group {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+}
+.campaign-label {
+  color: var(--blood) !important;
+  font-size: 0.75rem !important;
+  letter-spacing: 0.15em !important;
+}
+.ip-pool-campaign-game {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.8rem;
+  color: var(--bone);
+  letter-spacing: 0.05em;
+}
+.ip-pool-eog-btn {
+  font-size: 0.75rem !important;
+  padding: 0.3rem 0.75rem !important;
+}
+
+/* End of Game button in navbar */
+.btn-campaign-eog {
+  background: var(--blood);
+  border: 1px solid var(--rust);
+  color: var(--parchment);
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.btn-campaign-eog:hover { background: #a52020; }
+
+/* Per-warrior IP display */
+.warrior-campaign-ip {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.04em;
+  color: var(--mist);
+  white-space: nowrap;
+  margin-right: 0.25rem;
+}
+
+/* Mode select modal */
+.mode-select-modal {
+  max-width: 420px;
+  padding: 1.75rem;
+}
+.mode-select-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 0.2em;
+  color: var(--bone);
+  text-align: center;
+  margin-bottom: 1.25rem;
+}
+.mode-select-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+.mode-option-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: var(--ash);
+  border: 1px solid var(--fog);
+  color: var(--bone);
+  padding: 1rem 1.25rem;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: border-color 0.15s, background 0.15s;
+}
+.mode-option-btn:hover { border-color: var(--mist); background: #2a2010; }
+.mode-option-btn.selected { border-color: var(--gold); background: #2a2010; }
+.mode-option-name {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.95rem;
+  letter-spacing: 0.2em;
+  margin-bottom: 0.4rem;
+}
+.mode-option-btn.selected .mode-option-name { color: var(--gold); }
+.mode-option-desc {
+  font-size: 0.8rem;
+  color: var(--mist);
+  line-height: 1.45;
+}
+.mode-select-cancel {
+  display: block;
+  margin: 0 auto;
+}
+
+/* End of Game Modal */
+.eog-modal {
+  max-width: 400px;
+  padding: 1.5rem;
+}
+.eog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+.eog-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.2em;
+  color: var(--bone);
+}
+.eog-subtitle {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  color: var(--mist);
+  margin-bottom: 0.75rem;
+}
+.eog-warrior-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1.25rem;
+}
+.eog-warrior-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.55rem 0.75rem;
+  background: var(--ash);
+  border: 1px solid var(--fog);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.eog-warrior-row.survived { border-color: var(--gold); }
+.eog-warrior-row.fallen { opacity: 0.5; }
+.eog-warrior-name {
+  flex: 1;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+}
+.eog-captain-star { color: var(--gold); }
+.eog-warrior-ip {
+  font-size: 0.7rem;
+  color: var(--mist);
+}
+.eog-win-btns {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.eog-win-btn {
+  flex: 1;
+  padding: 0.65rem;
+  background: var(--ash);
+  border: 1px solid var(--fog);
+  color: var(--bone);
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: border-color 0.15s;
+}
+.eog-win-btn.selected { border-color: var(--gold); color: var(--gold); }
+.eog-captain-bonus {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--bone);
+  margin-bottom: 1rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--ash);
+  border: 1px solid var(--fog);
+  border-radius: 3px;
+}
+.eog-summary {
+  margin-bottom: 1.25rem;
+  border: 1px solid var(--fog);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.eog-summary-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  color: var(--mist);
+  padding: 0.4rem 0.75rem;
+  background: var(--ash);
+  border-bottom: 1px solid var(--fog);
+}
+.eog-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8rem;
+  border-bottom: 1px solid var(--fog);
+}
+.eog-summary-row:last-child { border-bottom: none; }
+.eog-summary-row.fallen { opacity: 0.45; }
+.eog-summary-fell { color: var(--mist) !important; font-style: italic; }
+.eog-captain-fell-note {
+  font-size: 0.78rem;
+  color: var(--blood);
+  background: rgba(139,0,0,0.12);
+  border: 1px solid rgba(139,0,0,0.3);
+  border-radius: 3px;
+  padding: 0.45rem 0.75rem;
+  margin-bottom: 1rem;
+}
+.eog-captain-promo-note {
+  font-size: 0.78rem;
+  color: var(--bone);
+  margin-bottom: 0.75rem;
+  opacity: 0.75;
+}
+.eog-warrior-row.new-captain { border-color: var(--gold); }
+.eog-new-captain-label {
+  font-size: 0.7em;
+  color: var(--gold);
+  font-family: 'Oswald', sans-serif;
+  letter-spacing: 0.05em;
+  margin-left: 0.3rem;
+}
+.eog-summary-ip {
+  color: var(--gold);
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+.eog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+/* ── WIZARD ─────────────────────────────────────────────── */
+.wizard-step-indicator {
+  display: flex;
+  gap: 0.4rem;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+}
+.wizard-step {
+  width: 28px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--fog);
+  transition: background 0.2s;
+}
+.wizard-step.active { background: var(--gold); }
+
+.wizard-campaign-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  background: rgba(139,0,0,0.12);
+  border: 1px solid rgba(139,0,0,0.35);
+  border-radius: 3px;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 1.1rem;
+  font-size: 0.8rem;
+  color: var(--parchment);
+  line-height: 1.6;
+}
+.wizard-campaign-notice svg { flex-shrink: 0; color: var(--blood); }
+.wizard-campaign-notice strong { color: var(--gold); }
+.wizard-campaign-notice div { display: flex; flex-direction: column; }
+
+/* ── COMPANY AVATAR ─────────────────────────────────────── */
+.company-avatar-img {
+  width: 52px;
+  height: 52px;
+  border-radius: 4px;
+  object-fit: cover;
+  object-position: center;
+  border: 2px solid var(--rust);
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.company-avatar-img:hover { border-color: var(--gold); }
+.company-avatar-placeholder {
+  width: 52px;
+  height: 52px;
+  border-radius: 4px;
+  border: 2px dashed var(--fog);
+  background: var(--ash);
+  color: var(--mist);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: border-color 0.15s, color 0.15s;
+}
+.company-avatar-placeholder:hover { border-color: var(--gold); color: var(--gold); }
+
+/* Avatar picker grid inside modals */
+.avatar-picker { margin-bottom: 1.25rem; }
+.avatar-picker-label {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 0.6rem;
+}
+.avatar-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.4rem;
+}
+.avatar-option {
+  aspect-ratio: 1;
+  border: 2px solid var(--fog);
+  background: var(--ash);
+  cursor: pointer;
+  overflow: hidden;
+  border-radius: 3px;
+  padding: 0;
+  transition: border-color 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.avatar-option img { width: 100%; height: 100%; object-fit: cover; object-position: center; }
+.avatar-option:hover { border-color: var(--gold); }
+.avatar-option.selected { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold); }
+.avatar-upload-btn { color: var(--mist); }
+.avatar-upload-btn:hover { color: var(--gold); }
+.avatar-upload-btn.selected { border-color: var(--gold); }
+
+.mode-select-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.random-preview {
+  margin-top: 0.85rem;
+  padding: 0.6rem 0.75rem;
+  background: rgba(0,0,0,0.25);
+  border: 1px solid var(--fog);
+  border-radius: 4px;
+}
+.random-preview-header {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-bottom: 0.55rem;
+  padding-bottom: 0.45rem;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.random-preview-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 3px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.random-preview-avatar-empty {
+  width: 36px;
+  height: 36px;
+  border-radius: 3px;
+  background: rgba(255,255,255,0.06);
+  flex-shrink: 0;
+}
+.random-preview-company-info { flex: 1; min-width: 0; }
+.random-preview-company-name {
+  font-family: 'Caslon Antique', 'Palatino Linotype', serif;
+  font-size: 0.82rem;
+  color: var(--bone);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.random-preview-mark-row {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.15rem;
+  font-size: 0.63rem;
+  color: var(--mist);
+}
+.random-preview-mark-img {
+  width: 13px;
+  height: 13px;
+  object-fit: contain;
+  opacity: 0.65;
+}
+.random-preview-warriors {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.random-preview-warrior {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  color: var(--bone);
+}
+.random-preview-warrior-img {
+  width: 32px;
+  height: 32px;
+  object-fit: cover;
+  object-position: top center;
+  border-radius: 50%;
+  border: 2px solid var(--dim);
+  box-shadow: 0 0 0 1px var(--dim), inset 0 0 6px rgba(0,0,0,0.5);
+  filter: sepia(0.15) contrast(1.1) brightness(0.95);
+  flex-shrink: 0;
+}
+.is-captain .random-preview-warrior-img {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 1px var(--gold), 0 0 6px rgba(184,151,42,0.3);
+}
+.random-preview-warrior-empty {
+  background: rgba(255,255,255,0.04);
+  border-radius: 50%;
+}
+.random-preview-warrior-name { flex: 1; min-width: 0; }
+.random-preview-captain {
+  font-size: 0.55rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--gold);
+  background: rgba(212,175,55,0.12);
+  border: 1px solid rgba(212,175,55,0.3);
+  padding: 0.1rem 0.25rem;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.random-preview-upgrades {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  flex-shrink: 0;
+}
+.random-preview-item-icon {
+  width: 15px;
+  height: 15px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+  opacity: 0.65;
+}
+.random-preview-stat {
+  font-size: 0.58rem;
+  font-family: 'Oswald', sans-serif;
+  letter-spacing: 0.04em;
+  color: var(--gold);
+  background: rgba(212,175,55,0.1);
+  border: 1px solid rgba(212,175,55,0.25);
+  padding: 0.1rem 0.25rem;
+  border-radius: 2px;
+}
+
+/* ── COMPANY SETTINGS ───────────────────────────────────── */
+.company-name-display {
+  flex: 1;
+  font-family: 'Caslon Antique', serif;
+  font-size: 1.3rem;
+  color: var(--parchment);
+  cursor: pointer;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0.2rem 0;
+  border-bottom: 2px solid var(--blood);
+  transition: border-color 0.2s;
+}
+.company-name-display:hover { border-bottom-color: var(--gold); }
+.company-name-placeholder { color: var(--mist); font-style: italic; }
+
+.company-header-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+}
+.company-settings-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+.company-settings-btn:hover { color: var(--gold); }
+.company-settings-label {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.co-settings-modal {
+  max-width: 420px;
+  width: 92vw;
+}
+.co-settings-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.9rem;
+  letter-spacing: 0.2em;
+  color: var(--bone);
+  margin-bottom: 1.5rem;
+}
+.co-settings-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+.co-settings-label {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold);
+  white-space: nowrap;
+}
+.co-settings-label-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.co-settings-sublabel {
+  font-size: 0.7rem;
+  color: var(--mist);
+  font-style: italic;
+  white-space: nowrap;
+}
+.co-settings-warrior-ip {
+  margin-bottom: 1.25rem;
+}
+.co-settings-warrior-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.45rem 0.6rem;
+  background: var(--ash);
+  border: 1px solid var(--fog);
+  border-radius: 3px;
+  margin-bottom: 0.35rem;
+}
+.co-settings-warrior-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.co-settings-warrior-name {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.82rem;
+  color: var(--parchment);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.co-settings-warrior-class {
+  font-size: 0.7rem;
+  color: var(--mist);
+  font-style: italic;
+}
+
+.wizard-notice-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.co-settings-input {
+  flex: 1;
+  background: var(--ash);
+  border: 1px solid var(--fog);
+  border-bottom: 2px solid var(--blood);
+  color: var(--parchment);
+  font-family: 'Caslon Antique', serif;
+  font-size: 1rem;
+  padding: 0.35rem 0.6rem;
+  outline: none;
+  transition: border-color 0.2s;
+  min-width: 0;
+}
+.co-settings-input:focus { border-bottom-color: var(--gold); }
+.co-settings-input::placeholder { color: var(--mist); font-style: italic; }
+.co-settings-stepper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.co-settings-step-btn {
+  background: var(--ash);
+  border: 1px solid var(--fog);
+  color: var(--parchment);
+  width: 28px;
+  height: 28px;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s, color 0.15s;
+}
+.co-settings-step-btn:hover { border-color: var(--gold); color: var(--gold); }
+.co-settings-step-val {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.1rem;
+  color: var(--parchment);
+  min-width: 1.5rem;
+  text-align: center;
+}
+.co-settings-done {
+  width: 100%;
+  margin-top: 0.5rem;
+}
