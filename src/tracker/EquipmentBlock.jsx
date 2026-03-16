@@ -27,22 +27,10 @@ function WeaponRow({ iconKey, name, wpnData, overrideNote }) {
 }
 
 export default function EquipmentBlock({ warrior: w }) {
-  const isDualWield = w.weapon1 === 'Light Weapon' && w.weapon2 === 'Light Weapon'
-
   return (
     <div className="tk-equip-block">
-      {isDualWield ? (
-        <WeaponRow
-          iconKey="Dual Wield"
-          name="Dual Light Weapons"
-          wpnData={{ damage: 1, range: 'Contact', note: 'Two light weapons.', special: '+1 Attack die on all attacks.' }}
-        />
-      ) : (
-        <>
-          {w.weapon1 && <WeaponRow iconKey={w.weapon1} name={w.weapon1} wpnData={WEAPONS[w.weapon1]} />}
-          {w.weapon2 && <WeaponRow iconKey={w.weapon2} name={w.weapon2} wpnData={WEAPONS[w.weapon2]} />}
-        </>
-      )}
+      {w.weapon1 && <WeaponRow iconKey={w.weapon1} name={w.weapon1} wpnData={WEAPONS[w.weapon1]} />}
+      {w.weapon2 && <WeaponRow iconKey={w.weapon2} name={w.weapon2} wpnData={WEAPONS[w.weapon2]} />}
 
       {w.climbing && w.climbing !== 'None' && (() => {
         const cdata = CLIMBING_ITEMS[w.climbing]

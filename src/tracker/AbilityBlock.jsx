@@ -115,7 +115,10 @@ export default function AbilityBlock({ wi, warrior: w, wdata }) {
             style={!w.dead ? { cursor: 'pointer' } : {}}
           >
             <div className="tk-ability-header">
-              <span className="tk-ability-name">{shield.abilityName}</span>
+              <span className="tk-ability-name">
+                {shield.abilityName}
+                <span style={{fontSize: '0.85em', opacity: 0.7, fontWeight: 'normal', marginLeft: '0.4rem'}}>(from Shield)</span>
+              </span>
               <span className={`tk-opg-badge tk-opr-badge${used ? ' tk-opg-used' : ''}`}>
                 {used ? '✓ USED' : 'ONCE PER ROUND'}
               </span>

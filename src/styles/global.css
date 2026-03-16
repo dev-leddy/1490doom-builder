@@ -4,18 +4,18 @@
 
 /* ── CSS VARIABLES ────────────────────────────────────────────────────────── */
 :root {
-  --gold: #b8972a;
+  --gold: #be4127;
   --gold-dim: #7a6012;
   --gold-bg: #1f1900;
   --gold-border: #3a2e00;
-  --cream: #e8dcc8;
-  --cream-dim: #a09880;
-  --bg: #0d0d0d;
-  --bg-card: #161616;
-  --bg-lift: #1a1a1a;
+  --cream: #ffffff;
+  --cream-dim: #cccccc;
+  --bg: #000000;
+  --bg-card: #0a0a0a;
+  --bg-lift: #111111;
   --bg-hover: #222;
-  --border: #2a2a2a;
-  --border-dim: #1e1e1e;
+  --border: #be4127;
+  --border-dim: #222222;
   --text-muted: #666;
   --text-dim: #888;
   --text-mid: #999;
@@ -27,8 +27,8 @@
   --purple: #9a9add;
   --purple-bg: #12122a;
   --purple-border: #2a2a5a;
-  --font-display: 'Oswald', sans-serif;
-  --font-body: 'Crimson Text', serif;
+  --font-display: 'Oswald', sans-serif; /* was Gothicus Roman */
+  --font-body: 'Caslon Antique', serif;
 }
 
 /* ── RESET & BASE ─────────────────────────────────────────────────────────── */
@@ -43,6 +43,12 @@ html, body {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior: none;
+}
+
+.app {
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
 }
 
 button {
@@ -113,6 +119,39 @@ input:focus, select:focus, textarea:focus {
 .text-cream { color: var(--cream); }
 .text-muted { color: var(--text-muted); }
 .text-dim { color: var(--text-dim); }
+
+/* ── UPDATE BANNER ────────────────────────────────────────────────────────── */
+.update-banner {
+  position: fixed;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #1a1006;
+  border: 1px solid var(--gold-border);
+  color: var(--cream);
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  padding: 0.5rem 0.75rem 0.5rem 1rem;
+  z-index: 9999;
+  white-space: nowrap;
+  box-shadow: 0 2px 12px #0008;
+}
+.update-banner button {
+  background: var(--gold-bg);
+  border: 1px solid var(--gold-border);
+  color: var(--gold);
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  padding: 0.25rem 0.7rem;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+.update-banner button:hover { background: #2a2000; }
 
 /* ── SCROLLBAR ────────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 4px; }

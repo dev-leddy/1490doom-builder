@@ -1,85 +1,12 @@
 import { useTrackerStore } from '../store/trackerStore'
-import { ACTION_DEFS, STATUS_DEFS, CACHE_ITEMS } from '../data/items'
-import { ITEM_ICONS } from '../data/images'
+import QuickRef from '../shared/QuickRef'
 
 export default function QuickRefPanel() {
   const closeRef = useTrackerStore(s => s.closeRef)
 
   return (
     <div className="tk-ref-overlay">
-      <button className="tk-ref-back-btn" onClick={closeRef}>← Back</button>
-      <div className="tk-ref-section">
-        <div className="tk-ref-section-title">Actions</div>
-        <div className="tk-abilities-block">
-          {[...ACTION_DEFS].sort(([a], [b]) => a.localeCompare(b)).map(([name, desc]) => (
-            <div key={name} className="tk-ability">
-              <div className="tk-ability-header">
-                <span className="tk-ability-name">{name}</span>
-              </div>
-              <div className="tk-ability-desc">{desc}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="tk-ref-section">
-        <div className="tk-ref-section-title">Statuses</div>
-        <div className="tk-abilities-block">
-          {[...STATUS_DEFS].sort(([a], [b]) => a.localeCompare(b)).map(([name, desc]) => (
-            <div key={name} className="tk-ability">
-              <div className="tk-ability-header">
-                <span className="tk-ability-name" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  {ITEM_ICONS[name] && (
-                    <img src={ITEM_ICONS[name]} style={{ width: '1.1rem', height: '1.1rem', filter: 'brightness(0) invert(1)', opacity: 0.9 }} alt="" />
-                  )}
-                  {name}
-                </span>
-              </div>
-              <div className="tk-ability-desc">{desc}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="tk-ref-section">
-        <div className="tk-ref-section-title">Falling (D6, 2″+ fall)</div>
-        <div className="tk-ref-fall-note">
-          +1 if fell 4″+.<br />
-          +3 if fell 6″+. Model becomes Immobilized.<br />
-          8+ = Death.
-        </div>
-        <table className="tk-ref-table">
-          <tbody>
-            <tr><td>1–2</td><td>0 dmg</td></tr>
-            <tr><td>3–4</td><td>1 dmg</td></tr>
-            <tr><td>5–6</td><td>2 dmg</td></tr>
-            <tr><td>7</td><td>3 dmg</td></tr>
-            <tr><td>8+</td><td>☠ Death</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div className="tk-ref-section">
-        <div className="tk-ref-section-title">Resource Caches (D6)</div>
-        <table className="tk-ref-table">
-          <tbody>
-            {CACHE_ITEMS.map(item => (
-              <tr key={item.roll}>
-                <td>{item.roll}</td>
-                <td>
-                  <strong style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                    {ITEM_ICONS[item.name] && (
-                      <img src={ITEM_ICONS[item.name]} style={{ width: '1.1rem', height: '1.1rem', filter: 'brightness(0) invert(1)', opacity: 0.9 }} alt="" />
-                    )}
-                    {item.name}
-                  </strong>
-                  {' — '}{item.desc}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <QuickRef onBack={closeRef} />
     </div>
   )
 }
