@@ -2417,6 +2417,39 @@
   border-color: var(--parchment);
 }
 
+/* ── TOPBAR QUICK REF BUTTON ─────────────────────────────── */
+/* Mirrors topbar-menu-btn; always visible on all screen sizes */
+.topbar-ref-btn {
+  background: none;
+  border: 1px solid var(--dim);
+  color: #fff;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  justify-self: end;
+  transition: border-color 0.15s, color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+@media (hover: hover) {
+  .topbar-ref-btn:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+}
+.topbar-ref-btn:active {
+  color: var(--parchment);
+  border-color: var(--parchment);
+}
+.topbar-ref-btn--active {
+  border-color: var(--gold) !important;
+  color: var(--gold) !important;
+}
+
 /* ── SIDEBAR (Saved Companies Drawer) ────────────────────── */
 .sidebar-overlay {
   position: fixed;
@@ -3381,3 +3414,84 @@
 }
 .builder-home-btn:hover { color: #999; }
 .builder-home-btn:active { color: #ffffff; }
+
+/* ── LANDING NAVBAR BUTTONS ──────────────────────────────── */
+/* Uses .navbar-inner--landing to override group layout */
+.navbar-inner--landing {
+  gap: 0.6rem;
+}
+
+/* Quick Reference button — mobile only, hidden on desktop */
+.landing-ref-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  flex: 1;
+  font-family: 'Oswald', sans-serif;
+  text-transform: uppercase;
+  font-size: 0.82rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--mist);
+  background: transparent;
+  color: var(--bone);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+@media (hover: hover) {
+  .landing-ref-btn:hover {
+    border-color: var(--bone);
+    color: var(--parchment);
+  }
+}
+.landing-ref-btn--active {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+/* New Company CTA */
+.landing-cta-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  flex: 1;
+  font-family: 'Oswald', sans-serif;
+  text-transform: uppercase;
+  font-size: 0.82rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--blood);
+  background: var(--blood);
+  color: var(--parchment);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+@media (hover: hover) {
+  .landing-cta-btn:hover {
+    border-color: var(--gold);
+    background: var(--rust);
+    color: var(--parchment);
+  }
+}
+
+/* Desktop (≥ 640px): ref button lives in topbar — hide it from navbar */
+/* CTA centers itself as a nicely-sized standalone button */
+@media (min-width: 640px) {
+  .landing-ref-btn {
+    display: none;
+  }
+  .landing-cta-btn {
+    flex: 0;
+    min-width: 240px;
+    padding: 0.65rem 2rem;
+    margin: 0 auto;
+  }
+}

@@ -24,8 +24,8 @@ export default function BuilderPage() {
   const [view, setView] = useState(() =>
     window.location.hash ? 'builder' : 'landing'
   )
-  // 'home' | 'reference' — only relevant when view === 'landing'
-  const [landingSubView, setLandingSubView] = useState('home')
+  // global quick reference overlay — works from any view
+  const [refOpen, setRefOpen] = useState(false)
 
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [modeSelectOpen, setModeSelectOpen] = useState(false)
@@ -39,8 +39,16 @@ export default function BuilderPage() {
     if (isDirty()) {
       setBackConfirmOpen(true)
     } else {
+      setRefOpen(false)
       setView('landing')
-      setLandingSubView('home')
+    }
+  }
+
+  function handleLogoClick() {
+    if (refOpen) {
+      setRefOpen(false)
+    } else if (view === 'builder') {
+      handleGoHome()
     }
   }
 
@@ -92,14 +100,19 @@ export default function BuilderPage() {
   return (
     <div className="builder-page">
       {/* ── TOPBAR ─────────────────────────────────────── */}
-      <BuilderTopbar onMenuToggle={() => setSidebarOpen(!sidebarOpen)} onHome={view === 'builder' ? handleGoHome : () => setLandingSubView('home')} />
+      <BuilderTopbar
+        onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
+        onHome={handleLogoClick}
+        onRef={() => setRefOpen(v => !v)}
+        refActive={refOpen}
+      />
 
       {/* ── SCROLLABLE AREA ────────────────────────────── */}
       <div className="builder-scroll-area">
-        {view === 'landing' ? (
-          landingSubView === 'reference'
-            ? <RefContent onBack={() => setLandingSubView('home')} />
-            : <LandingPage onLoad={goBuilder} />
+        {refOpen ? (
+          <RefContent onBack={() => setRefOpen(false)} />
+        ) : view === 'landing' ? (
+          <LandingPage onLoad={goBuilder} />
         ) : (
           <main className="builder-main">
             <div className="builder-content">
@@ -110,7 +123,7 @@ export default function BuilderPage() {
           </main>
         )}
 
-        {view === 'builder' && (
+        {view === 'builder' && !refOpen && (
           <footer className="builder-attribution">
             <div className="attribution-logo-placeholder">Compatible with 1490 DOOM</div>
             <p className="attribution-text">
@@ -130,13 +143,15 @@ export default function BuilderPage() {
       </div>
 
       {/* ── BOTTOM NAVBAR ──────────────────────────────── */}
-      {view === 'landing'
+      {view === 'landing' && !refOpen
         ? <LandingNavbar
-            subView={landingSubView}
-            onRef={() => setLandingSubView(v => v === 'reference' ? 'home' : 'reference')}
+            refOpen={refOpen}
+            onRef={() => setRefOpen(v => !v)}
             onNew={handleNew}
           />
-        : <BuilderNavbar onPlay={handlePlay} onEndOfGame={() => setEndOfGameOpen(true)} />
+        : view === 'builder' && !refOpen
+          ? <BuilderNavbar onPlay={handlePlay} onEndOfGame={() => setEndOfGameOpen(true)} />
+          : null
       }
 
       {/* ── SIDEBAR (Saved Companies) ──────────────────── */}
@@ -202,7 +217,7 @@ export default function BuilderPage() {
         <ConfirmModal
           title="Unsaved Changes"
           subtitle="You have unsaved changes. Return to home? Your work is auto-saved as a draft."
-          onConfirm={() => { setBackConfirmOpen(false); setView('landing'); setLandingSubView('home') }}
+          onConfirm={() => { setBackConfirmOpen(false); setRefOpen(false); setView('landing') }}
           onCancel={() => setBackConfirmOpen(false)}
         />
       )}
@@ -302,7 +317,7 @@ function CompanySettingsModal({ onClose }) {
 }
 
 /* ── TOPBAR ────────────────────────────────────────────── */
-function BuilderTopbar({ onMenuToggle, onHome }) {
+function BuilderTopbar({ onMenuToggle, onHome, onRef, refActive }) {
   return (
     <div className="builder-topbar">
       <button className="topbar-menu-btn" onClick={onMenuToggle} title="Saved Companies">
@@ -316,35 +331,43 @@ function BuilderTopbar({ onMenuToggle, onHome }) {
         <span className="topbar-brand-sub">Company Builder</span>
       </button>
 
-      <div className="topbar-spacer" aria-hidden="true" />
+      <button
+        className={`topbar-ref-btn${refActive ? ' topbar-ref-btn--active' : ''}`}
+        onClick={onRef}
+        title="Quick Reference"
+        aria-pressed={refActive}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true">
+          <path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 14H7v-2h10v2zm0-4H7v-2h10v2zm0-4H7V6h10v2z"/>
+        </svg>
+      </button>
     </div>
   )
 }
 
 /* ── LANDING NAVBAR ────────────────────────────────────── */
-function LandingNavbar({ subView, onRef, onNew }) {
+function LandingNavbar({ refOpen, onRef, onNew }) {
   return (
     <nav className="builder-navbar">
-      <div className="navbar-inner">
-        <div className="navbar-group-left">
-          <button
-            className={`btn landing-footer-btn${subView === 'reference' ? ' landing-footer-btn--active' : ''}`}
-            onClick={onRef}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="14" height="14" aria-hidden="true">
-              <path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 14H7v-2h10v2zm0-4H7v-2h10v2zm0-4H7V6h10v2z"/>
-            </svg>
-            {subView === 'reference' ? '← Companies' : 'Quick Reference'}
-          </button>
-        </div>
-        <div className="navbar-group-right">
-          <button className="btn landing-footer-btn landing-footer-btn--primary" onClick={onNew}>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="14" height="14" aria-hidden="true">
-              <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/>
-            </svg>
-            New Company
-          </button>
-        </div>
+      <div className="navbar-inner navbar-inner--landing">
+        {/* Mobile-only: Quick Reference button (hidden on desktop via CSS — topbar icon takes over) */}
+        <button
+          className={`landing-ref-btn${refOpen ? ' landing-ref-btn--active' : ''}`}
+          onClick={onRef}
+          aria-pressed={refOpen}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="14" height="14" aria-hidden="true">
+            <path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 14H7v-2h10v2zm0-4H7v-2h10v2zm0-4H7V6h10v2z"/>
+          </svg>
+          Quick Reference
+        </button>
+        {/* Primary CTA */}
+        <button className="landing-cta-btn" onClick={onNew}>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="14" height="14" aria-hidden="true">
+            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/>
+          </svg>
+          New Company
+        </button>
       </div>
     </nav>
   )
