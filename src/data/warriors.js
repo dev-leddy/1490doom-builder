@@ -167,25 +167,24 @@ export const MARKS_MAP = {
 
   'Graveborn': 'Once per game, when one of your warriors perishes, they may immediately take one final action before being removed.',
   'Tower Born': 'Any time a warrior in your Doom Company rolls on the Falling Damage table, they roll two dice and take the lowest result.',
-  'Ashbound': 'While at 2 or less Vitality, your warriors gain +1 Skill and +1 Defense.',
+  'Ashbound': 'Before deployment, place a Hearth Token on a structure that is not the highest on the board. While within 2 inches of the token and on the same level, your warriors gain +1 COMBAT.',
   'Doomed Choir': 'Once per game, at the start of any round, choose one enemy model within 2" of two or more of your warriors. That model suffers -1 Combat and -1 Skill until the end of the round.',
   'Fog Walkers': 'While on Ground Level, your warriors gain +1 Defense on the first Defense Check they make each round.',
   'Relic Bitten': 'Whenever one of your warriors successfully inspects a resource cache, roll two dice and choose which result to use on the Resource Caches chart.',
   'Silent Pact': 'Once per game, one of your warriors may use 3 actions, but their last action must be Standby. They may use this ability even if they used Attack this turn.',
-  'Hearth': 'Before deployment, place a Hearth Token on a structure that is not the highest on the board. While within 2" of the token and on the same level, your warriors gain +1 Combat.',
+  'Wretched Survivors': 'While at 2 or less VITALITY, your warriors gain +1 SKILL and +1 DEFENSE.',
 
 }
 
 // Display labels for marks where the faction name differs from the ability name
 export const MARK_LABELS = {
-  'Ashbound': 'Ashbound (Wretched Survivors)',
 }
 
 export const MARKS = Object.entries(MARKS_MAP).map(([name, desc]) => ({
   name,
   label: MARK_LABELS[name] || name,
   desc,
-}))
+})).sort((a, b) => a.label.localeCompare(b.label))
 
 export const STAT_IMPROVEMENT = {
   MOV: 'Movement +1',

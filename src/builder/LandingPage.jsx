@@ -1,20 +1,64 @@
+import { useState } from 'react'
 import { useBuilderStore } from '../store/builderStore'
 import { getAvatarSrc } from '../data/avatars'
 import SaveLoadPanel from './SaveLoadPanel'
 import QuickRef from '../shared/QuickRef'
+import QuizOverlay from './QuizOverlay'
 
 export function RefContent({ onBack }) {
   return <QuickRef onBack={onBack} />
 }
 
 export default function LandingPage({ onLoad }) {
-  const { saves, companyName, companyAvatar } = useBuilderStore()
+  const { saves, companyName, companyAvatar, setMark, clearBuilder } = useBuilderStore()
+  const [showQuiz, setShowQuiz] = useState(false)
 
   const hasDraft = !!localStorage.getItem('doom_draft')
   const avatarSrc = hasDraft ? getAvatarSrc(companyAvatar) : null
 
+  const handleQuizComplete = (payload) => {
+    const { companyId, storeUrl, companyName, warriors } = payload
+    const markMap = {
+      graveborn: 'Graveborn',
+      silent_pact: 'Silent Pact',
+      tower_born: 'Tower Born',
+      ashbound: 'Ashbound',
+      wretched_survivors: 'Wretched Survivors',
+      doomed_choir: 'Doomed Choir',
+      fog_walkers: 'Fog Walkers',
+      relic_bitten: 'Relic Bitten'
+    }
+    const mark = markMap[companyId]
+    if (mark) {
+      clearBuilder()
+      setMark(mark)
+      // Call the new store method to hydrate the rest of the company details!
+      if (useBuilderStore.getState().applyQuizCompany) {
+        useBuilderStore.getState().applyQuizCompany({ mark, companyName, warriors })
+      }
+      
+      // Open the e-commerce store in a new tab
+      if (storeUrl) window.open(storeUrl, '_blank')
+
+      onLoad() // Immediately jumps to builder
+    }
+    setShowQuiz(false)
+  }
+
   return (
     <div className="landing-content">
+      {showQuiz && (
+        <QuizOverlay 
+          onComplete={handleQuizComplete} 
+          onClose={() => setShowQuiz(false)} 
+        />
+      )}
+
+      <div className="landing-quiz-banner" onClick={() => setShowQuiz(true)}>
+        <span className="quiz-banner-text">Which Company Are You?</span>
+        <span className="quiz-banner-cta">Take the Quiz</span>
+      </div>
+
       {hasDraft && (
         <div className="landing-resume">
           <div className="landing-section-label">Resume Building</div>

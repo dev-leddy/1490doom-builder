@@ -571,6 +571,43 @@ export const useBuilderStore = create((set, get) => {
       set({ ...result, companyId: crypto.randomUUID() })
       get()._autoDraft()
     },
+    applyQuizCompany({ mark, companyName, warriors }) {
+      const slots = Array.from({ length: 3 }, (_, i) => emptySlot(i, i === 0))
+
+      if (warriors) {
+        const parts = warriors.split(' · ')
+        parts.forEach((p, i) => {
+          if (i >= 3) return
+          const match = p.match(/^(.+?)\s*\(/)
+          const type = match ? match[1].trim() : p.trim()
+          
+          if (!WARRIORS[type]) return
+          slots[i].type = type
+
+          const wdata = WARRIORS[type]
+          const allowed = getAllowedWeapons(wdata)
+          const firstWeapon = wdata.fixedWeapon || allowed[0]
+          slots[i].weapon1 = firstWeapon
+          
+          if (wdata.fixedShield) {
+            slots[i].weapon2 = 'Shield'
+          } else if (wdata.fixedDualWield) {
+            slots[i].weapon2 = 'Light Weapon'
+          } else if (firstWeapon === 'Polearm (one-handed)') {
+            slots[i].weapon2 = 'Shield'
+            slots[i].ip.push('weapon2')
+          }
+        })
+      }
+
+      set({ 
+        mark, 
+        companyName, 
+        slots,
+        companyId: crypto.randomUUID() 
+      })
+      get()._autoDraft()
+    },
     rollRandom({ warriors = 3, ipLimit = 3 } = {}) {
       const result = get().buildRandomResult({ warriors, ipLimit })
       get().applyRandomResult(result)

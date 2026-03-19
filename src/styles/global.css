@@ -2,6 +2,35 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── FONTS ────────────────────────────────────────────────────────────────── */
+@font-face {
+  font-family: 'Caslon Antique';
+  src: url('/fonts/CaslonAntique-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Caslon Antique';
+  src: url('/fonts/CaslonAntique-Bold.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Caslon Antique';
+  src: url('/fonts/CaslonAntique-Italic.ttf') format('truetype');
+  font-weight: normal;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'Caslon Antique';
+  src: url('/fonts/CaslonAntique-BoldItalic.ttf') format('truetype');
+  font-weight: bold;
+  font-style: italic;
+}
+
 /* ── CSS VARIABLES ────────────────────────────────────────────────────────── */
 :root {
   --gold: #be4127;

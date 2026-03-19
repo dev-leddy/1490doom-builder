@@ -125,7 +125,6 @@ export default function BuilderPage() {
 
         {view === 'builder' && !refOpen && (
           <footer className="builder-attribution">
-            <div className="attribution-logo-placeholder">Compatible with 1490 DOOM</div>
             <p className="attribution-text">
               This is an independent production by{' '}
               <a href="https://www.linkedin.com/in/michaelleddy/" target="_blank" rel="noopener noreferrer">Michael Leddy</a>
