@@ -48,9 +48,6 @@ export default function StatusBlock({ wi, warrior: w }) {
             className="tk-status-card"
             onClick={() => !w.dead && setDetail(status)}
           >
-            {ITEM_ICONS[status.name] && (
-              <img src={ITEM_ICONS[status.name]} className="tk-status-card-icon" alt="" />
-            )}
             <span className="tk-status-card-name">{status.name}</span>
             {STATUS_SHORT[status.name] && (
               <div className="tk-status-card-sub">{STATUS_SHORT[status.name]}</div>
