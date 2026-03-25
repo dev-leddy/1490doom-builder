@@ -2677,6 +2677,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-transform: uppercase;
 }
 .saved-chip-game {
   font-family: 'Oswald', sans-serif;
@@ -3562,6 +3563,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-transform: uppercase;
 }
 .random-preview-mark-row {
   display: flex;
@@ -3661,6 +3663,7 @@
   padding: 0.2rem 0;
   border-bottom: 2px solid var(--blood);
   transition: border-color 0.2s;
+  text-transform: uppercase;
 }
 .company-name-display:hover { border-bottom-color: var(--gold); }
 .company-name-placeholder { color: var(--mist); font-style: italic; }
@@ -3915,6 +3918,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-transform: uppercase;
 }
 
 .landing-resume-arrow {
