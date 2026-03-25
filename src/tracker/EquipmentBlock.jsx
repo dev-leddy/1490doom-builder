@@ -12,7 +12,8 @@ const CACHE_SHORT = {
   'Reliquary':        'RESTORE OPG',
 }
 
-function EquipCard({ icon, name, sub, badge, onClick, isCache, faded, extraClass }) {
+function EquipCard({ icon, name, sub, damage, range, badge, onClick, isCache, faded, extraClass }) {
+  const hasWeaponStats = damage > 0 || (range && range !== '—')
   return (
     <button
       className={`tk-equip-card${isCache ? ' tk-equip-card--cache' : ''}${faded ? ' tk-equip-card--faded' : ''}${extraClass ? ` ${extraClass}` : ''}`}
@@ -20,7 +21,14 @@ function EquipCard({ icon, name, sub, badge, onClick, isCache, faded, extraClass
     >
       {icon && <img src={icon} className="tk-equip-card-icon" alt="" />}
       <span className="tk-equip-card-name">{name}</span>
-      {sub && <div className="tk-equip-card-sub">{sub}</div>}
+      {hasWeaponStats ? (
+        <div className="tk-equip-card-stats">
+          {damage > 0 && <span className="tk-equip-card-stat--dmg">{damage} DMG</span>}
+          {range && range !== '—' && <span className="tk-equip-card-stat--range">{range}</span>}
+        </div>
+      ) : (
+        sub && <div className="tk-equip-card-sub">{sub}</div>
+      )}
       {badge && <div className="tk-equip-card-badge">{badge}</div>}
     </button>
   )
@@ -180,6 +188,8 @@ export default function EquipmentBlock({ wi, warrior: w }) {
             icon={c.icon}
             name={c.name}
             sub={c.sub}
+            damage={c.damage}
+            range={c.range}
             badge={c.badge}
             onClick={() => handleCardClick(c)}
             isCache={c.isCache}
