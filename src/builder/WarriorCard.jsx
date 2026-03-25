@@ -593,13 +593,9 @@ export default function WarriorCard({ slotIndex, slot }) {
     <div className={`warrior-slot ${slot.isCaptain ? 'is-captain' : ''}`}>
       <div className="slot-header">
         <div className="slot-number">
-          {slot.customName ? (
-            <span style={{ fontFamily: "'Caslon Antique', serif", fontSize: '1.4rem', color: '#ffffff', textTransform: 'none', letterSpacing: 'normal' }}>
-              {slot.customName}
-            </span>
-          ) : (
-            `WARRIOR ${slotIndex + 1}`
-          )}
+          <span style={{ fontFamily: "'Caslon Antique', serif", fontSize: '1.4rem', color: '#ffffff', textTransform: 'none', letterSpacing: 'normal' }}>
+            {slot.customName ? slot.customName : `WARRIOR ${slotIndex + 1}`}
+          </span>
         </div>
         {companyMode === 'campaign' && slot.type && (
           <span className="warrior-campaign-ip">
