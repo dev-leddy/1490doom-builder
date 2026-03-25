@@ -13,16 +13,20 @@ export default function QuizPage({ onComplete, onLightboxToggle }) {
   const engine = useQuizEngine()
   const { audioState, toggle: toggleAudio } = useAudio('/quiz/music/track.mp3')
 
+  // Asset preloading gate
+  const [loaded, setLoaded] = useState(0)
+  const [total, setTotal]   = useState(0)
+  const [ready, setReady]   = useState(false)
+
   // Background art crossfade (two-slot system)
   const [bgSlots, setBgSlots] = useState({ a: null, b: null, active: null })
   const pendingBg = useRef(null)
 
   function setBgArt(url) {
-    // If already cached, swap immediately; otherwise wait for load
     const img = new Image()
     pendingBg.current = url
     img.onload = () => {
-      if (pendingBg.current !== url) return // superseded
+      if (pendingBg.current !== url) return
       setBgSlots(prev => {
         const next = prev.active === 'a' ? 'b' : 'a'
         return { ...prev, [next]: url, active: next }
@@ -36,14 +40,26 @@ export default function QuizPage({ onComplete, onLightboxToggle }) {
     setBgSlots({ a: null, b: null, active: null })
   }
 
-  // Preload ALL quiz assets on mount so they're cached by the time user reaches them
+  // Preload ALL assets before showing anything
   useEffect(() => {
     const urls = [
       '/quiz/Art/Bonus%20Art/Battlefield.png',
       ...QUESTIONS.map(q => q.art).filter(Boolean),
       ...COMPANIES.flatMap(c => [...c.minis, c.rep].filter(Boolean)),
     ]
-    urls.forEach(src => { const img = new Image(); img.src = src })
+    setTotal(urls.length)
+    let done = 0
+    urls.forEach(src => {
+      const img = new Image()
+      const onDone = () => {
+        done++
+        setLoaded(done)
+        if (done >= urls.length) setReady(true)
+      }
+      img.onload  = onDone
+      img.onerror = onDone // don't block on failed assets
+      img.src = src
+    })
   }, [])
 
   // Update bg art when phase/question changes
@@ -76,8 +92,20 @@ export default function QuizPage({ onComplete, onLightboxToggle }) {
 
   const showFooterOnNonResult = engine.phase !== 'result'
 
+  const pct = total > 0 ? Math.round((loaded / total) * 100) : 0
+
   return (
     <div className="quiz-root" style={accentStyle}>
+
+      {/* Loading screen */}
+      {!ready && (
+        <div className="qz-loader">
+          <img src="/quiz/Art/Logos/DOOMlogoOrange.png" className="qz-loader-logo" alt="1490 Doom" />
+          <div className="qz-loader-bar-track">
+            <div className="qz-loader-bar-fill" style={{ width: `${pct}%` }} />
+          </div>
+        </div>
+      )}
 
       {/* Background */}
       <div className="qz-bg-layer">
@@ -102,8 +130,8 @@ export default function QuizPage({ onComplete, onLightboxToggle }) {
         </div>
       </div>
 
-      {/* App content */}
-      <div className="qz-app">
+      {/* App content — hidden until assets ready */}
+      <div className={`qz-app${ready ? ' qz-app--ready' : ''}`}>
         {engine.phase === 'hero' && (
           <QuizHero
             onStart={engine.start}
@@ -139,7 +167,7 @@ export default function QuizPage({ onComplete, onLightboxToggle }) {
       </div>
 
       {/* Non-result footer */}
-      {showFooterOnNonResult && (
+      {ready && showFooterOnNonResult && (
         <footer className="qz-app-footer">
           <p className="qz-footer-credits">
             An Official 1490 DOOM Production &nbsp;·&nbsp; Buer Games<br />By Michael Leddy

@@ -1041,6 +1041,47 @@
   to { transform: rotate(360deg); }
 }
 
+/* ─── Asset loader ───────────────────────────────────────────────────── */
+.quiz-root .qz-loader {
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+  background: #0a0604;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2em;
+}
+.quiz-root .qz-loader-logo {
+  width: clamp(120px, 40vw, 220px);
+  opacity: 0.92;
+}
+.quiz-root .qz-loader-bar-track {
+  width: clamp(160px, 50vw, 280px);
+  height: 3px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.quiz-root .qz-loader-bar-fill {
+  height: 100%;
+  background: var(--qz-company-accent, #be4127);
+  border-radius: 2px;
+  transition: width 0.2s ease;
+}
+
+/* App fades in once ready */
+.quiz-root .qz-app {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+.quiz-root .qz-app--ready {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 /* ─── Responsive ─────────────────────────────────────────────────────── */
 @media (max-width: 600px) {
   .quiz-root { font-size: 16px; }
