@@ -65,8 +65,6 @@ export default function ModeSelectModal({ onSelect, onCancel }) {
         <div className="modal-box mode-select-modal">
           <button className="wiz-close-btn" onClick={onCancel} aria-label="Close">×</button>
 
-
-
           <div className="mode-select-title" style={{ marginBottom: '1.5rem' }}>FORGE YOUR COMPANY</div>
 
           <div className="mode-select-options">
@@ -103,8 +101,6 @@ export default function ModeSelectModal({ onSelect, onCancel }) {
     <div className="modal-backdrop" onClick={e => e.target === e.currentTarget && onCancel()}>
       <div className="modal-box mode-select-modal">
         <button className="wiz-close-btn" onClick={onCancel} aria-label="Close">×</button>
-
-
 
         <div className="mode-select-title">
           {isCampaign ? 'CAMPAIGN COMPANY' : 'STANDARD COMPANY'}
