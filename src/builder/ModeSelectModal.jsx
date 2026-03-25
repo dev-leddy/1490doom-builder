@@ -21,15 +21,6 @@ function SvgScroll() {
   )
 }
 
-function WizStepIndicator({ step }) {
-  return (
-    <div className="wiz-step-indicator">
-      <div className={`wiz-step-badge${step === 1 ? ' active' : ' done'}`}>1</div>
-      <div className="wiz-step-line" />
-      <div className={`wiz-step-badge${step === 2 ? ' active' : ''}`}>2</div>
-    </div>
-  )
-}
 
 export default function ModeSelectModal({ onSelect, onCancel }) {
   const [step, setStep] = useState(1)
@@ -74,10 +65,9 @@ export default function ModeSelectModal({ onSelect, onCancel }) {
         <div className="modal-box mode-select-modal">
           <button className="wiz-close-btn" onClick={onCancel} aria-label="Close">×</button>
 
-          <WizStepIndicator step={1} />
 
-          <div className="mode-select-title">FORGE YOUR COMPANY</div>
-          <div className="mode-select-subtitle">Choose how your warband will earn glory.</div>
+
+          <div className="mode-select-title" style={{ marginBottom: '1.5rem' }}>FORGE YOUR COMPANY</div>
 
           <div className="mode-select-options">
             <button
@@ -114,7 +104,7 @@ export default function ModeSelectModal({ onSelect, onCancel }) {
       <div className="modal-box mode-select-modal">
         <button className="wiz-close-btn" onClick={onCancel} aria-label="Close">×</button>
 
-        <WizStepIndicator step={2} />
+
 
         <div className="mode-select-title">
           {isCampaign ? 'CAMPAIGN COMPANY' : 'STANDARD COMPANY'}

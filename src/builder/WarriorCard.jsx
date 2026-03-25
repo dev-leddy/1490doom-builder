@@ -43,6 +43,44 @@ const SvgStat = () => (
   </svg>
 )
 
+const G_FIRST = [
+  'Vorek', 'Kaelen', 'Tharion', 'Malakor', 'Zevran', 'Gorath', 'Draven', 'Korvus', 'Varkas', 'Moros',
+  'Ignis', 'Sylas', 'Orion', 'Bael', 'Gideon', 'Aethelred', 'Bran', 'Cormac', 'Daeron',
+  'Elias', 'Fenris', 'Gareth', 'Hadrian', 'Ilys', 'Jarek', 'Lucius', 'Marius', 'Niall',
+  'Orrin', 'Pike', 'Quinn', 'Rowan', 'Soren', 'Talon', 'Ulric', 'Vane', 'Wulf', 'Xander',
+  'Yorick', 'Zane', 'Thane', 'Rafe', 'Gage', 'Cade', 'Brock', 'Axel', 'Ryker',
+  'Elara', 'Mirelle', 'Vanya', 'Lilith', 'Sera', 'Nyx', 'Morrigan', 'Enya', 'Kira', 'Lyra',
+  'Vex', 'Rogue', 'Echo', 'Raven', 'Lash', 'Grimm', 'Ash', 'Flint', 'Steel', 'Iron',
+  'Valerius', 'Silvanus', 'Korg', 'Dorn', 'Brutus', 'Magnus', 'Titus', 'Severus'
+]
+
+const G_SUR = [
+  'the Pale', 'Bloodborn', 'Skullcleaver', 'the Hollow', 'Ashwalker', 'Nightbane', 
+  'the Scarred', 'Grimm', 'Ironhide', 'the Flayed', 'of the Void', 'the Silent', 
+  'the Accursed', 'Bonesaw', 'the Undying', 'Gravewalker', 'the Red', 'the Black', 
+  'of the Ash', 'the Broken', 'Crow', 'the Cruel', 'Shadow-touched', 'Bonebreaker',
+  'the Vile', 'the Devout', 'the Forsaken', 'Twice-dead', 'the Cleaver', 'the Mad'
+]
+
+function generateGrimdarkName(taken) {
+  for (let i = 0; i < 50; i++) {
+    const f = G_FIRST[Math.floor(Math.random() * G_FIRST.length)]
+    let name = f
+    if (Math.random() > 0.4) {
+      const s = G_SUR[Math.floor(Math.random() * G_SUR.length)]
+      name = `${f} ${s}`
+    }
+    if (!taken.includes(name)) return name
+  }
+  return G_FIRST[Math.floor(Math.random() * G_FIRST.length)] + ' the Lost'
+}
+
+const SvgDice = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7 7c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm0 10c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm5-4c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm5 4c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm0-8c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z"/>
+  </svg>
+)
+
 // ── Upgrade Modal ────────────────────────────────────────────────────────────
 function UpgradeModal({
   isOpen, onClose, title, category,
@@ -504,8 +542,8 @@ export default function WarriorCard({ slotIndex, slot }) {
   const allSlots = useBuilderStore(s => s.slots)
 
   const [expandedNotes, setExpandedNotes] = useState(() => new Set())
-  const [editingName, setEditingName] = useState(false)
-  const longPressRef = useRef(null)
+  const [showNameModal, setShowNameModal] = useState(false)
+  const [tempName, setTempName] = useState('')
   const notes = slot.notes || []
 
   const addNote = () => {
@@ -555,26 +593,12 @@ export default function WarriorCard({ slotIndex, slot }) {
     <div className={`warrior-slot ${slot.isCaptain ? 'is-captain' : ''}`}>
       <div className="slot-header">
         <div className="slot-number">
-          {editingName ? (
-            <input
-              className="slot-name-input"
-              autoFocus
-              value={slot.customName || ''}
-              placeholder="Enter Name…"
-              onChange={e => setWarriorProp(slotIndex, 'customName', e.target.value)}
-              onBlur={() => setEditingName(false)}
-              onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') setEditingName(false) }}
-            />
-          ) : (
-            <span
-              onDoubleClick={() => setEditingName(true)}
-              onTouchStart={() => { longPressRef.current = setTimeout(() => setEditingName(true), 500) }}
-              onTouchEnd={() => clearTimeout(longPressRef.current)}
-              onTouchMove={() => clearTimeout(longPressRef.current)}
-              title="Double-click to rename"
-            >
-              {slot.customName || ""}
+          {slot.customName ? (
+            <span style={{ fontFamily: "'Caslon Antique', serif", fontSize: '1.4rem', color: '#ffffff', textTransform: 'none', letterSpacing: 'normal' }}>
+              {slot.customName}
             </span>
+          ) : (
+            `WARRIOR ${slotIndex + 1}`
           )}
         </div>
         {companyMode === 'campaign' && slot.type && (
@@ -614,9 +638,21 @@ export default function WarriorCard({ slotIndex, slot }) {
           {/* Portrait + Stats */}
           <div className="warrior-header-row">
             {portraitSrc ? (
-              <img className="warrior-portrait" src={portraitSrc} alt={slot.type} />
+              <img
+                className="warrior-portrait clickable-portrait"
+                src={portraitSrc}
+                alt={slot.type}
+                onClick={() => { setTempName(slot.customName || ''); setShowNameModal(true); }}
+                style={{ cursor: 'pointer', transition: 'transform 0.2s', filter: 'brightness(1.05)' }}
+                title="Click to name warrior"
+              />
             ) : (
-              <div className="warrior-portrait-placeholder" title="No portrait available">
+              <div
+                className="warrior-portrait-placeholder clickable-portrait"
+                title="Click to name warrior"
+                onClick={() => { setTempName(slot.customName || ''); setShowNameModal(true); }}
+                style={{ cursor: 'pointer' }}
+              >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="28" height="28">
                   <path d="M12 2c2 2 7 5 10 5v7c0 6-5 8-10 10C7 22 2 20 2 14V7c3 0 8-3 10-5z"/>
                 </svg>
@@ -696,6 +732,50 @@ export default function WarriorCard({ slotIndex, slot }) {
             <button className="note-toggle" onClick={addNote}>+ Add Note</button>
           </div>
         </>
+      )}
+
+      {showNameModal && (
+        <div className="modal-backdrop" onClick={e => e.target === e.currentTarget && setShowNameModal(false)} style={{ zIndex: 1000 }}>
+          <div className="modal-box" style={{ maxWidth: 320, padding: '1.5rem', textAlign: 'center' }}>
+            <div className="modal-title" style={{ margin: '0 0 1.25rem 0' }}>NAME WARRIOR</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '1.5rem' }}>
+              <input
+                autoFocus
+                className="co-settings-input"
+                style={{ flex: 1, textAlign: 'center' }}
+                value={tempName}
+                placeholder="Enter Name..."
+                maxLength={40}
+                onChange={e => setTempName(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    setWarriorProp(slotIndex, 'customName', tempName.trim())
+                    setShowNameModal(false)
+                  }
+                  if (e.key === 'Escape') setShowNameModal(false)
+                }}
+              />
+              <button
+                className="co-settings-step-btn"
+                title="Random Grimdark Name"
+                onClick={() => {
+                  const taken = allSlots.map(s => s.customName).filter(Boolean)
+                  setTempName(generateGrimdarkName(taken))
+                }}
+                style={{ width: 34, height: 34, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+              >
+                <SvgDice />
+              </button>
+            </div>
+            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+              <button className="btn btn-ghost btn-sm" onClick={() => setShowNameModal(false)}>Cancel</button>
+              <button className="btn btn-primary btn-sm" onClick={() => {
+                setWarriorProp(slotIndex, 'customName', tempName.trim())
+                setShowNameModal(false)
+              }}>Save</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

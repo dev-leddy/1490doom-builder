@@ -3444,9 +3444,9 @@
   border-radius: 3px;
   padding: 0.5rem 0.75rem;
   margin-bottom: 1.1rem;
-  font-size: 0.8rem;
-  color: var(--parchment);
-  line-height: 1.6;
+  font-size: 1.15rem;
+  color: #ffffff;
+  line-height: 1.4;
 }
 .wizard-campaign-notice svg { flex-shrink: 0; color: var(--blood); }
 .wizard-campaign-notice strong { color: var(--gold); }
@@ -4755,46 +4755,6 @@
 }
 .wiz-close-btn:hover { color: var(--parchment); }
 
-/* ── Step indicator ────────────────────────────────────────── */
-.wiz-step-indicator {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0;
-  margin-bottom: 1.5rem;
-}
-.wiz-step-badge {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  border: 1px solid var(--dim);
-  background: var(--fog);
-  color: var(--mist);
-  font-family: 'Oswald', sans-serif;
-  font-size: 0.75rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s, border-color 0.2s, color 0.2s;
-  flex-shrink: 0;
-}
-.wiz-step-badge.active {
-  background: rgba(190, 65, 39, 0.15);
-  border-color: rgba(190, 65, 39, 0.75);
-  color: var(--parchment);
-}
-.wiz-step-badge.done {
-  background: rgba(190, 65, 39, 0.08);
-  border-color: rgba(190, 65, 39, 0.4);
-  color: var(--blood);
-}
-.wiz-step-line {
-  width: 48px;
-  height: 1px;
-  background: var(--dim);
-  flex-shrink: 0;
-}
-
 /* ── Title & subtitle ──────────────────────────────────────── */
 .mode-select-title {
   font-family: 'Oswald', sans-serif;
@@ -4806,8 +4766,8 @@
 }
 .mode-select-subtitle {
   font-family: 'Caslon Antique', serif;
-  font-size: 0.82rem;
-  color: var(--mist);
+  font-size: 1.25rem;
+  color: #ffffff;
   text-align: center;
   font-style: italic;
   margin-bottom: 1.5rem;
@@ -4860,8 +4820,8 @@
 .mode-option-btn.selected .mode-option-name { color: var(--gold); }
 .mode-option-desc {
   font-family: 'Caslon Antique', serif;
-  font-size: 0.78rem;
-  color: var(--mist);
+  font-size: 1.15rem;
+  color: #ffffff;
   line-height: 1.4;
   font-style: italic;
 }
@@ -4979,9 +4939,9 @@
 
 .cf-emblem-hint {
   font-family: 'Oswald', sans-serif;
-  font-size: 0.65rem;
+  font-size: 0.85rem;
   letter-spacing: 0.2em;
-  color: var(--mist);
+  color: #ffffff;
   text-transform: uppercase;
   transition: color 0.2s;
 }
