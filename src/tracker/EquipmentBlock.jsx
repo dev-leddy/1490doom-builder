@@ -3,15 +3,16 @@ import { useTrackerStore } from '../store/trackerStore'
 import { WEAPONS, CLIMBING_ITEMS, CLIMBING_DESCS, CONSUMABLES } from '../data/weapons'
 import { ITEM_ICONS } from '../data/images'
 
-function EquipCard({ icon, name, sub, onClick, isCache, faded }) {
+function EquipCard({ icon, name, sub, badge, onClick, isCache, faded, extraClass }) {
   return (
     <button
-      className={`tk-equip-card${isCache ? ' tk-equip-card--cache' : ''}${faded ? ' tk-equip-card--faded' : ''}`}
+      className={`tk-equip-card${isCache ? ' tk-equip-card--cache' : ''}${faded ? ' tk-equip-card--faded' : ''}${extraClass ? ` ${extraClass}` : ''}`}
       onClick={onClick}
     >
       {icon && <img src={icon} className="tk-equip-card-icon" alt="" />}
       <span className="tk-equip-card-name">{name}</span>
       {sub && <div className="tk-equip-card-sub">{sub}</div>}
+      {badge && <div className="tk-equip-card-badge">{badge}</div>}
     </button>
   )
 }
@@ -42,7 +43,7 @@ function DetailModal({ title, desc, onClose, onExpend, expended, dead }) {
 
 export default function EquipmentBlock({ wi, warrior: w }) {
   const [detail, setDetail] = useState(null)
-  const { toggleConsumable, useCacheItem } = useTrackerStore()
+  const { toggleConsumable, useCacheItem, toggleCrossbowLoaded } = useTrackerStore()
 
   const cards = []
 
@@ -53,7 +54,16 @@ export default function EquipmentBlock({ wi, warrior: w }) {
       wd?.range && wd.range !== '—' ? `RNG ${wd.range}` : null,
     ].filter(Boolean).join(' · ')
     const desc = [wd?.note, wd?.special].filter(Boolean).join(' ')
-    cards.push({ key: 'w1', icon: ITEM_ICONS[w.weapon1], name: w.weapon1, sub, desc })
+    const isCrossbow = w.weapon1 === 'Crossbow'
+    const loaded = isCrossbow ? w.crossbowLoaded !== false : undefined
+    cards.push({
+      key: 'w1',
+      icon: ITEM_ICONS[w.weapon1],
+      name: w.weapon1,
+      sub,
+      desc,
+      ...(isCrossbow && { variant: 'crossbow', badge: loaded ? '● LOADED' : '○ RELOAD', loaded }),
+    })
   }
 
   if (w.weapon2) {
@@ -112,6 +122,12 @@ export default function EquipmentBlock({ wi, warrior: w }) {
     else if (d.variant === 'cache') useCacheItem(wi, d.cacheId)
   }
 
+  const handleCardClick = (c) => {
+    if (w.dead) return
+    if (c.variant === 'crossbow') toggleCrossbowLoaded(wi)
+    else open(c)
+  }
+
   const hasExpend = detail?.variant === 'consumable' || detail?.variant === 'cache'
   const isExpended = detail?.variant === 'consumable' && w.consumableUsed
 
@@ -124,9 +140,11 @@ export default function EquipmentBlock({ wi, warrior: w }) {
             icon={c.icon}
             name={c.name}
             sub={c.sub}
-            onClick={() => open(c)}
+            badge={c.badge}
+            onClick={() => handleCardClick(c)}
             isCache={c.isCache}
             faded={c.faded}
+            extraClass={c.variant === 'crossbow' ? (c.loaded ? 'tk-equip-card--loaded' : 'tk-equip-card--unloaded') : undefined}
           />
         ))}
       </div>

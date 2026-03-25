@@ -2,12 +2,11 @@ import { useTrackerStore, canRestoreWithReliquary } from '../store/trackerStore'
 import { WEAPONS } from '../data/weapons'
 
 export default function AbilityBlock({ wi, warrior: w, wdata }) {
-  const { toggleOPG, toggleOPR, tapTPG, toggleCrossbowLoaded } = useTrackerStore()
+  const { toggleOPG, toggleOPR, tapTPG } = useTrackerStore()
 
   const abilities = wdata.abilities || []
   const hasShield = w.weapon2 === 'Shield'
   const hasBow = w.weapon1 === 'Bow'
-  const hasCrossbow = w.weapon1 === 'Crossbow'
 
   // Sort: passive (0) → OPR (1) → TPG (2) → OPG (3)
   const sorted = [...abilities].sort((a, b) => {
@@ -159,29 +158,6 @@ export default function AbilityBlock({ wi, warrior: w, wdata }) {
         )
       })()}
 
-      {/* Crossbow: RELOAD state toggle */}
-      {hasCrossbow && (() => {
-        const xbow = WEAPONS['Crossbow']
-        const loaded = w.crossbowLoaded !== false
-        return (
-          <div
-            className="tk-ability"
-            onClick={!w.dead ? () => toggleCrossbowLoaded(wi) : undefined}
-            style={!w.dead ? { cursor: 'pointer' } : {}}
-          >
-            <div className="tk-ability-header">
-              <span className="tk-ability-name">
-                {xbow.abilityName}
-                <span style={{ fontSize: '0.85em', opacity: 0.7, fontWeight: 'normal', marginLeft: '0.4rem' }}>(from Crossbow)</span>
-              </span>
-              <span className={`tk-opg-badge${loaded ? ' tk-crossbow-loaded' : ' tk-crossbow-unloaded'}`}>
-                {loaded ? '● LOADED' : '○ RELOAD'}
-              </span>
-            </div>
-            <div className="tk-ability-desc">{xbow.abilityDesc}</div>
-          </div>
-        )
-      })()}
 
     </div>
   )

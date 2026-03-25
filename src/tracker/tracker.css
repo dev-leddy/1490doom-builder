@@ -223,10 +223,19 @@
 .tk-equip-card--cache { border-color: #2a5a2a; background: rgba(74,154,74,0.05); }
 .tk-equip-card--cache:hover { background: rgba(74,154,74,0.1); border-color: #4a9a4a; }
 .tk-equip-card--faded { opacity: 0.4; }
+.tk-equip-card--loaded { border-color: #2a5a2a; background: rgba(74,154,74,0.05); }
+.tk-equip-card--loaded:hover { background: rgba(74,154,74,0.1); border-color: #4a9a4a; }
+.tk-equip-card--loaded .tk-equip-card-sub { color: #4a9a4a; }
+.tk-equip-card--unloaded { border-color: rgba(190,65,39,0.35); background: rgba(190,65,39,0.05); }
+.tk-equip-card--unloaded:hover { background: rgba(190,65,39,0.1); border-color: #be4127; }
+.tk-equip-card--unloaded .tk-equip-card-sub { color: #be4127; }
 .tk-equip-card-icon { width: 24px; height: 24px; filter: sepia(0.3) brightness(0.95); opacity: 0.85; flex-shrink: 0; margin-bottom: 0.15rem; }
 .tk-equip-card-name { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em; color: #fff; line-height: 1.2; word-break: break-word; }
 .tk-equip-card-sub { font-family: 'Oswald', sans-serif; font-size: 0.58rem; letter-spacing: 0.06em; color: #555; text-transform: uppercase; margin-top: 0.1rem; }
 .tk-equip-card--cache .tk-equip-card-sub { color: #4a9a4a; }
+.tk-equip-card-badge { font-family: 'Oswald', sans-serif; font-size: 0.6rem; letter-spacing: 0.06em; text-transform: uppercase; margin-top: 0.2rem; }
+.tk-equip-card--loaded .tk-equip-card-badge { color: #4a9a4a; }
+.tk-equip-card--unloaded .tk-equip-card-badge { color: #be4127; }
 /* ── EQUIPMENT DETAIL POPUP ─────────────────────────────── */
 .tk-equip-detail-desc { font-size: 0.95rem; color: #c8b890; line-height: 1.6; margin-top: 0.75rem; white-space: pre-line; }
 .tk-equip-detail-actions { display: flex; gap: 0.5rem; margin-top: 1rem; }
@@ -382,6 +391,9 @@
   padding: 1.4rem;
   font-family: 'Caslon Antique', serif;
   color: #ffffff;
+  max-height: calc(100dvh - 3rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .mark-popup-header {
   display: flex;

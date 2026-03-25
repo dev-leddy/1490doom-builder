@@ -26,7 +26,8 @@ export default function ReliquaryModal() {
 
   return (
     <div className="modal-backdrop" onClick={e => e.target === e.currentTarget && closeReliquaryModal()}>
-      <div className="modal-box" style={{ maxWidth: 420 }}>
+      <div className="modal-box" style={{ maxWidth: 420, maxHeight: '65dvh', overflowY: 'auto', position: 'relative' }}>
+        <button className="tracker-modal-close" onClick={closeReliquaryModal} aria-label="Close">×</button>
         <div className="tracker-modal-title">EXPEND RELIQUARY</div>
 
         {options.length === 0 ? (
