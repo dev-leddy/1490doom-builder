@@ -1,24 +1,15 @@
-import { useEffect } from 'react';
+import { useState } from 'react'
+import QuizPage from '../quiz/QuizPage'
 
 export default function QuizOverlay({ onComplete, onClose }) {
-  useEffect(() => {
-    function handleMessage(event) {
-      if (event.data && event.data.type === 'QUIZ_COMPLETE') {
-        onComplete(event.data);
-      }
-    }
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, [onComplete]);
+  const [lightboxOpen, setLightboxOpen] = useState(false)
 
   return (
     <div className="quiz-overlay">
-      <button className="quiz-close-btn" onClick={onClose}>✕</button>
-      <iframe 
-        src="/quiz/index.html" 
-        className="quiz-iframe" 
-        title="Doom Company Quiz"
-      />
+      {!lightboxOpen && (
+        <button className="quiz-close-btn" onClick={onClose} aria-label="Close quiz">✕</button>
+      )}
+      <QuizPage onComplete={onComplete} onLightboxToggle={setLightboxOpen} />
     </div>
-  );
+  )
 }

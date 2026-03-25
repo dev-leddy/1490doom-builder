@@ -46,7 +46,7 @@ function IPUpgradeNote({ warrior: w }) {
       <div className="tk-ip-note">
         {tags.map(t => (
           <span key={t.key} className={`tk-ip-tag${t.free ? ' tk-ip-tag-free' : ''}`}>
-            {t.label}{t.free ? ' (free)' : ''}
+            {t.label}
           </span>
         ))}
       </div>
@@ -98,7 +98,7 @@ function ConsumableBlock({ wi, warrior: w, wdata }) {
         </button>
       )}
       {hasReliquary && w.reliquaryUsed && (
-        <div style={{ fontFamily: 'Oswald,sans-serif', fontSize: '0.65rem', color: '#444', letterSpacing: '0.1em', marginTop: '0.3rem' }}>
+        <div style={{ fontFamily: "'Oswald', sans-serif", fontSize: '0.65rem', color: '#444', letterSpacing: '0.1em', marginTop: '0.3rem' }}>
           RELIQUARY EXPENDED
         </div>
       )}

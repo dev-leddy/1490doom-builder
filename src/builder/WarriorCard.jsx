@@ -60,8 +60,8 @@ function UpgradeModal({
   return (
     <div className="modal-backdrop" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal-box upgrade-modal">
-        <div className="upgrade-modal-header">
-          <div className="share-modal-title">{title}</div>
+        <div className="upgrade-modal-header" style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
+          <div className="modal-title" style={{ margin: 0, paddingRight: '1rem' }}>{title.toUpperCase()}</div>
           <button className="upgrade-modal-close" onClick={onClose}>×</button>
         </div>
         
@@ -90,12 +90,13 @@ function UpgradeModal({
           )}
 
           {category === 'climbing' && (
-            <div>
-              <div className="upgrade-choice-grid">
-                {Object.keys(CLIMBING_ITEMS).filter(k => k !== 'None').map(opt => (
+            <div className="upgrade-table">
+              {Object.keys(CLIMBING_ITEMS).filter(k => k !== 'None').map(opt => {
+                const cd = CLIMBING_ITEMS[opt]
+                return (
                   <button
                     key={opt}
-                    className={`upgrade-choice-btn ${slot.climbing === opt ? 'active' : ''}`}
+                    className={`upgrade-table-btn ${slot.climbing === opt ? 'active' : ''}`}
                     onClick={() => {
                       const newVal = slot.climbing === opt ? null : opt
                       setWarriorProp(slotIndex, 'climbing', newVal)
@@ -104,51 +105,52 @@ function UpgradeModal({
                       onClose()
                     }}
                   >
-                    {ITEM_ICONS[opt] && <img src={ITEM_ICONS[opt]} alt="" style={{ width: 32, height: 32, filter: 'sepia(0.3) brightness(0.95)', opacity: 0.9, flexShrink: 0 }} />}
-                    <div style={{ flex: 1, textAlign: 'left' }}>
-                      <div className="upgrade-btn-text">
-                        <span className="upgrade-btn-name">{opt}</span>
-                        {CLIMBING_ITEMS[opt] && <span className="upgrade-btn-stats">Max HT {CLIMBING_ITEMS[opt].height}</span>}
-                      </div>
-                      {CLIMBING_DESCS[opt] && <div className="upgrade-btn-desc">{CLIMBING_DESCS[opt]}</div>}
+                    <div className="item-tier-1">
+                      {ITEM_ICONS[opt] && <img src={ITEM_ICONS[opt]} alt="" style={{ width: 28, height: 28, filter: 'sepia(0.3) brightness(0.95)', flexShrink: 0 }} />}
+                      <div className="item-name">{opt}</div>
+                    </div>
+                    <div className="item-tier-2">
+                       <div className="item-stat-wrap">
+                         <span className="stat-label">Height</span>
+                         <span className="stat-val">{cd?.height || '—'}</span>
+                       </div>
+                       <div className="item-stat-wrap">
+                         <span className="stat-label">Skill</span>
+                         <span className="stat-val">{cd?.skillCheck || '—'}</span>
+                       </div>
+                       <div className="item-info">{CLIMBING_DESCS[opt] || 'None'}</div>
                     </div>
                   </button>
-                ))}
-              </div>
-              {slot.climbing && CLIMBING_DESCS[slot.climbing] && (
-                <div className="upgrade-choice-note">{CLIMBING_DESCS[slot.climbing]}</div>
-              )}
+                )
+              })}
             </div>
           )}
 
           {category === 'consumable' && (
-            <div>
-              <div className="upgrade-choice-grid">
-                {CONSUMABLE_NAMES.map(opt => (
-                  <button
-                    key={opt}
-                    className={`upgrade-choice-btn ${slot.consumable === opt ? 'active' : ''}`}
-                    onClick={() => {
-                      const newVal = slot.consumable === opt ? null : opt
-                      setWarriorProp(slotIndex, 'consumable', newVal)
-                      if (newVal) spendIP('consumable')
-                      else freeIP('consumable')
-                      onClose()
-                    }}
-                  >
-                    {ITEM_ICONS[opt] && <img src={ITEM_ICONS[opt]} alt="" style={{ width: 32, height: 32, filter: 'sepia(0.3) brightness(0.95)', opacity: 0.9, flexShrink: 0 }} />}
-                    <div style={{ flex: 1, textAlign: 'left' }}>
-                      <div className="upgrade-btn-text">
-                        <span className="upgrade-btn-name">{opt}</span>
-                      </div>
-                      {CONSUMABLES[opt] && <div className="upgrade-btn-desc">{CONSUMABLES[opt]}</div>}
+            <div className="upgrade-table">
+              {CONSUMABLE_NAMES.map(opt => (
+                <button
+                  key={opt}
+                  className={`upgrade-table-btn ${slot.consumable === opt ? 'active' : ''}`}
+                  onClick={() => {
+                    const newVal = slot.consumable === opt ? null : opt
+                    setWarriorProp(slotIndex, 'consumable', newVal)
+                    if (newVal) spendIP('consumable')
+                    else freeIP('consumable')
+                    onClose()
+                  }}
+                >
+                  <div className="item-tier-1">
+                    {ITEM_ICONS[opt] && <img src={ITEM_ICONS[opt]} alt="" style={{ width: 28, height: 28, filter: 'sepia(0.3) brightness(0.95)', flexShrink: 0 }} />}
+                    <div className="item-name">{opt}</div>
+                  </div>
+                  <div className="item-tier-2 item-tier-2--full">
+                    <div className="item-info" style={{ borderLeft: 'none', paddingLeft: 0 }}>
+                      {CONSUMABLES[opt] || 'None'}
                     </div>
-                  </button>
-                ))}
-              </div>
-              {slot.consumable && CONSUMABLES[slot.consumable] && (
-                <div className="upgrade-choice-note">{CONSUMABLES[slot.consumable]}</div>
-              )}
+                  </div>
+                </button>
+              ))}
             </div>
           )}
 
@@ -289,6 +291,8 @@ function LoadoutPanel({ slotIndex, slot, wdata, poolFull }) {
     return { value: wname, pills }
   }
 
+  const w1d = WEAPONS[slot.weapon1]
+  const w2d = WEAPONS[slot.weapon2]
   const w1 = wpnDisplay(slot.weapon1)
   const w2 = wpnDisplay(slot.weapon2)
   const isDualWield = slot.weapon1 === 'Light Weapon' && slot.weapon2 === 'Light Weapon'
@@ -302,7 +306,7 @@ function LoadoutPanel({ slotIndex, slot, wdata, poolFull }) {
 
   const getBadge = id => {
     if (id === 'weapon1') return null
-    if (isFixed(id)) return { text: 'FREE', variant: 'free' }
+    if (isFixed(id)) return null
     if (id === 'weapon2' && primaryIsTwoHanded) return { text: '2-HANDED', variant: 'full' }
     if (isRowLocked(id)) return { text: 'IP FULL', variant: 'full' }
     return null
@@ -328,142 +332,144 @@ function LoadoutPanel({ slotIndex, slot, wdata, poolFull }) {
 
       <div className="eq-chips-list">
         {/* Weapon 1 (Always showing) */}
-        <div className="eq-chip eq-chip-main" onClick={() => setModalCategory('weapon1')}>
+        <div className="eq-chip eq-chip-main" onClick={() => setModalCategory('weapon1')} title={wpnDisplayDesc(slot.weapon1) ? `${w1.value}: ${wpnDisplayDesc(slot.weapon1)}` : w1.value}>
           <div className="eq-chip-icon">
-            {ITEM_ICONS[slot.weapon1] ? <img src={ITEM_ICONS[slot.weapon1]} alt="" style={{ width: 28, height: 28, filter: 'sepia(0.3) brightness(0.95)', opacity: 0.9 }} /> : <SvgWeapon1 />}
+            {ITEM_ICONS[slot.weapon1] ? <img src={ITEM_ICONS[slot.weapon1]} alt="" style={{ width: 28, height: 28, filter: 'sepia(0.3) brightness(0.95)', opacity: 0.9, transform: 'scaleX(-1)' }} /> : <span style={{ display: 'flex', transform: 'scaleX(-1)' }}><SvgWeapon1 /></span>}
           </div>
           <div className="eq-chip-content">
-            <span className="eq-chip-label">WEAPON</span>
-            <span className="eq-chip-value">{w1.value || 'None'}</span>
-            <div className="eq-chip-pills">
-              {w1.pills?.map(p => <span key={p} className="lr-pill">{p}</span>)}
-            </div>
-            {wpnDisplayDesc(slot.weapon1) && <div className="eq-chip-desc">{wpnDisplayDesc(slot.weapon1)}</div>}
+            <span className={`eq-chip-value ${(w1.value?.length > 18) ? 'eq-chip-value--small' : ''}`}>
+              {w1.value === 'Polearm (two-handed)' ? <>POLEARM<br/>2-HANDED</> : 
+               w1.value === 'Polearm (one-handed)' ? <>POLEARM<br/>1-HANDED</> : 
+               (w1.value || 'None')}
+            </span>
           </div>
+          {slot.weapon1 && (
+            <div className="eq-chip-stats">
+              <div className="eq-stat-box">
+                {w1d && w1d.damage > 0 && <span className="eq-chip-stat eq-chip-stat--dmg">{w1d.damage} DMG</span>}
+              </div>
+              <div className="eq-stat-box">
+                {w1d && w1d.range && w1d.range !== '—' && <span className="eq-chip-stat">{w1d.range}</span>}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Weapon 2 Chip */}
-        {isRowSelected('weapon2') && (
-          <div className="eq-chip" onClick={() => setModalCategory('weapon2')}>
+        {isRowSelected('weapon2') ? (
+          <div className="eq-chip" onClick={() => setModalCategory('weapon2')} title={slot.weapon2 === 'Light Weapon' && slot.weapon1 === 'Light Weapon' ? `${w2.value}: One-handed. Adds +1 Attack.` : wpnDisplayDesc(slot.weapon2) ? `${w2.value}: ${wpnDisplayDesc(slot.weapon2)}` : w2.value}>
             {getBadge('weapon2') && <span className={`eq-chip-badge eq-badge-${getBadge('weapon2').variant}`}>{getBadge('weapon2').text}</span>}
             <div className="eq-chip-icon">
               {ITEM_ICONS[slot.weapon2] ? <img src={ITEM_ICONS[slot.weapon2]} alt="" style={{ width: 28, height: 28, filter: 'sepia(0.3) brightness(0.95)', opacity: 0.9 }} /> : <SvgOffhand />}
             </div>
             <div className="eq-chip-content">
-              <span className="eq-chip-label">{weapon2Label.toUpperCase()}</span>
-              <span className="eq-chip-value">{w2.value}</span>
-              <div className="eq-chip-pills">
-                {w2.pills?.map(p => <span key={p} className="lr-pill">{p}</span>)}
-              </div>
-              {(slot.weapon2 === 'Light Weapon' && slot.weapon1 === 'Light Weapon'
-                ? 'One-handed. Adds +1 Attack.'
-                : wpnDisplayDesc(slot.weapon2)
-              ) && <div className="eq-chip-desc">{slot.weapon2 === 'Light Weapon' && slot.weapon1 === 'Light Weapon' ? 'One-handed. Adds +1 Attack.' : wpnDisplayDesc(slot.weapon2)}</div>}
+              <span className={`eq-chip-value ${(w2.value?.length > 18) ? 'eq-chip-value--small' : ''}`}>
+                {w2.value === 'Polearm (two-handed)' ? <>POLEARM<br/>2-HANDED</> : 
+                 w2.value === 'Polearm (one-handed)' ? <>POLEARM<br/>1-HANDED</> : 
+                 w2.value}
+              </span>
             </div>
-            {!isFixed('weapon2') && (
-              <div className="eq-chip-remove" onClick={e => { e.stopPropagation(); removeUpgrade('weapon2') }}>×</div>
+            {slot.weapon2 && slot.weapon2 !== 'Shield' && (
+              <div className="eq-chip-stats">
+                <div className="eq-stat-box">
+                  {w2d && w2d.damage > 0 && <span className="eq-chip-stat eq-chip-stat--dmg">{w2d.damage} DMG</span>}
+                </div>
+                <div className="eq-stat-box">
+                  {w2d && w2d.range && w2d.range !== '—' && <span className="eq-chip-stat">{w2d.range}</span>}
+                </div>
+              </div>
             )}
+          </div>
+        ) : (
+          <div className={`eq-chip eq-chip-empty ${isRowLocked('weapon2') ? 'eq-chip-locked' : ''}`} onClick={() => !isRowLocked('weapon2') && setModalCategory('weapon2')} title={isRowLocked('weapon2') ? "Locked" : `Empty Secondary`}>
+            {getBadge('weapon2') && <span className={`eq-chip-badge eq-badge-${getBadge('weapon2').variant}`}>{getBadge('weapon2').text}</span>}
+            <div className="eq-chip-icon" style={{ opacity: 0.3 }}><SvgOffhand /></div>
+            <div className="eq-chip-content">
+              <span className="eq-chip-value" style={{ color: 'var(--mist)' }}>Empty</span>
+            </div>
           </div>
         )}
 
         {/* Gear Chip */}
-        {isRowSelected('climbing') && (
-          <div className="eq-chip" onClick={() => setModalCategory('climbing')}>
+        {isRowSelected('climbing') ? (
+          <div className="eq-chip" onClick={() => setModalCategory('climbing')} title={CLIMBING_DESCS[slot.climbing] ? `${climbVal}: ${CLIMBING_DESCS[slot.climbing]}` : climbVal}>
              {getBadge('climbing') && <span className={`eq-chip-badge eq-badge-${getBadge('climbing').variant}`}>{getBadge('climbing').text}</span>}
             <div className="eq-chip-icon">
               {ITEM_ICONS[slot.climbing] ? <img src={ITEM_ICONS[slot.climbing]} alt="" style={{ width: 28, height: 28, filter: 'sepia(0.3) brightness(0.95)', opacity: 0.9 }} /> : <SvgClimbing />}
             </div>
             <div className="eq-chip-content">
-              <span className="eq-chip-label">GEAR</span>
-              <span className="eq-chip-value">{climbVal}</span>
-              <div className="eq-chip-pills">
-                {climbPills.map(p => <span key={p} className="lr-pill">{p}</span>)}
-              </div>
-              {CLIMBING_DESCS[slot.climbing] && <div className="eq-chip-desc">{CLIMBING_DESCS[slot.climbing]}</div>}
+              <span className={`eq-chip-value ${(climbVal?.length > 18) ? 'eq-chip-value--small' : ''}`}>{climbVal}</span>
             </div>
-            <div className="eq-chip-remove" onClick={e => { e.stopPropagation(); removeUpgrade('climbing') }}>×</div>
+          </div>
+        ) : (
+          <div className={`eq-chip eq-chip-empty ${isRowLocked('climbing') ? 'eq-chip-locked' : ''}`} onClick={() => !isRowLocked('climbing') && setModalCategory('climbing')} title={isRowLocked('climbing') ? "Locked" : `Empty Gear`}>
+            {getBadge('climbing') && <span className={`eq-chip-badge eq-badge-${getBadge('climbing').variant}`}>{getBadge('climbing').text}</span>}
+            <div className="eq-chip-icon" style={{ opacity: 0.3 }}><SvgClimbing /></div>
+            <div className="eq-chip-content">
+              <span className="eq-chip-value" style={{ color: 'var(--mist)' }}>Empty</span>
+            </div>
           </div>
         )}
 
         {/* Supply Chip */}
-        {isRowSelected('consumable') && (
-          <div className="eq-chip" onClick={() => setModalCategory('consumable')}>
+        {isRowSelected('consumable') ? (
+          <div className="eq-chip" onClick={() => setModalCategory('consumable')} title={CONSUMABLES[slot.consumable] ? `${slot.consumable}: ${CONSUMABLES[slot.consumable]}` : slot.consumable}>
              {getBadge('consumable') && <span className={`eq-chip-badge eq-badge-${getBadge('consumable').variant}`}>{getBadge('consumable').text}</span>}
             <div className="eq-chip-icon">
               {ITEM_ICONS[slot.consumable] ? <img src={ITEM_ICONS[slot.consumable]} alt="" style={{ width: 28, height: 28, filter: 'sepia(0.3) brightness(0.95)', opacity: 0.9 }} /> : <SvgConsumable />}
             </div>
             <div className="eq-chip-content">
-              <span className="eq-chip-label">SUPPLY</span>
-              <span className="eq-chip-value">{slot.consumable}</span>
-              {CONSUMABLES[slot.consumable] && <div className="eq-chip-desc">{CONSUMABLES[slot.consumable]}</div>}
+              <span className={`eq-chip-value ${(slot.consumable?.length > 18) ? 'eq-chip-value--small' : ''}`}>{slot.consumable}</span>
             </div>
-            <div className="eq-chip-remove" onClick={e => { e.stopPropagation(); removeUpgrade('consumable') }}>×</div>
+          </div>
+        ) : (
+          <div className={`eq-chip eq-chip-empty ${isRowLocked('consumable') ? 'eq-chip-locked' : ''}`} onClick={() => !isRowLocked('consumable') && setModalCategory('consumable')} title={isRowLocked('consumable') ? "Locked" : `Empty Item`}>
+            {getBadge('consumable') && <span className={`eq-chip-badge eq-badge-${getBadge('consumable').variant}`}>{getBadge('consumable').text}</span>}
+            <div className="eq-chip-icon" style={{ opacity: 0.3 }}><SvgConsumable /></div>
+            <div className="eq-chip-content">
+              <span className="eq-chip-value" style={{ color: 'var(--mist)' }}>Empty</span>
+            </div>
           </div>
         )}
 
         {/* Stat Chip(s) */}
         {isCampaign ? (
           statImproves.map((stat, i) => (
-            <div key={i} className="eq-chip">
+            <div key={i} className="eq-chip" onClick={(e) => { e.stopPropagation(); removeStatImprove(slotIndex, stat) }} title={`STAT IMPROVEMENT: ${STAT_IMPROVEMENT[stat]} (Click to Remove)`}>
               <div className="eq-chip-icon"><SvgStat /></div>
               <div className="eq-chip-content">
-                <span className="eq-chip-label">STAT</span>
-                <span className="eq-chip-value">{STAT_IMPROVEMENT[stat]}</span>
+                <span className={`eq-chip-value ${(STAT_IMPROVEMENT[stat]?.length > 18) ? 'eq-chip-value--small' : ''}`}>{STAT_IMPROVEMENT[stat]}</span>
               </div>
-              <div className="eq-chip-remove" onClick={e => { e.stopPropagation(); removeStatImprove(slotIndex, stat) }}>×</div>
             </div>
           ))
         ) : (
           isRowSelected('stat') && (
-            <div className="eq-chip" onClick={() => setModalCategory('stat')}>
+            <div className="eq-chip" onClick={() => setModalCategory('stat')} title={`STAT IMPROVEMENT: ${statVal}`}>
                {getBadge('stat') && <span className={`eq-chip-badge eq-badge-${getBadge('stat').variant}`}>{getBadge('stat').text}</span>}
               <div className="eq-chip-icon"><SvgStat /></div>
               <div className="eq-chip-content">
-                <span className="eq-chip-label">STAT</span>
-                <span className="eq-chip-value">{statVal}</span>
+                <span className={`eq-chip-value ${(statVal?.length > 18) ? 'eq-chip-value--small' : ''}`}>{statVal}</span>
               </div>
-              <div className="eq-chip-remove" onClick={e => { e.stopPropagation(); removeUpgrade('stat') }}>×</div>
             </div>
           )
         )}
       </div>
 
-      {/* Available Upgrades Row */}
-      <div className="eq-add-row">
-        {!isRowSelected('weapon2') && !isRowLocked('weapon2') && (
-          <button className="eq-add-btn" onClick={() => setModalCategory('weapon2')}>
-            <span className="lr-icon"><SvgOffhand /></span>
-            <span>{weapon2Label}</span>
-          </button>
-        )}
-        {!isRowSelected('climbing') && !isRowLocked('climbing') && (
-          <button className="eq-add-btn" onClick={() => setModalCategory('climbing')}>
-            <span className="lr-icon"><SvgClimbing /></span>
-            <span>Gear</span>
-          </button>
-        )}
-        {!isRowSelected('consumable') && !isRowLocked('consumable') && (
-          <button className="eq-add-btn" onClick={() => setModalCategory('consumable')}>
-            <span className="lr-icon"><SvgConsumable /></span>
-            <span>Supply</span>
-          </button>
-        )}
-        {isCampaign ? (
-          !poolFull && !campaignStatFull && (
+      {(isCampaign ? (!poolFull && !campaignStatFull) : (!isRowSelected('stat') && !isRowLocked('stat'))) && (
+        <div className="eq-add-row">
+          {isCampaign ? (
             <button className="eq-add-btn" onClick={() => setModalCategory('stat')}>
               <span className="lr-icon"><SvgStat /></span>
               <span>Stat</span>
             </button>
-          )
-        ) : (
-          !isRowSelected('stat') && !isRowLocked('stat') && (
+          ) : (
             <button className="eq-add-btn" onClick={() => setModalCategory('stat')}>
               <span className="lr-icon"><SvgStat /></span>
               <span>Stat</span>
             </button>
-          )
-        )}
-      </div>
+          )}
+        </div>
+      )}
 
       <UpgradeModal
         isOpen={!!modalCategory}
@@ -472,7 +478,7 @@ function LoadoutPanel({ slotIndex, slot, wdata, poolFull }) {
           modalCategory === 'weapon1' ? 'Select Weapon' :
           modalCategory === 'weapon2' ? `Select ${weapon2Label}` :
           modalCategory === 'climbing' ? 'Select Gear' :
-          modalCategory === 'consumable' ? 'Select Supply' :
+          modalCategory === 'consumable' ? 'Select Item' :
           modalCategory === 'stat' ? 'Select Stat Upgrade' : ''
         }
         onClose={() => setModalCategory(null)}
@@ -539,7 +545,7 @@ export default function WarriorCard({ slotIndex, slot }) {
     allAbilities.push({ name: w2d.abilityName, desc: w2d.abilityDesc, source: `from ${slot.weapon2}` })
   }
   if (slot.isCaptain) {
-    allAbilities.push({
+    allAbilities.unshift({
       name: '★ Captain Re-Roll',
       desc: 'Once per game, the Captain may re-roll a single die.',
     })
@@ -554,7 +560,7 @@ export default function WarriorCard({ slotIndex, slot }) {
               className="slot-name-input"
               autoFocus
               value={slot.customName || ''}
-              placeholder={`Warrior ${slotIndex + 1}`}
+              placeholder="Enter Name…"
               onChange={e => setWarriorProp(slotIndex, 'customName', e.target.value)}
               onBlur={() => setEditingName(false)}
               onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') setEditingName(false) }}
@@ -567,7 +573,7 @@ export default function WarriorCard({ slotIndex, slot }) {
               onTouchMove={() => clearTimeout(longPressRef.current)}
               title="Double-click to rename"
             >
-              {slot.customName || `Warrior ${slotIndex + 1}`}
+              {slot.customName || ""}
             </span>
           )}
         </div>
@@ -576,26 +582,30 @@ export default function WarriorCard({ slotIndex, slot }) {
             {slot.earnedIP || 0} earned · {slot.ip?.length || 0} spent · {Math.max(0, (slot.earnedIP || 0) - (slot.ip?.length || 0))} free
           </span>
         )}
+      </div>
+
+      <div style={{ display: 'flex', gap: '0.65rem', alignItems: 'center', marginBottom: '1rem' }}>
         {slot.type && (
           <button
             className={`captain-toggle ${slot.isCaptain ? 'is-captain' : ''}`}
+            style={{ fontSize: '1.6rem', background: 'none', border: 'none', padding: 0, marginTop: 0, cursor: 'pointer', flexShrink: 0 }}
             onClick={() => setCaptain(slotIndex)}
             title={slot.isCaptain ? 'Captain' : 'Set as Captain'}
           >★</button>
         )}
+        <select
+          className="warrior-select"
+          style={{ marginBottom: 0 }}
+          value={slot.type || ''}
+          onChange={e => selectWarrior(slotIndex, e.target.value || null)}
+        >
+          <option value="">— Choose Warrior —</option>
+          {available.map(wt => <option key={wt} value={wt}>{wt}</option>)}
+          {slot.type && !available.includes(slot.type) && (
+            <option value={slot.type}>{slot.type}</option>
+          )}
+        </select>
       </div>
-
-      <select
-        className="warrior-select"
-        value={slot.type || ''}
-        onChange={e => selectWarrior(slotIndex, e.target.value || null)}
-      >
-        <option value="">— Choose Warrior —</option>
-        {available.map(wt => <option key={wt} value={wt}>{wt}</option>)}
-        {slot.type && !available.includes(slot.type) && (
-          <option value={slot.type}>{slot.type}</option>
-        )}
-      </select>
 
       {!wdata ? (
         <div className="empty-slot-msg">Select a warrior type above</div>
@@ -729,6 +739,16 @@ function StatsRow({ slot, wdata }) {
   )
 }
 
+function StatDisplay({ label, val, isDmg = false }) {
+  if (!val || val === '—') return null
+  return (
+    <div className={`upgrade-mini-stat ${isDmg ? 'stat-dmg' : ''}`}>
+      <span className="stat-label">{label}</span>
+      <span className="stat-val">{val}</span>
+    </div>
+  )
+}
+
 // ── Weapon selector ──────────────────────────────────────────────────────────
 function WeaponSelector({ label, labelIcon, slotIndex, slot, options, propKey, poolFull, iconSize = 28, onSelect }) {
   const setWarriorProp = useBuilderStore(s => s.setWarriorProp)
@@ -737,59 +757,63 @@ function WeaponSelector({ label, labelIcon, slotIndex, slot, options, propKey, p
   const isDualWield = propKey === 'weapon2' && slot.weapon1 === 'Light Weapon' && current === 'Light Weapon'
 
   return (
-    <div>
-      {labelIcon && (
-        <span className="upgrade-detail-label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}>
-          {labelIcon} {label}
-        </span>
-      )}
-      <div className="upgrade-choice-grid">
-        {options.map(wn => {
-          const wd = WEAPONS[wn]
-          const ic = ITEM_ICONS[wn]
-          const isPolearmOneHand = wn === 'Polearm (one-handed)'
-          const needsIP = isPolearmOneHand && current !== wn && poolFull && !slot.ip?.includes('weapon2')
-          const stats = wd && wd.damage > 0
-            ? `${wd.range} · DMG ${wd.damage}`
-            : wd?.range && wd.range !== '—' ? wd.range : null
-          const abilityLine = null
-          return (
-            <button
-              key={wn}
-              className={`upgrade-choice-btn ${current === wn ? 'active' : ''}`}
-              disabled={needsIP}
-              title={needsIP ? 'Requires 1 IP for mandatory Shield — pool full' : ''}
-              onClick={() => {
-                if (needsIP) return
-                const newVal = wn === 'None' ? null : wn
-                setWarriorProp(slotIndex, propKey, newVal)
-                onSelect?.(newVal)
-              }}
-            >
-              {ic && <img src={ic} alt="" style={{ width: iconSize, height: iconSize, filter: 'sepia(0.3) brightness(0.95)', opacity: 0.9, flexShrink: 0 }} />}
-              <div style={{ flex: 1, textAlign: 'left' }}>
-                <div className="upgrade-btn-text">
-                  <span className="upgrade-btn-name">{wn}</span>
-                  {stats && <span className="upgrade-btn-stats">{stats}</span>}
-                  {abilityLine && <span className="upgrade-btn-stats">{abilityLine}</span>}
-                  {needsIP && <span className="polearm-ip-note">Requires 1 IP (Shield)</span>}
-                </div>
-                {(wd?.special || wd?.note) && <div className="upgrade-btn-desc" style={{marginTop: '0.4rem'}}>{[propKey === 'weapon2' && wd.offhandNote ? wd.offhandNote : wd.note, wd.special].filter(Boolean).join(' ')}</div>}
+    <div className="upgrade-table">
+      {options.map(wn => {
+        const wd = WEAPONS[wn]
+        const ic = ITEM_ICONS[wn]
+        const isPolearmOneHand = wn === 'Polearm (one-handed)'
+        const needsIP = isPolearmOneHand && current !== wn && poolFull && !slot.ip?.includes('weapon2')
+        const infoLine = [propKey === 'weapon2' && wd?.offhandNote ? wd.offhandNote : wd?.note, wd?.special].filter(Boolean).join(' ')
+        
+        return (
+          <button
+            key={wn}
+            className={`upgrade-table-btn ${current === wn ? 'active' : ''}`}
+            disabled={needsIP}
+            onClick={() => {
+              if (needsIP) return
+              const newVal = wn === 'None' ? null : wn
+              setWarriorProp(slotIndex, propKey, newVal)
+              onSelect?.(newVal)
+            }}
+          >
+            <div className="item-tier-1">
+              {ic && <img src={ic} alt="" style={{ width: 28, height: 28, filter: 'sepia(0.3) brightness(0.95)', flexShrink: 0 }} />}
+              <div className="item-name">
+                {wn === 'Polearm (two-handed)' ? <>POLEARM<br/>2-HANDED</> :
+                 wn === 'Polearm (one-handed)' ? <>POLEARM<br/>1-HANDED</> :
+                 wn}
               </div>
-            </button>
-          )
-        })}
-      </div>
-      {wpnData && (
-        <div className="upgrade-choice-note">
-          {isDualWield && <strong>Dual Wield: +1 Attack die. </strong>}
-          {propKey === 'weapon2' && wpnData.abilityName
-            ? <><strong>{wpnData.abilityName}: </strong>{wpnData.abilityDesc}</>
-            : propKey === 'weapon2' && wpnData.offhandNote
-            ? wpnData.offhandNote
-            : wpnData.note}
-        </div>
-      )}
+              {needsIP && <div className="polearm-ip-note" style={{ fontSize: '0.65rem', marginLeft: '0.5rem' }}>+1 IP</div>}
+            </div>
+
+            <div className="item-tier-2">
+              {wn === 'Shield' ? (
+                <div className="item-info item-info--full">
+                  Gain +1 DEFENSE against the first attack each round. Grants the Guarded Ability.{' '}
+                  <em>(Once per round, the model may use their shield to prevent a PUSH action that targets them.)</em>
+                </div>
+              ) : (
+                <>
+                  <div className="item-stat-wrap">
+                    <span className="stat-label">Damage</span>
+                    <span className={`stat-val ${wd?.damage > 0 ? 'dmg' : ''}`}>{wd?.damage || '—'}</span>
+                  </div>
+
+                  <div className="item-stat-wrap">
+                    <span className="stat-label">Range</span>
+                    <span className="stat-val">{wd?.range && wd.range !== '—' ? wd.range : '—'}</span>
+                  </div>
+
+                  <div className="item-info">
+                    {infoLine || 'None'}
+                  </div>
+                </>
+              )}
+            </div>
+          </button>
+        )
+      })}
     </div>
   )
 }

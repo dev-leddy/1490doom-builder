@@ -1,5 +1,5 @@
-import { useRef } from 'react'
-import { COMPANY_AVATARS } from '../data/avatars'
+import { useState, useRef } from 'react'
+import { COMPANY_AVATARS, getAvatarSrc } from '../data/avatars'
 
 export default function AvatarPicker({ value, onChange }) {
   const fileRef = useRef(null)
@@ -29,13 +29,21 @@ export default function AvatarPicker({ value, onChange }) {
 
   return (
     <div className="avatar-picker">
-      <div className="avatar-picker-label">Company Avatar</div>
       <div className="avatar-picker-grid">
+        <button
+          key="none"
+          className={`avatar-option${!value ? ' selected' : ''}`}
+          onClick={() => onChange('')}
+          title="None"
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', opacity: 0.5, letterSpacing: '0.05em' }}
+        >
+          NONE
+        </button>
         {COMPANY_AVATARS.map(a => (
           <button
             key={a.key}
             className={`avatar-option${value === a.key ? ' selected' : ''}`}
-            onClick={() => onChange(value === a.key ? null : a.key)}
+            onClick={() => onChange(a.key)}
             title={a.label}
           >
             <img src={a.src} alt={a.label} />

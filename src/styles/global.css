@@ -39,7 +39,7 @@
   --gold-border: #3a2e00;
   --cream: #ffffff;
   --cream-dim: #cccccc;
-  --bg: #000000;
+  --bg: #080808;
   --bg-card: #0a0a0a;
   --bg-lift: #111111;
   --bg-hover: #222;
@@ -69,7 +69,7 @@ html, body {
   background: var(--bg);
   color: var(--cream);
   font-family: var(--font-body);
-  font-size: 16px;
+  font-size: 18px;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior: none;
 }

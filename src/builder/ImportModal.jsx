@@ -15,18 +15,19 @@ export default function ImportModal() {
   return (
     <div className="modal-backdrop" onClick={e => e.target === e.currentTarget && closeImport()}>
       <div className="modal-box share-modal">
-        <div className="share-modal-title">Import Company</div>
+        <div className="modal-title">Import Company</div>
         <textarea
           className="share-code-box"
-          placeholder="Paste a share link or code…"
+          placeholder="Paste company JSON or link here…"
           value={value}
           onChange={e => setValue(e.target.value)}
+          autoFocus
         />
         <div className="share-modal-note">
           Paste a share link or code from another player.
         </div>
         <div className="share-modal-actions">
-          <button className="btn btn-primary" onClick={handleImport}>Import</button>
+          <button className="modal-primary-btn" onClick={handleImport}>Import</button>
           <button className="btn btn-ghost" onClick={closeImport}>Cancel</button>
         </div>
       </div>

@@ -21,6 +21,11 @@ export default function AbilityBlock({ wi, warrior: w, wdata }) {
 
   return (
     <div className="tk-abilities-block">
+      {/* Captain Re-Roll (OPG) - Pinned to Top */}
+      {w.isCaptain && (
+        <CaptainAbility wi={wi} w={w} />
+      )}
+
       {sorted.map((ab, i) => {
         const isOPG = ab.desc.toLowerCase().includes('once per game')
         const isTPG = ab.desc.toLowerCase().includes('twice per game')
@@ -128,10 +133,6 @@ export default function AbilityBlock({ wi, warrior: w, wdata }) {
         )
       })()}
 
-      {/* Captain Re-Roll (OPG) */}
-      {w.isCaptain && (
-        <CaptainAbility wi={wi} w={w} />
-      )}
     </div>
   )
 }

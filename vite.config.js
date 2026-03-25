@@ -29,7 +29,7 @@ export default defineConfig(({ command }) => ({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-        globIgnores: ['quiz/Art/**'],
+        globIgnores: ['quiz/Art/**', 'quiz/music/**'],
         navigateFallback: null,
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MiB (images.js is ~3.3 MB)
         runtimeCaching: [
@@ -52,6 +52,15 @@ export default defineConfig(({ command }) => ({
   ],
 
   base: command === 'serve' ? '/' : base,
+
+  build: {
+    rollupOptions: {
+      input: {
+        main: 'index.html',
+        quiz: 'quiz.html',
+      },
+    },
+  },
 
   server: {
     host: true,

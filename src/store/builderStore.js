@@ -413,7 +413,17 @@ export const useBuilderStore = create((set, get) => {
       get()._autoDraft()
     },
     setCaptain(slotIndex) {
-      const slots = get().slots.map((s, i) => ({ ...s, isCaptain: i === slotIndex }))
+      let slots = [...get().slots]
+      // Mark the selected index as captain, others as not
+      slots = slots.map((s, i) => ({ ...s, isCaptain: i === slotIndex }))
+      
+      // If the new captain is not in slot 0, swap them to slot 0
+      if (slotIndex !== 0) {
+        const temp = slots[0]
+        slots[0] = slots[slotIndex]
+        slots[slotIndex] = temp
+      }
+      
       set({ slots })
       get()._autoDraft()
     },

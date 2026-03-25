@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useBuilderStore } from '../store/builderStore'
+import { getAvatarSrc } from '../data/avatars'
 import { useTrackerStore } from '../store/trackerStore'
+import { MARK_ID_MAP } from '../data/quizData'
 import CompanyHeader from './CompanyHeader'
 import WarriorRoster from './WarriorRoster'
 import SaveLoadPanel from './SaveLoadPanel'
@@ -10,13 +12,13 @@ import ConfirmModal from '../shared/ConfirmModal'
 import PrintRoster from './PrintRoster'
 import InstallButton from '../shared/InstallButton'
 import EndOfGameModal from './EndOfGameModal'
-import AvatarPicker from './AvatarPicker'
+import CompanyForm from './CompanyForm'
 import ModeSelectModal from './ModeSelectModal'
 import LandingPage, { RefContent } from './LandingPage'
 import './builder.css'
 
 export default function BuilderPage() {
-  const { validationMsg, dismissValidation, openShare, openImport, clearBuilder, setCompanyMode, companyMode, campaignGame, isDirty } = useBuilderStore()
+  const { validationMsg, dismissValidation, openShare, openImport, clearBuilder, setCompanyMode, companyMode, campaignGame, isDirty, setMark } = useBuilderStore()
   const openTracker = useTrackerStore(s => s.openTracker)
   const builderState = useBuilderStore(s => s)
 
@@ -32,6 +34,32 @@ export default function BuilderPage() {
   const [endOfGameOpen, setEndOfGameOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [backConfirmOpen, setBackConfirmOpen] = useState(false)
+
+  // Auto-import quiz results from standalone quiz via ?quiz= URL param
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const quizParam = params.get('quiz')
+    if (quizParam) {
+      try {
+        const payload = JSON.parse(quizParam)
+        const mark = MARK_ID_MAP[payload.companyId]
+        if (mark) {
+          clearBuilder()
+          setMark(mark)
+          if (useBuilderStore.getState().applyQuizCompany) {
+            useBuilderStore.getState().applyQuizCompany({
+              mark,
+              companyName: payload.companyName,
+              warriors: payload.warriors,
+            })
+          }
+          setView('builder')
+        }
+      } catch (e) { /* ignore malformed param */ }
+      // Clean up URL
+      window.history.replaceState({}, '', window.location.pathname)
+    }
+  }, []) // eslint-disable-line
 
   function goBuilder() { setView('builder') }
 
@@ -115,22 +143,17 @@ export default function BuilderPage() {
           <LandingPage onLoad={goBuilder} />
         ) : (
           <main className="builder-main">
-            <div className="builder-content">
-              <button className="builder-home-btn" onClick={handleGoHome}>← Home</button>
-              <CompanyHeader onSettings={() => setSettingsOpen(true)} />
-              <WarriorRoster />
-            </div>
+            <button className="builder-home-btn" onClick={handleGoHome}>← Home</button>
+            <CompanyHeader onSettings={() => setSettingsOpen(true)} />
+            <WarriorRoster />
           </main>
         )}
 
         {view === 'builder' && !refOpen && (
           <footer className="builder-attribution">
-            <p className="attribution-text">
-              This is an independent production by{' '}
-              <a href="https://www.linkedin.com/in/michaelleddy/" target="_blank" rel="noopener noreferrer">Michael Leddy</a>
-              {' '}and is not affiliated with or endorsed by Buer Games. All related IP is © Buer Games.
-              Used with permission under the Buer Games Third Party License.
-              Warrior and Mark artwork © Buer Games.
+            <p className="attribution-text" style={{ textAlign: 'center', lineHeight: '1.4' }}>
+              An Official 1490 DOOM Production &nbsp;·&nbsp; Buer Games<br />
+              By <a href="https://www.linkedin.com/in/michaelleddy/" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>Michael Leddy</a>
             </p>
           </footer>
         )}
@@ -249,67 +272,23 @@ function CompanySettingsModal({ onClose }) {
   return (
     <div className="modal-backdrop" onClick={e => e.target === e.currentTarget && handleClose()}>
       <div className="modal-box co-settings-modal">
-        <div className="co-settings-title">COMPANY SETTINGS</div>
-
-        <div className="co-settings-field">
-          <label className="co-settings-label">Company Name</label>
-          <input
-            className="co-settings-input"
-            type="text"
-            maxLength={40}
-            placeholder="Name your Doom Company…"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            autoFocus
-          />
-        </div>
-
-        <div className="co-settings-field">
-          <label className="co-settings-label">Warriors</label>
-          <div className="co-settings-stepper">
-            <button className="co-settings-step-btn" onClick={removeSlot}>−</button>
-            <span className="co-settings-step-val">{slots.length}</span>
-            <button className="co-settings-step-btn" onClick={addSlot}>+</button>
-          </div>
-        </div>
-
-        {companyMode === 'standard' && (
-          <div className="co-settings-field">
-            <label className="co-settings-label">Company IP</label>
-            <div className="co-settings-stepper">
-              <button className="co-settings-step-btn" onClick={() => changeIPLimit(-1)}>−</button>
-              <span className="co-settings-step-val">{ipLimit}</span>
-              <button className="co-settings-step-btn" onClick={() => changeIPLimit(1)}>+</button>
-            </div>
-          </div>
-        )}
-
-        {companyMode === 'campaign' && activeSlots.length > 0 && (
-          <div className="co-settings-warrior-ip">
-            <div className="co-settings-label" style={{ marginBottom: '0.6rem' }}>Warrior IP</div>
-            {activeSlots.map(slot => {
-              const label = slot.customName || `Warrior ${slot.index + 1}`
-              const spent = slot.ip?.length || 0
-              return (
-                <div key={slot.index} className="co-settings-warrior-row">
-                  <div className="co-settings-warrior-info">
-                    <span className="co-settings-warrior-name">{label}{slot.isCaptain ? ' ★' : ''}</span>
-                    <span className="co-settings-warrior-class">{slot.type}</span>
-                  </div>
-                  <div className="co-settings-stepper">
-                    <button className="co-settings-step-btn" onClick={() => setEarnedIP(slot.index, (slot.earnedIP || 0) - 1)} disabled={(slot.earnedIP || 0) <= spent}>−</button>
-                    <span className="co-settings-step-val">{slot.earnedIP || 0}</span>
-                    <button className="co-settings-step-btn" onClick={() => setEarnedIP(slot.index, (slot.earnedIP || 0) + 1)}>+</button>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        )}
-
-        <AvatarPicker value={avatar} onChange={setAvatar} />
-
-        <button className="btn btn-primary co-settings-done" onClick={handleClose}>Done</button>
+        <div className="modal-title">COMPANY SETTINGS</div>
+        <CompanyForm
+          name={name} setName={setName}
+          avatar={avatar} setAvatar={setAvatar}
+          warriors={slots.length} setWarriors={w => {
+            const diff = w - slots.length
+            if (diff > 0) for (let i = 0; i < diff; i++) addSlot()
+            else if (diff < 0) for (let i = 0; i < -diff; i++) removeSlot()
+          }}
+          ip={ipLimit} setIp={newVal => changeIPLimit(newVal - ipLimit)}
+          companyMode={companyMode}
+          activeSlots={activeSlots.map(s => ({
+            ...s,
+            onEarnedChange: (val) => setEarnedIP(s.index, val)
+          }))}
+        />
+        <button className="modal-primary-btn" style={{ width: '100%', marginTop: '1rem' }} onClick={handleClose}>Done</button>
       </div>
     </div>
   )
@@ -347,8 +326,8 @@ function BuilderTopbar({ onMenuToggle, onHome, onRef, refActive }) {
 /* ── LANDING NAVBAR ────────────────────────────────────── */
 function LandingNavbar({ refOpen, onRef, onNew }) {
   return (
-    <nav className="builder-navbar">
-      <div className="navbar-inner navbar-inner--landing">
+    <nav className="builder-navbar landing-navbar">
+      <div className="landing-navbar-inner">
         {/* Mobile-only: Quick Reference button (hidden on desktop via CSS — topbar icon takes over) */}
         <button
           className={`landing-ref-btn${refOpen ? ' landing-ref-btn--active' : ''}`}

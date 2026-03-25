@@ -48,7 +48,7 @@ export default function EndOfGameModal({ onClose }) {
     <div className="modal-backdrop" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal-box eog-modal">
         <div className="eog-header">
-          <div className="eog-title">END OF GAME {campaignGame + 1}</div>
+          <div className="modal-title">END OF GAME {campaignGame + 1}</div>
           <button className="upgrade-modal-close" onClick={onClose}>×</button>
         </div>
 
@@ -84,7 +84,7 @@ export default function EndOfGameModal({ onClose }) {
             )}
             <div className="eog-footer">
               <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
-              <button className="btn btn-primary" onClick={goToStep2}>Next</button>
+              <button className="modal-primary-btn" onClick={goToStep2}>Next</button>
             </div>
           </>
         )}
@@ -113,7 +113,7 @@ export default function EndOfGameModal({ onClose }) {
             <div className="eog-footer">
               <button className="btn btn-secondary" onClick={() => setStep(1)}>Back</button>
               <button
-                className="btn btn-primary"
+                className="modal-primary-btn"
                 disabled={newCaptainIndex === null}
                 onClick={() => setStep(3)}
               >Next</button>
@@ -172,7 +172,7 @@ export default function EndOfGameModal({ onClose }) {
             <div className="eog-footer">
               <button className="btn btn-secondary" onClick={() => setStep(needsCaptainPromo ? 2 : 1)}>Back</button>
               <button
-                className="btn btn-primary"
+                className="modal-primary-btn"
                 disabled={won === null}
                 onClick={handleAward}
               >Award IP</button>

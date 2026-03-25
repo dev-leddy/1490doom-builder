@@ -28,7 +28,17 @@
       "Bash(echo \"$port IN USE\")",
       "Bash(echo \"$port FREE\")",
       "Bash(done)",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5176/1490doom-builder/)"
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5176/1490doom-builder/)",
+      "Bash(rtk npm:*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:api.github.com)",
+      "Bash(npm install:*)",
+      "Bash(npx vite:*)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5177/quiz.html)",
+      "Bash(curl -s http://localhost:5173/quiz.html)",
+      "Bash(curl -s \"http://localhost:5173/src/quiz/QuizPage.jsx\")",
+      "Bash(curl -s \"http://localhost:5173/src/data/quizData.js\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5177)"
     ]
   }
 }
