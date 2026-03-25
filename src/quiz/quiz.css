@@ -334,8 +334,8 @@
 }
 
 .quiz-root .qz-btn-back {
-  position: absolute;
-  top: 4em;
+  position: fixed;
+  top: calc(42px + 1.5em);
   left: 1em;
   background: none;
   border: none;
@@ -1000,7 +1000,7 @@
 
 /* ─── Audio widget ────────────────────────────────────────────────────── */
 .quiz-root .qz-audio-widget {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   padding: 0.65em 1em;
@@ -1085,7 +1085,7 @@
 /* ─── Responsive ─────────────────────────────────────────────────────── */
 @media (max-width: 600px) {
   .quiz-root { font-size: 16px; }
-  .quiz-root .qz-btn-back { left: auto; right: 1em; }
+  .quiz-root .qz-btn-back { top: calc(42px + 1.1em); left: 0.75em; }
   .quiz-root .qz-section { padding: 1.5em 1.1em; }
   .quiz-root .qz-result-scroll-inner { padding: 4.5em 1.1em 3.5em; }
   .quiz-root .qz-result-bottom-row { gap: 0; }
