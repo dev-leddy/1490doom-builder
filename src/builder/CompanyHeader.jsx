@@ -6,9 +6,11 @@ import { getAvatarSrc } from '../data/avatars'
 import MarkPicker from './MarkPicker'
 
 export default function CompanyHeader({ onSettings }) {
-  const { mark, setMark, companyName, companyAvatar, companyMode, campaignGame } = useBuilderStore()
+  const { mark, setMark, companyName, companyAvatar, companyMode, campaignGame, slots, ipLimit, getTotalIPSpent } = useBuilderStore()
   const [showMarkPicker, setShowMarkPicker] = useState(false)
   const markData = MARKS.find(m => m.name === mark)
+  const ipSpent = getTotalIPSpent()
+  const ipRemaining = ipLimit - ipSpent
   const markImg = mark && MARK_IMAGES[mark]
   const avatarSrc = getAvatarSrc(companyAvatar)
 
@@ -40,6 +42,21 @@ export default function CompanyHeader({ onSettings }) {
               {companyName || 'UNNAMED WARBAND'}
             </span>
             <span className="ch-name-underline" aria-hidden="true" />
+            <div className="ch-company-stats">
+              <div className="ch-cstat">
+                <span className="ch-cstat-val">{slots.length}</span>
+                <span className="ch-cstat-lbl">WARRIORS</span>
+              </div>
+              {companyMode !== 'campaign' && (
+                <>
+                  <span className="ch-cstat-sep">·</span>
+                  <div className="ch-cstat">
+                    <span className="ch-cstat-val">{ipRemaining}<span className="ch-cstat-total">/{ipLimit}</span></span>
+                    <span className="ch-cstat-lbl">IP LEFT</span>
+                  </div>
+                </>
+              )}
+            </div>
             <span className="ch-edit-hint">EDIT PROFILE</span>
           </button>
 
