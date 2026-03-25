@@ -1,0 +1,18 @@
+# Quiz art — cache for 1 year (immutable, content never changes filename)
+/quiz/Art/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Quiz music
+/quiz/music/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Builder assets (icons, avatars, mark images)
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# HTML + SW — always revalidate
+/*.html
+  Cache-Control: no-cache
+
+/sw.js
+  Cache-Control: no-cache, no-store

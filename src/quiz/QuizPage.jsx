@@ -43,7 +43,7 @@ export default function QuizPage({ onComplete, onLightboxToggle }) {
   // Preload ALL assets before showing anything
   useEffect(() => {
     const urls = [
-      '/quiz/Art/Bonus%20Art/Battlefield.png',
+      '/quiz/Art/Bonus%20Art/Battlefield.webp',
       ...QUESTIONS.map(q => q.art).filter(Boolean),
       ...COMPANIES.flatMap(c => [...c.minis, c.rep].filter(Boolean)),
     ]
@@ -100,7 +100,7 @@ export default function QuizPage({ onComplete, onLightboxToggle }) {
       {/* Loading screen */}
       {!ready && (
         <div className="qz-loader">
-          <img src="/quiz/Art/Logos/DOOMlogoOrange.png" className="qz-loader-logo" alt="1490 Doom" />
+          <img src="/quiz/Art/Logos/DOOMlogoOrange.webp" className="qz-loader-logo" alt="1490 Doom" />
           <div className="qz-loader-bar-track">
             <div className="qz-loader-bar-fill" style={{ width: `${pct}%` }} />
           </div>
@@ -179,7 +179,7 @@ export default function QuizPage({ onComplete, onLightboxToggle }) {
               target="_blank"
               rel="noopener noreferrer"
             >
-              <img src="/quiz/Art/Logos/DOOMlogoOrange.png" alt="1490 Doom" />
+              <img src="/quiz/Art/Logos/DOOMlogoOrange.webp" alt="1490 Doom" />
             </a>
             <div className="qz-footer-cta" />
             <a
@@ -190,7 +190,7 @@ export default function QuizPage({ onComplete, onLightboxToggle }) {
             >
               <img
                 className="qz-footer-buer-logo"
-                src="/quiz/Art/Logos/BuerWhiteTextAndLogo.png"
+                src="/quiz/Art/Logos/BuerWhiteTextAndLogo.webp"
                 alt="Buer Games"
               />
             </a>

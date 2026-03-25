@@ -7,7 +7,7 @@ export default function QuizHero({ onStart, audioState, onAudioToggle }) {
       <section className="qz-section active">
         <div className="qz-hero-content">
           <img
-            src="/quiz/Art/Logos/DOOMlogoOrange.png"
+            src="/quiz/Art/Logos/DOOMlogoOrange.webp"
             alt="1490 Doom"
             className="qz-hero-logo"
           />

@@ -154,7 +154,7 @@ export default function QuizResult({ winner, onComplete, onRestart, audioState, 
             target="_blank"
             rel="noopener noreferrer"
           >
-            <img src="/quiz/Art/Logos/DOOMlogoOrange.png" alt="1490 Doom" />
+            <img src="/quiz/Art/Logos/DOOMlogoOrange.webp" alt="1490 Doom" />
           </a>
 
           <div className="qz-footer-cta">
@@ -186,7 +186,7 @@ export default function QuizResult({ winner, onComplete, onRestart, audioState, 
           >
             <img
               className="qz-footer-buer-logo"
-              src="/quiz/Art/Logos/BuerWhiteTextAndLogo.png"
+              src="/quiz/Art/Logos/BuerWhiteTextAndLogo.webp"
               alt="Buer Games"
             />
           </a>
