@@ -2592,16 +2592,27 @@
 
 @media (max-width: 480px) {
   .upgrade-table-btn .item-tier-2 {
-    grid-template-columns: 70px 70px;
-    grid-template-rows: auto auto;
-    gap: 0.75rem 0.5rem;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0.5rem 1.25rem;
+  }
+  .upgrade-table-btn .item-stat-wrap {
+    min-width: 52px;
   }
   .upgrade-table-btn .item-info {
-    grid-column: span 2;
+    flex: 1 1 100%;
     padding-left: 0;
     border-left: none;
     border-top: 1px solid rgba(255,255,255,0.05);
-    padding-top: 0.5rem;
+    padding-top: 0.4rem;
+    min-height: auto;
+  }
+  .upgrade-table-btn .item-info:first-child,
+  .upgrade-table-btn .item-info--full {
+    border-top: none;
+    padding-top: 0;
   }
 }
 
@@ -2823,11 +2834,12 @@
 }
 
 /* -- UPGRADE MODAL -- */
-.upgrade-modal { max-width: 420px; width: 100%; padding: 1.5rem; background: var(--fog); border: 1px solid var(--mist); border-top: 3px solid var(--gold); box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
-.upgrade-modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--dim); padding-bottom: 0.75rem; }
+.upgrade-modal { max-width: 420px; width: 100%; padding: 1.5rem; background: var(--fog); border: 1px solid var(--mist); border-top: 3px solid var(--gold); box-shadow: 0 10px 30px rgba(0,0,0,0.8); max-height: 82dvh; display: flex; flex-direction: column; }
+.upgrade-modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--dim); padding-bottom: 0.75rem; flex-shrink: 0; }
 .upgrade-modal-close { background: none; border: none; color: var(--mist); font-size: 1.5rem; line-height: 1; cursor: pointer; transition: color 0.15s; }
 @media (hover: hover) { .upgrade-modal-close:hover { color: var(--parchment); } }
-.upgrade-modal-body { max-height: 60vh; overflow-y: auto; padding-right: 0.25rem; display: flex; flex-direction: column; gap: 0.75rem; }
+.upgrade-modal-body { flex: 1; min-height: 0; overflow-y: auto; padding-right: 0.25rem; display: flex; flex-direction: column; gap: 0.75rem; }
+.upgrade-modal-remove-wrap { flex-shrink: 0; padding-top: 1rem; border-top: 1px solid var(--dim); margin-top: 0.75rem; text-align: center; }
 .upgrade-modal-body::-webkit-scrollbar { width: 4px; }
 .upgrade-modal-body::-webkit-scrollbar-thumb { background: var(--dim); }
 

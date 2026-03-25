@@ -2,10 +2,12 @@ import { useTrackerStore, canRestoreWithReliquary } from '../store/trackerStore'
 import { WEAPONS } from '../data/weapons'
 
 export default function AbilityBlock({ wi, warrior: w, wdata }) {
-  const { toggleOPG, toggleOPR, tapTPG } = useTrackerStore()
+  const { toggleOPG, toggleOPR, tapTPG, toggleCrossbowLoaded } = useTrackerStore()
 
   const abilities = wdata.abilities || []
   const hasShield = w.weapon2 === 'Shield'
+  const hasBow = w.weapon1 === 'Bow'
+  const hasCrossbow = w.weapon1 === 'Crossbow'
 
   // Sort: passive (0) → OPR (1) → TPG (2) → OPG (3)
   const sorted = [...abilities].sort((a, b) => {
@@ -129,6 +131,54 @@ export default function AbilityBlock({ wi, warrior: w, wdata }) {
               </span>
             </div>
             <div className="tk-ability-desc">{shield.abilityDesc}</div>
+          </div>
+        )
+      })()}
+
+      {/* Bow: OVERDRAW (OPR — resets each round) */}
+      {hasBow && (() => {
+        const bow = WEAPONS['Bow']
+        const used = !!w.oprUsed['OVERDRAW']
+        return (
+          <div
+            className={`tk-ability${used ? ' tk-ability-used' : ''}`}
+            onClick={!w.dead ? () => toggleOPR(wi, 'OVERDRAW') : undefined}
+            style={!w.dead ? { cursor: 'pointer' } : {}}
+          >
+            <div className="tk-ability-header">
+              <span className="tk-ability-name">
+                {bow.abilityName}
+                <span style={{ fontSize: '0.85em', opacity: 0.7, fontWeight: 'normal', marginLeft: '0.4rem' }}>(from Bow)</span>
+              </span>
+              <span className={`tk-opg-badge tk-opr-badge${used ? ' tk-opg-used' : ''}`}>
+                {used ? '✓ USED' : 'ONCE PER ROUND'}
+              </span>
+            </div>
+            <div className="tk-ability-desc">{bow.abilityDesc}</div>
+          </div>
+        )
+      })()}
+
+      {/* Crossbow: RELOAD state toggle */}
+      {hasCrossbow && (() => {
+        const xbow = WEAPONS['Crossbow']
+        const loaded = w.crossbowLoaded !== false
+        return (
+          <div
+            className="tk-ability"
+            onClick={!w.dead ? () => toggleCrossbowLoaded(wi) : undefined}
+            style={!w.dead ? { cursor: 'pointer' } : {}}
+          >
+            <div className="tk-ability-header">
+              <span className="tk-ability-name">
+                {xbow.abilityName}
+                <span style={{ fontSize: '0.85em', opacity: 0.7, fontWeight: 'normal', marginLeft: '0.4rem' }}>(from Crossbow)</span>
+              </span>
+              <span className={`tk-opg-badge${loaded ? ' tk-crossbow-loaded' : ' tk-crossbow-unloaded'}`}>
+                {loaded ? '● LOADED' : '○ RELOAD'}
+              </span>
+            </div>
+            <div className="tk-ability-desc">{xbow.abilityDesc}</div>
           </div>
         )
       })()}

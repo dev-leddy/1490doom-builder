@@ -215,15 +215,27 @@
 }
 .tk-vit-count { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 1.1rem; color: #4a9a4a; margin-left: 6px; font-weight: 700; }
 
-/* ── WEAPONS ────────────────────────────────────────────── */
-.tk-equip-block { display: flex; flex-direction: column; gap: 0.5rem; }
-.tk-wpn-row { display: flex; align-items: flex-start; gap: 0.55rem; background: #1a1a1a; border: 1px solid #2a2a2a; padding: 0.65rem 0.75rem; }
-.tk-wpn-body { flex: 1; min-width: 0; }
-.tk-wpn-name-line { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; margin-bottom: 4px; }
-.tk-wpn-name { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 1rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
-.tk-wpn-pill { background: #333; color: #ffffff; padding: 2px 6px; font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; white-space: nowrap; }
-.tk-wpn-note { font-size: 1rem; color: #b0a080; line-height: 1.6; }
-.tk-wpn-icon { width: 18px; height: 18px; filter: sepia(0.3) brightness(0.95); opacity: 0.85; flex-shrink: 0; }
+/* ── EQUIPMENT GRID ─────────────────────────────────────── */
+.tk-equip-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.35rem; }
+.tk-equip-card { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 0.2rem; background: rgba(255,255,255,0.03); border: 1px solid #333; border-radius: 3px; padding: 0.55rem 0.3rem 0.5rem; text-align: center; cursor: pointer; transition: border-color 0.15s, background 0.15s; min-width: 0; }
+.tk-equip-card:hover { background: rgba(255,255,255,0.07); border-color: #be4127; }
+.tk-equip-card:active { background: rgba(190,65,39,0.08); }
+.tk-equip-card--cache { border-color: #2a5a2a; background: rgba(74,154,74,0.05); }
+.tk-equip-card--cache:hover { background: rgba(74,154,74,0.1); border-color: #4a9a4a; }
+.tk-equip-card--faded { opacity: 0.4; }
+.tk-equip-card-icon { width: 24px; height: 24px; filter: sepia(0.3) brightness(0.95); opacity: 0.85; flex-shrink: 0; margin-bottom: 0.15rem; }
+.tk-equip-card-name { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em; color: #fff; line-height: 1.2; word-break: break-word; }
+.tk-equip-card-sub { font-family: 'Oswald', sans-serif; font-size: 0.58rem; letter-spacing: 0.06em; color: #555; text-transform: uppercase; margin-top: 0.1rem; }
+.tk-equip-card--cache .tk-equip-card-sub { color: #4a9a4a; }
+/* ── EQUIPMENT DETAIL POPUP ─────────────────────────────── */
+.tk-equip-detail-desc { font-size: 0.95rem; color: #c8b890; line-height: 1.6; margin-top: 0.75rem; white-space: pre-line; }
+.tk-equip-detail-actions { display: flex; gap: 0.5rem; margin-top: 1rem; }
+.tk-detail-btn { flex: 1; font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.15em; padding: 0.55rem 0.5rem; border: none; cursor: pointer; transition: background 0.15s; }
+.tk-detail-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.tk-detail-btn--ghost { background: transparent; border: 1px solid #2a2a2a; color: #666; }
+.tk-detail-btn--ghost:hover { color: #999; border-color: #444; }
+.tk-detail-btn--expend { background: #be4127; color: #fff; }
+.tk-detail-btn--expend:hover:not(:disabled) { background: #a03520; }
 
 /* ── ABILITIES ──────────────────────────────────────────── */
 .tk-abilities-block { display: flex; flex-direction: column; gap: 0.5rem; }
@@ -241,11 +253,16 @@
 .tk-ability.tk-ability-used .tk-ability-name { color: #3a3a3a; text-decoration: line-through; }
 .tk-ability-desc { font-size: 1rem; color: #c8b890; line-height: 1.6; overflow-wrap: break-word; word-break: break-word; }
 .tk-ability.tk-ability-used .tk-ability-desc { color: #2a2a2a; }
-.tk-opg-badge { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.6rem; letter-spacing: 0.1em; background: #1f1900; color: #be4127; border: 1px solid #3a2e00; padding: 2px 6px; white-space: nowrap; flex-shrink: 0; }
+.tracker-modal-close { position: absolute; top: 0.5rem; right: 0.6rem; background: none; border: none; color: #666; font-size: 1.4rem; line-height: 1; cursor: pointer; padding: 0.2rem 0.4rem; transition: color 0.15s; }
+.tracker-modal-close:hover { color: #ccc; }
+.tk-opg-badge { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.6rem; letter-spacing: 0.1em; background: rgba(190,65,39,0.08); color: #be4127; border: 1px solid rgba(190,65,39,0.35); padding: 2px 6px; white-space: nowrap; flex-shrink: 0; }
 .tk-opg-badge.tk-opg-used { background: #0d0d0d; color: #2a2a2a; border-color: #1a1a1a; }
 .tk-opg-badge.tk-opg-permanent { background: #1a0000; color: #7a2a2a; border-color: #3a1010; }
 /* TWICE PER GAME — copper/orange */
 .tk-tpg-badge { display: inline-flex; align-items: center; gap: 0.2rem; background: #1f0f00; color: #c87830; border-color: #4a2800; }
+/* CROSSBOW state */
+.tk-crossbow-loaded { background: rgba(74,154,74,0.1); color: #4a9a4a; border-color: rgba(74,154,74,0.4); }
+.tk-crossbow-unloaded { background: rgba(190,65,39,0.08); color: #be4127; border-color: rgba(190,65,39,0.35); }
 .tk-tpg-badge.tk-opg-used { background: #0d0d0d; color: #2a2a2a; border-color: #1a1a1a; }
 .tk-tpg-pip { font-size: 0.55rem; color: #4a2800; transition: color 0.15s; }
 .tk-tpg-pip.used { color: #c87830; }

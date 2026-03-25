@@ -37,6 +37,7 @@ function buildWarriorTrackerState(slot, index, builderState) {
     oprUsed: {},
     consumableUsed: false,
     reliquaryUsed: false,
+    crossbowLoaded: true,
     cacheItems: [],
     statuses: [],
     isCaptain: slot.isCaptain,
@@ -97,6 +98,7 @@ export const useTrackerStore = create((set, get) => ({
         oprUsed: {},
         consumableUsed: false,
         reliquaryUsed: false,
+        crossbowLoaded: true,
         cacheItems: [],
         statuses: [],
       })),
@@ -196,6 +198,18 @@ export const useTrackerStore = create((set, get) => ({
       const w = { ...warriors[wi], oprUsed: { ...warriors[wi].oprUsed } }
       if (w.dead) return state
       w.oprUsed[abilityName] = !w.oprUsed[abilityName]
+      warriors[wi] = w
+      return { warriors }
+    })
+  },
+
+  // ── CROSSBOW ───────────────────────────────────────────────────────────────
+  toggleCrossbowLoaded(wi) {
+    set(state => {
+      const warriors = [...state.warriors]
+      const w = { ...warriors[wi] }
+      if (w.dead) return state
+      w.crossbowLoaded = !w.crossbowLoaded
       warriors[wi] = w
       return { warriors }
     })

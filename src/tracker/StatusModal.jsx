@@ -7,7 +7,8 @@ export default function StatusModal({ wi }) {
 
   return (
     <div className="modal-backdrop" onClick={e => e.target === e.currentTarget && closeStatusModal()}>
-      <div className="modal-box" style={{ maxWidth: 380 }}>
+      <div className="modal-box" style={{ maxWidth: 380, maxHeight: '65dvh', position: 'relative' }}>
+        <button className="tracker-modal-close" onClick={closeStatusModal} aria-label="Close">×</button>
         <div className="tracker-modal-title">APPLY STATUS EFFECT</div>
         {STATUS_DEFS.map(([name, desc]) => (
           <button
@@ -24,7 +25,6 @@ export default function StatusModal({ wi }) {
             <div className="status-item-desc">{desc}</div>
           </button>
         ))}
-        <button className="btn btn-ghost btn-full" onClick={closeStatusModal}>CANCEL</button>
       </div>
     </div>
   )

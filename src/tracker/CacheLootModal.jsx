@@ -7,7 +7,8 @@ export default function CacheLootModal({ wi }) {
 
   return (
     <div className="modal-backdrop" onClick={e => e.target === e.currentTarget && closeCacheLoot()}>
-      <div className="modal-box" style={{ maxWidth: 380 }}>
+      <div className="modal-box" style={{ maxWidth: 380, maxHeight: '65dvh', position: 'relative' }}>
+        <button className="tracker-modal-close" onClick={closeCacheLoot} aria-label="Close">×</button>
         <div className="tracker-modal-title">RESOURCE CACHE — PICK ITEM</div>
         {CACHE_ITEMS.map(item => (
           <button
@@ -25,7 +26,6 @@ export default function CacheLootModal({ wi }) {
             <div className="cache-item-desc">{item.desc}</div>
           </button>
         ))}
-        <button className="btn btn-ghost btn-full" onClick={closeCacheLoot}>CANCEL</button>
       </div>
     </div>
   )

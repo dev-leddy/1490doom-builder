@@ -206,14 +206,14 @@ function UpgradeModal({
             />
           )}
 
-          {category !== 'weapon1' && ((category === 'weapon2' && slot.weapon2 && !isFixed) || (category === 'climbing' && slot.climbing && slot.climbing !== 'None') || (category === 'consumable' && slot.consumable) || (category === 'stat' && slot.statImprove)) && (
-            <div className="upgrade-modal-remove-wrap" style={{ marginTop: '1.5rem', textAlign: 'center' }}>
-              <button className="btn btn-ghost" onClick={() => { removeUpgrade(category); onClose() }}>
-                Remove Upgrade
-              </button>
-            </div>
-          )}
         </div>
+        {category !== 'weapon1' && ((category === 'weapon2' && slot.weapon2 && !isFixed) || (category === 'climbing' && slot.climbing && slot.climbing !== 'None') || (category === 'consumable' && slot.consumable) || (category === 'stat' && slot.statImprove)) && (
+          <div className="upgrade-modal-remove-wrap">
+            <button className="btn btn-ghost" onClick={() => { removeUpgrade(category); onClose() }}>
+              Remove Upgrade
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )

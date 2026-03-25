@@ -5,7 +5,6 @@ import { CONSUMABLES, WEAPONS } from '../data/weapons'
 import VitalityTrack from './VitalityTrack'
 import EquipmentBlock from './EquipmentBlock'
 import AbilityBlock from './AbilityBlock'
-import CacheBlock from './CacheBlock'
 import StatusBlock from './StatusBlock'
 
 function improveStatDisplay(base, stat) {
@@ -173,17 +172,9 @@ export default function WarriorTrackerCard({ warrior: w, wi }) {
       {/* IP Upgrades — self-labelling, renders null when empty */}
       <IPUpgradeNote warrior={w} />
 
-      {/* Equipment */}
+      {/* Equipment (weapons, climbing, consumable, cache items) */}
       <div className="tk-section-label" style={{ marginTop: '0.7rem' }}>Equipment</div>
-      <EquipmentBlock warrior={w} />
-
-      {/* Cache Items */}
-      {w.cacheItems.length > 0 && (
-        <>
-          <div className="tk-section-label" style={{ marginTop: '0.7rem' }}>Cache Items</div>
-          <CacheBlock wi={wi} warrior={w} />
-        </>
-      )}
+      <EquipmentBlock wi={wi} warrior={w} />
 
       {/* Active Statuses */}
       {w.statuses.length > 0 && (
@@ -210,16 +201,6 @@ export default function WarriorTrackerCard({ warrior: w, wi }) {
                 {n.body && <div className="tk-ability-desc">{n.body}</div>}
               </div>
             ))}
-          </div>
-        </>
-      )}
-
-      {/* Consumable */}
-      {w.consumable && (
-        <>
-          <div className="tk-section-label" style={{ marginTop: '0.7rem' }}>Consumable</div>
-          <div className="tk-abilities-block">
-            <ConsumableBlock wi={wi} warrior={w} wdata={wdata} />
           </div>
         </>
       )}
