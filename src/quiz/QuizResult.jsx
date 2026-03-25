@@ -29,9 +29,11 @@ export default function QuizResult({ winner, onComplete, onRestart, audioState, 
       // Embedded mode — signal builder directly
       onComplete(payload)
     } else {
-      // Standalone mode — navigate to builder with quiz data
+      // Standalone mode — navigate to builder with quiz data.
+      // Use /index.html instead of / to bypass the Cloudflare redirect (/ → /quiz).
+      // The builder cleans up the URL via history.replaceState after reading the param.
       const encoded = encodeURIComponent(JSON.stringify(payload))
-      window.location.href = `/?quiz=${encoded}`
+      window.location.href = `/index.html?quiz=${encoded}`
     }
   }
 
