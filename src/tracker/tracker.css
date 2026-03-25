@@ -508,7 +508,7 @@
 
 /* Status compact grid (Active Statuses section on tracker card) */
 .tk-status-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.35rem; }
-.tk-status-card { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 0.2rem; background: #12122a; border: 1px solid #2a2a5a; border-radius: 3px; padding: 0.55rem 0.3rem 0.5rem; text-align: center; cursor: pointer; transition: border-color 0.15s, background 0.15s; min-width: 0; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.tk-status-card { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.2rem; background: #12122a; border: 1px solid #2a2a5a; border-radius: 3px; padding: 0.55rem 0.3rem 0.5rem; text-align: center; cursor: pointer; transition: border-color 0.15s, background 0.15s; min-width: 0; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .tk-status-card:hover { background: #1a1a3a; border-color: #9a9add; }
 .tk-status-card:active { background: rgba(154,154,221,0.1); }
 .tk-status-card-icon { width: 24px; height: 24px; filter: brightness(0) invert(1); opacity: 0.85; flex-shrink: 0; margin-bottom: 0.15rem; }
