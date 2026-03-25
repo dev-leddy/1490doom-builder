@@ -3,6 +3,15 @@ import { useTrackerStore } from '../store/trackerStore'
 import { WEAPONS, CLIMBING_ITEMS, CLIMBING_DESCS, CONSUMABLES } from '../data/weapons'
 import { ITEM_ICONS } from '../data/images'
 
+const CACHE_SHORT = {
+  'Herbs & Tonic':    '+3 VIT',
+  'Food':             '+1 ACTION',
+  'Scholarly Scroll': 'PASS SKILL',
+  'Map':              'MOVE ALL',
+  'Cloak':            'UNTARGETABLE',
+  'Reliquary':        'RESTORE OPG',
+}
+
 function EquipCard({ icon, name, sub, badge, onClick, isCache, faded, extraClass }) {
   return (
     <button
@@ -108,7 +117,7 @@ export default function EquipmentBlock({ wi, warrior: w }) {
       key: `cache-${item.id}`,
       icon: ITEM_ICONS[item.name],
       name: item.name,
-      sub: null,
+      sub: CACHE_SHORT[item.name] || null,
       desc: item.desc,
       variant: 'cache',
       cacheId: item.id,
