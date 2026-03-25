@@ -4267,6 +4267,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-start;
   gap: 0.6rem;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
@@ -4291,8 +4292,8 @@
 
 /* ── Avatar Ring ───────────────────────────────────────────── */
 .ch-avatar-ring {
-  width: 128px;
-  height: 128px;
+  width: 140px;
+  height: 140px;
   border-radius: 50%;
   border: 2px solid rgba(220, 220, 220, 0.18);
   display: flex;
@@ -4307,8 +4308,8 @@
 }
 
 .ch-avatar-inner {
-  width: 116px;
-  height: 116px;
+  width: 126px;
+  height: 126px;
   border-radius: 50%;
   background: #f0ebe0;
   overflow: hidden;
@@ -4345,15 +4346,11 @@
   font-weight: 600;
   letter-spacing: 0.07em;
   text-transform: uppercase;
-  color: var(--parchment);
+  color: #ffffff;
   text-align: center;
   line-height: 1.1;
   word-break: break-word;
   overflow-wrap: break-word;
-  transition: color 0.2s;
-}
-.ch-identity-btn:hover .ch-name-text {
-  color: #ffffff;
 }
 
 .ch-name-underline {
@@ -4553,8 +4550,8 @@
 /* ── Mobile ─────────────────────────────────────────────────── */
 @media (max-width: 420px) {
   .ch-frame { padding: 1.4rem 0.9rem 1.25rem; }
-  .ch-avatar-ring { width: 108px; height: 108px; }
-  .ch-avatar-inner { width: 98px; height: 98px; }
+  .ch-avatar-ring { width: 118px; height: 118px; }
+  .ch-avatar-inner { width: 106px; height: 106px; }
   .ch-sigil-ring  { width: 118px; height: 118px; }
   .ch-sigil-inner { width: 106px; height: 106px; }
   .ch-divider     { max-width: 180px; }
