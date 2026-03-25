@@ -114,9 +114,9 @@ html, body {
   z-index: 2;
   pointer-events: none;
   overflow: hidden;
-  filter: blur(2px) saturate(1.1) sepia(0.15);
-  mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 40%, black 100%);
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 40%, black 100%);
+  filter: blur(3px) saturate(1.2) sepia(0.2);
+  mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.7) 30%, black 70%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.7) 30%, black 70%);
   opacity: 1;
   transition: opacity 600ms ease;
 }
@@ -460,7 +460,7 @@ button:focus-visible, a:focus-visible {
   position: relative;
   z-index: 2;
   width: 100%;
-  height: calc(100% - 4.5rem); /* stop scroll track exactly at footer top */
+  height: calc(100dvh - var(--footer-h, 4.5rem)); /* JS sets --footer-h to measured px value */
   min-height: 0; /* CRITICAL: flex items default to min-height:auto — without this, the item
                     expands to content height, parent clips it, and overflow-y never activates */
   overflow-y: auto;
@@ -469,14 +469,14 @@ button:focus-visible, a:focus-visible {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  padding: clamp(3.5rem, 5vh, 4.5rem) 2rem 3.5rem;
+  padding: clamp(2rem, 3.5vh, 3rem) 2rem 3.5rem; /* logos top-right only — less top clearance needed */
   box-sizing: border-box;
 }
 #section-result::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, rgba(4,2,1,0.91) 0%, rgba(4,2,1,0.95) 60%, rgba(4,2,1,0.98) 100%);
+  background: linear-gradient(to bottom, rgba(4,2,1,0.93) 0%, rgba(4,2,1,0.97) 40%, rgba(4,2,1,0.97) 65%, rgba(4,2,1,0.98) 100%);
   pointer-events: none;
   z-index: 0;
 }
@@ -488,7 +488,7 @@ button:focus-visible, a:focus-visible {
   background-image:
     url('https://raw.githubusercontent.com/danielstuart14/CSS_FOG_ANIMATION/master/fog1.png'),
     url('https://raw.githubusercontent.com/danielstuart14/CSS_FOG_ANIMATION/master/fog2.png');
-  background-size: 200% auto, 250% auto;
+  background-size: 200% 100%, 250% 100%; /* full height per layer — prevents overlap brightness band in the middle */
   background-position: 0% 0%, 100% 100%;
   background-repeat: repeat-x;
   opacity: 0.45;
@@ -499,6 +499,18 @@ button:focus-visible, a:focus-visible {
 @keyframes resultFogDrift {
   from { background-position: 0%    0%,   100%  100%; }
   to   { background-position: 200%  0%,  -150%  100%; }
+}
+/* Mask the fog vertically on non-mobile — prevents the PNG's hard top/bottom
+   edges from showing as visible lines at wider/taller viewports */
+@media (min-width: 601px) {
+  #section-result::after {
+    mask-image: linear-gradient(to bottom,
+      transparent 0%, rgba(0,0,0,0.7) 15%, black 28%,
+      black 72%, rgba(0,0,0,0.7) 85%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom,
+      transparent 0%, rgba(0,0,0,0.7) 15%, black 28%,
+      black 72%, rgba(0,0,0,0.7) 85%, transparent 100%);
+  }
 }
 
 .result-wrapper {
@@ -575,8 +587,7 @@ button:focus-visible, a:focus-visible {
 .result-main-row {
   display: flex;
   flex-direction: row;
-  flex: 1;
-  min-height: 0;
+  flex: none;
   gap: 0.65rem;
   width: 100%;
   align-items: stretch;
@@ -677,8 +688,8 @@ button:focus-visible, a:focus-visible {
   display: flex;
   flex-direction: column;
   gap: 0;
-  flex: 1;
-  min-height: 0;
+  flex: none;
+  width: 100%;
   overflow: hidden;
   position: relative; /* needed for ::before */
   background: transparent;
@@ -701,10 +712,9 @@ button:focus-visible, a:focus-visible {
 }
 .result-warriors-section .warrior-list {
   flex-direction: row;
-  flex: 1;
-  min-height: 0;
+  flex: none;
   gap: 0;
-  padding: 0;
+  padding: 0.5rem 0 0; /* breathing room above the warrior images */
   background: transparent;
 }
 .section-label {
@@ -741,10 +751,9 @@ button:focus-visible, a:focus-visible {
 .warrior-mini-card .card-fog-2 { display: none; }
 .warrior-mini-card {
   width: 100%;
-  flex: 1;
-  min-height: 0;
+  flex: none;
+  height: 160px; /* base for 601-899px; mobile overrides to 110px, desktop to 200px */
   background: transparent !important; /* AnaSky.jpg on section container shows through */
-  flex-shrink: 0;
   position: relative;
   overflow: visible;
 }
@@ -780,6 +789,130 @@ button:focus-visible, a:focus-visible {
   display: block;
   z-index: 4;
 }
+/* ─── Warrior Lightbox ──────────────────────────────────────────── */
+#warrior-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  box-sizing: border-box;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 220ms ease;
+  background: rgba(4,2,1,0.82);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+#warrior-lightbox.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+#warrior-lightbox-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  max-width: min(320px, 90vw);
+  width: 100%;
+  transform: scale(0.9);
+  transition: transform 220ms cubic-bezier(0.34, 1.3, 0.64, 1);
+}
+#warrior-lightbox.open #warrior-lightbox-panel {
+  transform: scale(1);
+}
+#warrior-lightbox-close {
+  position: absolute;
+  top: -0.75rem;
+  right: -0.75rem;
+  /* visible size */
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(4,2,1,0.9);
+  color: rgba(255,255,255,0.6);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 150ms, border-color 150ms;
+  z-index: 2;
+  padding: 0;
+  /* expand touch target to 44px without affecting visual size */
+  touch-action: manipulation;
+}
+#warrior-lightbox-close::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+}
+#warrior-lightbox-close:hover { color: #fff; border-color: rgba(255,255,255,0.5); }
+#warrior-lightbox-img-wrap {
+  width: 100%;
+  aspect-ratio: 1 / 1.05;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  position: relative;
+}
+/* Company-accent radial glow behind the model */
+#warrior-lightbox-img-wrap::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 70% 55% at 50% 65%,
+    rgba(var(--company-accent-rgb), 0.22) 0%,
+    transparent 70%);
+  pointer-events: none;
+}
+#warrior-lightbox-img {
+  max-width: 88%;
+  max-height: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+  display: block;
+  filter: drop-shadow(0 12px 32px rgba(0,0,0,0.9));
+}
+#warrior-lightbox-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  text-align: center;
+  padding-bottom: 0.25rem;
+}
+#warrior-lightbox-name {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--white);
+  letter-spacing: 0.05em;
+}
+#warrior-lightbox-desc {
+  font-family: var(--font-heading);
+  font-style: italic;
+  font-size: 0.9rem;
+  color: var(--muted);
+  letter-spacing: 0.03em;
+}
+/* Clickable affordance on the mini-cards */
+.warrior-mini-card.zoomable { cursor: zoom-in; }
+.warrior-mini-card.zoomable img { transition: transform 180ms ease; }
+/* Only apply hover lift on real pointer devices — prevents sticky-hover on touch */
+@media (hover: hover) and (pointer: fine) {
+  .warrior-card:hover .warrior-mini-card img {
+    transform: translateY(-6px);
+  }
+}
+/* Touch tap feedback */
+.warrior-mini-card.zoomable:active img { transform: scale(0.97); }
+
 .warrior-card-text {
   padding: 0.4rem 0.3rem 0.65rem;
   display: flex;
@@ -935,28 +1068,48 @@ button:focus-visible, a:focus-visible {
   bottom: 0; left: 0; right: 0;
   z-index: 20;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  padding: 0.5rem 1.5rem;
-  gap: 1rem;
+  gap: 0;
+  padding: 0.35rem 1.5rem 0.4rem;
   background: transparent;
   transition: background 400ms ease;
   pointer-events: none; /* pass-through on non-result pages */
+}
+.footer-main {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 1rem;
+}
+.footer-credits {
+  font-family: var(--font-display);
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.20);
+  text-align: center;
+  margin: 0;
+  line-height: 1.7;
+  padding-bottom: 0.2rem;
 }
 .app-footer.result-active {
   background: rgba(4,2,1,0.90);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
 }
-/* Buer logo always clickable */
-.footer-buer-logo-link { 
-  pointer-events: auto; 
+/* Logos always clickable even though footer is pointer-events:none */
+.footer-buer-logo-link,
+.doom-logo-corner {
+  pointer-events: auto;
   display: block;
+  flex-shrink: 0;
 }
 .footer-buer-logo-link:hover .footer-buer-logo {
   opacity: 0.9;
 }
 
-/* CTA center: hidden until result page */
+/* CTA: hidden until result page — flex: 1 fills center between the two logos */
 .footer-cta {
   flex: 1;
   display: flex;
@@ -968,22 +1121,34 @@ button:focus-visible, a:focus-visible {
   pointer-events: none;
   transition: opacity 400ms ease;
 }
+.app-footer.result-active .footer-credits { display: none; }
+.result-page-credits {
+  font-family: var(--font-display);
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.20);
+  text-align: center;
+  margin: 0;
+  line-height: 1.7;
+  padding-top: 0.2rem;
+}
 .app-footer.result-active .footer-cta {
   opacity: 1;
   pointer-events: auto;
 }
-/* Buy button — equal flex with restart, both same width */
+/* Buy button — equal flex with restart, both same width + height */
 .footer-cta .btn-primary {
   flex: 1;
   max-width: 215px;
   min-width: 0;
-  min-height: 40px;
-  padding: 0.4rem 1.0rem;
+  min-height: 52px; /* 2 lines × 0.75rem × 1.3 line-height + padding */
+  padding: 0.35rem 1.0rem;
   font-size: 0.75rem;
-  letter-spacing: 0.09em; /* reduced from 0.14em — 18-char "Claim Your Company" needs breathing room */
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  letter-spacing: 0.09em;
+  white-space: pre-line; /* respects \n in textContent, centers each line */
+  text-align: center;
+  line-height: 1.3;
 }
 .footer-buer-logo {
   height: 56px;
@@ -995,26 +1160,28 @@ button:focus-visible, a:focus-visible {
   filter: brightness(1.4);
 }
 .footer-buer-logo:hover { opacity: 0.9; }
-/* "TRY AGAIN" ghost button — equal flex with buy button, always same width */
+/* Ghost button — exactly mirrors primary sizing */
 .btn-restart-link {
   flex: 1;
   max-width: 215px;
   min-width: 0;
-  min-height: 40px;
+  min-height: 52px; /* matches primary */
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.4rem 1.0rem;
+  padding: 0.35rem 1.0rem;
   background: transparent;
   border: 1px solid rgba(255,255,255,0.20);
   border-radius: 2px;
   color: rgba(255,255,255,0.55);
   font-family: var(--font-display);
-  font-size: 0.68rem;
-  letter-spacing: 0.12em;
+  font-size: 0.75rem;    /* matches primary — identical height math */
+  letter-spacing: 0.09em;
+  line-height: 1.3;
   text-transform: uppercase;
   cursor: pointer;
-  white-space: nowrap;
+  white-space: pre-line; /* respects \n, centers each line */
+  text-align: center;
   text-decoration: none;
   transition: color 150ms, border-color 150ms, background 150ms;
 }
@@ -1027,8 +1194,9 @@ button:focus-visible, a:focus-visible {
 /* ─── Audio widget ──────────────────────────────────────────────── */
 .audio-widget {
   position: fixed;
-  top: 1.25rem;
-  left: 2rem;
+  top: 0;
+  left: 0;
+  padding: 0.65rem 1rem;
   z-index: 25; /* above footer */
   display: flex;
   align-items: center;
@@ -1063,24 +1231,11 @@ button:focus-visible, a:focus-visible {
 }
 
 /* Loading spinner inside main button */
-.audio-spinner {
-  width: 18px;
-  height: 18px;
-  border: 2px solid rgba(255,255,255,0.15);
-  border-top-color: rgba(255,255,255,0.65);
-  border-radius: 50%;
-  animation: audioSpin 0.75s linear infinite;
-}
-@keyframes audioSpin {
-  to { transform: rotate(360deg); }
-}
-
 
 .doom-logo-corner {
-  flex-shrink: 0;
-  pointer-events: none;
   opacity: 0;
   transition: opacity 400ms ease;
+  display: block;
 }
 .doom-logo-corner.visible { opacity: 0.75; }
 .doom-logo-corner img {
@@ -1128,17 +1283,31 @@ button:focus-visible, a:focus-visible {
 @media (max-width: 600px) {
   html, body { font-size: 16px; }
   .quiz-section { padding: 1.5rem 1.1rem; }
-  /* Single-row footer is ~52px; bottom pad just needs to clear it */
-  .result-scroll-inner { padding: 4.5rem 1.1rem 3.5rem; }
-  /* Compact single-row footer on mobile */
-  .app-footer { padding: 0.4rem 0.9rem; gap: 0.4rem; }
-  .footer-buer-logo { height: 28px; }
-  .footer-cta .btn-primary { font-size: 0.65rem; padding: 0.35rem 0.75rem; }
-  .btn-restart-link { font-size: 0.6rem; padding: 0.35rem 0.65rem; }
-  .doom-logo-corner img { height: 32px; }
+  /* Mobile: dvh tracks browser-chrome shrink; --footer-h measured in px by JS */
+  .result-scroll-inner { height: calc(100dvh - var(--footer-h, 3.75rem)); padding: 4.5rem 1.1rem 4rem; }
+  /* background-attachment:fixed is broken on iOS Safari — revert to scroll */
+  #section-result { background-attachment: scroll; }
+  /* Compact footer — logos + buttons */
+  .app-footer { padding: 0.25rem 0.9rem 0.3rem; gap: 0; }
+  .footer-main { gap: 0.6rem; }
+  .footer-credits { font-size: 0.56rem; letter-spacing: 0.1em; }
+  .result-page-credits { font-size: 0.56rem; }
+  .footer-cta .btn-primary,
+  .btn-restart-link { font-size: 0.65rem; padding: 0.3rem 0.65rem; min-height: 46px; }
+  /* Shrink footer logos on mobile */
+  .doom-logo-corner img { height: 28px; }
+  .footer-buer-logo { height: 22px; }
   .result-wrapper { gap: 0.8rem; }
+  /* Fog: brighter + taller on mobile — harder to see on small screens */
+  .fog-bottom {
+    height: 42vh;
+    filter: blur(6px) saturate(1.4) sepia(0.15) brightness(1.5);
+    mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.5) 25%, rgba(0,0,0,0.85) 50%, black 70%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.5) 25%, rgba(0,0,0,0.85) 50%, black 70%);
+  }
+  .fog-bottom.fog-hero { opacity: 0.6; }
   /* Audio widget top-left — match mobile padding */
-  .audio-widget { top: 1rem; left: 1.1rem; }
+  .audio-widget { padding: 0.5rem 0.75rem; }
   /* Back button: below audio widget */
   .btn-back { top: 4rem; left: 1.1rem; }
   .result-rep-wrap { width: 90px; height: 90px; }
@@ -1169,7 +1338,7 @@ button:focus-visible, a:focus-visible {
   .result-scroll-inner {
     align-items: center;
     padding: 1.5rem 2rem 2.5rem;
-    height: calc(100% - 3.5rem); /* desktop footer is slightly shorter */
+    height: calc(100dvh - var(--footer-h, 4.5rem)); /* JS sets --footer-h */
   }
   .result-wrapper {
     gap: 0.65rem;
@@ -1234,6 +1403,44 @@ button:focus-visible, a:focus-visible {
   }
   .result-wrapper { gap: 0.4rem; }
 }
+
+/* ── Portrait-only overlay for mobile landscape ───────────────────── */
+#rotate-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #0a0a0a;
+  color: #fff;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.2rem;
+  font-family: inherit;
+  text-align: center;
+  padding: 2rem;
+}
+#rotate-overlay svg {
+  width: 52px;
+  height: 52px;
+  opacity: 0.75;
+  animation: rotateHint 2s ease-in-out infinite;
+}
+@keyframes rotateHint {
+  0%, 100% { transform: rotate(0deg); }
+  40%       { transform: rotate(-90deg); }
+  60%       { transform: rotate(-90deg); }
+}
+#rotate-overlay p {
+  margin: 0;
+  font-size: 1rem;
+  opacity: 0.75;
+  letter-spacing: 0.04em;
+}
+/* Only show on narrow landscape (phones, not tablets/desktops) */
+@media (max-height: 500px) and (orientation: landscape) and (max-width: 900px) {
+  #rotate-overlay { display: flex; }
+}
 </style>
 </head>
 <body>
@@ -1257,6 +1464,20 @@ button:focus-visible, a:focus-visible {
   <div class="fog-layer fog-layer-2">
     <div class="fog-img"></div>
     <div class="fog-img"></div>
+  </div>
+</div>
+
+<!-- Warrior lightbox -->
+<div id="warrior-lightbox" aria-hidden="true" aria-modal="true" role="dialog">
+  <div id="warrior-lightbox-panel">
+    <button id="warrior-lightbox-close" aria-label="Close">&#x2715;</button>
+    <div id="warrior-lightbox-img-wrap">
+      <img id="warrior-lightbox-img" src="" alt="">
+    </div>
+    <div id="warrior-lightbox-info">
+      <span id="warrior-lightbox-name"></span>
+      <span id="warrior-lightbox-desc"></span>
+    </div>
   </div>
 </div>
 
@@ -1355,6 +1576,8 @@ button:focus-visible, a:focus-visible {
 
       </div><!-- /result-cards-area -->
 
+      <p class="result-page-credits">An Official 1490 DOOM Production &nbsp;&middot;&nbsp; Buer Games<br>By Michael Leddy</p>
+
     </div>
     </div><!-- /result-scroll-inner -->
   </section>
@@ -1364,31 +1587,28 @@ button:focus-visible, a:focus-visible {
 <!-- Music widget — fixed top left, always present -->
 <div class="audio-widget" id="audio-widget">
 
-  <button id="btn-audio-main" class="audio-main-btn" aria-label="Play music">
-    <div class="audio-spinner" id="audio-spinner"></div>
+  <button id="btn-audio-main" class="audio-main-btn" aria-label="Play music" style="display:none">
     <svg id="icon-main-music" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" style="display:none"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
     <svg id="icon-main-play" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" style="display:none"><path d="M8 5v14l11-7z"/></svg>
     <svg id="icon-main-pause" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
   </button>
 </div>
 
-<!-- Footer: DOOM logo (left) · CTA (center, result only) · Buer logo (right) -->
+<!-- Footer: credits stamp (top) · DOOM logo / CTA / Buer logo (bottom row) -->
 <footer class="app-footer" id="app-footer">
-  <!-- Left: 1490 DOOM logo, visible after hero -->
-  <a class="doom-logo-corner" id="doom-logo-corner" href="https://buergames.com/pages/1490doom" target="_blank" rel="noopener noreferrer">
-    <img src="Art/Logos/DOOMlogoOrange.png" alt="1490 Doom">
-  </a>
-
-  <!-- Center: buy CTA (visible on result page only) -->
-  <div class="footer-cta" id="footer-cta">
-    <a id="result-link-2" class="btn-primary" href="#" target="_blank" rel="noopener noreferrer"></a>
-    <button id="btn-restart" class="btn-restart-link">Seek Another Path</button>
+  <p class="footer-credits">An Official 1490 DOOM Production &nbsp;&middot;&nbsp; Buer Games<br>By Michael Leddy</p>
+  <div class="footer-main">
+    <a class="doom-logo-corner" id="doom-logo-corner" href="https://buergames.com/pages/1490doom" target="_blank" rel="noopener noreferrer">
+      <img src="Art/Logos/DOOMlogoOrange.png" alt="1490 Doom">
+    </a>
+    <div class="footer-cta" id="footer-cta">
+      <a id="result-link-2" class="btn-primary" href="#" target="_blank" rel="noopener noreferrer"></a>
+      <button id="btn-restart" class="btn-restart-link">Seek&#10;Another Path</button>
+    </div>
+    <a href="https://buergames.com/" target="_blank" rel="noopener noreferrer" class="footer-buer-logo-link">
+      <img class="footer-buer-logo" src="Art/Logos/BuerWhiteTextAndLogo.png" alt="Buer Games">
+    </a>
   </div>
-
-  <!-- Right: Buer Games logo -->
-  <a href="https://buergames.com/" target="_blank" rel="noopener noreferrer" class="footer-buer-logo-link">
-    <img class="footer-buer-logo" src="Art/Logos/BuerWhiteTextAndLogo.png" alt="Buer Games">
-  </a>
 </footer>
 
 <script>
@@ -1406,7 +1626,7 @@ const COMPANIES = [
     markName: 'One final action when a warrior perishes',
     markDescription: "Death is not the end. It's the last chance to take one of them with you.",
     strategy: 'Deploy aggressively, make final actions count when warriors fall, accept casualties to secure victory.',
-    victoryPath: '<strong>Attrition</strong> · 1 VP<br><span class="vp-desc">End the game with more warriors alive than your opponent. Simple. Hit hard, die last.</span><br><br><strong>High Ground</strong> · 2 VP<br><span class="vp-desc">Have the most models at the highest elevation at game end.</span>',
+    victoryPath: '<strong>Attrition</strong><br><span class="vp-desc">End the game with more warriors alive than your opponent. Simple. Hit hard, die last.</span><br><br><strong>High Ground</strong><br><span class="vp-desc">Have the most models at the highest elevation at game end.</span>',
     url: 'https://buergames.com/products/the-graveborn-company'
   },
   {
@@ -1420,7 +1640,7 @@ const COMPANIES = [
     markName: 'One warrior uses 3 actions once per game',
     markDescription: 'Perfect coordination. When the moment comes, you move as one.',
     strategy: 'Strike fast and disengage, use traps to control movement, save 3-action burst for critical moments.',
-    victoryPath: '<strong>High Ground</strong> · 2 VP<br><span class="vp-desc">Have the most models at the highest elevation at game end.</span><br><br><strong>Resourceful</strong> · 1 VP<br><span class="vp-desc">Open more resource caches than any other company.</span>',
+    victoryPath: '<strong>High Ground</strong><br><span class="vp-desc">Have the most models at the highest elevation at game end.</span><br><br><strong>Resourceful</strong><br><span class="vp-desc">Open more resource caches than any other company.</span>',
     url: 'https://buergames.com/products/the-silent-pact-complete-doom-company'
   },
   {
@@ -1428,13 +1648,13 @@ const COMPANIES = [
     name: 'The Tower Born',
     accent: '#4A6580', accentRgb: '74,101,128',
     rep: 'Art/Reps/Tower.png',
-    minis: ['Art/Warrior_Minis/Scout.png','Art/Warrior_Minis/Assassin.png','Art/Warrior_Minis/Reaver.png'],
+    minis: ['Art/Warrior_Minis/Scout.png','Art/Warrior_Minis/Assassin.png','Art/Warrior_Minis/Sabotuer.png'],
     tagline: 'Raised in the stairwells of dead towers. Fear of falling left you long ago.',
-    warriors: 'Scout (The First to the Top) · Assassin (The High Strike) · Reaver (The Fearless Leap)',
+    warriors: 'Scout (The First to the Top) · Assassin (The High Strike) · Saboteur (The Chaos Architect)',
     markName: 'Roll two dice on Falling Damage, take lowest',
     markDescription: "The fall doesn't scare you. You were born in the heights.",
     strategy: 'Rush tallest structures, push enemies off aggressively, jump between structures fearlessly.',
-    victoryPath: '<strong>High Ground</strong> · 2 VP<br><span class="vp-desc">Have the most models at the highest point on the board at game end. Get up. Stay up.</span><br><br><strong>Attrition</strong> · 1 VP<br><span class="vp-desc">End the game with more warriors alive than your opponent.</span>',
+    victoryPath: '<strong>High Ground</strong><br><span class="vp-desc">Have the most models at the highest point on the board at game end. Get up. Stay up.</span><br><br><strong>Attrition</strong><br><span class="vp-desc">End the game with more warriors alive than your opponent.</span>',
     url: 'https://buergames.com/products/the-tower-born-company'
   },
   {
@@ -1442,13 +1662,13 @@ const COMPANIES = [
     name: 'The Ashbound',
     accent: '#C97010', accentRgb: '201,112,16',
     rep: 'Art/Reps/Ash.png',
-    minis: ['Art/Warrior_Minis/Reaver.png','Art/Warrior_Minis/Executioner.png','Art/Warrior_Minis/Blacksmith.png'],
+    minis: ['Art/Warrior_Minis/WarriorPriest.png','Art/Warrior_Minis/Executioner.png','Art/Warrior_Minis/Blacksmith.png'],
     tagline: 'Lost something in the fire. Make the world remember where it burned.',
-    warriors: 'Reaver (The Fury Bound) · Executioner (Death in Sentence) · Blacksmith (The Equipment Master)',
+    warriors: 'Warrior Priest (Faith in the Fog) · Executioner (Death in Sentence) · Blacksmith (The Equipment Master)',
     markName: '+1 COMBAT within 2" of Hearth Token',
     markDescription: 'Place the Hearth where something was lost. Defend it to the death.',
     strategy: 'Force enemies to come to you, guard the Hearth strategically, fight on YOUR ground.',
-    victoryPath: '<strong>Attrition</strong> · 1 VP<br><span class="vp-desc">End the game with more warriors alive than your opponent.</span><br><br><strong>Resourceful</strong> · 1 VP<br><span class="vp-desc">Open more resource caches than any other company.</span>',
+    victoryPath: '<strong>Attrition</strong><br><span class="vp-desc">End the game with more warriors alive than your opponent.</span><br><br><strong>Resourceful</strong><br><span class="vp-desc">Open more resource caches than any other company.</span>',
     url: 'https://buergames.com/products/the-ashbound-company'
   },
   {
@@ -1462,7 +1682,7 @@ const COMPANIES = [
     markName: '+1 SKILL and +1 DEFENSE at 2 or less VITALITY',
     markDescription: 'The more wounded you are, the harder you are to kill.',
     strategy: 'Accept damage early to activate bonuses, wounded Scavengers excel at caches, survive and outlast.',
-    victoryPath: '<strong>Resourceful</strong> · 1 VP<br><span class="vp-desc">Open more resource caches than any other company. Even at death\'s door, you find a way.</span><br><br><strong>Attrition</strong> · 1 VP<br><span class="vp-desc">End the game with more warriors alive than your opponent.</span>',
+    victoryPath: '<strong>Resourceful</strong><br><span class="vp-desc">Open more resource caches than any other company. Even at death\'s door, you find a way.</span><br><br><strong>Attrition</strong><br><span class="vp-desc">End the game with more warriors alive than your opponent.</span>',
     url: 'https://buergames.com/products/the-wretched-survivors-company'
   },
   {
@@ -1476,7 +1696,7 @@ const COMPANIES = [
     markName: 'Debuff enemy (-1 COMBAT, -1 SKILL) when surrounded by 2+ warriors',
     markDescription: 'Surround them. Chant. Watch them crumble under the weight of your hymn.',
     strategy: 'Use swarm tactics to surround targets, activate debuffs, break enemy morale.',
-    victoryPath: '<strong>Attrition</strong> · 1 VP<br><span class="vp-desc">End the game with more warriors alive than your opponent. Surround them. Swarm. Outlast.</span><br><br><strong>High Ground</strong> · 2 VP<br><span class="vp-desc">Have the most models at the highest elevation at game end.</span>',
+    victoryPath: '<strong>Attrition</strong><br><span class="vp-desc">End the game with more warriors alive than your opponent. Surround them. Swarm. Outlast.</span><br><br><strong>High Ground</strong><br><span class="vp-desc">Have the most models at the highest elevation at game end.</span>',
     url: 'https://buergames.com/products/the-doomed-choir-company'
   },
   {
@@ -1490,7 +1710,7 @@ const COMPANIES = [
     markName: '+1 DEFENSE first check each round on Ground Level',
     markDescription: 'Others fear the ground. You own it.',
     strategy: 'Fight on ground level, trap low-elevation chokepoints, counter vertical meta.',
-    victoryPath: '<strong>Attrition</strong> · 1 VP<br><span class="vp-desc">End the game with more warriors alive than your opponent. Ground level is your domain — use it.</span><br><br><strong>Resourceful</strong> · 1 VP<br><span class="vp-desc">Open more resource caches than any other company.</span>',
+    victoryPath: '<strong>Attrition</strong><br><span class="vp-desc">End the game with more warriors alive than your opponent. Ground level is your domain — use it.</span><br><br><strong>Resourceful</strong><br><span class="vp-desc">Open more resource caches than any other company.</span>',
     url: 'https://buergames.com/products/the-fog-walkers-company'
   },
   {
@@ -1504,7 +1724,7 @@ const COMPANIES = [
     markName: 'Roll two dice when opening caches, choose result',
     markDescription: 'You never get bad loot. The relics call to you.',
     strategy: 'Open all 3 caches, guaranteed good loot with double rolls, modify equipment.',
-    victoryPath: '<strong>Resourceful</strong> · 1 VP<br><span class="vp-desc">Open more resource caches than any other company.</span><br><br><strong>Attrition</strong> · 1 VP<br><span class="vp-desc">End the game with more warriors alive than your opponent.</span>',
+    victoryPath: '<strong>Resourceful</strong><br><span class="vp-desc">Open more resource caches than any other company.</span><br><br><strong>Attrition</strong><br><span class="vp-desc">End the game with more warriors alive than your opponent.</span>',
     url: 'https://buergames.com/products/the-relic-bitten-company'
   }
 ];
@@ -1588,6 +1808,16 @@ const answerHistory = [];
 
 function resetScores() { COMPANIES.forEach(c => { state.scores[c.id] = 0; }); }
 
+// ── FOOTER HEIGHT → CSS VARIABLE ──────────────────────────────────
+// Measures the actual rendered footer height and writes it to --footer-h
+// so the result-scroll-inner always ends exactly at the footer top.
+function syncFooterHeight() {
+  const h = document.getElementById('app-footer').getBoundingClientRect().height;
+  document.documentElement.style.setProperty('--footer-h', h + 'px');
+}
+syncFooterHeight();
+window.addEventListener('resize', syncFooterHeight);
+
 // ── UTILS ─────────────────────────────────────────────────────────
 
 function transitionTo(sectionId) {
@@ -1601,6 +1831,7 @@ function transitionTo(sectionId) {
   document.querySelector('.bg-cover').classList.toggle('bg-cover-result', sectionId === 'section-result');
   document.getElementById('doom-logo-corner').classList.toggle('visible', sectionId !== 'section-hero');
   document.getElementById('app-footer').classList.toggle('result-active', sectionId === 'section-result');
+  syncFooterHeight();
 }
 
 function updateProgress(index) {
@@ -1670,7 +1901,9 @@ function handleAnswer(answer) {
   if (state.currentQuestion < QUESTIONS.length) {
     showQuestion(state.currentQuestion);
   } else {
-    setTimeout(showResult, 220);
+    // Fade quiz out first, then reveal result once transition completes
+    document.getElementById('section-quiz').classList.remove('active');
+    setTimeout(showResult, 430);
   }
 }
 
@@ -1700,7 +1933,7 @@ function showResult() {
   const shortName = winner.name.replace(/^The /, '');
 
   document.getElementById('result-name').textContent = winner.name;
-  document.getElementById('result-link-2').textContent = 'Claim Your Company';
+  document.getElementById('result-link-2').textContent = 'Claim Your\nCompany';
   document.getElementById('result-tagline').textContent = winner.tagline;
   document.getElementById('mark-name').textContent = winner.markName;
   document.getElementById('mark-description').textContent = winner.markDescription;
@@ -1709,17 +1942,7 @@ function showResult() {
   markLogoInline.alt = winner.name;
   document.getElementById('result-strategy').textContent = winner.strategy;
   document.getElementById('result-victory').innerHTML = winner.victoryPath;
-  document.getElementById('result-link-2').href = '#';
-  document.getElementById('result-link-2').onclick = function(e) { 
-    e.preventDefault(); 
-    window.parent.postMessage({ 
-      type: 'QUIZ_COMPLETE', 
-      companyId: winner.id,
-      storeUrl: winner.url,
-      companyName: winner.name,
-      warriors: winner.warriors
-    }, '*'); 
-  };
+  document.getElementById('result-link-2').href = winner.url;
 
   const minisEl = document.getElementById('warrior-minis');
   minisEl.innerHTML = '';
@@ -1732,13 +1955,14 @@ function showResult() {
     const card = document.createElement('div');
     card.className = 'warrior-card';
     card.innerHTML = `
-      <div class="warrior-mini-card">
+      <div class="warrior-mini-card zoomable">
         <img src="${src}" alt="${name}">
       </div>
       <div class="warrior-card-text">
         <span class="warrior-row-title">${name}</span>
         <span class="warrior-row-desc">${desc}</span>
       </div>`;
+    card.querySelector('.warrior-mini-card').addEventListener('click', () => openWarriorLightbox(src, name, desc));
     minisEl.appendChild(card);
   });
 
@@ -1762,9 +1986,11 @@ function resetQuiz() {
 // ── PRELOAD IMAGES ────────────────────────────────────────────────
 
 function preload() {
-  [...QUESTIONS.map(q => q.art), ...COMPANIES.map(c => c.rep)].forEach(src => {
-    new Image().src = src;
-  });
+  const srcs = [
+    ...QUESTIONS.map(q => q.art),
+    ...COMPANIES.flatMap(c => [c.rep, ...c.minis]),
+  ];
+  [...new Set(srcs)].forEach(src => { new Image().src = src; });
 }
 
 // ── INIT ──────────────────────────────────────────────────────────
@@ -1781,20 +2007,16 @@ document.querySelector('.fog-bottom').classList.add('fog-hero');
 
 // ── Audio widget (Howler.js) ──────────────────────────────────────
 const btnAudioMain  = document.getElementById('btn-audio-main');
-const audioSpinner  = document.getElementById('audio-spinner');
 const iconMainPlay  = document.getElementById('icon-main-play');
 const iconMainPause = document.getElementById('icon-main-pause');
 
 let audioReady = false;
 
 function setMainState(state) {
-  audioSpinner.style.display  = state === 'loading' ? '' : 'none';
+  btnAudioMain.style.display  = state === 'loading' ? 'none' : '';
   iconMainPlay.style.display  = state === 'paused'  ? '' : 'none';
   iconMainPause.style.display = state === 'playing' ? '' : 'none';
 }
-
-// Start spinner immediately
-setMainState('loading');
 
 const howl = new Howl({
   src:      ['music/track.mp3'],
@@ -1837,7 +2059,65 @@ btnAudioMain.addEventListener('click', () => {
   howl.playing() ? howl.pause() : howl.play();
 });
 
+let pausedByVisibility = false;
+document.addEventListener('visibilitychange', () => {
+  if (!audioReady) return;
+  if (document.hidden) {
+    if (howl.playing()) {
+      howl.pause();
+      pausedByVisibility = true;
+    }
+  } else {
+    if (pausedByVisibility) {
+      howl.play();
+      pausedByVisibility = false;
+    }
+  }
+});
+
+// ── WARRIOR LIGHTBOX ─────────────────────────────────────────────
+(function () {
+  const lb     = document.getElementById('warrior-lightbox');
+  const img    = document.getElementById('warrior-lightbox-img');
+  const name   = document.getElementById('warrior-lightbox-name');
+  const desc   = document.getElementById('warrior-lightbox-desc');
+  const close  = document.getElementById('warrior-lightbox-close');
+
+  const panel = document.getElementById('warrior-lightbox-panel');
+  const scrollEl = document.getElementById('result-scroll-inner');
+
+  window.openWarriorLightbox = function(src, n, d) {
+    img.src          = src;
+    img.alt          = n;
+    name.textContent = n;
+    desc.textContent = d;
+    lb.classList.add('open');
+    lb.removeAttribute('aria-hidden');
+    // Prevent page scroll behind the overlay on both desktop and touch
+    if (scrollEl) scrollEl.style.overflow = 'hidden';
+  };
+
+  function closeLightbox() {
+    lb.classList.remove('open');
+    lb.setAttribute('aria-hidden', 'true');
+    if (scrollEl) scrollEl.style.overflow = '';
+  }
+
+  close.addEventListener('click', closeLightbox);
+  // Backdrop tap: close only when the touch/click lands outside the panel
+  lb.addEventListener('click', e => { if (!panel.contains(e.target)) closeLightbox(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+})();
+
 
 </script>
+
+<!-- Rotate-to-portrait overlay (shown on phone landscape via CSS) -->
+<div id="rotate-overlay" aria-live="polite" role="status">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M16.48 2.52c3.27 1.55 5.61 4.72 5.97 8.48h1.5C23.44 4.84 20.29 1.1 16 .1l.48 2.42zM5.5 18.48A10.45 10.45 0 0 1 1.55 11H.05C.56 17.16 5.71 22 12 22v-3l-4.5-2.5-.5 2h-.5v-.02zM7.52 7.52c1.56-1.56 3.61-2.35 5.69-2.35 1.52 0 3.04.44 4.35 1.32l-1.44 1.44L21 9.5V4l-1.69 1.69A9.41 9.41 0 0 0 13.2 3C10.6 3 8.01 4 6.1 5.9L4 8h2.69l.83-.48zM20 13h-2.31l-.83.48C15.44 14.96 13.39 15.75 11.31 15.75c-1.52 0-3.04-.44-4.35-1.32l1.44-1.44L3 11.5V17l1.69-1.69A9.41 9.41 0 0 0 10.8 17c2.6 0 5.19-1 7.1-2.9L20 12h-2l2 1z"/>
+  </svg>
+  <p>Please rotate your device to portrait mode</p>
+</div>
 </body>
 </html>
