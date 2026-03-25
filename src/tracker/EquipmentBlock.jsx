@@ -50,9 +50,9 @@ export default function EquipmentBlock({ wi, warrior: w }) {
   if (w.weapon1) {
     const wd = WEAPONS[w.weapon1]
     const sub = [
-      wd?.damage > 0 ? `DMG ${wd.damage}` : null,
-      wd?.range && wd.range !== '—' ? `RNG ${wd.range}` : null,
-    ].filter(Boolean).join(' · ')
+      wd?.damage > 0 ? `${wd.damage} DMG` : null,
+      wd?.range && wd.range !== '—' ? wd.range : null,
+    ].filter(Boolean).join(' | ')
     const desc = [wd?.note, wd?.special].filter(Boolean).join(' ')
     const isCrossbow = w.weapon1 === 'Crossbow'
     const loaded = isCrossbow ? w.crossbowLoaded !== false : undefined
@@ -70,11 +70,11 @@ export default function EquipmentBlock({ wi, warrior: w }) {
     const wd = WEAPONS[w.weapon2]
     const isShield = w.weapon2 === 'Shield'
     const sub = isShield
-      ? '+1 DEF · ONCE PER ROUND'
+      ? '+1 DEF | OPR'
       : [
-          wd?.damage > 0 ? `DMG ${wd.damage}` : null,
-          wd?.range && wd.range !== '—' ? `RNG ${wd.range}` : null,
-        ].filter(Boolean).join(' · ')
+          wd?.damage > 0 ? `${wd.damage} DMG` : null,
+          wd?.range && wd.range !== '—' ? wd.range : null,
+        ].filter(Boolean).join(' | ')
     const desc = isShield
       ? `${wd.note}${wd.abilityDesc ? `\n\n${wd.abilityDesc}` : ''}`
       : [wd?.offhandNote || wd?.note, wd?.special].filter(Boolean).join(' ')
@@ -83,7 +83,11 @@ export default function EquipmentBlock({ wi, warrior: w }) {
 
   if (w.climbing && w.climbing !== 'None') {
     const cdata = CLIMBING_ITEMS[w.climbing]
-    const sub = cdata ? `HT ${cdata.height} · SKILL ${cdata.skillCheck}` : null
+    const sub = cdata
+      ? cdata.skillCheck === 'YES'
+        ? `SKILL | ${cdata.height}`
+        : cdata.height
+      : null
     cards.push({ key: 'climb', icon: ITEM_ICONS[w.climbing], name: w.climbing, sub, desc: CLIMBING_DESCS[w.climbing] || '' })
   }
 
