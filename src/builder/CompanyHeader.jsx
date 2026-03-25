@@ -6,11 +6,9 @@ import { getAvatarSrc } from '../data/avatars'
 import MarkPicker from './MarkPicker'
 
 export default function CompanyHeader({ onSettings }) {
-  const { mark, setMark, companyName, companyAvatar, companyMode, campaignGame, slots, ipLimit, getTotalIPSpent } = useBuilderStore()
+  const { mark, setMark, companyName, companyAvatar, companyMode, campaignGame, slots, ipLimit } = useBuilderStore()
   const [showMarkPicker, setShowMarkPicker] = useState(false)
   const markData = MARKS.find(m => m.name === mark)
-  const ipSpent = getTotalIPSpent()
-  const ipRemaining = ipLimit - ipSpent
   const markImg = mark && MARK_IMAGES[mark]
   const avatarSrc = getAvatarSrc(companyAvatar)
 
@@ -48,13 +46,10 @@ export default function CompanyHeader({ onSettings }) {
                 <span className="ch-cstat-lbl">WARRIORS</span>
               </div>
               {companyMode !== 'campaign' && (
-                <>
-                  <span className="ch-cstat-sep">·</span>
-                  <div className="ch-cstat">
-                    <span className="ch-cstat-val">{ipRemaining}<span className="ch-cstat-total">/{ipLimit}</span></span>
-                    <span className="ch-cstat-lbl">IP LEFT</span>
-                  </div>
-                </>
+                <div className="ch-cstat">
+                  <span className="ch-cstat-val">{ipLimit}</span>
+                  <span className="ch-cstat-lbl">COMPANY IP</span>
+                </div>
               )}
             </div>
             <span className="ch-edit-hint">EDIT PROFILE</span>
