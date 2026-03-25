@@ -26,13 +26,30 @@ function EquipCard({ icon, name, sub, badge, onClick, isCache, faded, extraClass
   )
 }
 
-function DetailModal({ title, desc, onClose, onExpend, expended, dead }) {
+function DetailModal({ title, desc, damage, range, onClose, onExpend, expended, dead }) {
+  const hasStats = (damage > 0) || (range && range !== '—')
   return (
     <div className="modal-backdrop" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal-box" style={{ maxWidth: 360, maxHeight: '65dvh', position: 'relative' }}>
         <button className="tracker-modal-close" onClick={onClose} aria-label="Close">×</button>
         <div className="tracker-modal-title" style={{ paddingRight: '1.5rem' }}>{title}</div>
-        <div className="tk-equip-detail-desc">{desc}</div>
+        {hasStats && (
+          <div className="tk-detail-stats">
+            {damage > 0 && (
+              <div className="tk-detail-stat-wrap">
+                <span className="tk-detail-stat-label">Damage</span>
+                <span className="tk-detail-stat-val tk-detail-stat-val--dmg">{damage}</span>
+              </div>
+            )}
+            {range && range !== '—' && (
+              <div className="tk-detail-stat-wrap">
+                <span className="tk-detail-stat-label">Range</span>
+                <span className="tk-detail-stat-val">{range}</span>
+              </div>
+            )}
+          </div>
+        )}
+        {desc ? <div className="tk-equip-detail-desc">{desc}</div> : null}
         {onExpend && (
           <div className="tk-equip-detail-actions">
             <button className="tk-detail-btn tk-detail-btn--ghost" onClick={onClose}>Close</button>
@@ -71,6 +88,8 @@ export default function EquipmentBlock({ wi, warrior: w }) {
       name: w.weapon1,
       sub,
       desc,
+      damage: wd?.damage,
+      range: wd?.range,
       ...(isCrossbow && { variant: 'crossbow', badge: loaded ? '● LOADED' : '○ RELOAD', loaded }),
     })
   }
@@ -87,7 +106,15 @@ export default function EquipmentBlock({ wi, warrior: w }) {
     const desc = isShield
       ? `${wd.note}${wd.abilityDesc ? `\n\n${wd.abilityDesc}` : ''}`
       : [wd?.offhandNote || wd?.note, wd?.special].filter(Boolean).join(' ')
-    cards.push({ key: 'w2', icon: ITEM_ICONS[w.weapon2], name: w.weapon2, sub, desc })
+    cards.push({
+      key: 'w2',
+      icon: ITEM_ICONS[w.weapon2],
+      name: w.weapon2,
+      sub,
+      desc,
+      damage: isShield ? null : wd?.damage,
+      range: isShield ? null : wd?.range,
+    })
   }
 
   if (w.climbing && w.climbing !== 'None') {
@@ -166,6 +193,8 @@ export default function EquipmentBlock({ wi, warrior: w }) {
         <DetailModal
           title={detail.name}
           desc={detail.desc}
+          damage={detail.damage}
+          range={detail.range}
           onClose={close}
           onExpend={hasExpend ? handleExpend : null}
           expended={isExpended}

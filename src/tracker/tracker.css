@@ -238,7 +238,12 @@
 .tk-equip-card--loaded .tk-equip-card-badge { color: #4a9a4a; }
 .tk-equip-card--unloaded .tk-equip-card-badge { color: #be4127; }
 /* ── EQUIPMENT DETAIL POPUP ─────────────────────────────── */
-.tk-equip-detail-desc { font-size: 0.95rem; color: #c8b890; line-height: 1.6; margin-top: 0.75rem; white-space: pre-line; }
+.tk-detail-stats { display: flex; gap: 1.75rem; margin-top: 0.85rem; }
+.tk-detail-stat-wrap { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.tk-detail-stat-label { font-size: 0.6rem; color: rgba(200,184,144,0.55); letter-spacing: 0.12em; text-transform: uppercase; font-family: 'Oswald', sans-serif; }
+.tk-detail-stat-val { font-family: 'Oswald', sans-serif; font-size: 1.5rem; font-weight: 700; color: #fff; line-height: 1; }
+.tk-detail-stat-val--dmg { color: #be4127; }
+.tk-equip-detail-desc { font-size: 0.95rem; color: #ffffff; line-height: 1.6; margin-top: 0.75rem; white-space: pre-line; }
 .tk-equip-detail-actions { display: flex; gap: 0.5rem; margin-top: 1rem; }
 .tk-detail-btn { flex: 1; font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.15em; padding: 0.55rem 0.5rem; border: none; cursor: pointer; transition: background 0.15s; }
 .tk-detail-btn:disabled { opacity: 0.35; cursor: not-allowed; }
