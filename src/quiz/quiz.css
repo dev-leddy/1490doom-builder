@@ -1108,7 +1108,7 @@
   .quiz-root .qz-result-page-credits { font-size: 0.56em; }
   .quiz-root .qz-app-footer .qz-btn-primary,
   .quiz-root .qz-btn-store,
-  .quiz-root .qz-btn-restart-link { font-size: 0.65em; padding: 0; height: 46px; font-weight: 700; }
+  .quiz-root .qz-btn-restart-link { font-size: 0.65em; padding: 0; height: 46px; min-height: unset; font-weight: 700; }
   .quiz-root .qz-doom-logo-corner img { height: 28px; }
   .quiz-root .qz-footer-buer-logo { height: 22px; }
   .quiz-root .qz-audio-widget { padding: 0.5em 0.75em; }
