@@ -142,17 +142,19 @@ export default function WarriorTrackerCard({ warrior: w, wi }) {
           
           const isVit = s === 'VIT'
           const polearmDebuff = w.weapon1 === 'Polearm (one-handed)' && s === 'COM'
-          
+          const statusDebuffCOM = s === 'COM' && w.statuses.some(st => st.name === 'SWARMED' || st.name === 'SUNDERED')
+          const isComDebuffed = (polearmDebuff || statusDebuffCOM) && !isVit
+
           let val = base
           if (improvedStat === s) val = improveStatDisplay(base, s)
-          else if (polearmDebuff && !isVit) val = debuffStatDisplay(base, s)
-          
+          else if (isComDebuffed) val = debuffStatDisplay(base, s)
+
           const isDualWieldImproved = s === 'ATK' && w.weapon1 === 'Light Weapon' && w.weapon2 === 'Light Weapon' && !wdata.fixedDualWield
           const isStatImproved = improvedStat === s || isDualWieldImproved
-          
+
           let statClass = ''
           if (isStatImproved) statClass = 'tk-stat-improved'
-          else if (polearmDebuff) statClass = 'tk-stat-debuffed'
+          else if (isComDebuffed) statClass = 'tk-stat-debuffed'
           
           return (
             <div key={s} className={`tk-stat ${statClass}`}>

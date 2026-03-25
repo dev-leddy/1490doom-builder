@@ -183,9 +183,11 @@
 .tk-stats-strip { display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px; margin-bottom: 0.85rem; }
 .tk-stat { background: #1a1a1a; border: 1px solid #2a2a2a; text-align: center; padding: 5px 2px; }
 .tk-stat-improved { border-color: var(--green); }
+.tk-stat-debuffed { border-color: rgba(190,65,39,0.6); }
 .tk-stat-lbl { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.08em; color: #777; text-transform: uppercase; display: block; line-height: 1; margin-bottom: 3px; }
 .tk-stat-val { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 1.2rem; font-weight: 700; line-height: 1; display: block; }
 .tk-stat-improved .tk-stat-val { color: var(--green); }
+.tk-stat-debuffed .tk-stat-val { color: #be4127; }
 
 /* ── VITALITY ───────────────────────────────────────────── */
 .tk-section-label { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: #6a6a6a; margin-top: 0.9rem; margin-bottom: 0.45rem; }
