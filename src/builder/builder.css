@@ -4540,8 +4540,9 @@
 
 .ch-sigil-label {
   font-family: 'Oswald', sans-serif;
-  font-size: 0.82rem;
-  letter-spacing: 0.12em;
+  font-size: clamp(0.95rem, 2.2vw, 1.2rem);
+  font-weight: 600;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: rgba(190, 65, 39, 0.85);
   text-align: left;
@@ -4557,9 +4558,9 @@
 .ch-sigil-desc {
   display: -webkit-box;
   font-family: 'Caslon Antique', serif;
-  font-size: 0.72rem;
-  color: rgba(220, 220, 220, 0.85);
-  line-height: 1.4;
+  font-size: 0.9rem;
+  color: var(--parchment);
+  line-height: 1.5;
   text-align: left;
   font-style: italic;
   margin: 0;
@@ -4609,7 +4610,8 @@
   .ch-sigil-inner { width: 30px; height: 30px; }
   .ch-sigil-no-mark { width: 36px; height: 36px; font-size: 0.9rem; }
   .ch-name-text { font-size: 0.88rem; }
-  .ch-sigil-label { font-size: 0.74rem; }
+  .ch-sigil-label { font-size: 0.88rem; }
+  .ch-sigil-desc { font-size: 0.8rem; }
 }
 
 /* ── Desktop — slightly larger rings ──────────────────────── */
