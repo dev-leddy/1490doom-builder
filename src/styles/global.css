@@ -127,6 +127,17 @@ input:focus, select:focus, textarea:focus {
   overscroll-behavior: contain;
 }
 
+/* On mobile: keep modals sandwiched between topbar (52px) and navbar (~50px) */
+@media (max-width: 600px) {
+  .modal-backdrop {
+    padding-top: calc(52px + 0.5rem);
+    padding-bottom: calc(52px + 0.5rem);
+  }
+  .modal-box {
+    max-height: calc(100dvh - 52px - 52px - 1rem);
+  }
+}
+
 /* ── TOAST ────────────────────────────────────────────────────────────────── */
 .toast {
   position: fixed;
