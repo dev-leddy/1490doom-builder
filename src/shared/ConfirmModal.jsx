@@ -2,30 +2,22 @@ export default function ConfirmModal({ title, subtitle, onConfirm, onCancel }) {
   return (
     <div className="modal-backdrop" onClick={e => e.target === e.currentTarget && onCancel()}>
       <div className="modal-box" style={{ textAlign: 'center' }}>
-        <div style={{ fontFamily: 'var(--font-display)', fontSize: '1rem', letterSpacing: '0.1em', marginBottom: '0.4rem' }}>
-          {title}
-        </div>
-        <div style={{ fontSize: '0.95rem', color: 'var(--text-dim)', marginBottom: '1.1rem', lineHeight: 1.5 }}>
+        <div className="modal-title">{title}</div>
+        <div style={{ fontSize: '1.05rem', color: 'var(--text-dim)', marginBottom: '2.5rem', lineHeight: 1.5 }}>
           {subtitle}
         </div>
         <div style={{ display: 'flex', gap: '0.6rem' }}>
           <button
+            className="btn btn-ghost"
             onClick={onCancel}
-            style={{
-              flex: 1, background: 'none', border: '1px solid #333', color: '#666',
-              padding: '0.5rem', fontFamily: 'var(--font-display)', fontSize: '0.8rem',
-              letterSpacing: '0.1em',
-            }}
+            style={{ flex: 1, padding: '0.75rem' }}
           >
             CANCEL
           </button>
           <button
+            className="modal-primary-btn"
             onClick={onConfirm}
-            style={{
-              flex: 1, background: 'var(--gold-bg)', border: '1px solid var(--gold-border)',
-              color: 'var(--gold)', padding: '0.5rem', fontFamily: 'var(--font-display)',
-              fontSize: '0.8rem', letterSpacing: '0.1em',
-            }}
+            style={{ flex: 1 }}
           >
             CONFIRM
           </button>

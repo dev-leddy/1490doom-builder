@@ -37,7 +37,7 @@ export default function ShareModal() {
   return (
     <div className="modal-backdrop" onClick={e => e.target === e.currentTarget && closeShare()}>
       <div className="modal-box share-modal">
-        <div className="share-modal-title">Share Company</div>
+        <div className="modal-title">Share Company</div>
         <textarea
           ref={textareaRef}
           className="share-code-box"
@@ -50,7 +50,7 @@ export default function ShareModal() {
           Share this link — anyone who opens it will load your company automatically.
         </div>
         <div className="share-modal-actions">
-          <button className="btn btn-primary" onClick={handleCopy}>
+          <button className="modal-primary-btn" onClick={handleCopy}>
             {copied ? 'Copied!' : 'Copy Link'}
           </button>
           <button className="btn btn-ghost" onClick={closeShare}>Close</button>

@@ -1,0 +1,1833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Which Doom Company Are You? | 1490 DOOM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Cinzel:wght@400;700&family=Lora:ital,wght@0,400;0,600;1,400&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+@font-face {
+  font-family: 'Caslon Antique';
+  src: url('fonts/CaslonAntique-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Caslon Antique';
+  src: url('fonts/CaslonAntique-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Caslon Antique';
+  src: url('fonts/CaslonAntique-Italic.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Caslon Antique';
+  src: url('fonts/CaslonAntique-BoldItalic.ttf') format('truetype');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+</style>
+<style>
+/* ─── Reset & Base ─────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --white:    #ffffff;
+  --muted:    #c9c5c3;
+  --red:      #be4127;
+  --red-glow: rgba(190,65,39,0.35);
+  --black:    #080808;
+  --surface:  rgba(255,255,255,0.05);
+  --border:   rgba(255,255,255,0.11);
+
+  --font-blackletter: 'Caslon Antique', 'Palatino Linotype', Georgia, serif;
+  --font-display: 'Cinzel', serif;
+  --font-heading: 'Lora', serif;
+  --font-body:    'Crimson Text', Georgia, serif;
+
+  --company-accent:     #be4127;
+  --company-accent-rgb: 190,65,39;
+  --speed: 400ms;
+  --max-w: 680px;
+}
+
+html, body {
+  height: 100%;
+  background: var(--black);
+  color: var(--white);
+  font-family: var(--font-body);
+  font-size: 18px;
+  line-height: 1.6;
+  overflow: hidden;
+}
+
+/* ─── Background System ─────────────────────────────────────────── */
+.bg-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: var(--black);
+  overflow: hidden;
+}
+
+/* Two art slots for crossfade */
+.bg-art {
+  position: absolute;
+  inset: 0;
+  background-color: #be4127;
+  background-size: cover;
+  background-position: center 35%;
+  background-repeat: no-repeat;
+  opacity: 0;
+  transition: opacity 700ms ease;
+  z-index: 0;
+}
+.bg-art.active { opacity: 1; }
+
+/* Dark overlay */
+.bg-cover {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: rgba(4, 2, 1, 0.72);
+  transition: background 700ms ease;
+}
+.bg-cover.bg-cover-result { background: rgba(4, 2, 1, 0.88); }
+
+/* ─── Bottom Fog ────────────────────────────────────────────────── */
+.fog-bottom {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 33vh;
+  z-index: 2;
+  pointer-events: none;
+  overflow: hidden;
+  filter: blur(2px) saturate(1.1) sepia(0.15);
+  mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 40%, black 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 40%, black 100%);
+  opacity: 1;
+  transition: opacity 600ms ease;
+}
+/* Hero: visible but halved opacity */
+.fog-bottom.fog-hero { opacity: 0.4; }
+/* Quiz: full opacity (default) */
+.fog-bottom.fog-quiz  { opacity: 1; }
+/* Result: no page fog — fog lives inside each warrior card */
+.fog-bottom.fog-result { opacity: 0; pointer-events: none; }
+
+/* Result tower */
+.fog-bottom .fog-layer {
+  position: absolute;
+  width: 200%;
+  height: 100%;
+  left: 0;
+  top: 0;
+}
+.fog-bottom .fog-layer .fog-img {
+  float: left;
+  width: 50%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.fog-layer-1 { animation: fogMove 22s linear infinite; }
+.fog-layer-2 { animation: fogOpacity2 18s linear infinite, fogMove 16s linear infinite reverse; opacity: 0.6; }
+
+.fog-layer-1 .fog-img {
+  background-image: url("https://raw.githubusercontent.com/danielstuart14/CSS_FOG_ANIMATION/master/fog1.png");
+}
+.fog-layer-2 .fog-img {
+  background-image: url("https://raw.githubusercontent.com/danielstuart14/CSS_FOG_ANIMATION/master/fog2.png");
+}
+
+@keyframes fogMove {
+  0%   { left: 0; }
+  100% { left: -100%; }
+}
+@keyframes fogOpacity2 {
+  0%   { opacity: 0.3; }
+  40%  { opacity: 0.6; }
+  70%  { opacity: 0.2; }
+  100% { opacity: 0.3; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fog-bottom { display: none; }
+  .bg-art, .quiz-section, #question-container { transition: none !important; }
+}
+
+/* ─── App & Sections ────────────────────────────────────────────── */
+#app {
+  position: relative;
+  z-index: 1;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.quiz-section {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 2rem;
+  opacity: 0;
+  transform: translateY(14px);
+  pointer-events: none;
+  transition: opacity var(--speed) ease, transform var(--speed) ease;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.quiz-section.active {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+#section-hero.active { cursor: pointer; }
+
+/* ─── Divider ───────────────────────────────────────────────────── */
+.doom-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  margin: 0.15rem 0;
+}
+.doom-divider::before,
+.doom-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255,255,255,0.11);
+}
+.doom-divider span { font-size: 0.6rem; opacity: 0.3; }
+
+/* ─── Buttons ───────────────────────────────────────────────────── */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 54px;
+  padding: 0.9rem 2.8rem;
+  background: var(--red);
+  color: var(--white);
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 180ms, transform 100ms;
+}
+.btn-primary:hover, .btn-primary:focus-visible {
+  background: #cc4e30;
+  outline: none;
+}
+.btn-primary:active { transform: scale(0.98); }
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0.7rem 1.8rem;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: 1px solid rgba(255,255,255,0.2);
+  cursor: pointer;
+  border-radius: 2px;
+  transition: border-color 180ms, color 180ms;
+}
+.btn-ghost:hover, .btn-ghost:focus-visible {
+  border-color: rgba(255,255,255,0.45);
+  color: var(--white);
+  outline: none;
+}
+
+button, a {
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+button:focus-visible, a:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 3px;
+}
+
+/* ─── HERO ──────────────────────────────────────────────────────── */
+.hero-content {
+  max-width: 560px;
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.1rem;
+}
+
+.hero-logo {
+  width: clamp(260px, 55vw, 400px);
+  height: auto;
+  animation: fadeUp 0.9s ease both;
+}
+
+.hero-tagline {
+  font-family: var(--font-display);
+  font-size: clamp(0.62rem, 1.5vw, 0.8rem);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  animation: fadeUp 0.9s 0.15s ease both;
+}
+
+.hero-description {
+  font-family: var(--font-heading);
+  font-style: italic;
+  font-size: clamp(1rem, 2.2vw, 1.2rem);
+  color: rgba(255,255,255,0.7);
+  max-width: 460px;
+  line-height: 1.8;
+  animation: fadeUp 0.9s 0.3s ease both;
+}
+
+.hero-cta { animation: fadeUp 0.9s 0.45s ease both; margin-top: 0.4rem; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── QUIZ ──────────────────────────────────────────────────────── */
+.quiz-wrapper {
+  position: relative;
+  max-width: var(--max-w);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* Progress header — anchored just above the question container */
+.quiz-header {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  right: 0;
+  padding-bottom: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* Progress */
+.btn-back {
+  position: absolute;
+  top: 4.5rem; /* clears the 42px audio widget at top: 1.25rem */
+  left: 2rem;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-family: var(--font-display);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 0.3rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: color 150ms;
+  visibility: hidden;
+  white-space: nowrap;
+  text-shadow: 0 1px 6px rgba(0,0,0,0.9);
+  z-index: 2;
+}
+.btn-back:hover { color: var(--white); }
+.btn-back.visible { visibility: visible; }
+
+.progress-area { display: flex; flex-direction: column; gap: 0.55rem; }
+
+.progress-label {
+  font-family: var(--font-display);
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-shadow: 0 1px 6px rgba(0,0,0,0.9);
+}
+
+.progress-dots { display: flex; gap: 0.5rem; }
+
+.dot {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.2);
+  transition: background 300ms, border-color 300ms, transform 200ms;
+}
+.dot.completed { background: var(--red); border-color: var(--red); }
+.dot.current   { background: rgba(190,65,39,0.5); border-color: var(--red); transform: scale(1.2); }
+
+/* Question */
+#question-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  transition: opacity 200ms ease;
+}
+#question-container.fading { opacity: 0; }
+
+.question-text {
+  font-family: var(--font-heading);
+  font-size: clamp(1.1rem, 2.6vw, 1.45rem);
+  font-weight: 600;
+  color: var(--white);
+  line-height: 1.45;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.9), 0 1px 3px rgba(0,0,0,0.95);
+}
+
+.answers-grid { display: flex; flex-direction: column; gap: 0.6rem; }
+
+.answer-btn {
+  min-height: 56px;
+  padding: 0.95rem 1.25rem;
+  background: rgba(4,4,4,0.92);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.88);
+  font-family: var(--font-body);
+  font-size: clamp(0.95rem, 2vw, 1.08rem);
+  line-height: 1.45;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 2px;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  transition: background 160ms, border-color 160ms, transform 80ms;
+  -webkit-tap-highlight-color: transparent;
+}
+@media (hover: hover) {
+  .answer-btn:hover {
+    background: rgba(190,65,39,0.18);
+    border-color: rgba(190,65,39,0.55);
+    color: var(--white);
+  }
+}
+.answer-btn:focus-visible {
+  background: rgba(190,65,39,0.18);
+  border-color: rgba(190,65,39,0.55);
+  color: var(--white);
+  outline: none;
+}
+.answer-btn:active { transform: scale(0.99); }
+.answer-btn:disabled { cursor: default; pointer-events: none; }
+
+/* ─── RESULT ────────────────────────────────────────────────────── */
+#section-result {
+  padding: 0;
+  inset: 0;
+  min-height: 100dvh;
+  overflow: hidden;
+  align-items: stretch;
+  justify-content: flex-start;
+  background-color: #be4127;
+  background-image: url('Art/Bonus%20Art/Battlefield.png');
+  background-size: cover;
+  background-position: center 35%;
+  background-attachment: fixed;
+}
+/* Scroll lives here — section stays still so fog/overlay never drift */
+.result-scroll-inner {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: calc(100% - 4.5rem); /* stop scroll track exactly at footer top */
+  min-height: 0; /* CRITICAL: flex items default to min-height:auto — without this, the item
+                    expands to content height, parent clips it, and overflow-y never activates */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: clamp(3.5rem, 5vh, 4.5rem) 2rem 3.5rem;
+  box-sizing: border-box;
+}
+#section-result::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(4,2,1,0.91) 0%, rgba(4,2,1,0.95) 60%, rgba(4,2,1,0.98) 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+#section-result::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  /* Two fog layers — top anchored + bottom anchored, drifting in opposite directions */
+  background-image:
+    url('https://raw.githubusercontent.com/danielstuart14/CSS_FOG_ANIMATION/master/fog1.png'),
+    url('https://raw.githubusercontent.com/danielstuart14/CSS_FOG_ANIMATION/master/fog2.png');
+  background-size: 200% auto, 250% auto;
+  background-position: 0% 0%, 100% 100%;
+  background-repeat: repeat-x;
+  opacity: 0.45;
+  animation: resultFogDrift 35s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+@keyframes resultFogDrift {
+  from { background-position: 0%    0%,   100%  100%; }
+  to   { background-position: 200%  0%,  -150%  100%; }
+}
+
+.result-wrapper {
+  max-width: 960px;
+  width: 100%;
+  margin: auto; /* auto on all sides: centers vertically + horizontally in flex column */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
+  text-align: center;
+}
+
+/* ── Rep + name + tagline row ── */
+.result-hero-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  width: 100%;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.result-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+}
+
+.result-eyebrow {
+  font-family: var(--font-display);
+  font-size: 0.62rem;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.result-name {
+  font-family: var(--font-blackletter);
+  font-size: clamp(2.6rem, 6.5vw, 4.2rem);
+  font-weight: 700;
+  color: var(--company-accent);
+  letter-spacing: 0.04em;
+  line-height: 1.0;
+  transition: color var(--speed);
+}
+
+.result-rep-wrap {
+  width: 110px;
+  height: 110px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(var(--company-accent-rgb), 0.12);
+  border: 2px solid rgba(var(--company-accent-rgb), 0.35);
+  border-radius: 50%;
+  padding: 0.75rem;
+  transition: background var(--speed), border-color var(--speed);
+}
+.result-rep-wrap img { width: 100%; height: 100%; object-fit: contain; }
+
+.result-tagline {
+  font-family: var(--font-heading);
+  font-size: 0.95rem;
+  color: rgba(255,255,255,0.65);
+  line-height: 1.6;
+  margin-top: 0.2rem;
+}
+
+/* ── Middle row: ability card + warriors side-by-side ── */
+.result-main-row {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  min-height: 0;
+  gap: 0.65rem;
+  width: 100%;
+  align-items: stretch;
+}
+
+/* ── Ability hero block (centered, full-width, below tagline) ── */
+.result-ability-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1.25rem 1.5rem 1.4rem;
+  width: 100%;
+  background: rgba(var(--company-accent-rgb), 0.08);
+  border: 1px solid rgba(var(--company-accent-rgb), 0.3);
+  border-radius: 10px;
+  gap: 0.55rem;
+  transition: background var(--speed), border-color var(--speed);
+}
+.mark-name-hero {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--white);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  line-height: 1.3;
+}
+.mark-description-hero {
+  font-family: var(--font-heading);
+  font-style: italic;
+  font-size: 0.92rem;
+  color: var(--muted);
+  line-height: 1.65;
+  max-width: 520px;
+}
+
+/* Circle company icon — standalone above company name */
+.mark-logo-inline {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  flex-shrink: 0;
+  /* Rich parchment/bone gradient */
+  background: linear-gradient(145deg, #f3ece1, #dcd1be);
+  border: 3px solid rgba(var(--company-accent-rgb), 0.8);
+  border-radius: 50%;
+  padding: 0.85rem;
+  /* 1. Deep 3D drop shadow  2. Subtle company accent glow  3. Top highlight  4. Bottom shading */
+  box-shadow: 
+    0 12px 28px rgba(0,0,0,0.65),
+    0 0 32px rgba(var(--company-accent-rgb), 0.25),
+    inset 0 2px 4px rgba(255,255,255,0.7),
+    inset 0 -4px 12px rgba(90, 75, 60, 0.3);
+  transition: border-color var(--speed), box-shadow var(--speed);
+}
+
+.result-bottom-row {
+  width: 100%;
+  flex-shrink: 0;
+}
+.result-bottom-card {
+  width: 100%;
+  background: rgba(var(--company-accent-rgb), 0.08);
+  border: 1px solid rgba(var(--company-accent-rgb), 0.3);
+  border-radius: 10px;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  flex-direction: row;
+  transition: background var(--speed), border-color var(--speed);
+}
+.result-bottom-col {
+  flex: 1;
+  padding: 0.9rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  text-align: left;
+  min-width: 0;
+}
+.result-bottom-label {
+  font-family: var(--font-display);
+  font-size: 0.52rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.38);
+}
+.result-bottom-sep {
+  width: 1px;
+  background: rgba(255,255,255,0.09);
+  flex-shrink: 0;
+  margin: 0.7rem 0;
+}
+
+/* ── Warriors section ── */
+.result-warriors-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  position: relative; /* needed for ::before */
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+/* AnaSky.jpg as semi-transparent layer — fog shows through from behind */
+.result-warriors-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url('Art/Bonus%20Art/AnaSky.jpg');
+  background-size: cover;
+  background-position: center 30%;
+  opacity: 0.35;
+  z-index: 0;
+  border-radius: 10px;
+}
+.result-warriors-section .warrior-list {
+  flex-direction: row;
+  flex: 1;
+  min-height: 0;
+  gap: 0;
+  padding: 0;
+  background: transparent;
+}
+.section-label {
+  font-family: var(--font-display);
+  font-size: 0.6rem;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.warrior-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  width: 100%;
+  flex: 1;
+}
+.warrior-card {
+  flex: 1;
+  min-width: 0;  /* allow flex shrink below content width — prevents rightmost card overflow */
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: transparent;
+  overflow: visible;
+  backdrop-filter: none;
+  position: relative;
+  z-index: 4;
+}
+
+/* Per-card layers all hidden — container handles bg */
+.warrior-mini-card .card-tower,
+.warrior-mini-card .card-dark,
+.warrior-mini-card .card-fog-1,
+.warrior-mini-card .card-fog-2 { display: none; }
+.warrior-mini-card {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  background: transparent !important; /* AnaSky.jpg on section container shows through */
+  flex-shrink: 0;
+  position: relative;
+  overflow: visible;
+}
+.warrior-mini-card > div {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+@keyframes cardFog1 {
+  from { background-position: 0% bottom; }
+  to   { background-position: 200% bottom; }
+}
+@keyframes cardFog2 {
+  from { background-position: 200% bottom; }
+  to   { background-position: 0% bottom; }
+}
+.warrior-mini-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 55%;
+  background: linear-gradient(to bottom, transparent 0%, rgba(4,2,1,0.65) 100%);
+  pointer-events: none;
+  z-index: 5;
+}
+.warrior-mini-card img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center 60%;
+  display: block;
+  z-index: 4;
+}
+.warrior-card-text {
+  padding: 0.4rem 0.3rem 0.65rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  text-align: center;
+  position: relative;
+  z-index: 6;
+  overflow: hidden;
+  min-width: 0; /* allow text container to shrink with card */
+  background: rgba(4,2,1,0.45);
+}
+.warrior-row-name {
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--white);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.warrior-row-title {
+  font-family: var(--font-heading);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--white);
+  line-height: 1.2;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.warrior-row-desc {
+  font-family: var(--font-heading);
+  font-style: italic;
+  font-size: 0.82rem;
+  color: var(--muted);
+  line-height: 1.5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Shared result card style ── */
+.result-card {
+  width: 100%;
+  background: rgba(6,3,1,0.6);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  overflow: hidden;
+  backdrop-filter: blur(4px);
+  text-align: left;
+}
+.result-card-header {
+  background: #be4127;
+  padding: 0.45rem 0.85rem;
+  text-align: left;
+}
+.result-card-header-label {
+  font-family: var(--font-blackletter);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgba(255,255,255,0.95);
+}
+.result-card-body {
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.3rem;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ── Company ability ── */
+.result-ability-body {
+  flex-direction: column !important;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0.8rem;
+  flex: 1;
+  text-align: left;
+}
+.mark-logo {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+.mark-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  text-align: left;
+}
+.mark-name {
+  font-family: var(--font-heading);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--white);
+  line-height: 1.3;
+}
+.mark-description {
+  font-family: var(--font-heading);
+  font-size: 0.88rem;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.vp-desc {
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.playstyle-value strong {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  color: var(--white);
+}
+
+/* ── Playstyle ── */
+.result-playstyle {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+.playstyle-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+.playstyle-label {
+  font-family: var(--font-display);
+  font-size: 0.5rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.45);
+}
+.playstyle-value {
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+/* ── Unified app footer ── */
+.app-footer {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1.5rem;
+  gap: 1rem;
+  background: transparent;
+  transition: background 400ms ease;
+  pointer-events: none; /* pass-through on non-result pages */
+}
+.app-footer.result-active {
+  background: rgba(4,2,1,0.90);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+/* Buer logo always clickable */
+.footer-buer-logo-link { 
+  pointer-events: auto; 
+  display: block;
+}
+.footer-buer-logo-link:hover .footer-buer-logo {
+  opacity: 0.9;
+}
+
+/* CTA center: hidden until result page */
+.footer-cta {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 400ms ease;
+}
+.app-footer.result-active .footer-cta {
+  opacity: 1;
+  pointer-events: auto;
+}
+/* Buy button — equal flex with restart, both same width */
+.footer-cta .btn-primary {
+  flex: 1;
+  max-width: 215px;
+  min-width: 0;
+  min-height: 40px;
+  padding: 0.4rem 1.0rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.09em; /* reduced from 0.14em — 18-char "Claim Your Company" needs breathing room */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.footer-buer-logo {
+  height: 56px;
+  width: auto;
+  opacity: 0.6;
+  flex-shrink: 0;
+  display: block;
+  transition: opacity 200ms;
+  filter: brightness(1.4);
+}
+.footer-buer-logo:hover { opacity: 0.9; }
+/* "TRY AGAIN" ghost button — equal flex with buy button, always same width */
+.btn-restart-link {
+  flex: 1;
+  max-width: 215px;
+  min-width: 0;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.4rem 1.0rem;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.20);
+  border-radius: 2px;
+  color: rgba(255,255,255,0.55);
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: color 150ms, border-color 150ms, background 150ms;
+}
+.btn-restart-link:hover {
+  color: var(--white);
+  border-color: rgba(255,255,255,0.45);
+  background: rgba(255,255,255,0.05);
+}
+
+/* ─── Audio widget ──────────────────────────────────────────────── */
+.audio-widget {
+  position: fixed;
+  top: 1.25rem;
+  left: 2rem;
+  z-index: 25; /* above footer */
+  display: flex;
+  align-items: center;
+  pointer-events: auto;
+}
+
+
+
+/* Main circular button */
+.audio-main-btn {
+  background: rgba(10,6,4,0.72);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,0.55);
+  cursor: pointer;
+  transition: color 150ms, background 150ms, border-color 150ms;
+  backdrop-filter: blur(6px);
+}
+.audio-main-btn:hover {
+  color: var(--white);
+  background: rgba(20,10,6,0.88);
+  border-color: rgba(255,255,255,0.3);
+}
+.audio-main-btn:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 3px;
+}
+
+/* Loading spinner inside main button */
+.audio-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255,255,255,0.15);
+  border-top-color: rgba(255,255,255,0.65);
+  border-radius: 50%;
+  animation: audioSpin 0.75s linear infinite;
+}
+@keyframes audioSpin {
+  to { transform: rotate(360deg); }
+}
+
+
+.doom-logo-corner {
+  flex-shrink: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 400ms ease;
+}
+.doom-logo-corner.visible { opacity: 0.75; }
+.doom-logo-corner img {
+  height: 44px;
+  width: auto;
+  display: block;
+}
+
+/* ── Result cards-area: invisible wrapper on normal viewports ───── */
+.result-cards-area {
+  display: contents; /* transparent to layout — children slot directly into result-wrapper's flex */
+  width: 100%;
+}
+
+/* ── Tall viewport: hero in top 1/3, cards in bottom 2/3 ─────────
+   Triggers on very tall screens (iPad portrait 1366px, large monitors).
+   result-cards-area becomes a real flex container taking 2/3 of the height. */
+@media (min-height: 1100px) and (min-width: 601px) {
+  .result-wrapper {
+    height: 100%;
+    margin: 0 auto;
+    gap: 0;
+  }
+  .result-hero-row {
+    flex: 1;
+    justify-content: flex-end; /* anchor title/tagline to bottom of its slice, right above cards */
+    padding-bottom: 0.5rem;    /* small breath before first card */
+  }
+  .result-cards-area {
+    display: flex;
+    flex-direction: column;
+    flex: 4; /* hero is 1/5, cards fill the remaining 4/5 */
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem;
+  }
+  /* cards-area children need their own width */
+  .result-cards-area .result-main-row,
+  .result-cards-area .result-bottom-row { width: 100%; }
+}
+
+/* ─── Responsive ────────────────────────────────────────────────── */
+
+@media (max-width: 600px) {
+  html, body { font-size: 16px; }
+  .quiz-section { padding: 1.5rem 1.1rem; }
+  /* Single-row footer is ~52px; bottom pad just needs to clear it */
+  .result-scroll-inner { padding: 4.5rem 1.1rem 3.5rem; }
+  /* Compact single-row footer on mobile */
+  .app-footer { padding: 0.4rem 0.9rem; gap: 0.4rem; }
+  .footer-buer-logo { height: 28px; }
+  .footer-cta .btn-primary { font-size: 0.65rem; padding: 0.35rem 0.75rem; }
+  .btn-restart-link { font-size: 0.6rem; padding: 0.35rem 0.65rem; }
+  .doom-logo-corner img { height: 32px; }
+  .result-wrapper { gap: 0.8rem; }
+  /* Audio widget top-left — match mobile padding */
+  .audio-widget { top: 1rem; left: 1.1rem; }
+  /* Back button: below audio widget */
+  .btn-back { top: 4rem; left: 1.1rem; }
+  .result-rep-wrap { width: 90px; height: 90px; }
+  .result-bottom-row { gap: 0; }
+  /* Stack Strategy + Victory Path vertically on mobile */
+  .result-bottom-card { flex-direction: column; }
+  .result-bottom-sep {
+    width: auto;
+    height: 1px;
+    margin: 0 1.1rem;
+  }
+
+  /* Stack warriors section full-width on mobile */
+  .result-main-row { flex-direction: column; flex: none; width: 100%; }
+  .result-warriors-section { flex: none; width: 100%; }
+
+  /* Warriors: fixed height image strip on small screens */
+  .warrior-mini-card { flex: none; height: 110px; }
+  /* Scale text down for mobile — tighter padding too */
+  .warrior-row-title { font-size: 0.78rem; }
+  .warrior-row-desc  { font-size: 0.65rem; line-height: 1.4; }
+  .warrior-card-text { padding: 0.25rem 0.2rem 0.4rem; gap: 0.1rem; }
+}
+
+/* ─── Desktop: full-width stacked layout ───────────────────────── */
+@media (min-width: 900px) {
+  /* Allow natural scroll on desktop — scroll-inner handles it, not the section */
+  .result-scroll-inner {
+    align-items: center;
+    padding: 1.5rem 2rem 2.5rem;
+    height: calc(100% - 3.5rem); /* desktop footer is slightly shorter */
+  }
+  .result-wrapper {
+    gap: 0.65rem;
+  }
+
+  /* Unstack the main row — each section goes full width */
+  .result-main-row {
+    flex-direction: column;
+    flex: none;
+    gap: 1rem;
+  }
+
+  /* Warriors full width, taller minis */
+  .result-warriors-section {
+    flex: none;
+    width: 100%;
+  }
+  .result-warriors-section .warrior-list {
+    flex: none;
+    padding: 1rem 0 0;
+  }
+  .warrior-mini-card {
+    flex: none;
+    height: 200px;
+  }
+
+  /* Bottom row: side-by-side (already the default, keep it) */
+  .result-bottom-row { gap: 1rem; }
+  /* Bottom row: adjust gap */
+  .result-cta-bottom { gap: 1rem; }
+}
+
+/* ─── Landscape / short-viewport: iPad horizontal & similar ────────
+   At ≥900px wide but ≤900px tall (iPad 1024×768, iPad Pro 11" 1194×834):
+   Revert main-row to side-by-side so ability+warriors don't stack vertically.
+   Shortens total content height enough to always fit without scrolling. */
+@media (min-width: 900px) and (max-height: 900px) {
+  .result-scroll-inner {
+    padding: 1rem 2rem 2.5rem; /* tight top/bottom — every px counts on 768px height */
+  }
+  .result-wrapper { gap: 0.55rem; }
+
+  /* Warriors full width on landscape — ability hero block stacks above it naturally */
+  .result-warriors-section {
+    flex: none;
+    width: 100%;
+  }
+  .result-warriors-section .warrior-list { padding: 0; }
+  .warrior-mini-card { height: 140px !important; }
+
+  /* Bottom row tighter gaps */
+  .result-bottom-row { gap: 0.65rem; }
+}
+
+/* ─── Phone landscape (any phone rotated sideways, ~375–500px tall) ──────
+   The fix above (min-height:0) makes scroll work; this just tightens padding
+   so the first card isn't half-buried under the header on a 390px screen.
+   Content will scroll — that's expected and fine on a phone in landscape. */
+@media (max-height: 500px) and (min-width: 500px) {
+  .result-scroll-inner {
+    padding: 3rem 1.2rem 3.5rem; /* 3rem top clears doom logo corner (~44px); 3.5rem bottom clears footer */
+  }
+  .result-wrapper { gap: 0.4rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- Background -->
+<div class="bg-layer">
+  <div class="bg-art" id="bg-art-a"></div>
+  <div class="bg-art" id="bg-art-b"></div>
+  <div class="bg-cover"></div>
+</div>
+
+<!-- Audio (Howler.js for iOS/Safari compatibility) -->
+<script src="https://cdn.jsdelivr.net/npm/howler@2.2.4/dist/howler.min.js"></script>
+
+<!-- Bottom fog -->
+<div class="fog-bottom">
+  <div class="fog-layer fog-layer-1">
+    <div class="fog-img"></div>
+    <div class="fog-img"></div>
+  </div>
+  <div class="fog-layer fog-layer-2">
+    <div class="fog-img"></div>
+    <div class="fog-img"></div>
+  </div>
+</div>
+
+<!-- App -->
+<div id="app">
+
+  <!-- ── HERO ── -->
+  <section id="section-hero" class="quiz-section active">
+    <div class="hero-content">
+      <img src="Art/Logos/DOOMlogoOrange.png" alt="1490 Doom" class="hero-logo">
+      <p class="hero-tagline">The world is dying. The Creeping Death consumes all life.</p>
+      <div class="doom-divider"><span>✦</span></div>
+      <p class="hero-description">The only escape is to climb. To fight. To scavenge what remains. Which Doom Company will you lead into the fog?</p>
+      <div class="hero-cta">
+        <button id="btn-start" class="btn-primary">Discover Your Doom Company</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── QUIZ ── -->
+  <section id="section-quiz" class="quiz-section">
+
+    <button id="btn-back" class="btn-back">&#8592; Back</button>
+
+    <!-- Progress floats above center, outside the centering flow -->
+    <div class="quiz-header">
+      <div class="progress-area">
+        <span class="progress-label">Question <span id="q-num">1</span> of 5</span>
+        <div class="progress-dots">
+          <span class="dot current" data-index="0"></span>
+          <span class="dot" data-index="1"></span>
+          <span class="dot" data-index="2"></span>
+          <span class="dot" data-index="3"></span>
+          <span class="dot" data-index="4"></span>
+        </div>
+      </div>
+      <div class="doom-divider"><span>✦</span></div>
+    </div>
+
+    <!-- Only question + answers — this is what gets centered -->
+    <div class="quiz-wrapper">
+      <div id="question-container">
+        <h2 id="question-text" class="question-text"></h2>
+        <div id="answers-list" class="answers-grid"></div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ── RESULT ── -->
+  <section id="section-result" class="quiz-section">
+    <div class="result-scroll-inner" id="result-scroll-inner">
+    <div class="result-wrapper">
+
+      <!-- Rep + company name + tagline -->
+      <div class="result-hero-row">
+        <p class="result-eyebrow">Your Doom Company Is</p>
+        <img id="mark-logo-inline" class="mark-logo-inline" src="" alt="">
+        <div class="result-name-row">
+          <h2 id="result-name" class="result-name"></h2>
+        </div>
+        <p id="result-tagline" class="result-tagline"></p>
+      </div>
+
+      <!-- Cards area — display:contents on normal viewports (transparent wrapper),
+           becomes a real flex container on tall viewports to occupy bottom 2/3 -->
+      <div class="result-cards-area">
+
+      <!-- Special Ability: prominent centered hero block -->
+      <div class="result-ability-hero">
+        <p id="mark-name" class="mark-name-hero"></p>
+        <p id="mark-description" class="mark-description-hero"></p>
+      </div>
+
+      <!-- Warriors: AnaSky.jpg fills section, no header -->
+      <div class="result-main-row">
+        <div class="result-warriors-section">
+          <div id="warrior-minis" class="warrior-list"></div>
+        </div>
+      </div>
+
+      <!-- Bottom: Strategy + Victory Path — unified card -->
+      <div class="result-bottom-row">
+        <div class="result-bottom-card">
+          <div class="result-bottom-col">
+            <span class="result-bottom-label">Strategy</span>
+            <span id="result-strategy" class="playstyle-value"></span>
+          </div>
+          <div class="result-bottom-sep"></div>
+          <div class="result-bottom-col">
+            <span class="result-bottom-label">Victory Path</span>
+            <span id="result-victory" class="playstyle-value"></span>
+          </div>
+        </div>
+      </div>
+
+      </div><!-- /result-cards-area -->
+
+    </div>
+    </div><!-- /result-scroll-inner -->
+  </section>
+
+</div><!-- /app -->
+
+<!-- Music widget — fixed top left, always present -->
+<div class="audio-widget" id="audio-widget">
+
+  <button id="btn-audio-main" class="audio-main-btn" aria-label="Play music">
+    <div class="audio-spinner" id="audio-spinner"></div>
+    <svg id="icon-main-music" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" style="display:none"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+    <svg id="icon-main-play" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" style="display:none"><path d="M8 5v14l11-7z"/></svg>
+    <svg id="icon-main-pause" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+  </button>
+</div>
+
+<!-- Footer: DOOM logo (left) · CTA (center, result only) · Buer logo (right) -->
+<footer class="app-footer" id="app-footer">
+  <!-- Left: 1490 DOOM logo, visible after hero -->
+  <a class="doom-logo-corner" id="doom-logo-corner" href="https://buergames.com/pages/1490doom" target="_blank" rel="noopener noreferrer">
+    <img src="Art/Logos/DOOMlogoOrange.png" alt="1490 Doom">
+  </a>
+
+  <!-- Center: buy CTA (visible on result page only) -->
+  <div class="footer-cta" id="footer-cta">
+    <a id="result-link-2" class="btn-primary" href="#" target="_blank" rel="noopener noreferrer"></a>
+    <button id="btn-restart" class="btn-restart-link">Seek Another Path</button>
+  </div>
+
+  <!-- Right: Buer Games logo -->
+  <a href="https://buergames.com/" target="_blank" rel="noopener noreferrer" class="footer-buer-logo-link">
+    <img class="footer-buer-logo" src="Art/Logos/BuerWhiteTextAndLogo.png" alt="Buer Games">
+  </a>
+</footer>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────
+
+const COMPANIES = [
+  {
+    id: 'graveborn',
+    name: 'The Graveborn',
+    accent: '#9B1010', accentRgb: '155,16,16',
+    rep: 'Art/Reps/Grave.png',
+    minis: ['Art/Warrior_Minis/Brute.png','Art/Warrior_Minis/Fighter.png','Art/Warrior_Minis/WarriorPriest.png'],
+    tagline: 'Born from ash and ruin. The last thing you do is strike, not scream.',
+    warriors: 'Brute (The Breaking Point) · Fighter (The Reliable Blade) · Warrior Priest (Faith in the Fog)',
+    markName: 'One final action when a warrior perishes',
+    markDescription: "Death is not the end. It's the last chance to take one of them with you.",
+    strategy: 'Deploy aggressively, make final actions count when warriors fall, accept casualties to secure victory.',
+    victoryPath: '<strong>Attrition</strong> · 1 VP<br><span class="vp-desc">End the game with more warriors alive than your opponent. Simple. Hit hard, die last.</span><br><br><strong>High Ground</strong> · 2 VP<br><span class="vp-desc">Have the most models at the highest elevation at game end.</span>',
+    url: 'https://buergames.com/products/the-graveborn-company'
+  },
+  {
+    id: 'silent_pact',
+    name: 'The Silent Pact',
+    accent: '#2A7060', accentRgb: '42,112,96',
+    rep: 'Art/Reps/Silent.png',
+    minis: ['Art/Warrior_Minis/Assassin.png','Art/Warrior_Minis/Scavenger.png','Art/Warrior_Minis/Sabotuer.png'],
+    tagline: "No orders. No shouting. Move like wolves. When you strike, it's already too late.",
+    warriors: 'Assassin (The Silent Blade) · Scavenger (The Resource Hunter) · Saboteur (The Chaos Architect)',
+    markName: 'One warrior uses 3 actions once per game',
+    markDescription: 'Perfect coordination. When the moment comes, you move as one.',
+    strategy: 'Strike fast and disengage, use traps to control movement, save 3-action burst for critical moments.',
+    victoryPath: '<strong>High Ground</strong> · 2 VP<br><span class="vp-desc">Have the most models at the highest elevation at game end.</span><br><br><strong>Resourceful</strong> · 1 VP<br><span class="vp-desc">Open more resource caches than any other company.</span>',
+    url: 'https://buergames.com/products/the-silent-pact-complete-doom-company'
+  },
+  {
+    id: 'tower_born',
+    name: 'The Tower Born',
+    accent: '#4A6580', accentRgb: '74,101,128',
+    rep: 'Art/Reps/Tower.png',
+    minis: ['Art/Warrior_Minis/Scout.png','Art/Warrior_Minis/Assassin.png','Art/Warrior_Minis/Reaver.png'],
+    tagline: 'Raised in the stairwells of dead towers. Fear of falling left you long ago.',
+    warriors: 'Scout (The First to the Top) · Assassin (The High Strike) · Reaver (The Fearless Leap)',
+    markName: 'Roll two dice on Falling Damage, take lowest',
+    markDescription: "The fall doesn't scare you. You were born in the heights.",
+    strategy: 'Rush tallest structures, push enemies off aggressively, jump between structures fearlessly.',
+    victoryPath: '<strong>High Ground</strong> · 2 VP<br><span class="vp-desc">Have the most models at the highest point on the board at game end. Get up. Stay up.</span><br><br><strong>Attrition</strong> · 1 VP<br><span class="vp-desc">End the game with more warriors alive than your opponent.</span>',
+    url: 'https://buergames.com/products/the-tower-born-company'
+  },
+  {
+    id: 'ashbound',
+    name: 'The Ashbound',
+    accent: '#C97010', accentRgb: '201,112,16',
+    rep: 'Art/Reps/Ash.png',
+    minis: ['Art/Warrior_Minis/Reaver.png','Art/Warrior_Minis/Executioner.png','Art/Warrior_Minis/Blacksmith.png'],
+    tagline: 'Lost something in the fire. Make the world remember where it burned.',
+    warriors: 'Reaver (The Fury Bound) · Executioner (Death in Sentence) · Blacksmith (The Equipment Master)',
+    markName: '+1 COMBAT within 2" of Hearth Token',
+    markDescription: 'Place the Hearth where something was lost. Defend it to the death.',
+    strategy: 'Force enemies to come to you, guard the Hearth strategically, fight on YOUR ground.',
+    victoryPath: '<strong>Attrition</strong> · 1 VP<br><span class="vp-desc">End the game with more warriors alive than your opponent.</span><br><br><strong>Resourceful</strong> · 1 VP<br><span class="vp-desc">Open more resource caches than any other company.</span>',
+    url: 'https://buergames.com/products/the-ashbound-company'
+  },
+  {
+    id: 'wretched_survivors',
+    name: 'The Wretched Survivors',
+    accent: '#8A7870', accentRgb: '138,120,112',
+    rep: 'Art/Reps/Wretched.png',
+    minis: ['Art/Warrior_Minis/Scavenger.png','Art/Warrior_Minis/Knight.png','Art/Warrior_Minis/Brute.png'],
+    tagline: "Don't know why you're alive. Scarred, limping, breathing. The strong fell ages ago.",
+    warriors: 'Scavenger (The Desperate Hoarder) · Knight (The Last Shield) · Brute (The Stubborn One)',
+    markName: '+1 SKILL and +1 DEFENSE at 2 or less VITALITY',
+    markDescription: 'The more wounded you are, the harder you are to kill.',
+    strategy: 'Accept damage early to activate bonuses, wounded Scavengers excel at caches, survive and outlast.',
+    victoryPath: '<strong>Resourceful</strong> · 1 VP<br><span class="vp-desc">Open more resource caches than any other company. Even at death\'s door, you find a way.</span><br><br><strong>Attrition</strong> · 1 VP<br><span class="vp-desc">End the game with more warriors alive than your opponent.</span>',
+    url: 'https://buergames.com/products/the-wretched-survivors-company'
+  },
+  {
+    id: 'doomed_choir',
+    name: 'The Doomed Choir',
+    accent: '#9B3A14', accentRgb: '155,58,20',
+    rep: 'Art/Reps/Doomed.png',
+    minis: ['Art/Warrior_Minis/Beekeeper.png','Art/Warrior_Minis/Fighter.png','Art/Warrior_Minis/DoomHunter.png'],
+    tagline: 'Chant not to be heard, but to be feared. When echoes come, they break ribs.',
+    warriors: 'Beekeeper (The Swarm Caller) · Fighter (The Voice\'s Fist) · Doom Hunter (The Ordained Killer)',
+    markName: 'Debuff enemy (-1 COMBAT, -1 SKILL) when surrounded by 2+ warriors',
+    markDescription: 'Surround them. Chant. Watch them crumble under the weight of your hymn.',
+    strategy: 'Use swarm tactics to surround targets, activate debuffs, break enemy morale.',
+    victoryPath: '<strong>Attrition</strong> · 1 VP<br><span class="vp-desc">End the game with more warriors alive than your opponent. Surround them. Swarm. Outlast.</span><br><br><strong>High Ground</strong> · 2 VP<br><span class="vp-desc">Have the most models at the highest elevation at game end.</span>',
+    url: 'https://buergames.com/products/the-doomed-choir-company'
+  },
+  {
+    id: 'fog_walkers',
+    name: 'The Fog Walkers',
+    accent: '#2A5878', accentRgb: '42,88,120',
+    rep: 'Art/Reps/Fog.png',
+    minis: ['Art/Warrior_Minis/Beekeeper.png','Art/Warrior_Minis/Scout.png','Art/Warrior_Minis/Executioner.png'],
+    tagline: "You don't walk through the fog. You walk with it. No one knows how you return from the depths.",
+    warriors: 'Beekeeper (The Fog Swarm) · Scout (The Ground Walker) · Executioner (Death from Below)',
+    markName: '+1 DEFENSE first check each round on Ground Level',
+    markDescription: 'Others fear the ground. You own it.',
+    strategy: 'Fight on ground level, trap low-elevation chokepoints, counter vertical meta.',
+    victoryPath: '<strong>Attrition</strong> · 1 VP<br><span class="vp-desc">End the game with more warriors alive than your opponent. Ground level is your domain — use it.</span><br><br><strong>Resourceful</strong> · 1 VP<br><span class="vp-desc">Open more resource caches than any other company.</span>',
+    url: 'https://buergames.com/products/the-fog-walkers-company'
+  },
+  {
+    id: 'relic_bitten',
+    name: 'The Relic Bitten',
+    accent: '#A84E10', accentRgb: '168,78,16',
+    rep: 'Art/Reps/Relic.png',
+    minis: ['Art/Warrior_Minis/Blacksmith.png','Art/Warrior_Minis/DoomHunter.png','Art/Warrior_Minis/Knight.png'],
+    tagline: "Maps inked in blood. You don't search. You KNOW where the relics hide.",
+    warriors: 'Blacksmith (The Artificer) · Doom Hunter (The Elite Seeker) · Knight (The Relic Guard)',
+    markName: 'Roll two dice when opening caches, choose result',
+    markDescription: 'You never get bad loot. The relics call to you.',
+    strategy: 'Open all 3 caches, guaranteed good loot with double rolls, modify equipment.',
+    victoryPath: '<strong>Resourceful</strong> · 1 VP<br><span class="vp-desc">Open more resource caches than any other company.</span><br><br><strong>Attrition</strong> · 1 VP<br><span class="vp-desc">End the game with more warriors alive than your opponent.</span>',
+    url: 'https://buergames.com/products/the-relic-bitten-company'
+  }
+];
+
+const QUESTIONS = [
+  {
+    text: "You enter a ruined castle. The fog is rising. Other warriors are closing in. What's your first move?",
+    art: 'Art/Bonus Art/Ruined Tower.png',
+    answers: [
+      { text: 'Climb to the highest point as fast as possible',          scores: { tower_born: 3, graveborn: 2 } },
+      { text: 'Search the ruins for weapons and supplies',                scores: { relic_bitten: 3, wretched_survivors: 2 } },
+      { text: 'Find a defensible position and hold it',                   scores: { ashbound: 3, doomed_choir: 2 } },
+      { text: "Hide in the shadows and strike when they're vulnerable",   scores: { fog_walkers: 3, silent_pact: 2 } }
+    ]
+  },
+  {
+    text: 'A warrior on your team is dying. With their last breath, what do they do?',
+    art: 'Art/Bonus Art/DeadKnight.png',
+    answers: [
+      { text: 'Take one final swing at the enemy',                        scores: { graveborn: 4, ashbound: 2 } },
+      { text: 'Tell you where they hid something valuable',               scores: { relic_bitten: 3, wretched_survivors: 2 } },
+      { text: 'Give the signal for everyone to attack together',          scores: { doomed_choir: 4, silent_pact: 2 } },
+      { text: 'Disappear into the fog below',                             scores: { fog_walkers: 4, wretched_survivors: 3 } }
+    ]
+  },
+  {
+    text: 'You find an ancient chest hidden in the tower. What do you do with it?',
+    art: 'Art/Bonus Art/Throne_Room No Fog.png',
+    answers: [
+      { text: "Crack it open immediately — you need what's inside",       scores: { relic_bitten: 3, wretched_survivors: 2 } },
+      { text: "Guard it and open it when you're safe",                    scores: { ashbound: 3, graveborn: 2 } },
+      { text: 'Use it as bait to lure enemies into a trap',               scores: { silent_pact: 3, fog_walkers: 2 } },
+      { text: 'Ignore it — survival matters more than treasure',          scores: { tower_born: 3, doomed_choir: 2 } }
+    ]
+  },
+  {
+    text: "You're surrounded by enemies on all sides. How do you respond?",
+    art: 'Art/Bonus Art/Battle.png',
+    answers: [
+      { text: 'Form a circle and fight until the end',                    scores: { doomed_choir: 3, graveborn: 2 } },
+      { text: 'Break through and escape to regroup',                      scores: { silent_pact: 3, tower_born: 2 } },
+      { text: 'Climb up and attack from above',                           scores: { tower_born: 3, silent_pact: 1 } },
+      { text: 'Stand your ground — make them pay for every step',         scores: { ashbound: 3, wretched_survivors: 2 } }
+    ]
+  },
+  {
+    text: 'When the battle ends and the bodies are counted, what defines victory for you?',
+    art: 'Art/Bonus Art/Standoff .png',
+    answers: [
+      { text: "You're standing on top of the highest tower",              scores: { tower_born: 3, silent_pact: 2 } },
+      { text: "You're the last one left alive",                           scores: { graveborn: 3, ashbound: 2 } },
+      { text: 'You found the most valuable treasures',                    scores: { relic_bitten: 3, wretched_survivors: 2 } },
+      { text: "You survived when everyone said you wouldn't",             scores: { wretched_survivors: 4, fog_walkers: 2 } }
+    ]
+  }
+];
+
+// ── BG ART CROSSFADE ──────────────────────────────────────────────
+
+let bgSlot = 'a';
+
+function setBgArt(src) {
+  const next = bgSlot === 'a' ? 'b' : 'a';
+  const nextEl = document.getElementById(`bg-art-${next}`);
+  const curEl  = document.getElementById(`bg-art-${bgSlot}`);
+  nextEl.style.backgroundImage = `url("${src}")`;
+  nextEl.classList.add('active');
+  curEl.classList.remove('active');
+  bgSlot = next;
+}
+
+function clearBgArt() {
+  document.getElementById('bg-art-a').classList.remove('active');
+  document.getElementById('bg-art-b').classList.remove('active');
+}
+
+// ── STATE ─────────────────────────────────────────────────────────
+
+const state = { currentQuestion: 0, scores: {} };
+const answerHistory = [];
+
+function resetScores() { COMPANIES.forEach(c => { state.scores[c.id] = 0; }); }
+
+// ── UTILS ─────────────────────────────────────────────────────────
+
+function transitionTo(sectionId) {
+  document.querySelectorAll('.quiz-section').forEach(s => s.classList.remove('active'));
+  document.getElementById(sectionId).classList.add('active');
+  const fog = document.querySelector('.fog-bottom');
+  fog.classList.remove('fog-hero', 'fog-quiz', 'fog-result');
+  if (sectionId === 'section-hero')        fog.classList.add('fog-hero');
+  else if (sectionId === 'section-quiz')   fog.classList.add('fog-quiz');
+  else if (sectionId === 'section-result') fog.classList.add('fog-result');
+  document.querySelector('.bg-cover').classList.toggle('bg-cover-result', sectionId === 'section-result');
+  document.getElementById('doom-logo-corner').classList.toggle('visible', sectionId !== 'section-hero');
+  document.getElementById('app-footer').classList.toggle('result-active', sectionId === 'section-result');
+}
+
+function updateProgress(index) {
+  document.querySelectorAll('.dot').forEach((dot, i) => {
+    dot.classList.remove('completed', 'current');
+    if (i < index) dot.classList.add('completed');
+    else if (i === index) dot.classList.add('current');
+  });
+  document.getElementById('q-num').textContent = index + 1;
+  document.getElementById('btn-back').classList.add('visible'); /* always visible in quiz */
+}
+
+function getWinner() {
+  let max = -1, winner = null;
+  for (const company of COMPANIES) {
+    if (state.scores[company.id] > max) {
+      max = state.scores[company.id];
+      winner = company;
+    }
+  }
+  return winner;
+}
+
+// ── QUIZ LOGIC ────────────────────────────────────────────────────
+
+function startQuiz() {
+  state.currentQuestion = 0;
+  answerHistory.length = 0;
+  resetScores();
+  transitionTo('section-quiz');
+  showQuestion(0);
+}
+
+function showQuestion(index) {
+  const container = document.getElementById('question-container');
+  updateProgress(index);
+
+  setBgArt(QUESTIONS[index].art);
+
+  // Fade question content out, swap, fade in
+  container.classList.add('fading');
+  setTimeout(() => {
+    const q = QUESTIONS[index];
+    document.getElementById('question-text').textContent = q.text;
+
+    const list = document.getElementById('answers-list');
+    list.innerHTML = '';
+    q.answers.forEach(answer => {
+      const btn = document.createElement('button');
+      btn.className = 'answer-btn';
+      btn.textContent = answer.text;
+      btn.addEventListener('click', () => handleAnswer(answer));
+      list.appendChild(btn);
+    });
+
+    container.classList.remove('fading');
+  }, 200);
+}
+
+function handleAnswer(answer) {
+  document.querySelectorAll('.answer-btn').forEach(b => b.disabled = true);
+  answerHistory.push({ questionIndex: state.currentQuestion, answer });
+  for (const [id, pts] of Object.entries(answer.scores)) {
+    state.scores[id] = (state.scores[id] || 0) + pts;
+  }
+  state.currentQuestion++;
+  if (state.currentQuestion < QUESTIONS.length) {
+    showQuestion(state.currentQuestion);
+  } else {
+    setTimeout(showResult, 220);
+  }
+}
+
+function goBack() {
+  if (answerHistory.length === 0) {
+    // On Q1 — back goes to the splash/hero page
+    resetQuiz();
+    return;
+  }
+  const last = answerHistory.pop();
+  for (const [id, pts] of Object.entries(last.answer.scores)) {
+    state.scores[id] -= pts;
+  }
+  state.currentQuestion = last.questionIndex;
+  showQuestion(state.currentQuestion);
+}
+
+function showResult() {
+  const winner = getWinner();
+  if (!winner) return;
+
+  clearBgArt();
+  document.documentElement.style.setProperty('--company-accent', winner.accent);
+  document.documentElement.style.setProperty('--company-accent-rgb', winner.accentRgb);
+
+  // Short name for CTA (strip "The ")
+  const shortName = winner.name.replace(/^The /, '');
+
+  document.getElementById('result-name').textContent = winner.name;
+  document.getElementById('result-link-2').textContent = 'Claim Your Company';
+  document.getElementById('result-tagline').textContent = winner.tagline;
+  document.getElementById('mark-name').textContent = winner.markName;
+  document.getElementById('mark-description').textContent = winner.markDescription;
+  const markLogoInline = document.getElementById('mark-logo-inline');
+  markLogoInline.src = winner.rep;
+  markLogoInline.alt = winner.name;
+  document.getElementById('result-strategy').textContent = winner.strategy;
+  document.getElementById('result-victory').innerHTML = winner.victoryPath;
+  document.getElementById('result-link-2').href = winner.url;
+
+  const minisEl = document.getElementById('warrior-minis');
+  minisEl.innerHTML = '';
+  const warriorEntries = winner.warriors.split(' · ');
+  winner.minis.forEach((src, i) => {
+    const raw = warriorEntries[i] || '';
+    const match = raw.match(/^(.+?)\s*\((.+)\)$/);
+    const name = match ? match[1] : raw;
+    const desc = match ? match[2] : '';
+    const card = document.createElement('div');
+    card.className = 'warrior-card';
+    card.innerHTML = `
+      <div class="warrior-mini-card">
+        <img src="${src}" alt="${name}">
+      </div>
+      <div class="warrior-card-text">
+        <span class="warrior-row-title">${name}</span>
+        <span class="warrior-row-desc">${desc}</span>
+      </div>`;
+    minisEl.appendChild(card);
+  });
+
+  // CSS variable consumed by mobile media query only — desktop layout unaffected
+  minisEl.style.setProperty('--warrior-panel-bg', 'url(Art/Bonus%20Art/Battlefield.png)');
+
+  transitionTo('section-result');
+  document.getElementById('result-scroll-inner').scrollTop = 0;
+}
+
+function resetQuiz() {
+  state.currentQuestion = 0;
+  answerHistory.length = 0;
+  resetScores();
+  clearBgArt();
+  document.documentElement.style.setProperty('--company-accent', '#be4127');
+  document.documentElement.style.setProperty('--company-accent-rgb', '190,65,39');
+  transitionTo('section-hero');
+}
+
+// ── PRELOAD IMAGES ────────────────────────────────────────────────
+
+function preload() {
+  [...QUESTIONS.map(q => q.art), ...COMPANIES.map(c => c.rep)].forEach(src => {
+    new Image().src = src;
+  });
+}
+
+// ── INIT ──────────────────────────────────────────────────────────
+
+document.getElementById('btn-start').addEventListener('click', startQuiz);
+document.getElementById('section-hero').addEventListener('click', function(e) {
+  if (this.classList.contains('active')) startQuiz();
+});
+document.getElementById('btn-back').addEventListener('click', goBack);
+document.getElementById('btn-restart').addEventListener('click', resetQuiz);
+resetScores();
+preload();
+document.querySelector('.fog-bottom').classList.add('fog-hero');
+
+// ── Audio widget (Howler.js) ──────────────────────────────────────
+const btnAudioMain  = document.getElementById('btn-audio-main');
+const audioSpinner  = document.getElementById('audio-spinner');
+const iconMainPlay  = document.getElementById('icon-main-play');
+const iconMainPause = document.getElementById('icon-main-pause');
+
+let audioReady = false;
+
+function setMainState(state) {
+  audioSpinner.style.display  = state === 'loading' ? '' : 'none';
+  iconMainPlay.style.display  = state === 'paused'  ? '' : 'none';
+  iconMainPause.style.display = state === 'playing' ? '' : 'none';
+}
+
+// Start spinner immediately
+setMainState('loading');
+
+const howl = new Howl({
+  src:      ['music/track.mp3'],
+  loop:     true,
+  autoplay: true,
+  volume:   0.45,
+  html5:    true,   // required for iOS background playback + streaming
+
+  onload: function() {
+    audioReady = true;
+    // If autoplay was blocked, onplay won't have fired — show play button
+    if (!howl.playing()) setMainState('paused');
+  },
+
+  onloaderror: function() {
+    // File missing or codec error — hide widget silently
+    document.getElementById('audio-widget').style.display = 'none';
+  },
+
+  onplay: function() {
+    audioReady = true;
+    setMainState('playing');
+    btnAudioMain.setAttribute('aria-label', 'Pause music');
+  },
+
+  onpause: function() {
+    setMainState('paused');
+    btnAudioMain.setAttribute('aria-label', 'Play music');
+  },
+
+  onplayerror: function() {
+    // Autoplay blocked by browser — show play button, retry on Howler unlock
+    if (audioReady) setMainState('paused');
+    howl.once('unlock', function() { howl.play(); });
+  },
+});
+
+btnAudioMain.addEventListener('click', () => {
+  if (!audioReady) return;
+  howl.playing() ? howl.pause() : howl.play();
+});
+
+
+</script>
+</body>
+</html>

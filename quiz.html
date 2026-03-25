@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>Which Doom Company Are You? | 1490 DOOM</title>
+    <meta name="description" content="Discover which 1490 DOOM company matches your playstyle — The Graveborn, The Silent Pact, The Tower Born and more." />
+    <link rel="icon" href="/pwa-64x64.png" sizes="64x64" type="image/png" />
+    <meta name="theme-color" content="#080808" />
+    <!-- Fonts: Cinzel (quiz display), Lora + Crimson Text (quiz body), UnifrakturMaguntia (blackletter fallback) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Cinzel:wght@400;700&family=Lora:ital,wght@0,400;0,600;1,400&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+    <style>
+      /* Standalone page base — not in quiz.css so it doesn't affect embedded mode */
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      html, body {
+        height: 100%;
+        overflow: hidden;
+        background: #080808;
+      }
+      #quiz-root {
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="quiz-root"></div>
+    <script type="module" src="/src/quiz/main-quiz.jsx"></script>
+  </body>
+</html>

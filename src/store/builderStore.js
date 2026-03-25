@@ -89,23 +89,25 @@ function generateCompanyName() {
   }
 }
 
+function emptySlot(i, isCaptain) {
+  return {
+    type: null, weapon1: null, weapon2: null, consumable: null,
+    climbing: null, ip: [], isCaptain: isCaptain ?? (i === 0),
+    notes: [], customName: null,
+    earnedIP: 0, statImproves: [],
+  }
+}
+
 function defaultState() {
   return {
     companyId: crypto.randomUUID(),
     mark: MARKS[0].name,
     companyName: '',
+    companyAvatar: null,
     ipLimit: 3,
-    slots: Array.from({ length: 3 }, (_, i) => ({
-      type: null,
-      weapon1: null,
-      weapon2: null,
-      consumable: null,
-      climbing: null,
-      ip: [],
-      isCaptain: i === 0,
-      notes: [],
-      customName: null,
-    })),
+    companyMode: 'standard',
+    campaignGame: 0,
+    slots: Array.from({ length: 3 }, (_, i) => emptySlot(i)),
   }
 }
 
@@ -118,6 +120,9 @@ const ALL_CONSUMABLES = CONSUMABLE_NAMES
 const ALL_MARKS = MARKS.map(m => m.name)
 const ALL_WEAPONS = WEAPON_NAMES
 const ALL_IP_IDS = IP_OPTIONS.map(o => o.id)
+const ALL_STAT_KEYS = Object.keys(STAT_IMPROVEMENT)
+// Campaign IP IDs extend standard with per-stat slots (stat_0..stat_N)
+const CAMP_IP_IDS = ['weapon2', 'climbing', 'consumable', ...ALL_STAT_KEYS.map((_, i) => `stat_${i}`)]
 
 function _idx(arr, val) {
   const i = arr.indexOf(val)
@@ -125,6 +130,8 @@ function _idx(arr, val) {
 }
 
 export function encodeCompany(s) {
+  const isCampaign = s.companyMode === 'campaign'
+  const ipIds = isCampaign ? CAMP_IP_IDS : ALL_IP_IDS
   const parts = [
     _idx(ALL_MARKS, s.mark).toString(36),
     encodeURIComponent(s.companyName || ''),
@@ -132,45 +139,63 @@ export function encodeCompany(s) {
   ]
   s.slots.forEach(slot => {
     if (!slot.type) { parts.push('_'); return }
-    const wIdx = _idx(ALL_WARRIORS, slot.type).toString(36)
-    const w1Idx = _idx(WEAPON_NAMES, slot.weapon1).toString(36)
-    const w2Idx = slot.weapon2 ? _idx(WEAPON_NAMES, slot.weapon2).toString(36) : '-'
-    const cIdx = slot.consumable ? _idx(ALL_CONSUMABLES, slot.consumable).toString(36) : '-'
-    const clIdx = slot.climbing ? _idx(Object.keys(CLIMBING_ITEMS), slot.climbing).toString(36) : '-'
-    const ipStr = slot.ip.map(id => _idx(ALL_IP_IDS, id).toString(36)).join('') || '-'
-    const cap = slot.isCaptain ? '1' : '0'
-    const notesEnc = (slot.notes && slot.notes.length)
-      ? encodeURIComponent(JSON.stringify(slot.notes))
+    const wIdx   = _idx(ALL_WARRIORS, slot.type).toString(36)
+    const w1Idx  = _idx(WEAPON_NAMES, slot.weapon1).toString(36)
+    const w2Idx  = slot.weapon2 ? _idx(WEAPON_NAMES, slot.weapon2).toString(36) : '-'
+    const cIdx   = slot.consumable ? _idx(ALL_CONSUMABLES, slot.consumable).toString(36) : '-'
+    const clIdx  = slot.climbing ? _idx(Object.keys(CLIMBING_ITEMS), slot.climbing).toString(36) : '-'
+    const ipStr  = slot.ip.map(id => _idx(ipIds, id).toString(36)).join('') || '-'
+    const cap    = slot.isCaptain ? '1' : '0'
+    const notesEnc = (slot.notes && slot.notes.length) ? encodeURIComponent(JSON.stringify(slot.notes)) : '-'
+    const nameEnc  = slot.customName ? encodeURIComponent(slot.customName) : '-'
+    const earnedEnc   = isCampaign ? (slot.earnedIP || 0).toString(36) : '-'
+    const statImpsEnc = isCampaign && slot.statImproves?.length
+      ? slot.statImproves.map(st => _idx(ALL_STAT_KEYS, st).toString(36)).join('')
       : '-'
-    const nameEnc = slot.customName ? encodeURIComponent(slot.customName) : '-'
-    parts.push([wIdx, w1Idx, w2Idx, cIdx, clIdx, ipStr, cap, notesEnc, nameEnc].join(':'))
+    parts.push([wIdx, w1Idx, w2Idx, cIdx, clIdx, ipStr, cap, notesEnc, nameEnc, earnedEnc, statImpsEnc].join(':'))
   })
-  return btoa(parts.join('|')).replace(/=/g, '')
+  const encoded = btoa(parts.join('|')).replace(/=/g, '')
+  return isCampaign ? `v2c_${s.campaignGame || 0}_${encoded}` : encoded
 }
 
 export function decodeCompany(code) {
   try {
-    // Support both base64 (new) and raw pipe-delimited (legacy) formats
-    let raw = code
+    let isCampaign = false
+    let campaignGame = 0
+    let rawCode = code
+    if (code.startsWith('v2c_')) {
+      const under = code.indexOf('_', 4)
+      campaignGame = parseInt(code.slice(4, under)) || 0
+      rawCode = code.slice(under + 1)
+      isCampaign = true
+    }
+    const ipIds = isCampaign ? CAMP_IP_IDS : ALL_IP_IDS
+
+    let raw = rawCode
     try {
-      const padded = code + '=='.slice(0, (4 - code.length % 4) % 4)
+      const padded = rawCode + '=='.slice(0, (4 - rawCode.length % 4) % 4)
       const decoded = atob(padded)
       if (decoded.includes('|')) raw = decoded
     } catch {}
+
     const parts = raw.split('|')
-    const mark = ALL_MARKS[parseInt(parts[0], 36)] || ALL_MARKS[0]
+    const mark       = ALL_MARKS[parseInt(parts[0], 36)] || ALL_MARKS[0]
     const companyName = decodeURIComponent(parts[1] || '')
-    const ipLimit = parseInt(parts[2], 36) || 3
+    const ipLimit    = parseInt(parts[2], 36) || (isCampaign ? 0 : 3)
     const slots = Array.from({ length: 3 }, (_, i) => {
-      const raw = parts[3 + i]
-      if (!raw || raw === '_') return { type: null, weapon1: null, weapon2: null, consumable: null, climbing: null, ip: [], isCaptain: i === 0, notes: [] }
-      const [wIdx, w1Idx, w2Idx, cIdx, clIdx, ipStr, cap, notesEnc, nameEnc] = raw.split(':')
-      const type = ALL_WARRIORS[parseInt(wIdx, 36)] || null
-      const weapon1 = WEAPON_NAMES[parseInt(w1Idx, 36)] || null
-      const weapon2 = w2Idx === '-' ? null : WEAPON_NAMES[parseInt(w2Idx, 36)] || null
+      const slotRaw = parts[3 + i]
+      if (!slotRaw || slotRaw === '_') return emptySlot(i)
+      const [wIdx, w1Idx, w2Idx, cIdx, clIdx, ipStr, cap, notesEnc, nameEnc, earnedEnc, statImpsEnc] = slotRaw.split(':')
+      const type      = ALL_WARRIORS[parseInt(wIdx, 36)] || null
+      const weapon1   = WEAPON_NAMES[parseInt(w1Idx, 36)] || null
+      const weapon2   = w2Idx === '-' ? null : WEAPON_NAMES[parseInt(w2Idx, 36)] || null
       const consumable = cIdx === '-' ? null : ALL_CONSUMABLES[parseInt(cIdx, 36)] || null
-      const climbing = clIdx === '-' ? null : Object.keys(CLIMBING_ITEMS)[parseInt(clIdx, 36)] || null
-      const ip = ipStr === '-' ? [] : ipStr.split('').map(c => ALL_IP_IDS[parseInt(c, 36)]).filter(Boolean)
+      const climbing  = clIdx === '-' ? null : Object.keys(CLIMBING_ITEMS)[parseInt(clIdx, 36)] || null
+      const ip        = ipStr === '-' ? [] : ipStr.split('').map(c => ipIds[parseInt(c, 36)]).filter(Boolean)
+      const earnedIP  = earnedEnc && earnedEnc !== '-' ? parseInt(earnedEnc, 36) : 0
+      const statImproves = (statImpsEnc && statImpsEnc !== '-')
+        ? statImpsEnc.split('').map(c => ALL_STAT_KEYS[parseInt(c, 36)]).filter(Boolean)
+        : []
       let notes = []
       if (notesEnc && notesEnc !== '-') {
         try {
@@ -179,9 +204,9 @@ export function decodeCompany(code) {
         } catch {}
       }
       const customName = nameEnc && nameEnc !== '-' ? decodeURIComponent(nameEnc) : null
-      return { type, weapon1, weapon2, consumable, climbing, ip, isCaptain: cap === '1', notes, customName }
+      return { type, weapon1, weapon2, consumable, climbing, ip, isCaptain: cap === '1', notes, customName, earnedIP, statImproves }
     })
-    return { mark, companyName, ipLimit, slots }
+    return { mark, companyName, ipLimit, companyMode: isCampaign ? 'campaign' : 'standard', campaignGame, slots }
   } catch (e) {
     return null
   }
@@ -256,8 +281,8 @@ export const useBuilderStore = create((set, get) => {
       return get().slots.reduce((sum, s) => sum + (s.ip?.length || 0), 0)
     },
     isDirty() {
-      const { mark, companyName, ipLimit, slots } = get()
-      return JSON.stringify({ mark, companyName, ipLimit, slots }) !== get()._savedSnapshot
+      const { mark, companyName, companyAvatar, ipLimit, slots, companyMode, campaignGame } = get()
+      return JSON.stringify({ mark, companyName, companyAvatar, ipLimit, slots, companyMode, campaignGame }) !== get()._savedSnapshot
     },
 
     // ── ACTIONS ────────────────────────────────────────────────────────────────
@@ -267,6 +292,33 @@ export const useBuilderStore = create((set, get) => {
     },
     setCompanyName(name) {
       set({ companyName: name })
+      get()._autoDraft()
+    },
+    setCompanyAvatar(avatar) {
+      set({ companyAvatar: avatar })
+      get()._autoDraft()
+    },
+    setEarnedIPAll(ip) {
+      const { slots } = get()
+      set({ slots: slots.map(slot => ({ ...slot, earnedIP: ip })) })
+      get()._autoDraft()
+    },
+    setEarnedIP(slotIndex, ip) {
+      const { slots } = get()
+      const newSlots = slots.map((slot, i) => i === slotIndex ? { ...slot, earnedIP: Math.max(0, ip) } : slot)
+      set({ slots: newSlots })
+      get()._autoDraft()
+    },
+    addSlot() {
+      const { slots } = get()
+      if (slots.length >= 8) return
+      set({ slots: [...slots, emptySlot(slots.length, false)] })
+      get()._autoDraft()
+    },
+    removeSlot() {
+      const { slots } = get()
+      if (slots.length <= 1) return
+      set({ slots: slots.slice(0, -1) })
       get()._autoDraft()
     },
     changeIPLimit(delta) {
@@ -290,11 +342,12 @@ export const useBuilderStore = create((set, get) => {
       const wdata = type ? WARRIORS[type] : null
       const firstWeapon = wdata ? (wdata.fixedWeapon || getAllowedWeapons(wdata)[0]) : null
       const fixedShield = wdata?.fixedShield || false
+      const fixedDualWield = wdata?.fixedDualWield || false
       slots[slotIndex] = {
         ...slots[slotIndex],
         type,
         weapon1: firstWeapon,
-        weapon2: fixedShield ? 'Shield' : null,
+        weapon2: fixedShield ? 'Shield' : fixedDualWield ? 'Light Weapon' : null,
         consumable: null,
         climbing: null,
         ip: [],
@@ -317,8 +370,11 @@ export const useBuilderStore = create((set, get) => {
           const wdata = WARRIORS[slots[slotIndex].type]
           if (!wdata?.fixedShield) {
             if (!slots[slotIndex].ip.includes('weapon2')) {
-              const totalSpent = slots.reduce((sum, s) => sum + (s.ip?.length || 0), 0)
-              if (totalSpent < get().ipLimit) {
+              const { companyMode } = get()
+              const canAfford = companyMode === 'campaign'
+                ? slots[slotIndex].ip.length < (slots[slotIndex].earnedIP || 0)
+                : slots.reduce((sum, s) => sum + (s.ip?.length || 0), 0) < get().ipLimit
+              if (canAfford) {
                 slots[slotIndex].ip = [...slots[slotIndex].ip, 'weapon2']
               }
             }
@@ -338,13 +394,16 @@ export const useBuilderStore = create((set, get) => {
       get()._autoDraft()
     },
     toggleIP(slotIndex, optId, checked) {
-      const slots = [...get().slots]
+      const { companyMode, slots: allSlots } = get()
+      const slots = [...allSlots]
       const slot = { ...slots[slotIndex] }
-      const totalSpent = get().getTotalIPSpent()
-      const ipLimit = get().ipLimit
 
       if (checked) {
-        if (totalSpent >= ipLimit) return // pool full
+        if (companyMode === 'campaign') {
+          if ((slot.ip?.length || 0) >= (slot.earnedIP || 0)) return // warrior's pool full
+        } else {
+          if (get().getTotalIPSpent() >= get().ipLimit) return // global pool full
+        }
         slot.ip = [...(slot.ip || []), optId]
       } else {
         slot.ip = (slot.ip || []).filter(id => id !== optId)
@@ -354,7 +413,17 @@ export const useBuilderStore = create((set, get) => {
       get()._autoDraft()
     },
     setCaptain(slotIndex) {
-      const slots = get().slots.map((s, i) => ({ ...s, isCaptain: i === slotIndex }))
+      let slots = [...get().slots]
+      // Mark the selected index as captain, others as not
+      slots = slots.map((s, i) => ({ ...s, isCaptain: i === slotIndex }))
+      
+      // If the new captain is not in slot 0, swap them to slot 0
+      if (slotIndex !== 0) {
+        const temp = slots[0]
+        slots[0] = slots[slotIndex]
+        slots[slotIndex] = temp
+      }
+      
       set({ slots })
       get()._autoDraft()
     },
@@ -370,8 +439,16 @@ export const useBuilderStore = create((set, get) => {
       const errors = get()._validate()
       if (errors) { set({ validationMsg: errors }); return false }
       const saves = getSaves()
-      const { mark, companyName, ipLimit, slots, companyId } = get()
-      const saveData = { mark, companyName, ipLimit, slots, companyId, savedAt: Date.now() }
+      const { mark, companyName, companyAvatar, ipLimit, slots, companyId, companyMode, campaignGame } = get()
+      const nameConflict = saves.find(s =>
+        s.companyId !== companyId &&
+        s.companyName?.trim().toLowerCase() === (companyName || '').trim().toLowerCase()
+      )
+      if (nameConflict) {
+        set({ validationMsg: `A company named "${nameConflict.companyName}" already exists. Rename your company before saving.` })
+        return false
+      }
+      const saveData = { mark, companyName, companyAvatar, ipLimit, slots, companyId, companyMode, campaignGame, savedAt: Date.now() }
       const existingIndex = saves.findIndex(s => s.companyId === companyId)
       if (existingIndex >= 0) {
         saves[existingIndex] = saveData
@@ -380,7 +457,7 @@ export const useBuilderStore = create((set, get) => {
         if (saves.length > 10) saves.pop()
       }
       setSaves(saves)
-      set({ saves, _savedSnapshot: JSON.stringify({ mark, companyName, ipLimit, slots }) })
+      set({ saves, _savedSnapshot: JSON.stringify({ mark, companyName, companyAvatar, ipLimit, slots, companyMode, campaignGame }) })
       get()._toast('Company saved.')
       return true
     },
@@ -388,8 +465,9 @@ export const useBuilderStore = create((set, get) => {
       const saves = getSaves()
       const save = saves[index]
       if (!save) return
-      const { mark, companyName, ipLimit, slots, companyId } = save
-      set({ mark, companyName, ipLimit, slots, companyId: companyId || crypto.randomUUID(), _savedSnapshot: JSON.stringify({ mark, companyName, ipLimit, slots }) })
+      const { mark, companyName, companyAvatar = null, ipLimit, slots, companyId, companyMode = 'standard', campaignGame = 0 } = save
+      const snap = JSON.stringify({ mark, companyName, companyAvatar, ipLimit, slots, companyMode, campaignGame })
+      set({ mark, companyName, companyAvatar, ipLimit, slots, companyId: companyId || crypto.randomUUID(), companyMode, campaignGame, _savedSnapshot: snap })
       get()._toast('Company loaded!')
     },
     deleteCompany(index) {
@@ -432,23 +510,22 @@ export const useBuilderStore = create((set, get) => {
     },
 
     // ── RANDOM ────────────────────────────────────────────────────────────────
-    rollRandom() {
+    // Pure computation — returns result without touching store state
+    buildRandomResult({ warriors: numWarriors = 3, ipLimit: overrideIpLimit = 3 } = {}) {
       const allTypes = Object.keys(WARRIORS)
       const shuffled = [...allTypes].sort(() => Math.random() - 0.5)
-      const picked = shuffled.slice(0, 3)
+      const picked = shuffled.slice(0, numWarriors)
       const mark = MARKS[Math.floor(Math.random() * MARKS.length)].name
-      const ipLimit = 3
+      const ipLimit = overrideIpLimit
       let ipPool = ipLimit
 
-      const slots = Array.from({ length: 3 }, (_, i) => {
+      const slots = Array.from({ length: numWarriors }, (_, i) => {
         const type = picked[i] || null
         if (!type) return { type: null, weapon1: null, weapon2: null, consumable: null, climbing: null, ip: [], isCaptain: i === 0, notes: [] }
         const wdata = WARRIORS[type]
         const allowed = getAllowedWeapons(wdata)
         const twoHanded = ['Heavy Weapon', 'Polearm (two-handed)', 'Bow', 'Crossbow']
 
-        // Use fixed weapon if warrior requires it, otherwise pick randomly
-        // Exclude Polearm (one-handed) if pool can't afford the mandatory Shield IP
         const affordableWeapons = allowed.filter(w => {
           if (w === 'Polearm (one-handed)' && !wdata.fixedShield && ipPool < 1) return false
           return true
@@ -461,15 +538,14 @@ export const useBuilderStore = create((set, get) => {
         let weapon2 = null
 
         if (wdata.fixedShield) {
-          // Fixed shield warriors (Knight, Hedge Knight) get Shield free
           weapon2 = 'Shield'
+        } else if (wdata.fixedDualWield) {
+          weapon2 = 'Light Weapon'
         } else if (weapon1 === 'Polearm (one-handed)') {
-          // Mandatory Shield costs 1 IP
           weapon2 = 'Shield'
           ip.push('weapon2')
           ipPool--
         } else if (!twoHanded.includes(weapon1)) {
-          // Optional second weapon — random chance if pool allows
           const w2opts = getSecondWeaponOptions(wdata, weapon1)
           if (w2opts.length && Math.random() > 0.5 && ipPool > 0) {
             weapon2 = w2opts[Math.floor(Math.random() * w2opts.length)]
@@ -478,16 +554,127 @@ export const useBuilderStore = create((set, get) => {
           }
         }
 
-        // Random remaining IP upgrades (climbing, consumable, stat)
+        const climbingOptions = Object.keys(CLIMBING_ITEMS).filter(k => k !== 'None')
+        const statOptions = Object.keys(STAT_IMPROVEMENT)
+        let climbing = null
+        let consumable = null
+        let statImprove = null
+
         const remainingOpts = IP_OPTIONS.filter(o => o.id !== 'weapon2')
         for (const opt of remainingOpts.sort(() => Math.random() - 0.5)) {
           if (ipPool <= 0) break
-          if (Math.random() > 0.6) { ip.push(opt.id); ipPool-- }
+          if (Math.random() > 0.6) {
+            ip.push(opt.id)
+            ipPool--
+            if (opt.id === 'climbing')   climbing    = climbingOptions[Math.floor(Math.random() * climbingOptions.length)]
+            if (opt.id === 'consumable') consumable  = CONSUMABLE_NAMES[Math.floor(Math.random() * CONSUMABLE_NAMES.length)]
+            if (opt.id === 'stat')       statImprove = statOptions[Math.floor(Math.random() * statOptions.length)]
+          }
         }
 
-        return { type, weapon1, weapon2, consumable: null, climbing: null, ip, isCaptain: i === 0, notes: [] }
+        return { type, weapon1, weapon2, consumable, climbing, statImprove, ip, isCaptain: i === 0, notes: [] }
       })
-      set({ mark, companyName: generateCompanyName(), ipLimit, slots })
+      return { mark, companyName: generateCompanyName(), ipLimit, slots }
+    },
+    // Apply a pre-built random result to the store
+    applyRandomResult(result) {
+      set({ ...result, companyId: crypto.randomUUID() })
+      get()._autoDraft()
+    },
+    applyQuizCompany({ mark, companyName, warriors }) {
+      const slots = Array.from({ length: 3 }, (_, i) => emptySlot(i, i === 0))
+
+      if (warriors) {
+        const parts = warriors.split(' · ')
+        parts.forEach((p, i) => {
+          if (i >= 3) return
+          const match = p.match(/^(.+?)\s*\(/)
+          const type = match ? match[1].trim() : p.trim()
+          
+          if (!WARRIORS[type]) return
+          slots[i].type = type
+
+          const wdata = WARRIORS[type]
+          const allowed = getAllowedWeapons(wdata)
+          const firstWeapon = wdata.fixedWeapon || allowed[0]
+          slots[i].weapon1 = firstWeapon
+          
+          if (wdata.fixedShield) {
+            slots[i].weapon2 = 'Shield'
+          } else if (wdata.fixedDualWield) {
+            slots[i].weapon2 = 'Light Weapon'
+          } else if (firstWeapon === 'Polearm (one-handed)') {
+            slots[i].weapon2 = 'Shield'
+            slots[i].ip.push('weapon2')
+          }
+        })
+      }
+
+      set({ 
+        mark, 
+        companyName, 
+        slots,
+        companyId: crypto.randomUUID() 
+      })
+      get()._autoDraft()
+    },
+    rollRandom({ warriors = 3, ipLimit = 3 } = {}) {
+      const result = get().buildRandomResult({ warriors, ipLimit })
+      get().applyRandomResult(result)
+    },
+
+    // ── CAMPAIGN ───────────────────────────────────────────────────────────────
+    setCompanyMode(mode) {
+      set({ companyMode: mode, ipLimit: mode === 'campaign' ? 0 : 3 })
+      get()._autoDraft()
+    },
+    awardEndOfGame({ survivorIndices, captainWon, newCaptainIndex }) {
+      const { slots, campaignGame } = get()
+      const newSlots = slots.map((slot, i) => {
+        if (!slot.type) return slot
+        const survived = survivorIndices.includes(i)
+        if (!survived) {
+          // Warrior fell — replace with a fresh empty slot
+          return emptySlot(i, false)
+        }
+        // Survived — award 1 IP (+ captain bonus if applicable)
+        let add = 1
+        if (captainWon && slot.isCaptain) add += 1
+        // Handle captain promotion: override isCaptain on promoted warrior
+        let isCaptain = slot.isCaptain
+        if (newCaptainIndex != null) {
+          isCaptain = (i === newCaptainIndex)
+        }
+        return { ...slot, earnedIP: (slot.earnedIP || 0) + add, isCaptain }
+      })
+      const nextGame = campaignGame + 1
+      set({ slots: newSlots, campaignGame: nextGame })
+      get()._autoDraft()
+      get()._toast(`Game ${nextGame} complete — IP awarded!`)
+    },
+    addStatImprove(slotIndex, stat) {
+      const slots = [...get().slots]
+      const slot = { ...slots[slotIndex] }
+      if (slot.statImproves?.includes(stat)) return
+      const statKey = `stat_${slot.statImproves?.length || 0}`
+      slot.statImproves = [...(slot.statImproves || []), stat]
+      slot.ip = [...(slot.ip || []), statKey]
+      slots[slotIndex] = slot
+      set({ slots })
+      get()._autoDraft()
+    },
+    removeStatImprove(slotIndex, stat) {
+      const slots = [...get().slots]
+      const slot = { ...slots[slotIndex] }
+      const statIdx = slot.statImproves?.indexOf(stat)
+      if (statIdx < 0) return
+      const newImproves = slot.statImproves.filter(s => s !== stat)
+      const otherIps = (slot.ip || []).filter(id => !id.startsWith('stat_'))
+      const newStatIps = newImproves.map((_, i) => `stat_${i}`)
+      slot.statImproves = newImproves
+      slot.ip = [...otherIps, ...newStatIps]
+      slots[slotIndex] = slot
+      set({ slots })
       get()._autoDraft()
     },
 
@@ -497,8 +684,8 @@ export const useBuilderStore = create((set, get) => {
       setTimeout(() => set({ toast: null }), 2500)
     },
     _autoDraft() {
-      const { mark, companyName, ipLimit, slots, companyId } = get()
-      try { localStorage.setItem('doom_draft', JSON.stringify({ mark, companyName, ipLimit, slots, companyId })) } catch {}
+      const { mark, companyName, companyAvatar, ipLimit, slots, companyId, companyMode, campaignGame } = get()
+      try { localStorage.setItem('doom_draft', JSON.stringify({ mark, companyName, companyAvatar, ipLimit, slots, companyId, companyMode, campaignGame })) } catch {}
     },
     _validate() {
       const { slots } = get()

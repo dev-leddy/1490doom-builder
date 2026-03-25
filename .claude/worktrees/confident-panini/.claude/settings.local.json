@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rtk grep:*)",
+      "Bash(rtk tsc:*)",
+      "Bash(rtk lint:*)",
+      "Bash(dir \"D:\\\\dev-led\\\\1490doom-builder\\\\src\" /b)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5177/1490doom-builder/)",
+      "Bash(rtk git:*)"
+    ]
+  }
+}
