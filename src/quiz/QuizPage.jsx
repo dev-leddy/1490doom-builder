@@ -4,7 +4,7 @@ import { useAudio } from './useAudio'
 import QuizHero from './QuizHero'
 import QuizQuestion from './QuizQuestion'
 import QuizResult from './QuizResult'
-import { COMPANIES } from '../data/quizData'
+import { COMPANIES, QUESTIONS } from '../data/quizData'
 import './quiz.css'
 
 // onComplete: provided in embedded (builder) mode
@@ -15,47 +15,44 @@ export default function QuizPage({ onComplete, onLightboxToggle }) {
 
   // Background art crossfade (two-slot system)
   const [bgSlots, setBgSlots] = useState({ a: null, b: null, active: null })
+  const pendingBg = useRef(null)
 
   function setBgArt(url) {
-    setBgSlots(prev => {
-      const next = prev.active === 'a' ? 'b' : 'a'
-      return { ...prev, [next]: url, active: next }
-    })
+    // If already cached, swap immediately; otherwise wait for load
+    const img = new Image()
+    pendingBg.current = url
+    img.onload = () => {
+      if (pendingBg.current !== url) return // superseded
+      setBgSlots(prev => {
+        const next = prev.active === 'a' ? 'b' : 'a'
+        return { ...prev, [next]: url, active: next }
+      })
+    }
+    img.src = url
   }
 
   function clearBgArt() {
+    pendingBg.current = null
     setBgSlots({ a: null, b: null, active: null })
   }
+
+  // Preload ALL quiz assets on mount so they're cached by the time user reaches them
+  useEffect(() => {
+    const urls = [
+      '/quiz/Art/Bonus%20Art/Battlefield.png',
+      ...QUESTIONS.map(q => q.art).filter(Boolean),
+      ...COMPANIES.flatMap(c => [...c.minis, c.rep].filter(Boolean)),
+    ]
+    urls.forEach(src => { const img = new Image(); img.src = src })
+  }, [])
 
   // Update bg art when phase/question changes
   useEffect(() => {
     if (engine.phase === 'quiz') {
-      // 1. Set current question art
       if (engine.question?.art) {
         setBgArt(engine.question.art)
       } else {
         setBgSlots(prev => ({ ...prev, active: prev.active || 'a' }))
-      }
-
-      // 2. Preload result assets as soon as quiz starts
-      // This ensures Battlefield art and Minis are ready before user finishes
-      if (engine.currentQuestion === 0) {
-        // Preload core result background
-        const resultBg = new Image()
-        resultBg.src = '/quiz/Art/Bonus%20Art/Battlefield.png'
-
-        // Preload ALL warrior minis (since we don't know the winner yet)
-        COMPANIES.forEach(company => {
-          company.minis.forEach(miniUrl => {
-            const img = new Image()
-            img.src = miniUrl
-          })
-          // Also preload rep image
-          if (company.rep) {
-            const repImg = new Image()
-            repImg.src = company.rep
-          }
-        })
       }
     } else if (engine.phase === 'result') {
       clearBgArt()

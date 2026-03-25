@@ -1044,6 +1044,7 @@
 /* ─── Responsive ─────────────────────────────────────────────────────── */
 @media (max-width: 600px) {
   .quiz-root { font-size: 16px; }
+  .quiz-root .qz-btn-back { left: auto; right: 1em; }
   .quiz-root .qz-section { padding: 1.5em 1.1em; }
   .quiz-root .qz-result-scroll-inner { padding: 4.5em 1.1em 3.5em; }
   .quiz-root .qz-result-bottom-row { gap: 0; }
