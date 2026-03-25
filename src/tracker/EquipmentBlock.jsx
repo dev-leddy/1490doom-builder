@@ -4,7 +4,7 @@ import { WEAPONS, CLIMBING_ITEMS, CLIMBING_DESCS, CONSUMABLES } from '../data/we
 import { ITEM_ICONS } from '../data/images'
 
 const CACHE_SHORT = {
-  'Herbs & Tonic':    '+3 VIT',
+  'Herbs & Tonic':    'HEAL 3 VIT',
   'Food':             '+1 ACTION',
   'Scholarly Scroll': 'PASS SKILL',
   'Map':              'MOVE ALL',
