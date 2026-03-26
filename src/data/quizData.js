@@ -152,7 +152,7 @@ export const COMPANIES = [
 export const QUESTIONS = [
   {
     text: "You enter a ruined castle. The fog is rising. Other warriors are closing in. What's your first move?",
-    art: '/quiz/Art/Bonus Art/Ruined Tower.png',
+    art: '/quiz/Art/Bonus Art/Ruined Tower.webp',
     answers: [
       { text: 'Climb to the highest point as fast as possible',          scores: { tower_born: 3, graveborn: 2 } },
       { text: 'Search the ruins for weapons and supplies',                scores: { relic_bitten: 3, wretched_survivors: 2 } },
@@ -162,7 +162,7 @@ export const QUESTIONS = [
   },
   {
     text: 'A warrior on your team is dying. With their last breath, what do they do?',
-    art: '/quiz/Art/Bonus Art/DeadKnight.png',
+    art: '/quiz/Art/Bonus Art/DeadKnight.webp',
     answers: [
       { text: 'Take one final swing at the enemy',                        scores: { graveborn: 4, ashbound: 2 } },
       { text: 'Tell you where they hid something valuable',               scores: { relic_bitten: 3, wretched_survivors: 2 } },
@@ -172,7 +172,7 @@ export const QUESTIONS = [
   },
   {
     text: 'You find an ancient chest hidden in the tower. What do you do with it?',
-    art: '/quiz/Art/Bonus Art/Throne_Room No Fog.png',
+    art: '/quiz/Art/Bonus Art/Throne_Room No Fog.webp',
     answers: [
       { text: "Crack it open immediately — you need what's inside",       scores: { relic_bitten: 3, wretched_survivors: 2 } },
       { text: "Guard it and open it when you're safe",                    scores: { ashbound: 3, graveborn: 2 } },
@@ -182,7 +182,7 @@ export const QUESTIONS = [
   },
   {
     text: "You're surrounded by enemies on all sides. How do you respond?",
-    art: '/quiz/Art/Bonus Art/Battle.png',
+    art: '/quiz/Art/Bonus Art/Battle.webp',
     answers: [
       { text: 'Form a circle and fight until the end',                    scores: { doomed_choir: 3, graveborn: 2 } },
       { text: 'Break through and escape to regroup',                      scores: { silent_pact: 3, tower_born: 2 } },
@@ -192,7 +192,7 @@ export const QUESTIONS = [
   },
   {
     text: 'When the battle ends and the bodies are counted, what defines victory for you?',
-    art: '/quiz/Art/Bonus Art/Standoff .png',
+    art: '/quiz/Art/Bonus Art/Standoff .webp',
     answers: [
       { text: "You're standing on top of the highest tower",              scores: { tower_born: 3, silent_pact: 2 } },
       { text: "You're the last one left alive",                           scores: { graveborn: 3, ashbound: 2 } },

@@ -141,10 +141,10 @@
 .quiz-root .fog-layer-2 { animation: qzFogOpacity2 18s linear infinite, qzFogMove 16s linear infinite reverse; opacity: 0.6; }
 
 .quiz-root .fog-layer-1 .fog-img {
-  background-image: url("https://raw.githubusercontent.com/danielstuart14/CSS_FOG_ANIMATION/master/fog1.png");
+  background-image: url("/quiz/Art/fog1.png");
 }
 .quiz-root .fog-layer-2 .fog-img {
-  background-image: url("https://raw.githubusercontent.com/danielstuart14/CSS_FOG_ANIMATION/master/fog2.png");
+  background-image: url("/quiz/Art/fog2.png");
 }
 
 @keyframes qzFogMove {
@@ -476,8 +476,8 @@
   position: absolute;
   inset: 0;
   background-image:
-    url('https://raw.githubusercontent.com/danielstuart14/CSS_FOG_ANIMATION/master/fog1.png'),
-    url('https://raw.githubusercontent.com/danielstuart14/CSS_FOG_ANIMATION/master/fog2.png');
+    url('/quiz/Art/fog1.png'),
+    url('/quiz/Art/fog2.png');
   background-size: 200% 100%, 250% 100%;
   background-position: 0% 0%, 100% 100%;
   background-repeat: repeat-x;
