@@ -8,10 +8,27 @@ if (window.location.pathname === '/') {
   // When a new service worker takes over, reload so users get the latest version.
   if ('serviceWorker' in navigator) {
     let reloading = false
+
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       if (reloading) return
       reloading = true
       window.location.reload()
+    })
+
+    navigator.serviceWorker.ready.then(reg => {
+      if (reg.waiting) {
+        reg.waiting.postMessage({ type: 'SKIP_WAITING' })
+      }
+      reg.update()
+      reg.addEventListener('updatefound', () => {
+        const next = reg.installing
+        if (!next) return
+        next.addEventListener('statechange', () => {
+          if (next.state === 'installed' && navigator.serviceWorker.controller) {
+            next.postMessage({ type: 'SKIP_WAITING' })
+          }
+        })
+      })
     })
   }
 
