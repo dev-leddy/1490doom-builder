@@ -677,7 +677,7 @@
     gap: 1.5rem;
     justify-content: center;
     margin-bottom: 2rem;
-    justify-items: center; /* Center cards when narrower than columns */
+    justify-items: center;
   }
   @media (max-width: 1024px) {
     /* Layout */
@@ -2516,6 +2516,7 @@
 
 
 
+
 .save-load-wrapper {
   max-width: 1200px;
   margin: 0 auto;
@@ -4065,7 +4066,7 @@
   text-transform: uppercase;
   font-size: 0.75rem;
   letter-spacing: 0.1em;
-  padding: 0.5rem 0 0.75rem;
+  padding: 0.5rem 0 0.3rem;
   cursor: pointer;
   transition: color 0.15s;
   touch-action: manipulation;
@@ -4279,6 +4280,9 @@
 
 /* ── Root & Frame ──────────────────────────────────────────── */
 .ch-root {
+  max-width: var(--header-max-width, 100%);
+  margin-left: auto;
+  margin-right: auto;
   margin-bottom: 2rem;
 }
 
@@ -4293,23 +4297,7 @@
   padding: 0.25rem 0.5rem;
   background: var(--ash);
   border: 1px solid var(--dim);
-  border-top: 2px solid rgba(190, 65, 39, 0.65);
-  border-bottom: 1px solid rgba(190, 65, 39, 0.2);
 }
-
-/* Corner L-bracket ornaments */
-.ch-frame::before,
-.ch-frame::after {
-  content: '';
-  position: absolute;
-  top: -1px;
-  width: 18px;
-  height: 18px;
-  border-top: 2px solid rgba(190, 65, 39, 0.85);
-  pointer-events: none;
-}
-.ch-frame::before { left: -1px; border-left: 2px solid rgba(190, 65, 39, 0.85); }
-.ch-frame::after  { right: -1px; border-right: 2px solid rgba(190, 65, 39, 0.85); }
 
 /* ── Panels wrapper — always horizontal ────────────────────── */
 .ch-panels {
@@ -4600,7 +4588,7 @@
 }
 
 /* ── Mobile — stacked layout + compact rings (≤650px) ────────── */
-@media (max-width: 650px) {
+@media (max-width: 1024px) {
   .ch-frame { padding: 0.2rem 0.4rem; }
   /* Stack identity on top, mark below — equal heights via min-height */
   .ch-panels { flex-direction: column; align-items: stretch; }

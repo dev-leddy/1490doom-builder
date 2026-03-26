@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useBuilderStore } from '../store/builderStore'
 import { getAvatarSrc } from '../data/avatars'
 import { useTrackerStore } from '../store/trackerStore'
@@ -34,6 +34,30 @@ export default function BuilderPage() {
   const [endOfGameOpen, setEndOfGameOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [backConfirmOpen, setBackConfirmOpen] = useState(false)
+
+  // Sync company header width to match warrior card width when only 1 card per row
+  const builderMainRef = useRef(null)
+  useEffect(() => {
+    if (view !== 'builder') return
+    const main = builderMainRef.current
+    if (!main) return
+    const sync = () => {
+      const grid = main.querySelector('.warriors-grid')
+      if (!grid) return
+      const cols = getComputedStyle(grid).gridTemplateColumns.trim().split(/\s+/).length
+      if (cols <= 1) {
+        const card = main.querySelector('.warrior-slot')
+        main.style.setProperty('--header-max-width', card ? card.offsetWidth + 'px' : '500px')
+      } else {
+        main.style.setProperty('--header-max-width', '100%')
+      }
+    }
+    sync()
+    const ro = new ResizeObserver(sync)
+    const grid = main.querySelector('.warriors-grid')
+    if (grid) ro.observe(grid)
+    return () => ro.disconnect()
+  }, [view])
 
   // Auto-import quiz results from standalone quiz via ?quiz= URL param
   useEffect(() => {
@@ -142,7 +166,7 @@ export default function BuilderPage() {
         ) : view === 'landing' ? (
           <LandingPage onLoad={goBuilder} />
         ) : (
-          <main className="builder-main">
+          <main className="builder-main" ref={builderMainRef}>
             <button className="builder-home-btn" onClick={handleGoHome}>← Home</button>
             <CompanyHeader onSettings={() => setSettingsOpen(true)} />
             <WarriorRoster />
