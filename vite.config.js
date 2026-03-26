@@ -31,7 +31,8 @@ export default defineConfig(({ command }) => ({
         cacheId: 'doom-builder-v2',
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         globIgnores: ['quiz/Art/**', 'quiz/music/**'],
-        navigateFallback: null,
+        navigateFallback: '/index.html',
+        navigateFallbackDenylist: [/^\/quiz/],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MiB (images.js is ~3.3 MB)
         runtimeCaching: [
           {
