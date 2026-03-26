@@ -29,6 +29,7 @@ export default defineConfig(({ command }) => ({
       },
       workbox: {
         cacheId: 'doom-builder-v2',
+        importScripts: ['sw-redirect.js'],
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         globIgnores: ['quiz/Art/**', 'quiz/music/**'],
         navigateFallback: '/index.html',
