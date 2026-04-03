@@ -1112,6 +1112,7 @@
   .quiz-root .qz-doom-logo-corner img { height: 28px; }
   .quiz-root .qz-footer-buer-logo { height: 22px; }
   .quiz-root .qz-audio-widget { padding: 0.5em 0.75em; }
+  .quiz-root .qz-btn-back { top: calc(42px + 2.75em); }
 }
 
 @media (min-width: 900px) {

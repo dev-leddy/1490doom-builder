@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import BottomSheet from '../shared/BottomSheet'
 import { useBuilderStore } from '../store/builderStore'
 import { MARK_IMAGES } from '../data/images'
 import { MARKS } from '../data/warriors'
@@ -8,6 +9,7 @@ import MarkPicker from './MarkPicker'
 export default function CompanyHeader({ onSettings }) {
   const { mark, setMark, companyName, companyAvatar, companyMode, campaignGame, slots, ipLimit } = useBuilderStore()
   const [showMarkPicker, setShowMarkPicker] = useState(false)
+  const [tempMark, setTempMark] = useState('')
   const markData = MARKS.find(m => m.name === mark)
   const markImg = mark && MARK_IMAGES[mark]
   const avatarSrc = getAvatarSrc(companyAvatar)
@@ -24,18 +26,13 @@ export default function CompanyHeader({ onSettings }) {
             aria-label="Company Settings"
             title="Change Profile"
           >
-            <div className="ch-avatar-ring">
-              <div className="ch-avatar-inner">
-                {avatarSrc
-                  ? <img src={avatarSrc} className="ch-avatar-img" alt="Company avatar" />
-                  : <div className="ch-avatar-placeholder" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" fill="currentColor" width="28" height="28">
-                        <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
-                      </svg>
-                    </div>
-                }
+            {avatarSrc && (
+              <div className="ch-avatar-ring">
+                <div className="ch-avatar-inner">
+                  <img src={avatarSrc} className="ch-avatar-img" alt="Company avatar" />
+                </div>
               </div>
-            </div>
+            )}
             <div className="ch-identity-text">
               <span className="ch-name-text">
                 {companyName || 'UNNAMED WARBAND'}
@@ -58,7 +55,7 @@ export default function CompanyHeader({ onSettings }) {
           {/* RIGHT: Company Mark */}
           <button
             className="ch-sigil-btn"
-            onClick={() => setShowMarkPicker(true)}
+            onClick={() => { setTempMark(mark || ''); setShowMarkPicker(true) }}
             aria-label="Change Company Mark"
             title="Change Company Mark"
           >
@@ -95,16 +92,35 @@ export default function CompanyHeader({ onSettings }) {
       </div>
 
       {showMarkPicker && (
-        <div
-          className="modal-backdrop"
-          onClick={e => e.target === e.currentTarget && setShowMarkPicker(false)}
-          style={{ zIndex: 1000 }}
+        <BottomSheet
+          title="COMPANY MARK"
+          onClose={() => setShowMarkPicker(false)}
+          zIndex={1001}
+          bodyClass="co-sheet-body--mark"
+          footer={
+            <>
+              <button className="co-sheet-randomize" onClick={() => setShowMarkPicker(false)}>Cancel</button>
+              <button className="co-sheet-done" onClick={() => { setMark(tempMark); setShowMarkPicker(false) }}>Done</button>
+            </>
+          }
         >
-          <div className="modal-box mark-picker-modal" style={{ maxWidth: 500, width: '94vw', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            <div className="modal-title" style={{ flexShrink: 0 }}>SELECT COMPANY MARK</div>
-            <MarkPicker value={mark} onChange={setMark} onApply={() => setShowMarkPicker(false)} />
+          <div className="mark-sheet-desc">
+            {(() => {
+              const preview = MARKS.find(m => m.name === tempMark)
+              return preview ? (
+                <>
+                  <div className="mark-sheet-desc-name">{preview.label}</div>
+                  <div className="mark-sheet-desc-text">{preview.desc}</div>
+                </>
+              ) : (
+                <div className="mark-sheet-desc-placeholder">Select a mark to see its battlefield ability.</div>
+              )
+            })()}
           </div>
-        </div>
+          <div className="mark-grid-scroll">
+            <MarkPicker value={tempMark} onChange={setTempMark} />
+          </div>
+        </BottomSheet>
       )}
     </div>
   )

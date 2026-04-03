@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { useBuilderStore } from '../store/builderStore'
+import BottomSheet from '../shared/BottomSheet'
 
 export default function ShareModal() {
   const { shareCode, closeShare } = useBuilderStore()
@@ -11,7 +12,6 @@ export default function ShareModal() {
   function handleCopy() {
     const el = textareaRef.current
     if (!el) return
-    // Try modern clipboard API first, fall back to select-and-copy
     if (navigator.clipboard) {
       navigator.clipboard.writeText(shareCode).then(() => {
         setCopied(true)
@@ -30,32 +30,32 @@ export default function ShareModal() {
     }
   }
 
-  function handleTextareaFocus(e) {
-    e.target.select()
-  }
+  function handleTextareaFocus(e) { e.target.select() }
 
   return (
-    <div className="modal-backdrop" onClick={e => e.target === e.currentTarget && closeShare()}>
-      <div className="modal-box share-modal">
-        <div className="modal-title">Share Company</div>
-        <textarea
-          ref={textareaRef}
-          className="share-code-box"
-          readOnly
-          value={shareCode}
-          onFocus={handleTextareaFocus}
-          onClick={handleTextareaFocus}
-        />
-        <div className="share-modal-note">
-          Share this link — anyone who opens it will load your company automatically.
-        </div>
-        <div className="share-modal-actions">
-          <button className="modal-primary-btn" onClick={handleCopy}>
+    <BottomSheet
+      title="SHARE COMPANY"
+      onClose={closeShare}
+      footer={
+        <>
+          <button className="co-sheet-randomize" onClick={closeShare}>Close</button>
+          <button className="co-sheet-done" onClick={handleCopy}>
             {copied ? 'Copied!' : 'Copy Link'}
           </button>
-          <button className="btn btn-ghost" onClick={closeShare}>Close</button>
-        </div>
+        </>
+      }
+    >
+      <textarea
+        ref={textareaRef}
+        className="share-code-box"
+        readOnly
+        value={shareCode}
+        onFocus={handleTextareaFocus}
+        onClick={handleTextareaFocus}
+      />
+      <div className="share-modal-note">
+        Share this link — anyone who opens it will load your company automatically.
       </div>
-    </div>
+    </BottomSheet>
   )
 }

@@ -1,8 +1,9 @@
-import React, { useState, useRef } from 'react'
+import React, { useState } from 'react'
 import { useBuilderStore, getAvailableWarriorTypes, getAllowedWeapons, getSecondWeaponOptions } from '../store/builderStore'
 import { WARRIORS, STAT_IMPROVEMENT, IP_OPTIONS } from '../data/warriors'
 import { WEAPONS, CLIMBING_ITEMS, CLIMBING_DESCS, CONSUMABLES, CONSUMABLE_NAMES } from '../data/weapons'
 import { WARRIOR_IMAGES, ITEM_ICONS } from '../data/images'
+import BottomSheet from '../shared/BottomSheet'
 
 function improveStatDisplay(base, stat) {
   if (stat === 'SKL' || stat === 'DEF' || stat === 'COM') return (parseInt(base) - 1) + '+'
@@ -81,6 +82,12 @@ const SvgDice = () => (
   </svg>
 )
 
+const SvgGear = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+    <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94zM12,15.6c-1.98,0-3.6-1.62-3.6-3.6s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+  </svg>
+)
+
 // ── Upgrade Modal ────────────────────────────────────────────────────────────
 function UpgradeModal({
   isOpen, onClose, title, category,
@@ -95,165 +102,170 @@ function UpgradeModal({
 
   const isFixed = category === 'weapon2' && (hasFixedShield || hasFixedDualWield || primaryIsPolearmOne)
 
+  const showRemove = category !== 'weapon1' && (
+    (category === 'weapon2' && slot.weapon2 && !isFixed) ||
+    (category === 'climbing' && slot.climbing && slot.climbing !== 'None') ||
+    (category === 'consumable' && slot.consumable) ||
+    (category === 'stat' && slot.statImprove)
+  )
+
   return (
-    <div className="modal-backdrop" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="modal-box upgrade-modal">
-        <div className="upgrade-modal-header" style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
-          <div className="modal-title" style={{ margin: 0, paddingRight: '1rem' }}>{title.toUpperCase()}</div>
-          <button className="upgrade-modal-close" onClick={onClose}>×</button>
-        </div>
-        
-        <div className="upgrade-modal-body">
-          {category === 'weapon2' && (
-            <WeaponSelector
-              slotIndex={slotIndex}
-              slot={slot}
-              options={
-                hasFixedShield      ? ['Shield'] :
-                hasFixedDualWield   ? ['Light Weapon'] :
-                primaryIsPolearmOne ? ['Shield'] :
-                getSecondWeaponOptions(wdata, slot.weapon1)
-              }
-              propKey="weapon2"
-              poolFull={poolFull}
-              iconSize={32}
-              onSelect={newVal => {
-                if (!isFixed) {
-                  if (newVal) spendIP('weapon2')
-                  else freeIP('weapon2')
-                }
-                onClose()
-              }}
-            />
-          )}
-
-          {category === 'climbing' && (
-            <div className="upgrade-table">
-              {Object.keys(CLIMBING_ITEMS).filter(k => k !== 'None').map(opt => {
-                const cd = CLIMBING_ITEMS[opt]
-                return (
-                  <button
-                    key={opt}
-                    className={`upgrade-table-btn ${slot.climbing === opt ? 'active' : ''}`}
-                    onClick={() => {
-                      const newVal = slot.climbing === opt ? null : opt
-                      setWarriorProp(slotIndex, 'climbing', newVal)
-                      if (newVal) spendIP('climbing')
-                      else freeIP('climbing')
-                      onClose()
-                    }}
-                  >
-                    <div className="item-tier-1">
-                      {ITEM_ICONS[opt] && <img src={ITEM_ICONS[opt]} alt="" style={{ width: 28, height: 28, filter: 'sepia(0.3) brightness(0.95)', flexShrink: 0 }} />}
-                      <div className="item-name">{opt}</div>
-                    </div>
-                    <div className="item-tier-2">
-                       <div className="item-stat-wrap">
-                         <span className="stat-label">Height</span>
-                         <span className="stat-val">{cd?.height || '—'}</span>
-                       </div>
-                       <div className="item-stat-wrap">
-                         <span className="stat-label">Skill</span>
-                         <span className="stat-val">{cd?.skillCheck || '—'}</span>
-                       </div>
-                       <div className="item-info">{CLIMBING_DESCS[opt] || 'None'}</div>
-                    </div>
-                  </button>
-                )
-              })}
-            </div>
-          )}
-
-          {category === 'consumable' && (
-            <div className="upgrade-table">
-              {CONSUMABLE_NAMES.map(opt => (
-                <button
-                  key={opt}
-                  className={`upgrade-table-btn ${slot.consumable === opt ? 'active' : ''}`}
-                  onClick={() => {
-                    const newVal = slot.consumable === opt ? null : opt
-                    setWarriorProp(slotIndex, 'consumable', newVal)
-                    if (newVal) spendIP('consumable')
-                    else freeIP('consumable')
-                    onClose()
-                  }}
-                >
-                  <div className="item-tier-1">
-                    {ITEM_ICONS[opt] && <img src={ITEM_ICONS[opt]} alt="" style={{ width: 28, height: 28, filter: 'sepia(0.3) brightness(0.95)', flexShrink: 0 }} />}
-                    <div className="item-name">{opt}</div>
-                  </div>
-                  <div className="item-tier-2 item-tier-2--full">
-                    <div className="item-info" style={{ borderLeft: 'none', paddingLeft: 0 }}>
-                      {CONSUMABLES[opt] || 'None'}
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
-
-          {category === 'stat' && companyMode === 'campaign' && (
-            <div className="upgrade-choice-grid">
-              {Object.entries(STAT_IMPROVEMENT).map(([k, v]) => {
-                const taken = slot.statImproves?.includes(k)
-                return (
-                  <button
-                    key={k}
-                    className={`upgrade-choice-btn ${taken ? 'active' : ''}`}
-                    disabled={taken}
-                    onClick={() => {
-                      if (!taken) { addStatImprove(slotIndex, k); onClose() }
-                    }}
-                  >
-                    {v}
-                    {taken && <span style={{ display: 'block', fontSize: '0.65em', opacity: 0.6 }}>Taken</span>}
-                  </button>
-                )
-              })}
-            </div>
-          )}
-          {category === 'stat' && companyMode !== 'campaign' && (
-            <div className="upgrade-choice-grid">
-              {Object.entries(STAT_IMPROVEMENT).map(([k, v]) => (
-                <button
-                  key={k}
-                  className={`upgrade-choice-btn ${slot.statImprove === k ? 'active' : ''}`}
-                  onClick={() => {
-                    const newVal = slot.statImprove === k ? null : k
-                    setWarriorProp(slotIndex, 'statImprove', newVal)
-                    if (newVal) spendIP('stat')
-                    else freeIP('stat')
-                    onClose()
-                  }}
-                >
-                  {v}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {category === 'weapon1' && (
-            <WeaponSelector
-              slotIndex={slotIndex}
-              slot={slot}
-              options={getAllowedWeapons(wdata)}
-              propKey="weapon1"
-              poolFull={poolFull}
-              iconSize={32}
-              onSelect={() => onClose()}
-            />
-          )}
-
-        </div>
-        {category !== 'weapon1' && ((category === 'weapon2' && slot.weapon2 && !isFixed) || (category === 'climbing' && slot.climbing && slot.climbing !== 'None') || (category === 'consumable' && slot.consumable) || (category === 'stat' && slot.statImprove)) && (
-          <div className="upgrade-modal-remove-wrap">
-            <button className="btn btn-ghost" onClick={() => { removeUpgrade(category); onClose() }}>
+    <BottomSheet
+      title={title.toUpperCase()}
+      onClose={onClose}
+      zIndex={1100}
+      footer={
+        <>
+          {showRemove && (
+            <button className="co-sheet-randomize" onClick={() => { removeUpgrade(category); onClose() }}>
               Remove Upgrade
             </button>
-          </div>
-        )}
-      </div>
-    </div>
+          )}
+          <button className="co-sheet-done" onClick={onClose}>Done</button>
+        </>
+      }
+    >
+      {category === 'weapon2' && (
+        <WeaponSelector
+          slotIndex={slotIndex}
+          slot={slot}
+          options={
+            hasFixedShield      ? ['Shield'] :
+            hasFixedDualWield   ? ['Light Weapon'] :
+            primaryIsPolearmOne ? ['Shield'] :
+            getSecondWeaponOptions(wdata, slot.weapon1)
+          }
+          propKey="weapon2"
+          poolFull={poolFull}
+          iconSize={32}
+          onSelect={newVal => {
+            if (!isFixed) {
+              if (newVal) spendIP('weapon2')
+              else freeIP('weapon2')
+            }
+            onClose()
+          }}
+        />
+      )}
+
+      {category === 'climbing' && (
+        <div className="upgrade-table">
+          {Object.keys(CLIMBING_ITEMS).filter(k => k !== 'None').map(opt => {
+            const cd = CLIMBING_ITEMS[opt]
+            return (
+              <button
+                key={opt}
+                className={`upgrade-table-btn ${slot.climbing === opt ? 'active' : ''}`}
+                onClick={() => {
+                  const newVal = slot.climbing === opt ? null : opt
+                  setWarriorProp(slotIndex, 'climbing', newVal)
+                  if (newVal) spendIP('climbing')
+                  else freeIP('climbing')
+                  onClose()
+                }}
+              >
+                <div className="item-tier-1">
+                  {ITEM_ICONS[opt] && <img src={ITEM_ICONS[opt]} alt="" style={{ width: 28, height: 28, filter: 'sepia(0.3) brightness(0.95)', flexShrink: 0 }} />}
+                  <div className="item-name">{opt}</div>
+                </div>
+                <div className="item-tier-2">
+                  <div className="item-stat-wrap">
+                    <span className="stat-label">Height</span>
+                    <span className="stat-val">{cd?.height || '—'}</span>
+                  </div>
+                  <div className="item-stat-wrap">
+                    <span className="stat-label">Skill</span>
+                    <span className="stat-val">{cd?.skillCheck || '—'}</span>
+                  </div>
+                  <div className="item-info">{CLIMBING_DESCS[opt] || 'None'}</div>
+                </div>
+              </button>
+            )
+          })}
+        </div>
+      )}
+
+      {category === 'consumable' && (
+        <div className="upgrade-table">
+          {CONSUMABLE_NAMES.map(opt => (
+            <button
+              key={opt}
+              className={`upgrade-table-btn ${slot.consumable === opt ? 'active' : ''}`}
+              onClick={() => {
+                const newVal = slot.consumable === opt ? null : opt
+                setWarriorProp(slotIndex, 'consumable', newVal)
+                if (newVal) spendIP('consumable')
+                else freeIP('consumable')
+                onClose()
+              }}
+            >
+              <div className="item-tier-1">
+                {ITEM_ICONS[opt] && <img src={ITEM_ICONS[opt]} alt="" style={{ width: 28, height: 28, filter: 'sepia(0.3) brightness(0.95)', flexShrink: 0 }} />}
+                <div className="item-name">{opt}</div>
+              </div>
+              <div className="item-tier-2 item-tier-2--full">
+                <div className="item-info" style={{ borderLeft: 'none', paddingLeft: 0 }}>
+                  {CONSUMABLES[opt] || 'None'}
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {category === 'stat' && companyMode === 'campaign' && (
+        <div className="stat-pick-grid">
+          {Object.entries(STAT_IMPROVEMENT).map(([k, v]) => {
+            const taken = slot.statImproves?.includes(k)
+            return (
+              <button
+                key={k}
+                className={`stat-pick-btn ${taken ? 'active' : ''}`}
+                disabled={taken}
+                onClick={() => { if (!taken) { addStatImprove(slotIndex, k); onClose() } }}
+              >
+                <span className="stat-pick-abbrev">{k}</span>
+                <span className="stat-pick-label">{v}</span>
+                {taken && <span className="stat-pick-taken">✓ Taken</span>}
+              </button>
+            )
+          })}
+        </div>
+      )}
+
+      {category === 'stat' && companyMode !== 'campaign' && (
+        <div className="stat-pick-grid">
+          {Object.entries(STAT_IMPROVEMENT).map(([k, v]) => (
+            <button
+              key={k}
+              className={`stat-pick-btn ${slot.statImprove === k ? 'active' : ''}`}
+              onClick={() => {
+                const newVal = slot.statImprove === k ? null : k
+                setWarriorProp(slotIndex, 'statImprove', newVal)
+                if (newVal) spendIP('stat')
+                else freeIP('stat')
+                onClose()
+              }}
+            >
+              <span className="stat-pick-abbrev">{k}</span>
+              <span className="stat-pick-label">{v}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {category === 'weapon1' && (
+        <WeaponSelector
+          slotIndex={slotIndex}
+          slot={slot}
+          options={getAllowedWeapons(wdata)}
+          propKey="weapon1"
+          poolFull={poolFull}
+          iconSize={32}
+          onSelect={() => onClose()}
+        />
+      )}
+    </BottomSheet>
   )
 }
 
@@ -364,7 +376,7 @@ function LoadoutPanel({ slotIndex, slot, wdata, poolFull }) {
               ))}
             </div>
           )}
-          <span style={{ fontSize: '0.75rem', color: 'var(--mist)', fontFamily: "'Oswald', sans-serif" }}>({ipSpent} IP)</span>
+          <span style={{ fontSize: '0.75rem', color: '#fff', opacity: 0.6, fontFamily: "'Oswald', sans-serif" }}>({ipSpent} IP)</span>
         </span>
       </div>
 
@@ -372,7 +384,7 @@ function LoadoutPanel({ slotIndex, slot, wdata, poolFull }) {
         {/* Weapon 1 (Always showing) */}
         <div className="eq-chip eq-chip-main" onClick={() => setModalCategory('weapon1')} title={wpnDisplayDesc(slot.weapon1) ? `${w1.value}: ${wpnDisplayDesc(slot.weapon1)}` : w1.value}>
           <div className="eq-chip-icon">
-            {ITEM_ICONS[slot.weapon1] ? <img src={ITEM_ICONS[slot.weapon1]} alt="" style={{ width: 28, height: 28, filter: 'sepia(0.3) brightness(0.95)', opacity: 0.9, transform: 'scaleX(-1)' }} /> : <span style={{ display: 'flex', transform: 'scaleX(-1)' }}><SvgWeapon1 /></span>}
+            {ITEM_ICONS[slot.weapon1] ? <img src={slot.type === 'Beekeeper' ? `${import.meta.env.BASE_URL}assets/icons/scythe.svg` : slot.type === 'Brute' && slot.weapon1 === 'Heavy Weapon' ? `${import.meta.env.BASE_URL}assets/icons/wood-club.svg` : (slot.type === 'Saboteur' || slot.type === 'Warrior Priest' || slot.type === 'Knight') && slot.weapon1 === 'Light Weapon' ? `${import.meta.env.BASE_URL}assets/icons/flanged-mace.svg` : ITEM_ICONS[slot.weapon1]} alt="" style={{ width: 28, height: 28, filter: 'sepia(0.3) brightness(0.95)', opacity: 0.9, ...(slot.weapon1 !== 'Heavy Weapon' && { transform: 'scaleX(-1)' }) }} /> : <span style={{ display: 'flex', transform: 'scaleX(-1)' }}><SvgWeapon1 /></span>}
           </div>
           <div className="eq-chip-content">
             <span className={`eq-chip-value ${(w1.value?.length > 18) ? 'eq-chip-value--small' : ''}`}>
@@ -398,7 +410,7 @@ function LoadoutPanel({ slotIndex, slot, wdata, poolFull }) {
           <div className="eq-chip" onClick={() => setModalCategory('weapon2')} title={slot.weapon2 === 'Light Weapon' && slot.weapon1 === 'Light Weapon' ? `${w2.value}: One-handed. Adds +1 Attack.` : wpnDisplayDesc(slot.weapon2) ? `${w2.value}: ${wpnDisplayDesc(slot.weapon2)}` : w2.value}>
             {getBadge('weapon2') && <span className={`eq-chip-badge eq-badge-${getBadge('weapon2').variant}`}>{getBadge('weapon2').text}</span>}
             <div className="eq-chip-icon">
-              {ITEM_ICONS[slot.weapon2] ? <img src={ITEM_ICONS[slot.weapon2]} alt="" style={{ width: 28, height: 28, filter: 'sepia(0.3) brightness(0.95)', opacity: 0.9 }} /> : <SvgOffhand />}
+              {ITEM_ICONS[slot.weapon2] ? <img src={slot.type === 'Knight' && slot.weapon2 === 'Shield' ? `${import.meta.env.BASE_URL}assets/icons/checked-shield.svg` : ITEM_ICONS[slot.weapon2]} alt="" style={{ width: 28, height: 28, filter: 'sepia(0.3) brightness(0.95)', opacity: 0.9 }} /> : <SvgOffhand />}
             </div>
             <div className="eq-chip-content">
               <span className={`eq-chip-value ${(w2.value?.length > 18) ? 'eq-chip-value--small' : ''}`}>
@@ -542,8 +554,10 @@ export default function WarriorCard({ slotIndex, slot }) {
   const allSlots = useBuilderStore(s => s.slots)
 
   const [expandedNotes, setExpandedNotes] = useState(() => new Set())
-  const [showNameModal, setShowNameModal] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
   const [tempName, setTempName] = useState('')
+  const [tempType, setTempType] = useState(null)
+  const [tempIsCaptain, setTempIsCaptain] = useState(false)
   const notes = slot.notes || []
 
   const addNote = () => {
@@ -564,6 +578,20 @@ export default function WarriorCard({ slotIndex, slot }) {
     setNotes(slotIndex, notes.map((n, i) => i === ni ? { ...n, [field]: value } : n))
   const collapseNote = (ni) => setExpandedNotes(prev => { const s = new Set(prev); s.delete(ni); return s })
   const expandNote  = (ni) => setExpandedNotes(prev => new Set([...prev, ni]))
+
+  function openSettings() {
+    setTempName(slot.customName || '')
+    setTempType(slot.type || null)
+    setTempIsCaptain(slot.isCaptain || false)
+    setShowSettings(true)
+  }
+
+  function applySettings() {
+    setWarriorProp(slotIndex, 'customName', tempName.trim())
+    if (tempType !== slot.type) selectWarrior(slotIndex, tempType || null)
+    if (tempIsCaptain && !slot.isCaptain) setCaptain(slotIndex)
+    setShowSettings(false)
+  }
 
   const companyMode = useBuilderStore(s => s.companyMode)
   const wdata = slot.type ? WARRIORS[slot.type] : null
@@ -593,8 +621,9 @@ export default function WarriorCard({ slotIndex, slot }) {
     <div className={`warrior-slot ${slot.isCaptain ? 'is-captain' : ''}`}>
       <div className="slot-header">
         <div className="slot-number">
+          {slot.isCaptain && <span className="slot-captain-label">CAPTAIN</span>}
           <span style={{ fontFamily: "'Caslon Antique', serif", fontSize: '1.4rem', color: '#ffffff', textTransform: 'none', letterSpacing: 'normal' }}>
-            {slot.customName ? slot.customName : `WARRIOR ${slotIndex + 1}`}
+            {slot.customName || slot.type || `WARRIOR ${slotIndex + 1}`}
           </span>
         </div>
         {companyMode === 'campaign' && slot.type && (
@@ -602,58 +631,41 @@ export default function WarriorCard({ slotIndex, slot }) {
             {slot.earnedIP || 0} earned · {slot.ip?.length || 0} spent · {Math.max(0, (slot.earnedIP || 0) - (slot.ip?.length || 0))} free
           </span>
         )}
-      </div>
-
-      <div style={{ display: 'flex', gap: '0.65rem', alignItems: 'center', marginBottom: '1rem' }}>
-        {slot.type && (
-          <button
-            className={`captain-toggle ${slot.isCaptain ? 'is-captain' : ''}`}
-            style={{ fontSize: '1.6rem', background: 'none', border: 'none', padding: 0, marginTop: 0, cursor: 'pointer', flexShrink: 0 }}
-            onClick={() => setCaptain(slotIndex)}
-            title={slot.isCaptain ? 'Captain' : 'Set as Captain'}
-          >★</button>
-        )}
-        <select
-          className="warrior-select"
-          style={{ marginBottom: 0 }}
-          value={slot.type || ''}
-          onChange={e => selectWarrior(slotIndex, e.target.value || null)}
-        >
-          <option value="">— Choose Warrior —</option>
-          {available.map(wt => <option key={wt} value={wt}>{wt}</option>)}
-          {slot.type && !available.includes(slot.type) && (
-            <option value={slot.type}>{slot.type}</option>
-          )}
-        </select>
+        <button className="slot-gear-btn" onClick={openSettings} title="Warrior Settings" aria-label="Warrior settings">
+          <SvgGear />
+        </button>
       </div>
 
       {!wdata ? (
-        <div className="empty-slot-msg">Select a warrior type above</div>
+        <button className="slot-choose-btn" onClick={openSettings}>Choose Warrior</button>
       ) : (
         <>
           {/* Portrait + Stats */}
           <div className="warrior-header-row">
-            {portraitSrc ? (
-              <img
-                className="warrior-portrait clickable-portrait"
-                src={portraitSrc}
-                alt={slot.type}
-                onClick={() => { setTempName(slot.customName || ''); setShowNameModal(true); }}
-                style={{ cursor: 'pointer', transition: 'transform 0.2s', filter: 'brightness(1.05)' }}
-                title="Click to name warrior"
-              />
-            ) : (
-              <div
-                className="warrior-portrait-placeholder clickable-portrait"
-                title="Click to name warrior"
-                onClick={() => { setTempName(slot.customName || ''); setShowNameModal(true); }}
-                style={{ cursor: 'pointer' }}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="28" height="28">
-                  <path d="M12 2c2 2 7 5 10 5v7c0 6-5 8-10 10C7 22 2 20 2 14V7c3 0 8-3 10-5z"/>
-                </svg>
-              </div>
-            )}
+            <div className="slot-portrait-col">
+              {portraitSrc ? (
+                <img
+                  className="warrior-portrait clickable-portrait"
+                  src={portraitSrc}
+                  alt={slot.type}
+                  onClick={openSettings}
+                  style={{ cursor: 'pointer', transition: 'transform 0.2s', filter: 'brightness(1.05)' }}
+                  title="Warrior settings"
+                />
+              ) : (
+                <div
+                  className="warrior-portrait-placeholder clickable-portrait"
+                  title="Warrior settings"
+                  onClick={openSettings}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="28" height="28">
+                    <path d="M12 2c2 2 7 5 10 5v7c0 6-5 8-10 10C7 22 2 20 2 14V7c3 0 8-3 10-5z"/>
+                  </svg>
+                </div>
+              )}
+              <div className="slot-class-label">{slot.type}</div>
+            </div>
             <div className="warrior-header-text">
               <StatsRow slot={slot} wdata={wdata} />
             </div>
@@ -670,15 +682,25 @@ export default function WarriorCard({ slotIndex, slot }) {
           )}
           {allAbilities.length > 0 && (
             <div className="bd-abilities">
-              {allAbilities.map((ab, i) => (
-                <div key={i} className="bd-ability">
-                  <span className="bd-ability-name">
-                    {ab.name}
-                    {ab.source && <span style={{fontSize: '0.85em', opacity: 0.7, fontWeight: 'normal', marginLeft: '0.4rem'}}>({ab.source})</span>}
-                  </span>
-                  <div className="bd-ability-desc">{ab.desc}</div>
-                </div>
-              ))}
+              {allAbilities.map((ab, i) => {
+                const abilityIcon = {
+                  'OVERDRAW': ITEM_ICONS['Bow'],
+                  'RELOAD':   ITEM_ICONS['Crossbow'],
+                  'GUARDED':  ITEM_ICONS['Shield'],
+                }[ab.name]
+                return (
+                  <div key={i} className="bd-ability">
+                    <span className="bd-ability-name">
+                      {abilityIcon && (
+                        <img src={abilityIcon} alt="" style={{ width: '1em', height: '1em', verticalAlign: 'middle', marginRight: '0.35em', filter: 'brightness(0) invert(1)', opacity: 0.85, flexShrink: 0 }} />
+                      )}
+                      {ab.name}
+                      {ab.source && <span style={{fontSize: '0.85em', opacity: 0.7, fontWeight: 'normal', marginLeft: '0.4rem'}}>({ab.source})</span>}
+                    </span>
+                    <div className="bd-ability-desc">{ab.desc}</div>
+                  </div>
+                )
+              })}
             </div>
           )}
 
@@ -730,48 +752,76 @@ export default function WarriorCard({ slotIndex, slot }) {
         </>
       )}
 
-      {showNameModal && (
-        <div className="modal-backdrop" onClick={e => e.target === e.currentTarget && setShowNameModal(false)} style={{ zIndex: 1000 }}>
-          <div className="modal-box" style={{ maxWidth: 320, padding: '1.5rem', textAlign: 'center' }}>
-            <div className="modal-title" style={{ margin: '0 0 1.25rem 0' }}>NAME WARRIOR</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '1.5rem' }}>
+      {showSettings && (
+        <BottomSheet
+          title="WARRIOR SETTINGS"
+          onClose={() => setShowSettings(false)}
+          zIndex={1001}
+          footer={
+            <>
+              <button className="co-sheet-randomize" onClick={() => setShowSettings(false)}>Cancel</button>
+              <button className="co-sheet-done" onClick={applySettings}>Done</button>
+            </>
+          }
+        >
+          {/* Name */}
+          <div className="ws-section">
+            <div className="ws-section-label">Name</div>
+            <div className="cf-name-input-wrap">
               <input
-                autoFocus
                 className="co-settings-input"
-                style={{ flex: 1, textAlign: 'center' }}
+                style={{ width: '100%', boxSizing: 'border-box', paddingRight: '2.2rem' }}
                 value={tempName}
-                placeholder="Enter Name..."
+                placeholder="Enter warrior name…"
                 maxLength={40}
+                autoComplete="off"
+                name="doom-warrior-name"
+                autoCorrect="off"
+                autoCapitalize="words"
+                spellCheck="false"
                 onChange={e => setTempName(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter') {
-                    setWarriorProp(slotIndex, 'customName', tempName.trim())
-                    setShowNameModal(false)
-                  }
-                  if (e.key === 'Escape') setShowNameModal(false)
-                }}
               />
               <button
-                className="co-settings-step-btn"
+                className="cf-dice-inline"
                 title="Random Grimdark Name"
-                onClick={() => {
-                  const taken = allSlots.map(s => s.customName).filter(Boolean)
-                  setTempName(generateGrimdarkName(taken))
-                }}
-                style={{ width: 34, height: 34, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+                onClick={() => setTempName(generateGrimdarkName(allSlots.map(s => s.customName).filter(Boolean)))}
               >
                 <SvgDice />
               </button>
             </div>
-            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-              <button className="btn btn-ghost btn-sm" onClick={() => setShowNameModal(false)}>Cancel</button>
-              <button className="btn btn-primary btn-sm" onClick={() => {
-                setWarriorProp(slotIndex, 'customName', tempName.trim())
-                setShowNameModal(false)
-              }}>Save</button>
+          </div>
+
+          {/* Captain */}
+          <div className="ws-section ws-section--row">
+            <div className="ws-section-label">Captain</div>
+            <button
+              className={`ws-captain-toggle ${tempIsCaptain ? 'is-captain' : ''}`}
+              onClick={() => { if (!slot.isCaptain) setTempIsCaptain(v => !v) }}
+              title={slot.isCaptain ? 'This warrior is the Captain' : tempIsCaptain ? 'Remove as Captain' : 'Set as Captain'}
+            >
+              ★ {tempIsCaptain ? 'Captain' : 'Set as Captain'}
+            </button>
+          </div>
+
+          {/* Class */}
+          <div className="ws-section">
+            <div className="ws-section-label">Class</div>
+            <div className="wcp-grid">
+              {[...available, ...(slot.type && !available.includes(slot.type) ? [slot.type] : [])].map(wt => (
+                <button
+                  key={wt}
+                  className={`wcp-item ${tempType === wt ? 'selected' : ''}`}
+                  onClick={() => setTempType(wt)}
+                >
+                  <div className="wcp-portrait">
+                    {WARRIOR_IMAGES[wt] && <img src={WARRIOR_IMAGES[wt]} alt={wt} />}
+                  </div>
+                  <div className="wcp-name">{wt}</div>
+                </button>
+              ))}
             </div>
           </div>
-        </div>
+        </BottomSheet>
       )}
     </div>
   )

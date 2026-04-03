@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
+import BottomSheet from '../shared/BottomSheet'
 import { useBuilderStore } from '../store/builderStore'
 import { getAvatarSrc } from '../data/avatars'
 import { useTrackerStore } from '../store/trackerStore'
 import { MARK_ID_MAP } from '../data/quizData'
+import { hasStoredSession } from '../utils/storage'
 import CompanyHeader from './CompanyHeader'
 import WarriorRoster from './WarriorRoster'
 import SaveLoadPanel from './SaveLoadPanel'
@@ -10,7 +12,6 @@ import ShareModal from './ShareModal'
 import ImportModal from './ImportModal'
 import ConfirmModal from '../shared/ConfirmModal'
 import PrintRoster from './PrintRoster'
-import InstallButton from '../shared/InstallButton'
 import EndOfGameModal from './EndOfGameModal'
 import CompanyForm from './CompanyForm'
 import ModeSelectModal from './ModeSelectModal'
@@ -18,13 +19,14 @@ import LandingPage, { RefContent } from './LandingPage'
 import './builder.css'
 
 export default function BuilderPage() {
-  const { validationMsg, dismissValidation, openShare, openImport, clearBuilder, setCompanyMode, companyMode, campaignGame, isDirty, setMark } = useBuilderStore()
+  const { validationMsg, dismissValidation, openShare, openImport, clearBuilder, setCompanyMode, companyMode, setMark } = useBuilderStore()
   const openTracker = useTrackerStore(s => s.openTracker)
   const builderState = useBuilderStore(s => s)
 
   // 'landing' | 'builder'
+  const hasSlots = builderState.slots?.some(s => s.type)
   const [view, setView] = useState(() =>
-    window.location.hash ? 'builder' : 'landing'
+    window.location.hash || hasSlots ? 'builder' : 'landing'
   )
   // global quick reference overlay — works from any view
   const [refOpen, setRefOpen] = useState(false)
@@ -33,7 +35,6 @@ export default function BuilderPage() {
   const [modeSelectOpen, setModeSelectOpen] = useState(false)
   const [endOfGameOpen, setEndOfGameOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
-  const [backConfirmOpen, setBackConfirmOpen] = useState(false)
 
   // Sync company header width to match warrior card width when only 1 card per row
   const builderMainRef = useRef(null)
@@ -88,12 +89,8 @@ export default function BuilderPage() {
   function goBuilder() { setView('builder') }
 
   function handleGoHome() {
-    if (isDirty()) {
-      setBackConfirmOpen(true)
-    } else {
-      setRefOpen(false)
-      setView('landing')
-    }
+    setRefOpen(false)
+    setView('landing')
   }
 
   function handleLogoClick() {
@@ -105,8 +102,17 @@ export default function BuilderPage() {
   }
 
   function handlePlay() {
-    const result = openTracker(builderState)
-    if (!result) useBuilderStore.getState()._toast('Add some warriors first!')
+    const hasSlots = builderState.slots?.some(s => s.type)
+    if (!hasSlots) {
+      useBuilderStore.getState()._toast('Add some warriors first!')
+      return
+    }
+    const companyName = builderState.companyName
+    if (companyName && hasStoredSession(companyName)) {
+      useTrackerStore.getState().setShowRestorePrompt(true)
+    } else {
+      openTracker(builderState)
+    }
   }
 
   function handlePrint() {
@@ -155,8 +161,8 @@ export default function BuilderPage() {
       <BuilderTopbar
         onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
         onHome={handleLogoClick}
-        onRef={() => setRefOpen(v => !v)}
-        refActive={refOpen}
+        onPlay={handlePlay}
+        showActions={view === 'builder' && !refOpen}
       />
 
       {/* ── SCROLLABLE AREA ────────────────────────────── */}
@@ -164,10 +170,9 @@ export default function BuilderPage() {
         {refOpen ? (
           <RefContent onBack={() => setRefOpen(false)} />
         ) : view === 'landing' ? (
-          <LandingPage onLoad={goBuilder} />
+          <LandingPage onLoad={goBuilder} onNew={handleNew} />
         ) : (
           <main className="builder-main" ref={builderMainRef}>
-            <button className="builder-home-btn" onClick={handleGoHome}>← Home</button>
             <CompanyHeader onSettings={() => setSettingsOpen(true)} />
             <WarriorRoster />
           </main>
@@ -188,57 +193,59 @@ export default function BuilderPage() {
         <PrintRoster />
       </div>
 
-      {/* ── BOTTOM NAVBAR ──────────────────────────────── */}
-      {view === 'landing' && !refOpen
-        ? <LandingNavbar
-            refOpen={refOpen}
-            onRef={() => setRefOpen(v => !v)}
-            onNew={handleNew}
-          />
-        : view === 'builder' && !refOpen
-          ? <BuilderNavbar onPlay={handlePlay} onEndOfGame={() => setEndOfGameOpen(true)} />
-          : null
-      }
 
-      {/* ── SIDEBAR (Saved Companies) ──────────────────── */}
+      {/* ── SAVED COMPANIES SHEET ──────────────────────── */}
       {sidebarOpen && (
-        <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)}>
-          <div className="sidebar-panel" onClick={e => e.stopPropagation()}>
-            <div className="sidebar-actions">
-              <button className="btn btn-secondary sidebar-action-btn" onClick={handleNew}>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="14" height="14" aria-hidden="true"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
-                New
+        <BottomSheet
+          title="SAVED COMPANIES"
+          onClose={() => setSidebarOpen(false)}
+          footer={
+            <div className="sb-action-strip">
+              <button className="sb-action-btn" onClick={() => { setSidebarOpen(false); setRefOpen(v => !v) }}>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 14H7v-2h10v2zm0-4H7v-2h10v2zm0-4H7V6h10v2z"/></svg>
+                <span>Quick Ref</span>
               </button>
-              <button className="btn btn-secondary sidebar-action-btn" onClick={() => { setSidebarOpen(false); openShare() }}>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="14" height="14" aria-hidden="true"><path d="M16 5l-1.42 1.42-1.59-1.59V16h-1.98V4.83L9.42 6.42 8 5l4-4 4 4zm4 5v11c0 1.1-.9 2-2 2H6c-1.11 0-2-.9-2-2V10c0-1.11.89-2 2-2h3v2H6v11h12V10h-3V8h3c1.1 0 2 .89 2 2z"/></svg>
-                Share
+              {view === 'builder' && (
+                <button className="sb-action-btn" onClick={() => { setSidebarOpen(false); handleGoHome() }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                  <span>Home</span>
+                </button>
+              )}
+              {companyMode === 'campaign' && (
+                <button className="sb-action-btn" onClick={() => { setSidebarOpen(false); setEndOfGameOpen(true) }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true"><path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z"/></svg>
+                  <span>End Game</span>
+                </button>
+              )}
+              <button className="sb-action-btn" onClick={() => { setSidebarOpen(false); openShare() }}>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true"><path d="M16 5l-1.42 1.42-1.59-1.59V16h-1.98V4.83L9.42 6.42 8 5l4-4 4 4zm4 5v11c0 1.1-.9 2-2 2H6c-1.11 0-2-.9-2-2V10c0-1.11.89-2 2-2h3v2H6v11h12V10h-3V8h3c1.1 0 2 .89 2 2z"/></svg>
+                <span>Share</span>
               </button>
-              <button className="btn btn-secondary sidebar-action-btn" onClick={() => { setSidebarOpen(false); openImport() }}>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="14" height="14" aria-hidden="true"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
-                Import
+              <button className="sb-action-btn" onClick={() => { setSidebarOpen(false); openImport() }}>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                <span>Import</span>
               </button>
-              <button className="btn btn-secondary sidebar-action-btn" onClick={handlePrint}>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="14" height="14" aria-hidden="true"><path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/></svg>
-                Print
+              <button className="sb-action-btn" onClick={handlePrint}>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true"><path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/></svg>
+                <span>Print</span>
               </button>
+              <a
+                className="sb-action-btn sb-action-btn--discord"
+                href="https://discord.gg/hqTdqGBJyg"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setSidebarOpen(false)}
+              >
+                <svg width="20" height="15" viewBox="0 0 59 44" fill="currentColor" aria-hidden="true">
+                  <path d="M37.1937 0C36.6265 1.0071 36.1172 2.04893 35.6541 3.11392C31.2553 2.45409 26.7754 2.45409 22.365 3.11392C21.9136 2.04893 21.3926 1.0071 20.8254 0C16.6928 0.70613 12.6644 1.94475 8.84436 3.69271C1.27372 14.9098 -0.775214 25.8374 0.243466 36.6146C4.67704 39.8906 9.6431 42.391 14.9333 43.9884C16.1256 42.391 17.179 40.6893 18.0819 38.9182C16.3687 38.2815 14.7133 37.4828 13.1274 36.5567C13.5442 36.2557 13.9493 35.9432 14.3429 35.6422C23.6384 40.0179 34.4039 40.0179 43.711 35.6422C44.1046 35.9663 44.5097 36.2789 44.9264 36.5567C43.3405 37.4943 41.6852 38.2815 39.9604 38.9298C40.8633 40.7009 41.9167 42.4025 43.109 44C48.3992 42.4025 53.3653 39.9137 57.7988 36.6377C59.0027 24.1358 55.7383 13.3007 49.1748 3.70429C45.3663 1.95633 41.3379 0.717706 37.2053 0.0231518L37.1937 0ZM19.3784 29.9816C16.5192 29.9816 14.1461 27.3886 14.1461 24.1821C14.1461 20.9755 16.4266 18.371 19.3669 18.371C22.3071 18.371 24.6455 20.9871 24.5992 24.1821C24.5529 27.377 22.2956 29.9816 19.3784 29.9816ZM38.6639 29.9816C35.7931 29.9816 33.4431 27.3886 33.4431 24.1821C33.4431 20.9755 35.7236 18.371 38.6639 18.371C41.6042 18.371 43.9309 20.9871 43.8846 24.1821C43.8383 27.377 41.581 29.9816 38.6639 29.9816Z" />
+                </svg>
+                <span>Discord</span>
+              </a>
             </div>
-            <div className="sidebar-header">
-              <div>
-                <span className="sidebar-title">SAVED COMPANIES</span>
-                {companyMode === 'campaign' && (
-                  <span className="sidebar-mode-badge campaign">CAMPAIGN · Game {campaignGame}</span>
-                )}
-              </div>
-              <button className="sidebar-close" onClick={() => setSidebarOpen(false)}>×</button>
-            </div>
-            <div className="sidebar-body">
-              <SaveLoadPanel onSelect={handleLoadCompany} />
-              <div style={{ marginTop: '1.5rem' }}>
-                <InstallButton />
-              </div>
-            </div>
-          </div>
-        </div>
+          }
+        >
+          <SaveLoadPanel onSelect={handleLoadCompany} />
+        </BottomSheet>
       )}
 
       <ShareModal />
@@ -259,15 +266,6 @@ export default function BuilderPage() {
         <CompanySettingsModal onClose={() => setSettingsOpen(false)} />
       )}
 
-      {backConfirmOpen && (
-        <ConfirmModal
-          title="Unsaved Changes"
-          subtitle="You have unsaved changes. Return to home? Your work is auto-saved as a draft."
-          onConfirm={() => { setBackConfirmOpen(false); setRefOpen(false); setView('landing') }}
-          onCancel={() => setBackConfirmOpen(false)}
-        />
-      )}
-
       {validationMsg && (
         <ConfirmModal
           title="Cannot Save"
@@ -282,7 +280,7 @@ export default function BuilderPage() {
 
 /* ── COMPANY SETTINGS MODAL ────────────────────────────── */
 function CompanySettingsModal({ onClose }) {
-  const { companyName, setCompanyName, companyAvatar, setCompanyAvatar, ipLimit, changeIPLimit, slots, addSlot, removeSlot, companyMode, setEarnedIP } = useBuilderStore()
+  const { companyName, setCompanyName, companyAvatar, setCompanyAvatar, ipLimit, changeIPLimit, slots, addSlot, removeSlot, companyMode, setEarnedIP, randomizeWarriors } = useBuilderStore()
   const [name, setName] = useState(companyName)
   const [avatar, setAvatar] = useState(companyAvatar)
   const activeSlots = slots.map((s, i) => ({ ...s, index: i })).filter(s => s.type)
@@ -294,32 +292,39 @@ function CompanySettingsModal({ onClose }) {
   }
 
   return (
-    <div className="modal-backdrop" onClick={e => e.target === e.currentTarget && handleClose()}>
-      <div className="modal-box co-settings-modal">
-        <div className="modal-title">COMPANY SETTINGS</div>
-        <CompanyForm
-          name={name} setName={setName}
-          avatar={avatar} setAvatar={setAvatar}
-          warriors={slots.length} setWarriors={w => {
-            const diff = w - slots.length
-            if (diff > 0) for (let i = 0; i < diff; i++) addSlot()
-            else if (diff < 0) for (let i = 0; i < -diff; i++) removeSlot()
-          }}
-          ip={ipLimit} setIp={newVal => changeIPLimit(newVal - ipLimit)}
-          companyMode={companyMode}
-          activeSlots={activeSlots.map(s => ({
-            ...s,
-            onEarnedChange: (val) => setEarnedIP(s.index, val)
-          }))}
-        />
-        <button className="modal-primary-btn" style={{ width: '100%', marginTop: '1rem' }} onClick={handleClose}>Done</button>
-      </div>
-    </div>
+    <BottomSheet
+      title="COMPANY SETTINGS"
+      onClose={handleClose}
+      footer={
+        <>
+          <button className="co-sheet-randomize" onClick={() => { randomizeWarriors(); onClose() }}>
+            Randomize<br />Company
+          </button>
+          <button className="co-sheet-done" onClick={handleClose}>DONE</button>
+        </>
+      }
+    >
+      <CompanyForm
+        name={name} setName={setName}
+        avatar={avatar} setAvatar={setAvatar}
+        warriors={slots.length} setWarriors={w => {
+          const diff = w - slots.length
+          if (diff > 0) for (let i = 0; i < diff; i++) addSlot()
+          else if (diff < 0) for (let i = 0; i < -diff; i++) removeSlot()
+        }}
+        ip={ipLimit} setIp={newVal => changeIPLimit(newVal - ipLimit)}
+        companyMode={companyMode}
+        activeSlots={activeSlots.map(s => ({
+          ...s,
+          onEarnedChange: (val) => setEarnedIP(s.index, val)
+        }))}
+      />
+    </BottomSheet>
   )
 }
 
 /* ── TOPBAR ────────────────────────────────────────────── */
-function BuilderTopbar({ onMenuToggle, onHome, onRef, refActive }) {
+function BuilderTopbar({ onMenuToggle, onHome, onPlay, showActions }) {
   return (
     <div className="builder-topbar">
       <button className="topbar-menu-btn" onClick={onMenuToggle} title="Saved Companies">
@@ -333,16 +338,17 @@ function BuilderTopbar({ onMenuToggle, onHome, onRef, refActive }) {
         <span className="topbar-brand-sub">Company Builder</span>
       </button>
 
-      <button
-        className={`topbar-ref-btn${refActive ? ' topbar-ref-btn--active' : ''}`}
-        onClick={onRef}
-        title="Quick Reference"
-        aria-pressed={refActive}
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true">
-          <path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 14H7v-2h10v2zm0-4H7v-2h10v2zm0-4H7V6h10v2z"/>
-        </svg>
-      </button>
+      <div className="topbar-actions">
+        {showActions && (
+          <button
+            className="topbar-icon-btn topbar-icon-btn--play"
+            onClick={onPlay}
+            title="Play"
+          >
+            ⚔ PLAY
+          </button>
+        )}
+      </div>
     </div>
   )
 }
@@ -376,8 +382,8 @@ function LandingNavbar({ refOpen, onRef, onNew }) {
 }
 
 /* ── BUILDER NAVBAR ────────────────────────────────────── */
-function BuilderNavbar({ onPlay, onEndOfGame }) {
-  const { saveCompany, isDirty, companyMode, campaignGame } = useBuilderStore()
+function BuilderNavbar({ onPlay }) {
+  const { saveCompany, isDirty } = useBuilderStore()
   const dirty = isDirty()
   const [confirmSave, setConfirmSave] = useState(false)
 
@@ -389,17 +395,16 @@ function BuilderNavbar({ onPlay, onEndOfGame }) {
   return (
     <nav className="builder-navbar">
       <div className="navbar-inner">
-        <div className="navbar-group-left">
-          <button className={`btn ${dirty ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setConfirmSave(true)}>{dirty ? '● Save' : 'Save'}</button>
-        </div>
-        <div className="navbar-group-center">
-          {companyMode === 'campaign' && (
-            <button className="btn btn-campaign-eog" onClick={onEndOfGame}>End of Game</button>
-          )}
-        </div>
-        <div className="navbar-group-right">
-          <button className="btn btn-gold btn-play" onClick={onPlay}>⚔ Play</button>
-        </div>
+        <button
+          className={`navbar-btn-save${dirty ? ' navbar-btn-save--dirty' : ''}`}
+          onClick={() => setConfirmSave(true)}
+        >
+          {dirty && <span className="navbar-save-dot" />}
+          SAVE
+        </button>
+        <button className="navbar-btn-play" onClick={onPlay}>
+          ⚔ PLAY
+        </button>
       </div>
 
       {confirmSave && (

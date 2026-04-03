@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTrackerStore } from '../store/trackerStore'
 import { ITEM_ICONS } from '../data/images'
+import BottomSheet from '../shared/BottomSheet'
 
 const STATUS_SHORT = {
   'BREACHED':    'SKILL OR -1 VIT',
@@ -13,19 +14,21 @@ const STATUS_SHORT = {
 
 function StatusDetailModal({ status, onClose, onClear, dead }) {
   return (
-    <div className="modal-backdrop" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="modal-box" style={{ maxWidth: 360, maxHeight: '65dvh', position: 'relative' }}>
-        <button className="tracker-modal-close" onClick={onClose} aria-label="Close">×</button>
-        <div className="tracker-modal-title" style={{ paddingRight: '1.5rem', color: '#9a9add' }}>{status.name}</div>
-        <div className="tk-equip-detail-desc">{status.desc}</div>
-        <div className="tk-equip-detail-actions">
+    <BottomSheet
+      title={status.name}
+      onClose={onClose}
+      className="tk-sheet tk-sheet--status"
+      footer={
+        <>
           <button className="tk-detail-btn tk-detail-btn--ghost" onClick={onClose}>Close</button>
           <button className="tk-detail-btn tk-detail-btn--clear" onClick={onClear} disabled={dead}>
             Clear Status
           </button>
-        </div>
-      </div>
-    </div>
+        </>
+      }
+    >
+      <div className="tk-equip-detail-desc">{status.desc}</div>
+    </BottomSheet>
   )
 }
 

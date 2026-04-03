@@ -38,7 +38,13 @@
       "Bash(curl -s http://localhost:5173/quiz.html)",
       "Bash(curl -s \"http://localhost:5173/src/quiz/QuizPage.jsx\")",
       "Bash(curl -s \"http://localhost:5173/src/data/quizData.js\")",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5177)"
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5177)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173/)",
+      "Bash(curl -s http://localhost:5173/)",
+      "Bash(curl -s http://localhost:5173/quiz)",
+      "Bash(ipconfig)",
+      "Bash(findstr /i \"IPv4\")",
+      "Bash(rtk git:*)"
     ]
   }
 }

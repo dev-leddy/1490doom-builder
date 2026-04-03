@@ -16,11 +16,11 @@ function SvgDice() {
   )
 }
 
-export default function CompanyForm({ 
-  name, setName, 
-  avatar, setAvatar, 
-  warriors, setWarriors, 
-  ip, setIp, 
+export default function CompanyForm({
+  name, setName,
+  avatar, setAvatar,
+  warriors, setWarriors,
+  ip, setIp,
   companyMode,
   activeSlots = []
 }) {
@@ -29,21 +29,6 @@ export default function CompanyForm({
 
   return (
     <div className="company-form-shared">
-      {/* LOGO FIELD */}
-      <div className="cf-emblem-row">
-        <button className="cf-emblem-trigger" onClick={() => setShowPicker(true)} aria-label="Choose emblem">
-          <div className="cf-emblem-ring">
-            <div className="cf-emblem-inner">
-              {currentLogoSrc
-                ? <img src={currentLogoSrc} alt="" className="cf-emblem-img" />
-                : <span className="cf-emblem-empty" aria-hidden="true">?</span>
-              }
-            </div>
-          </div>
-          <span className="cf-emblem-hint">CHOOSE EMBLEM</span>
-        </button>
-      </div>
-
       {showPicker && (
         <div className="modal-backdrop" onClick={e => e.target === e.currentTarget && setShowPicker(false)} style={{ zIndex: 800 }}>
           <div className="modal-box" style={{ maxWidth: 480, width: '92vw' }}>
@@ -54,56 +39,76 @@ export default function CompanyForm({
         </div>
       )}
 
-      {/* NAME FIELD */}
-      <div className="co-settings-field">
-        <label className="co-settings-label" style={{ width: 110, flexShrink: 0 }}>Company Name</label>
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <input
-            className="co-settings-input"
-            type="text"
-            maxLength={40}
-            placeholder="Name your Doom Company…"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            autoFocus
-            style={{ flex: 1 }}
-          />
-          <button 
-            className="co-settings-step-btn" 
-            title="Random Name"
-            onClick={() => setName(DOOM_NAMES[Math.floor(Math.random() * DOOM_NAMES.length)])}
-            style={{ width: 34, height: 34, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-          >
-            <SvgDice />
-          </button>
+      {/* EMBLEM + NAME — side by side */}
+      <div className="cf-pair-row cf-identity-row">
+        {/* Emblem */}
+        <div className="cf-pair-item">
+          <label className="co-settings-label">Emblem</label>
+          <div className="cf-identity-content">
+            <button className="cf-emblem-trigger" onClick={() => setShowPicker(true)} aria-label="Choose emblem">
+              <div className="cf-emblem-ring">
+                <div className="cf-emblem-inner">
+                  {currentLogoSrc
+                    ? <img src={currentLogoSrc} alt="" className="cf-emblem-img" />
+                    : <span className="cf-emblem-empty" aria-hidden="true">?</span>
+                  }
+                </div>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        {/* Name */}
+        <div className="cf-pair-item cf-name-item">
+          <label className="co-settings-label">Company Name</label>
+          <div className="cf-identity-content">
+            <div className="cf-name-input-wrap">
+              <input
+                className="co-settings-input"
+                type="text"
+                maxLength={40}
+                placeholder="Name your company…"
+                value={name}
+                onChange={e => setName(e.target.value)}
+                autoComplete="new-password"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck="false"
+              />
+              <button
+                className="cf-dice-inline"
+                title="Random Name"
+                onClick={() => setName(DOOM_NAMES[Math.floor(Math.random() * DOOM_NAMES.length)])}
+              >
+                <SvgDice />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* WARRIORS FIELD */}
-      <div className="co-settings-field">
-        <label className="co-settings-label" style={{ width: 110, flexShrink: 0 }}>Warriors</label>
-        <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+      {/* WARRIORS + IP — side by side */}
+      <div className="cf-pair-row">
+        <div className="cf-pair-item">
+          <label className="co-settings-label">Warriors</label>
           <div className="co-settings-stepper">
             <button className="co-settings-step-btn" onClick={() => setWarriors(Math.max(1, warriors - 1))}>−</button>
             <span className="co-settings-step-val">{warriors}</span>
             <button className="co-settings-step-btn" onClick={() => setWarriors(Math.min(8, warriors + 1))}>+</button>
           </div>
         </div>
-      </div>
 
-      {/* IP FIELD */}
-      {companyMode === 'standard' && (
-        <div className="co-settings-field">
-          <label className="co-settings-label" style={{ width: 110, flexShrink: 0 }}>Company IP</label>
-          <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+        {companyMode === 'standard' && (
+          <div className="cf-pair-item">
+            <label className="co-settings-label">Company IP</label>
             <div className="co-settings-stepper">
               <button className="co-settings-step-btn" onClick={() => setIp(Math.max(0, ip - 1))}>−</button>
               <span className="co-settings-step-val">{ip}</span>
               <button className="co-settings-step-btn" onClick={() => setIp(Math.min(100, ip + 1))}>+</button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* INDIVIDUAL WARRIOR IP (Campaign only) */}
       {companyMode === 'campaign' && activeSlots.length > 0 && (

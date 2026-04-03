@@ -11,89 +11,207 @@
 }
 
 /* ── TOPBAR ─────────────────────────────────────────────── */
+/* ── TOPBAR ──────────────────────────────────────────────── */
 .tk-topbar {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  padding-top: max(0.5rem, env(safe-area-inset-top));
-  padding-left: max(0.75rem, env(safe-area-inset-left));
-  padding-right: max(0.75rem, env(safe-area-inset-right));
+  flex-direction: column;
+  padding-top: env(safe-area-inset-top);
   background: #111;
   border-bottom: 1px solid #2a2a2a;
   flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+/* Row 1: hamburger (left) | round control (centered) */
+.tk-topbar-row1 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding-left: max(0.75rem, env(safe-area-inset-left));
+  padding-right: max(0.75rem, env(safe-area-inset-right));
   min-height: 52px;
   box-sizing: border-box;
 }
-.tk-topbar-btn {
-  background: none;
-  border: 1px solid #333;
-  color: #888;
-  padding: 0.25rem 0.55rem;
-  cursor: pointer;
-  font-family: 'Oswald', sans-serif; text-transform: uppercase;
-  font-size: 0.85rem;
-  flex-shrink: 0;
-  line-height: 1;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-  min-width: 36px;
-  min-height: 36px;
+.tk-topbar-row1 .tk-topbar-hamburger {
+  position: absolute;
+  left: max(0.5rem, env(safe-area-inset-left));
 }
-.tk-topbar-btn:active { color: #ffffff; border-color: #666; }
 .tk-topbar-identity {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 0.45rem;
-  flex: 1;
   min-width: 0;
-  cursor: pointer;
+  flex: 1;
 }
-.tk-topbar-mark-img {
-  width: 2rem;
-  height: 2rem;
-  border-radius: 50%;
-  object-fit: cover;
-  object-position: top;
-  border: 1px solid #444;
+.tk-topbar-avatar-ring {
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 3px;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  background: transparent;
+  box-shadow:
+    inset 0 1px 4px rgba(0,0,0,0.9),
+    0 2px 8px rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
-.tk-topbar-names {
+.tk-topbar-avatar-ring:hover {
+  border-color: rgba(255, 255, 255, 0.9);
+  box-shadow:
+    inset 0 1px 4px rgba(0,0,0,0.9),
+    0 2px 8px rgba(0,0,0,0.7);
+}
+.tk-topbar-avatar-inner {
+  width: 2.3rem;
+  height: 2.3rem;
+  border-radius: 2px;
+  background: #f0ebe0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    inset 0 1px 2px rgba(0,0,0,0.2),
+    inset 0 0 0 1px rgba(0,0,0,0.15);
+}
+.tk-topbar-avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+}
+
+/* Hamburger */
+.tk-topbar-hamburger {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 44px;
+  height: 44px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  color: #aaa;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.15s;
+}
+.tk-topbar-hamburger:active { color: #fff; }
+
+/* Company name + mark stack */
+.tk-topbar-name-stack {
   display: flex;
   flex-direction: column;
-  gap: 1px;
   min-width: 0;
+  gap: 0.1rem;
 }
 .tk-topbar-name {
-  font-family: 'Oswald', sans-serif; text-transform: uppercase;
-  font-size: 0.95rem;
+  font-family: 'Oswald', sans-serif;
+  font-size: 1rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
+  color: #fff;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: #ffffff;
   line-height: 1.1;
 }
-.tk-topbar-mark-name {
-  font-family: 'Oswald', sans-serif; text-transform: uppercase;
-  font-size: 0.6rem;
+.tk-topbar-mark-sub {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: #be4127;
-  line-height: 1;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.15s;
 }
-.tk-topbar-mark-name::after { content: ' ›'; opacity: 0.5; }
-.tk-topbar-identity:hover .tk-topbar-mark-name { color: #d4a830; }
+.tk-topbar-mark-sub:active { color: #d4a830; }
+.tk-topbar-mark-sub-img {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  object-fit: contain;
+  border: 1px solid rgba(190, 65, 39, 0.4);
+  flex-shrink: 0;
+}
 
-.tk-round-ctrl { display: flex; align-items: center; gap: 0.3rem; flex-shrink: 0; }
+/* Row 2: avatar + name (left) */
+.tk-topbar-row2 {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  border-top: 1px solid #1e1e1e;
+  padding: 0.3rem max(0rem, env(safe-area-inset-right)) 0.3rem max(0.75rem, env(safe-area-inset-left));
+  min-height: 38px;
+  box-sizing: border-box;
+}
+
+/* Round control */
+.tk-round-ctrl { display: flex; align-items: center; gap: 1rem; }
+
+/* Hamburger menu list */
+.tk-menu-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.tk-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  color: #ccc;
+  font-family: 'Oswald', sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.85rem 1rem;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.tk-menu-item:active { color: #fff; border-color: #555; }
+.tk-menu-icon { font-size: 1.2rem; flex-shrink: 0; width: 1.5rem; text-align: center; }
+.tk-menu-label { flex: 1; }
+.tk-menu-badge {
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  background: #be4127;
+  color: #fff;
+  padding: 0.15rem 0.4rem;
+  border-radius: 2px;
+}
+.tk-menu-item--danger { color: #e07060; border-color: #3a1a1a; }
+.tk-menu-item--danger:active { color: #ff9080; border-color: #be4127; }
+.tk-menu-item--exit { color: #fff; }
+.tk-menu-item--exit:active { color: #ccc; }
+.tk-menu-item--discord { color: #7289da; text-decoration: none; }
+.tk-menu-item--discord:hover { color: #8ea1e1; background: rgba(114,137,218,0.08); }
+.tk-menu-item--discord:active { color: #fff; }
+
 .tk-round-btn {
   background: #1a1a1a;
-  border: 1px solid #333;
+  border: 1px solid #2a2a2a;
   color: #ffffff;
   width: 32px;
   height: 32px;
@@ -103,9 +221,41 @@
   flex-shrink: 0;
 }
 .tk-round-btn:active { background: #2a2a2a; }
-.tk-round-display { text-align: center; min-width: 36px; }
-.tk-round-label { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.5rem; letter-spacing: 0.15em; color: #555; display: block; line-height: 1; }
-.tk-round-num { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 1.3rem; font-weight: 700; display: block; line-height: 1; }
+.tk-round-display { text-align: center; min-width: 48px; }
+.tk-round-label { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.55rem; letter-spacing: 0.2em; color: #555; display: block; line-height: 1; margin-bottom: 0.1rem; }
+.tk-round-num { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 1.6rem; font-weight: 700; display: block; line-height: 1; }
+
+/* ── TRACKER BOTTOM SHEET THEME ─────────────────────────── */
+/* Overrides the builder's red/parchment palette for play mode */
+.tk-sheet {
+  background: #111 !important;
+  border-color: #2a2a2a !important;
+  border-top-color: #2a2a2a !important;
+  max-height: 92dvh !important;
+}
+.tk-sheet .co-sheet-handle { display: none !important; }
+.tk-sheet .co-sheet-title {
+  color: #ccc;
+}
+.tk-sheet .co-sheet-close {
+  color: #555;
+}
+.tk-sheet .co-sheet-close:hover {
+  color: #ccc;
+}
+.tk-sheet .co-sheet-body {
+  background: #111;
+}
+
+/* Cache variant — green accent */
+.tk-sheet--cache .co-sheet-title {
+  color: #4a9a4a;
+}
+
+/* Status variant — purple accent */
+.tk-sheet--status .co-sheet-title {
+  color: #9a9add;
+}
 
 /* ── CARD AREA ───────────────────────────────────────────── */
 .tracker-card-area {
@@ -127,7 +277,8 @@
   content: 'CAPTAIN';
   position: absolute;
   top: -0.6rem;
-  right: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
   background: #be4127;
   color: #000;
   font-family: 'Oswald', sans-serif; text-transform: uppercase;
@@ -135,12 +286,95 @@
   letter-spacing: 0.2em;
   padding: 0.1rem 0.5rem;
   font-weight: 700;
+  white-space: nowrap;
 }
 .tk-dead { opacity: 0.5; filter: grayscale(0.5); }
 
 /* ── CARD HEADER ────────────────────────────────────────── */
-.tk-card-header { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
-.tk-name { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 1.25rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; flex: 1; }
+.tk-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: nowrap;
+}
+
+.tk-slot-portrait-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.tk-portrait-ring {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  background: transparent;
+  box-shadow:
+    inset 0 1px 4px rgba(0,0,0,0.9),
+    0 2px 8px rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tk-portrait-inner {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #f0ebe0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.2), inset 0 0 0 1px rgba(0,0,0,0.15);
+}
+
+.tk-portrait-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+  border-radius: 50%;
+}
+
+.tk-slot-class-label {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+  text-align: center;
+  line-height: 1.1;
+  max-width: 56px;
+  min-height: 2em;
+}
+
+.tk-warrior-header-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  padding-top: 0.2rem;
+}
+
+.tk-name {
+  font-family: 'Oswald', sans-serif;
+  text-transform: uppercase;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #fff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tk-hdr-btn-group { display: flex; flex-direction: column; gap: 0.25rem; flex-shrink: 0; }
 .tk-dead-badge { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.12em; background: #5a0000; color: #ff8888; padding: 2px 7px; text-transform: uppercase; }
 .tk-captain-badge { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.12em; background: #be4127; color: #000; padding: 2px 6px; text-transform: uppercase; font-weight: 700; }
 
@@ -248,8 +482,8 @@
 .tk-equip-detail-actions { display: flex; gap: 0.5rem; margin-top: 1rem; }
 .tk-detail-btn { flex: 1; font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.15em; padding: 0.55rem 0.5rem; border: none; cursor: pointer; transition: background 0.15s; }
 .tk-detail-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-.tk-detail-btn--ghost { background: transparent; border: 1px solid #2a2a2a; color: #666; }
-.tk-detail-btn--ghost:hover { color: #999; border-color: #444; }
+.tk-detail-btn--ghost { background: transparent; border: 1px solid #2a2a2a; color: #fff; }
+.tk-detail-btn--ghost:hover { border-color: #555; }
 .tk-detail-btn--expend { background: #be4127; color: #fff; }
 .tk-detail-btn--expend:hover:not(:disabled) { background: #a03520; }
 
@@ -382,8 +616,11 @@
 /* ── QUICK REF ───────────────────────────────────────────── */
 /* Content styles live in src/shared/quickref.css (qr-* classes) */
 .tk-ref-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
   overflow-y: auto;
-  height: 100%;
+  background: #0d0d0d;
   -webkit-overflow-scrolling: touch;
   box-sizing: border-box;
   overscroll-behavior-y: contain;
@@ -546,7 +783,9 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: #9a9add;
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
   margin-bottom: 0.3rem;
 }
 .status-item-desc {

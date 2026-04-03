@@ -1,13 +1,16 @@
 import { useState } from 'react'
 import { useTrackerStore } from '../store/trackerStore'
 import { MARK_IMAGES } from '../data/images'
+import { getAvatarSrc } from '../data/avatars'
 import ConfirmModal from '../shared/ConfirmModal'
+import BottomSheet from '../shared/BottomSheet'
 
 export default function TrackerTopbar() {
-  const { mark, companyName, round, changeRound, resetTracker, closeTracker, openMarkPopup, refOpen, openRef, closeRef } = useTrackerStore()
+  const { mark, companyName, companyAvatar, round, changeRound, resetTracker, closeTracker, openMarkPopup, refOpen, openRef, closeRef } = useTrackerStore()
   const markImg = mark ? MARK_IMAGES[mark] : null
+  const avatarSrc = getAvatarSrc(companyAvatar)
   const [confirmReset, setConfirmReset] = useState(false)
-  const [confirmExit, setConfirmExit] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
 
   function handleResetConfirm() {
     setConfirmReset(false)
@@ -15,28 +18,80 @@ export default function TrackerTopbar() {
   }
 
   return (
-    <div className="tk-topbar">
-      <button className="tk-topbar-btn" onClick={() => setConfirmExit(true)}>✕</button>
+    <>
+      <div className="tk-topbar">
 
-      <div className="tk-topbar-identity" onClick={openMarkPopup} title="View company mark">
-        {markImg && <img src={markImg} className="tk-topbar-mark-img" alt={mark} />}
-        <div className="tk-topbar-names">
-          <span className="tk-topbar-name">{companyName || 'Unnamed Company'}</span>
-          {mark && <span className="tk-topbar-mark-name">{mark}</span>}
+        {/* Row 1: hamburger (left) | round control (centered) */}
+        <div className="tk-topbar-row1">
+          <button className="tk-topbar-hamburger" onClick={() => setMenuOpen(true)} aria-label="Menu">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" width="24" height="24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+            </svg>
+          </button>
+
+          <div className="tk-round-ctrl">
+            <button className="tk-round-btn" onClick={() => changeRound(-1)} aria-label="Previous round">−</button>
+            <div className="tk-round-display">
+              <span className="tk-round-label">Round</span>
+              <span className="tk-round-num">{round}</span>
+            </div>
+            <button className="tk-round-btn" onClick={() => changeRound(1)} aria-label="Next round">+</button>
+          </div>
         </div>
+
+        {/* Row 2: avatar + stacked name/mark (left) */}
+        <div className="tk-topbar-row2">
+          <div className="tk-topbar-identity">
+            {avatarSrc && (
+              <div className="tk-topbar-avatar-ring">
+                <div className="tk-topbar-avatar-inner">
+                  <img src={avatarSrc} className="tk-topbar-avatar" alt="" />
+                </div>
+              </div>
+            )}
+            <div className="tk-topbar-name-stack">
+              <span className="tk-topbar-name">{companyName || 'Unnamed Company'}</span>
+              {mark && (
+                <button className="tk-topbar-mark-sub" onClick={openMarkPopup}>
+                  {markImg && <img src={markImg} className="tk-topbar-mark-sub-img" alt="" />}
+                  {mark}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
       </div>
 
-      <div className="tk-round-ctrl">
-        <button className="tk-round-btn" onClick={() => changeRound(-1)}>−</button>
-        <div className="tk-round-display">
-          <span className="tk-round-label">RND</span>
-          <span className="tk-round-num">{round}</span>
-        </div>
-        <button className="tk-round-btn" onClick={() => changeRound(1)}>+</button>
-      </div>
-
-      <button className="tk-topbar-btn" onClick={() => setConfirmReset(true)} title="Reset game">↺</button>
-      <button className="tk-topbar-btn" onClick={refOpen ? closeRef : openRef} title="Quick Reference">📖</button>
+      {/* Hamburger menu sheet */}
+      {menuOpen && (
+        <BottomSheet title="GAME MENU" onClose={() => setMenuOpen(false)}>
+          <div className="tk-menu-list">
+            <button
+              className="tk-menu-item"
+              onClick={() => { setMenuOpen(false); refOpen ? closeRef() : openRef() }}
+            >
+              <span className="tk-menu-icon">📖</span>
+              <span className="tk-menu-label">Quick Reference</span>
+              {refOpen && <span className="tk-menu-badge">ON</span>}
+            </button>
+            <button
+              className="tk-menu-item tk-menu-item--danger"
+              onClick={() => { setMenuOpen(false); setConfirmReset(true) }}
+            >
+              <span className="tk-menu-icon">↺</span>
+              <span className="tk-menu-label">Reset Game</span>
+            </button>
+            <button
+              className="tk-menu-item tk-menu-item--exit"
+              onClick={() => { setMenuOpen(false); closeTracker() }}
+            >
+              <span className="tk-menu-icon">←</span>
+              <span className="tk-menu-label">Exit to Builder</span>
+            </button>
+          </div>
+        </BottomSheet>
+      )}
 
       {confirmReset && (
         <ConfirmModal
@@ -46,14 +101,6 @@ export default function TrackerTopbar() {
           onCancel={() => setConfirmReset(false)}
         />
       )}
-      {confirmExit && (
-        <ConfirmModal
-          title="Return to Builder?"
-          subtitle="This will take you back to the Company Builder. Your current game state (vitality, statuses, round) will be lost."
-          onConfirm={closeTracker}
-          onCancel={() => setConfirmExit(false)}
-        />
-      )}
-    </div>
+    </>
   )
 }

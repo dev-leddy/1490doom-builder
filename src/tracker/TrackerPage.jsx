@@ -27,9 +27,7 @@ export default function TrackerPage() {
       <TrackerTopbar />
 
       <div className="tracker-card-area">
-        {refOpen ? (
-          <QuickRefPanel />
-        ) : activeWarrior ? (
+        {activeWarrior && !refOpen ? (
           <div className="tk-cards-wrap">
             <WarriorTrackerCard warrior={activeWarrior} wi={activeWarriorIdx} />
           </div>
@@ -38,11 +36,15 @@ export default function TrackerPage() {
 
       <WarriorTabBar />
 
+      {refOpen && <QuickRefPanel />}
+
       {confirmModal && (
         <ConfirmModal
           title={confirmModal.title}
           subtitle={confirmModal.subtitle}
-          onConfirm={doConfirm}
+          onConfirm={() => {
+            doConfirm()
+          }}
           onCancel={closeConfirm}
         />
       )}

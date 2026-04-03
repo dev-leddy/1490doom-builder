@@ -117,16 +117,27 @@ export default function WarriorTrackerCard({ warrior: w, wi }) {
     <div className={`tk-card${w.dead ? ' tk-dead' : ''}${w.isCaptain ? ' is-captain' : ''}`}>
       {/* Card Header */}
       <div className="tk-card-header">
-        {portrait && (
-          <img
-            src={portrait}
-            style={{ width: '2.2rem', height: '2.2rem', borderRadius: '50%', objectFit: 'cover', objectPosition: 'top', border: '1px solid #333', flexShrink: 0 }}
-            alt=""
-          />
-        )}
-        <span className="tk-name">{w.type}</span>
-        <button className="tk-hdr-btn tk-hdr-btn-cache" onClick={() => openCacheLoot(wi)}>+ CACHE</button>
-        <button className="tk-hdr-btn tk-hdr-btn-status" onClick={() => openStatusModal(wi)}>+ STATUS</button>
+        <div className="tk-slot-portrait-col">
+          {portrait && (
+            <div className="tk-portrait-ring">
+              <div className="tk-portrait-inner">
+                <img
+                  src={portrait}
+                  className="tk-portrait-img"
+                  alt=""
+                />
+              </div>
+            </div>
+          )}
+          {w.customName && <div className="tk-slot-class-label">{w.type}</div>}
+        </div>
+        <div className="tk-warrior-header-text">
+          <span className="tk-name">{w.customName || w.type}</span>
+        </div>
+        <div className="tk-hdr-btn-group">
+          <button className="tk-hdr-btn tk-hdr-btn-cache" onClick={() => openCacheLoot(wi)}>+ CACHE</button>
+          <button className="tk-hdr-btn tk-hdr-btn-status" onClick={() => openStatusModal(wi)}>+ STATUS</button>
+        </div>
       </div>
 
       {/* Stat Strip */}

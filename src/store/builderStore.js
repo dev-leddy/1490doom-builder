@@ -1,4 +1,11 @@
 import { create } from 'zustand'
+
+// iOS Safari <15.4 doesn't have crypto.randomUUID
+const randomUUID = () =>
+  crypto.randomUUID?.() ??
+  ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c =>
+    (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16)
+  )
 import { WARRIORS, MARKS, STAT_IMPROVEMENT, IP_OPTIONS } from '../data/warriors'
 import { WEAPONS, WEAPON_NAMES, CLIMBING_ITEMS, CONSUMABLES, CONSUMABLE_NAMES } from '../data/weapons'
 import { _ENC } from '../data/encoding'
@@ -100,7 +107,7 @@ function emptySlot(i, isCaptain) {
 
 function defaultState() {
   return {
-    companyId: crypto.randomUUID(),
+    companyId: randomUUID(),
     mark: MARKS[0].name,
     companyName: '',
     companyAvatar: null,
@@ -280,10 +287,6 @@ export const useBuilderStore = create((set, get) => {
     getTotalIPSpent() {
       return get().slots.reduce((sum, s) => sum + (s.ip?.length || 0), 0)
     },
-    isDirty() {
-      const { mark, companyName, companyAvatar, ipLimit, slots, companyMode, campaignGame } = get()
-      return JSON.stringify({ mark, companyName, companyAvatar, ipLimit, slots, companyMode, campaignGame }) !== get()._savedSnapshot
-    },
 
     // ── ACTIONS ────────────────────────────────────────────────────────────────
     setMark(mark) {
@@ -354,6 +357,121 @@ export const useBuilderStore = create((set, get) => {
       }
       set({ slots })
       get()._autoDraft()
+    },
+    randomizeWarriors() {
+      const { ipLimit, companyMode } = get()
+      const allTypes = Object.keys(WARRIORS)
+      const shuffled = [...allTypes].sort(() => Math.random() - 0.5)
+      const twoHanded = ['Heavy Weapon', 'Polearm (two-handed)', 'Bow', 'Crossbow']
+      const climbingOptions = Object.keys(CLIMBING_ITEMS).filter(k => k !== 'None')
+      const statOptions = Object.keys(STAT_IMPROVEMENT)
+
+      // Standard mode uses a shared IP pool; campaign mode gives each warrior their earned IP
+      let sharedPool = companyMode === 'standard' ? ipLimit : 0
+
+      const slots = get().slots.map((slot, i) => {
+        const type = shuffled[i % shuffled.length]
+        const wdata = WARRIORS[type]
+        const allowed = getAllowedWeapons(wdata)
+        let ipPool = companyMode === 'campaign' ? (slot.earnedIP || 0) : sharedPool
+
+        // Pick weapon1
+        const affordableWeapons = allowed.filter(w =>
+          w !== 'Polearm (one-handed)' || wdata.fixedShield || ipPool >= 1
+        )
+        const weapon1 = wdata.fixedWeapon ||
+          affordableWeapons[Math.floor(Math.random() * (affordableWeapons.length || 1))] ||
+          allowed[0]
+
+        // Pick weapon2 + spend IP
+        const ip = []
+        let weapon2 = null
+        let climbing = null
+        let consumable = null
+        let statImprove = null
+
+        if (wdata.fixedShield) {
+          weapon2 = 'Shield'
+        } else if (wdata.fixedDualWield) {
+          weapon2 = 'Light Weapon'
+        } else if (weapon1 === 'Polearm (one-handed)') {
+          weapon2 = 'Shield'
+          ip.push('weapon2')
+          ipPool--
+        } else if (!twoHanded.includes(weapon1)) {
+          const w2opts = getSecondWeaponOptions(wdata, weapon1)
+          if (w2opts.length && Math.random() > 0.5 && ipPool > 0) {
+            weapon2 = w2opts[Math.floor(Math.random() * w2opts.length)]
+            ip.push('weapon2')
+            ipPool--
+          }
+        }
+
+        // Randomly assign remaining IP options (stat, climbing, consumable)
+        for (const opt of IP_OPTIONS.filter(o => o.id !== 'weapon2').sort(() => Math.random() - 0.5)) {
+          if (ipPool <= 0) break
+          if (Math.random() > 0.4) {
+            ip.push(opt.id)
+            ipPool--
+            if (opt.id === 'climbing')   climbing   = climbingOptions[Math.floor(Math.random() * climbingOptions.length)]
+            if (opt.id === 'consumable') consumable = CONSUMABLE_NAMES[Math.floor(Math.random() * CONSUMABLE_NAMES.length)]
+            if (opt.id === 'stat')       statImprove = statOptions[Math.floor(Math.random() * statOptions.length)]
+          }
+        }
+
+        if (companyMode === 'standard') sharedPool = ipPool
+
+        return {
+          ...slot,
+          type,
+          weapon1,
+          weapon2,
+          consumable,
+          climbing,
+          statImprove,
+          ip,
+        }
+      })
+
+      // Guarantee at least 2 warriors have at least 1 IP upgrade
+      const minGuaranteed = Math.min(2, slots.length)
+      const withUpgrades = slots.filter(s => s.ip.length > 0).length
+      if (withUpgrades < minGuaranteed) {
+        const need = minGuaranteed - withUpgrades
+        const bare = slots.filter(s => s.ip.length === 0)
+        const remainingPool = companyMode === 'standard' ? sharedPool : 0
+        let forced = remainingPool
+        for (let i = 0; i < need && i < bare.length; i++) {
+          const s = bare[i]
+          if (companyMode === 'campaign' && (s.earnedIP || 0) === 0) continue
+          if (companyMode === 'standard' && forced <= 0) break
+          // Pick a random non-weapon2 option
+          const opts = IP_OPTIONS.filter(o => o.id !== 'weapon2').sort(() => Math.random() - 0.5)
+          const opt = opts[0]
+          if (!opt) continue
+          s.ip = [opt.id]
+          if (opt.id === 'climbing')   s.climbing   = climbingOptions[Math.floor(Math.random() * climbingOptions.length)]
+          if (opt.id === 'consumable') s.consumable = CONSUMABLE_NAMES[Math.floor(Math.random() * CONSUMABLE_NAMES.length)]
+          if (opt.id === 'stat')       s.statImprove = statOptions[Math.floor(Math.random() * statOptions.length)]
+          if (companyMode === 'standard') forced--
+        }
+      }
+
+      const mark = MARKS[Math.floor(Math.random() * MARKS.length)].name
+      const companyName = generateCompanyName()
+      set({ slots, mark, companyName })
+      get()._autoDraft()
+      const randomToasts = [
+        '⚔ The dice have spoken.',
+        '☠ A new company rises from the ash.',
+        '⚔ Fate is cruel. Your roster is set.',
+        '☠ Blood and chance have decided.',
+        '☠ Your doom is randomized.',
+        '⚔ New blood. New doom.',
+        '⚔ Chaos has assembled your company.',
+        '☠ Another rabble thrown into the fog.',
+      ]
+      get()._toast(randomToasts[Math.floor(Math.random() * randomToasts.length)])
     },
     setWarriorProp(slotIndex, prop, value) {
       const slots = [...get().slots]
@@ -457,7 +575,7 @@ export const useBuilderStore = create((set, get) => {
         if (saves.length > 10) saves.pop()
       }
       setSaves(saves)
-      set({ saves, _savedSnapshot: JSON.stringify({ mark, companyName, companyAvatar, ipLimit, slots, companyMode, campaignGame }) })
+      set({ saves })
       get()._toast('Company saved.')
       return true
     },
@@ -466,8 +584,7 @@ export const useBuilderStore = create((set, get) => {
       const save = saves[index]
       if (!save) return
       const { mark, companyName, companyAvatar = null, ipLimit, slots, companyId, companyMode = 'standard', campaignGame = 0 } = save
-      const snap = JSON.stringify({ mark, companyName, companyAvatar, ipLimit, slots, companyMode, campaignGame })
-      set({ mark, companyName, companyAvatar, ipLimit, slots, companyId: companyId || crypto.randomUUID(), companyMode, campaignGame, _savedSnapshot: snap })
+      set({ mark, companyName, companyAvatar, ipLimit, slots, companyId: companyId || randomUUID(), companyMode, campaignGame })
       get()._toast('Company loaded!')
     },
     deleteCompany(index) {
@@ -578,7 +695,7 @@ export const useBuilderStore = create((set, get) => {
     },
     // Apply a pre-built random result to the store
     applyRandomResult(result) {
-      set({ ...result, companyId: crypto.randomUUID() })
+      set({ ...result, companyId: randomUUID() })
       get()._autoDraft()
     },
     applyQuizCompany({ mark, companyName, warriors }) {
@@ -614,7 +731,7 @@ export const useBuilderStore = create((set, get) => {
         mark, 
         companyName, 
         slots,
-        companyId: crypto.randomUUID() 
+        companyId: randomUUID() 
       })
       get()._autoDraft()
     },
@@ -680,12 +797,26 @@ export const useBuilderStore = create((set, get) => {
 
     // ── INTERNAL ──────────────────────────────────────────────────────────────
     _toast(msg) {
-      set({ toast: msg })
-      setTimeout(() => set({ toast: null }), 2500)
+      if (get()._toastTimer) clearTimeout(get()._toastTimer)
+      const timer = setTimeout(() => set({ toast: null, _toastTimer: null }), 2500)
+      set({ toast: msg, _toastTimer: timer })
     },
     _autoDraft() {
       const { mark, companyName, companyAvatar, ipLimit, slots, companyId, companyMode, campaignGame } = get()
-      try { localStorage.setItem('doom_draft', JSON.stringify({ mark, companyName, companyAvatar, ipLimit, slots, companyId, companyMode, campaignGame })) } catch {}
+      const data = { mark, companyName, companyAvatar, ipLimit, slots, companyId, companyMode, campaignGame }
+      try { localStorage.setItem('doom_draft', JSON.stringify(data)) } catch {}
+      // Auto-save to doom_saves silently (no validation, no toast)
+      const saves = getSaves()
+      const saveData = { ...data, savedAt: Date.now() }
+      const existingIndex = saves.findIndex(s => s.companyId === companyId)
+      if (existingIndex >= 0) {
+        saves[existingIndex] = saveData
+      } else if (mark) {
+        // Only add to saves list if a company type (mark) has been chosen
+        saves.unshift(saveData)
+        if (saves.length > 10) saves.pop()
+      }
+      try { setSaves(saves); set({ saves }) } catch {}
     },
     _validate() {
       const { slots } = get()

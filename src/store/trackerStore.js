@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { WARRIORS, NO_RESTORE_OPG } from '../data/warriors'
 import { STATUS_DEFS, CACHE_ITEMS } from '../data/items'
 import { useBuilderStore } from './builderStore'
+import { saveTrackerSession, loadTrackerSession, clearTrackerSession } from '../utils/storage'
 
 // ── HELPERS ──────────────────────────────────────────────────────────────────
 
@@ -24,6 +25,7 @@ function buildWarriorTrackerState(slot, index, builderState) {
   return {
     index,
     type: slot.type,
+    customName: slot.customName || null,
     weapon1: slot.weapon1,
     weapon2: slot.weapon2,
     climbing: slot.climbing,
@@ -47,15 +49,44 @@ function buildWarriorTrackerState(slot, index, builderState) {
 
 // ── STORE ─────────────────────────────────────────────────────────────────────
 
+let _persistTimer = null
+const PERSIST_DEBOUNCE_MS = 500
+
+function persistState(get) {
+  clearTimeout(_persistTimer)
+  _persistTimer = setTimeout(() => {
+    const state = get()
+    if (state.active && state.companyName) {
+      saveTrackerSession({
+        active: state.active,
+        round: state.round,
+        companyName: state.companyName,
+        companyAvatar: state.companyAvatar,
+        mark: state.mark,
+        warriors: state.warriors,
+        activeWarriorIdx: state.activeWarriorIdx,
+        sessionId: state.sessionId,
+        savedBuilderSlots: state.savedBuilderSlots,
+        companyId: state.companyId,
+      }, state.companyName)
+    }
+  }, PERSIST_DEBOUNCE_MS)
+}
+
 export const useTrackerStore = create((set, get) => ({
   // ── STATE ──────────────────────────────────────────────────────────────────
   active: false,
   round: 1,
   companyName: '',
+  companyAvatar: null,
   mark: '',
   warriors: [],
   activeWarriorIdx: 0,
   refOpen: false,
+  companyId: null,
+  sessionId: null,
+  savedBuilderSlots: null,
+  restored: false,
 
   // Modal state
   confirmModal: null,      // { title, subtitle, onConfirm }
@@ -77,15 +108,72 @@ export const useTrackerStore = create((set, get) => ({
       active: true,
       round: 1,
       companyName: builderState.companyName || 'Unnamed Company',
+      companyAvatar: builderState.companyAvatar || null,
       mark: builderState.mark || '',
       warriors,
       activeWarriorIdx: 0,
       refOpen: false,
+      companyId: builderState.companyId,
+      sessionId: Date.now().toString(36),
+      savedBuilderSlots: builderState.slots.map(s => s.type),
+      restored: false,
     })
+    const state = get()
+    saveTrackerSession({
+      active: state.active,
+      round: state.round,
+      companyName: state.companyName,
+      companyAvatar: state.companyAvatar,
+      mark: state.mark,
+      warriors: state.warriors,
+      activeWarriorIdx: state.activeWarriorIdx,
+      sessionId: state.sessionId,
+      savedBuilderSlots: state.savedBuilderSlots,
+      companyId: state.companyId,
+    }, state.companyName)
+    persistState(get)
     return true
   },
   closeTracker() {
-    set({ active: false })
+    const { companyName } = get()
+    if (companyName) clearTrackerSession(companyName)
+    set({ active: false, sessionId: null, savedBuilderSlots: null, restored: false })
+  },
+  checkMismatch(builderSlots) {
+    const state = get()
+    if (!state.sessionId) return null
+    const currentSlots = builderSlots.map(s => s.type)
+    const savedSlots = state.savedBuilderSlots
+    if (!savedSlots) return null
+
+    const mismatch = savedSlots.length !== currentSlots.length ||
+      savedSlots.some((s, i) => s !== currentSlots[i])
+    return mismatch
+  },
+  restoreSession(companyName) {
+    if (!companyName) return false
+    const stored = loadTrackerSession(companyName)
+    if (!stored) return false
+
+    set({
+      active: stored.active,
+      round: stored.round,
+      companyName: stored.companyName,
+      companyAvatar: stored.companyAvatar,
+      mark: stored.mark,
+      warriors: stored.warriors,
+      activeWarriorIdx: stored.activeWarriorIdx,
+      sessionId: stored.sessionId,
+      savedBuilderSlots: stored.savedBuilderSlots,
+      companyId: stored.companyId,
+      restored: true,
+    })
+    return true
+  },
+  discardSession() {
+    const { companyName } = get()
+    if (companyName) clearTrackerSession(companyName)
+    set({ active: false, sessionId: null, savedBuilderSlots: null, restored: false })
   },
   resetTracker() {
     set(state => ({
@@ -103,6 +191,7 @@ export const useTrackerStore = create((set, get) => ({
         statuses: [],
       })),
     }))
+    persistState(get)
   },
 
   // ── ROUND ──────────────────────────────────────────────────────────────────
@@ -111,6 +200,7 @@ export const useTrackerStore = create((set, get) => ({
       round: Math.max(1, state.round + delta),
       warriors: state.warriors.map(w => ({ ...w, oprUsed: {} })),
     }))
+    persistState(get)
   },
 
   // ── NAVIGATION ─────────────────────────────────────────────────────────────
@@ -141,6 +231,7 @@ export const useTrackerStore = create((set, get) => ({
       warriors[wi] = w
       return { warriors }
     })
+    persistState(get)
   },
 
   // ── OPG ABILITIES ──────────────────────────────────────────────────────────
@@ -160,6 +251,7 @@ export const useTrackerStore = create((set, get) => ({
           warriors[wi] = w
           return { warriors }
         })
+        persistState(get)
       }
     )
   },
@@ -188,6 +280,7 @@ export const useTrackerStore = create((set, get) => ({
         warriors[wi] = w
         return { warriors }
       })
+      persistState(get)
     })
   },
 
@@ -201,6 +294,7 @@ export const useTrackerStore = create((set, get) => ({
       warriors[wi] = w
       return { warriors }
     })
+    persistState(get)
   },
 
   // ── CROSSBOW ───────────────────────────────────────────────────────────────
@@ -213,6 +307,7 @@ export const useTrackerStore = create((set, get) => ({
       warriors[wi] = w
       return { warriors }
     })
+    persistState(get)
   },
 
   // ── CONSUMABLE ─────────────────────────────────────────────────────────────
@@ -225,6 +320,7 @@ export const useTrackerStore = create((set, get) => ({
       warriors[wi] = w
       return { warriors }
     })
+    persistState(get)
   },
 
   // ── RELIQUARY ──────────────────────────────────────────────────────────────
@@ -247,15 +343,14 @@ export const useTrackerStore = create((set, get) => ({
       const w = { ...warriors[wi], opgUsed: { ...warriors[wi].opgUsed } }
       if (abilityName) w.opgUsed[abilityName] = false
       if (cacheItemId !== null) {
-        // Cache item — remove it permanently
         w.cacheItems = w.cacheItems.filter(c => c.id !== cacheItemId)
       } else {
-        // Consumable — mark as used
         w.reliquaryUsed = true
       }
       warriors[wi] = w
       return { warriors, reliquaryModal: null }
     })
+    persistState(get)
     if (abilityName) {
       const label = abilityName === '__captain__' ? 'Captain Re-Roll' : abilityName
       useBuilderStore.getState()._toast(`⟳ ${label} restored`)
@@ -279,6 +374,7 @@ export const useTrackerStore = create((set, get) => ({
       warriors[wi] = w
       return { warriors, cacheLootTarget: null }
     })
+    persistState(get)
   },
   useCacheItem(wi, itemId) {
     const w = get().warriors[wi]
@@ -300,6 +396,7 @@ export const useTrackerStore = create((set, get) => ({
             warriors[wi] = w
             return { warriors }
           })
+          persistState(get)
           useBuilderStore.getState()._toast('🌿 Herbs & Tonic — Vitality +3')
         }
       )
@@ -324,6 +421,7 @@ export const useTrackerStore = create((set, get) => ({
           warriors[wi] = w
           return { warriors }
         })
+        persistState(get)
       }
     )
   },
@@ -346,6 +444,7 @@ export const useTrackerStore = create((set, get) => ({
       warriors[wi] = w
       return { warriors, statusTarget: null }
     })
+    persistState(get)
   },
   removeStatus(wi, statusId) {
     const w = get().warriors[wi]
@@ -362,6 +461,7 @@ export const useTrackerStore = create((set, get) => ({
           warriors[wi] = w
           return { warriors }
         })
+        persistState(get)
       }
     )
   },
@@ -376,6 +476,7 @@ export const useTrackerStore = create((set, get) => ({
       warriors[wi] = w
       return { warriors }
     })
+    persistState(get)
   },
 
   // ── CONFIRM MODAL ──────────────────────────────────────────────────────────
@@ -398,4 +499,37 @@ export const useTrackerStore = create((set, get) => ({
   closeMarkPopup() {
     set({ markPopupOpen: false })
   },
+
+  // ── RESTORE PROMPT ─────────────────────────────────────────────────────────
+  showRestorePrompt: false,
+  setShowRestorePrompt: (val) => set({ showRestorePrompt: val }),
 }))
+
+// Save on page unload
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeunload', () => {
+    const state = useTrackerStore.getState()
+    if (state.active && state.companyName) {
+      console.log('beforeunload saving', {
+        round: state.round,
+        warriors: state.warriors?.map(w => ({
+          type: w.type,
+          currentVit: w.currentVit,
+          statuses: w.statuses
+        }))
+      })
+      saveTrackerSession({
+        active: state.active,
+        round: state.round,
+        companyName: state.companyName,
+        companyAvatar: state.companyAvatar,
+        mark: state.mark,
+        warriors: state.warriors,
+        activeWarriorIdx: state.activeWarriorIdx,
+        sessionId: state.sessionId,
+        savedBuilderSlots: state.savedBuilderSlots,
+        companyId: state.companyId,
+      }, state.companyName)
+    }
+  })
+}

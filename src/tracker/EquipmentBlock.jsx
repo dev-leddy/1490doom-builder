@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useTrackerStore } from '../store/trackerStore'
 import { WEAPONS, CLIMBING_ITEMS, CLIMBING_DESCS, CONSUMABLES } from '../data/weapons'
 import { ITEM_ICONS } from '../data/images'
+import BottomSheet from '../shared/BottomSheet'
 
 const CACHE_SHORT = {
   'Herbs & Tonic':    'HEAL 3 VIT',
@@ -12,14 +13,14 @@ const CACHE_SHORT = {
   'Reliquary':        'RESTORE OPG',
 }
 
-function EquipCard({ icon, name, sub, damage, range, badge, onClick, isCache, faded, extraClass }) {
+function EquipCard({ icon, name, sub, damage, range, badge, onClick, isCache, faded, extraClass, mirror }) {
   const hasWeaponStats = damage > 0 || (range && range !== '—')
   return (
     <button
       className={`tk-equip-card${isCache ? ' tk-equip-card--cache' : ''}${faded ? ' tk-equip-card--faded' : ''}${extraClass ? ` ${extraClass}` : ''}`}
       onClick={onClick}
     >
-      {icon && <img src={icon} className="tk-equip-card-icon" alt="" />}
+      {icon && <img src={icon} className="tk-equip-card-icon" alt="" style={mirror ? { transform: 'scaleX(-1)' } : undefined} />}
       <span className="tk-equip-card-name">{name}</span>
       {hasWeaponStats ? (
         <div className="tk-equip-card-stats">
@@ -37,29 +38,13 @@ function EquipCard({ icon, name, sub, damage, range, badge, onClick, isCache, fa
 function DetailModal({ title, desc, damage, range, onClose, onExpend, expended, dead }) {
   const hasStats = (damage > 0) || (range && range !== '—')
   return (
-    <div className="modal-backdrop" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="modal-box" style={{ maxWidth: 360, maxHeight: '65dvh', position: 'relative' }}>
-        <button className="tracker-modal-close" onClick={onClose} aria-label="Close">×</button>
-        <div className="tracker-modal-title" style={{ paddingRight: '1.5rem' }}>{title}</div>
-        {hasStats && (
-          <div className="tk-detail-stats">
-            {damage > 0 && (
-              <div className="tk-detail-stat-wrap">
-                <span className="tk-detail-stat-label">Damage</span>
-                <span className="tk-detail-stat-val tk-detail-stat-val--dmg">{damage}</span>
-              </div>
-            )}
-            {range && range !== '—' && (
-              <div className="tk-detail-stat-wrap">
-                <span className="tk-detail-stat-label">Range</span>
-                <span className="tk-detail-stat-val">{range}</span>
-              </div>
-            )}
-          </div>
-        )}
-        {desc ? <div className="tk-equip-detail-desc">{desc}</div> : null}
-        {onExpend && (
-          <div className="tk-equip-detail-actions">
+    <BottomSheet
+      title={title}
+      onClose={onClose}
+      className="tk-sheet"
+      footer={
+        onExpend ? (
+          <>
             <button className="tk-detail-btn tk-detail-btn--ghost" onClick={onClose}>Close</button>
             <button
               className="tk-detail-btn tk-detail-btn--expend"
@@ -68,10 +53,30 @@ function DetailModal({ title, desc, damage, range, onClose, onExpend, expended, 
             >
               {expended ? 'Expended' : 'Expend'}
             </button>
-          </div>
-        )}
-      </div>
-    </div>
+          </>
+        ) : (
+          <button className="tk-detail-btn tk-detail-btn--ghost" style={{ flex: 1 }} onClick={onClose}>Close</button>
+        )
+      }
+    >
+      {hasStats && (
+        <div className="tk-detail-stats">
+          {damage > 0 && (
+            <div className="tk-detail-stat-wrap">
+              <span className="tk-detail-stat-label">Damage</span>
+              <span className="tk-detail-stat-val tk-detail-stat-val--dmg">{damage}</span>
+            </div>
+          )}
+          {range && range !== '—' && (
+            <div className="tk-detail-stat-wrap">
+              <span className="tk-detail-stat-label">Range</span>
+              <span className="tk-detail-stat-val">{range}</span>
+            </div>
+          )}
+        </div>
+      )}
+      {desc ? <div className="tk-equip-detail-desc">{desc}</div> : null}
+    </BottomSheet>
   )
 }
 
@@ -92,13 +97,17 @@ export default function EquipmentBlock({ wi, warrior: w }) {
     const loaded = isCrossbow ? w.crossbowLoaded !== false : undefined
     cards.push({
       key: 'w1',
-      icon: ITEM_ICONS[w.weapon1],
+      icon: w.type === 'Beekeeper' ? `${import.meta.env.BASE_URL}assets/icons/scythe.svg`
+          : w.type === 'Brute' && w.weapon1 === 'Heavy Weapon' ? `${import.meta.env.BASE_URL}assets/icons/wood-club.svg`
+          : (w.type === 'Saboteur' || w.type === 'Warrior Priest' || w.type === 'Knight') && w.weapon1 === 'Light Weapon' ? `${import.meta.env.BASE_URL}assets/icons/flanged-mace.svg`
+          : ITEM_ICONS[w.weapon1],
       name: w.weapon1,
       sub,
       desc,
       damage: wd?.damage,
       range: wd?.range,
       ...(isCrossbow && { variant: 'crossbow', badge: loaded ? '● LOADED' : '○ RELOAD', loaded }),
+      mirror: w.weapon1 !== 'Heavy Weapon',
     })
   }
 
@@ -116,7 +125,8 @@ export default function EquipmentBlock({ wi, warrior: w }) {
       : [wd?.offhandNote || wd?.note, wd?.special].filter(Boolean).join(' ')
     cards.push({
       key: 'w2',
-      icon: ITEM_ICONS[w.weapon2],
+      icon: w.type === 'Knight' && w.weapon2 === 'Shield' ? `${import.meta.env.BASE_URL}assets/icons/checked-shield.svg`
+          : ITEM_ICONS[w.weapon2],
       name: w.weapon2,
       sub,
       desc,
@@ -195,6 +205,7 @@ export default function EquipmentBlock({ wi, warrior: w }) {
             isCache={c.isCache}
             faded={c.faded}
             extraClass={c.variant === 'crossbow' ? (c.loaded ? 'tk-equip-card--loaded' : 'tk-equip-card--unloaded') : undefined}
+            mirror={c.mirror}
           />
         ))}
       </div>
