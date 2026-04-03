@@ -23,10 +23,9 @@ export default function BuilderPage() {
   const openTracker = useTrackerStore(s => s.openTracker)
   const builderState = useBuilderStore(s => s)
 
-  // 'landing' | 'builder'
-  const hasSlots = builderState.slots?.some(s => s.type)
+  // 'landing' | 'builder' - only show builder if there's a hash (deep link)
   const [view, setView] = useState(() =>
-    window.location.hash || hasSlots ? 'builder' : 'landing'
+    window.location.hash ? 'builder' : 'landing'
   )
   // global quick reference overlay — works from any view
   const [refOpen, setRefOpen] = useState(false)
