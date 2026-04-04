@@ -1,6 +1,6 @@
 const KEY = '1490_theme'
 
-export const getTheme = () => localStorage.getItem(KEY) || 'dark'
+export const getTheme = () => 'dark'
 
 export const setTheme = (t) => {
   localStorage.setItem(KEY, t)

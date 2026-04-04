@@ -6,7 +6,7 @@ import { MARKS } from '../data/warriors'
 import { getAvatarSrc } from '../data/avatars'
 import MarkPicker from './MarkPicker'
 
-export default function CompanyHeader({ onSettings }) {
+export default function CompanyHeader({ onSettings, onEndOfGame }) {
   const { mark, setMark, companyName, companyAvatar, companyMode, campaignGame, slots, ipLimit } = useBuilderStore()
   const [showMarkPicker, setShowMarkPicker] = useState(false)
   const [tempMark, setTempMark] = useState('')
@@ -86,6 +86,9 @@ export default function CompanyHeader({ onSettings }) {
             <span className="ch-campaign-text">CAMPAIGN</span>
             <span className="ch-campaign-dot" aria-hidden="true" />
             <span className="ch-campaign-text">GAME {campaignGame}</span>
+            <button className="ch-campaign-eog-btn" onClick={onEndOfGame}>
+              End of Game
+            </button>
           </div>
         )}
 

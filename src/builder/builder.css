@@ -3159,6 +3159,39 @@
 .topbar-icon-btn--play:active {
   background: #8b0000;
 }
+
+/* ── BUILDER PLAY PILL (floating FAB) ───────────────────── */
+.builder-play-pill {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.65rem 1.1rem;
+  background: var(--blood);
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+  color: #fff;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s;
+  z-index: 50;
+}
+@media (hover: hover) {
+  .builder-play-pill:hover {
+    background: #a52020;
+  }
+}
+.builder-play-pill:active {
+  background: #8b0000;
+}
 .topbar-icon-btn--dirty {
   background: rgba(139,0,0,0.25);
 }
@@ -3206,9 +3239,16 @@
 .co-sheet-footer:has(.sb-action-strip) { padding: 0; gap: 0; }
 .sb-action-strip {
   display: flex;
+  flex-direction: column;
   width: 100%;
   border-top: 1px solid var(--fog);
 }
+.sb-action-row {
+  display: flex;
+  width: 100%;
+  border-top: 1px solid var(--fog);
+}
+.sb-action-row:first-child { border-top: none; }
 .sb-action-btn {
   flex: 1;
   display: flex;
@@ -3229,9 +3269,21 @@
   transition: color 0.15s, background 0.15s;
   -webkit-tap-highlight-color: transparent;
 }
-.sb-action-btn:last-child { border-right: none; }
+.sb-action-row .sb-action-btn:last-child { border-right: none; }
 .sb-action-btn:hover, .sb-action-btn:active { background: var(--fog); }
 .sb-action-btn svg { flex-shrink: 0; }
+.sb-action-btn--lg {
+  font-size: 0.65rem;
+}
+.sb-shop-logo {
+  height: 20px;
+  width: auto;
+  max-width: 100%;
+  filter: invert(1);
+  object-fit: contain;
+}
+.sb-action-btn--website { color: var(--gold); }
+.sb-action-btn--website svg { color: var(--gold); filter: none; }
 .sb-action-btn--discord { color: #7289da; }
 .sb-action-btn--discord:hover, .sb-action-btn--discord:active { color: #8ea1e1; }
 
@@ -3330,15 +3382,6 @@
 }
 .btn-campaign-eog:hover { background: #a52020; }
 
-/* Per-warrior IP display */
-.warrior-campaign-ip {
-  font-family: 'Oswald', sans-serif;
-  font-size: 0.65rem;
-  letter-spacing: 0.04em;
-  color: var(--mist);
-  white-space: nowrap;
-  margin-right: 0.25rem;
-}
 
 /* Mode select modal */
 .mode-select-modal {
@@ -4463,10 +4506,11 @@
   width: 100%;
   margin-top: 1rem;
   padding: 0.9rem 1.5rem;
-  background: var(--blood);
-  border: none;
-  border-radius: 6px;
-  color: #fff;
+  background: #0d0d0d;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+  color: var(--blood);
   font-family: 'Oswald', sans-serif;
   font-size: 0.95rem;
   letter-spacing: 0.15em;
@@ -4478,11 +4522,108 @@
 }
 @media (hover: hover) {
   .landing-new-company-btn:hover {
-    background: #a52020;
+    background: #1a1a1a;
   }
 }
 .landing-new-company-btn:active {
+  background: #222;
+}
+
+/* ── LANDING TOP ACTIONS ─────────────────────────────────────── */
+.landing-top-actions {
+  display: flex;
+  margin-bottom: 1.25rem;
+}
+.landing-top-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.25rem;
+  border-radius: 4px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
+}
+.landing-top-btn--build {
+  background: var(--blood);
+  border: none;
+  color: #fff;
+  gap: 0.5rem;
+}
+@media (hover: hover) {
+  .landing-top-btn--build:hover {
+    background: #a52020;
+  }
+}
+.landing-top-btn--build:active {
   background: #8b0000;
+}
+
+/* ── LANDING SHOP PILL (floating FAB) ───────────────────────── */
+@keyframes shop-pill-glow {
+  0%   { box-shadow: 0 4px 20px rgba(0,0,0,0.8); }
+  30%  { box-shadow: 0 0 18px 4px rgba(190,65,39,0.7), 0 4px 20px rgba(0,0,0,0.8); }
+  60%  { box-shadow: 0 0 8px 2px rgba(190,65,39,0.3), 0 4px 20px rgba(0,0,0,0.8); }
+  80%  { box-shadow: 0 0 18px 4px rgba(190,65,39,0.5), 0 4px 20px rgba(0,0,0,0.8); }
+  100% { box-shadow: 0 4px 20px rgba(0,0,0,0.8); }
+}
+
+.landing-shop-pill {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  background: #0d0d0d;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  text-decoration: none;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+  overflow: hidden;
+  transition: opacity 0.15s;
+  z-index: 50;
+  -webkit-tap-highlight-color: transparent;
+  animation: shop-pill-glow 2s ease-in-out 0.8s 1 forwards;
+}
+@media (hover: hover) {
+  .landing-shop-pill:hover { opacity: 0.8; }
+}
+.landing-shop-pill-left {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.65rem 0.9rem;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.landing-shop-pill-right {
+  display: none;
+}
+.landing-shop-pill-logo {
+  height: 18px;
+  width: auto;
+  filter: invert(1);
+  object-fit: contain;
+}
+.landing-shop-pill-name {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.7);
 }
 
 
@@ -4780,10 +4921,31 @@
 .ch-campaign-badge {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 0.4rem;
   background: rgba(190, 65, 39, 0.08);
   border-top: 1px solid rgba(190, 65, 39, 0.2);
-  padding: 0.18rem 0.9rem;
+  padding: 0.25rem 0.9rem;
+}
+.ch-campaign-eog-btn {
+  margin-left: auto;
+  background: rgba(190, 65, 39, 0.15);
+  border: 1px solid rgba(190, 65, 39, 0.4);
+  border-radius: 3px;
+  color: rgba(190, 65, 39, 0.9);
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.55rem;
+  cursor: pointer;
+  transition: background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+@media (hover: hover) {
+  .ch-campaign-eog-btn:hover {
+    background: rgba(190, 65, 39, 0.3);
+  }
 }
 .ch-campaign-text {
   font-family: 'Oswald', sans-serif;

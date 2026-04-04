@@ -369,14 +369,22 @@ function LoadoutPanel({ slotIndex, slot, wdata, poolFull }) {
       <div className="lr-section-header">
         <span className="lr-section-title">EQUIPMENT & UPGRADES</span>
         <span className="lr-pips" style={{marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.4rem'}}>
-          {ipSpent > 0 && (
-            <div style={{display: 'flex', gap: '3px'}}>
-              {Array.from({ length: ipSpent }).map((_, i) => (
-                <span key={i} className="lr-ip-pip lr-pip-filled" />
-              ))}
-            </div>
+          {isCampaign ? (
+            <span style={{ fontSize: '0.65rem', color: '#fff', opacity: 0.6, fontFamily: "'Oswald', sans-serif", letterSpacing: '0.04em' }}>
+              {slot.earnedIP || 0} earned · {ipSpent} spent · {Math.max(0, (slot.earnedIP || 0) - ipSpent)} free
+            </span>
+          ) : (
+            <>
+              {ipSpent > 0 && (
+                <div style={{display: 'flex', gap: '3px'}}>
+                  {Array.from({ length: ipSpent }).map((_, i) => (
+                    <span key={i} className="lr-ip-pip lr-pip-filled" />
+                  ))}
+                </div>
+              )}
+              <span style={{ fontSize: '0.75rem', color: '#fff', opacity: 0.6, fontFamily: "'Oswald', sans-serif" }}>({ipSpent} IP)</span>
+            </>
           )}
-          <span style={{ fontSize: '0.75rem', color: '#fff', opacity: 0.6, fontFamily: "'Oswald', sans-serif" }}>({ipSpent} IP)</span>
         </span>
       </div>
 
@@ -626,11 +634,6 @@ export default function WarriorCard({ slotIndex, slot }) {
             {slot.customName || slot.type || `WARRIOR ${slotIndex + 1}`}
           </span>
         </div>
-        {companyMode === 'campaign' && slot.type && (
-          <span className="warrior-campaign-ip">
-            {slot.earnedIP || 0} earned · {slot.ip?.length || 0} spent · {Math.max(0, (slot.earnedIP || 0) - (slot.ip?.length || 0))} free
-          </span>
-        )}
         <button className="slot-gear-btn" onClick={openSettings} title="Warrior Settings" aria-label="Warrior settings">
           <SvgGear />
         </button>
