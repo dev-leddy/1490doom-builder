@@ -18,14 +18,14 @@ import ModeSelectModal from './ModeSelectModal'
 import LandingPage, { RefContent } from './LandingPage'
 import './builder.css'
 
-export default function BuilderPage() {
+export default function BuilderPage({ initialView = null }) {
   const { validationMsg, dismissValidation, openShare, openImport, clearBuilder, setCompanyMode, companyMode, setMark } = useBuilderStore()
   const openTracker = useTrackerStore(s => s.openTracker)
   const builderState = useBuilderStore(s => s)
 
-  // 'landing' | 'builder' - only show builder if there's a hash (deep link)
+  // 'landing' | 'builder' - use initialView if provided (from hash import), otherwise check hash
   const [view, setView] = useState(() =>
-    window.location.hash ? 'builder' : 'landing'
+    initialView || (window.location.hash ? 'builder' : 'landing')
   )
   // global quick reference overlay — works from any view
   const [refOpen, setRefOpen] = useState(false)
