@@ -1,0 +1,8 @@
+name = "1490doom-builder"
+compatibility_date = "2024-01-01"
+
+# Vite outputs to dist/, so tell Pages where to find functions
+main = "./dist/_worker.js"
+
+[env.production]
+vars = { NODE_ENV = "production" }
