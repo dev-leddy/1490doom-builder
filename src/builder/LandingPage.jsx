@@ -3,7 +3,6 @@ import { useBuilderStore } from '../store/builderStore'
 import { MARK_ID_MAP } from '../data/quizData'
 import SaveLoadPanel from './SaveLoadPanel'
 import QuickRef from '../shared/QuickRef'
-import BetaBanner from '../shared/BetaBanner'
 import QuizOverlay from './QuizOverlay'
 
 export function RefContent({ onBack }) {
@@ -12,16 +11,7 @@ export function RefContent({ onBack }) {
 
 export default function LandingPage({ onLoad, onNew }) {
   const { saves, setMark, clearBuilder } = useBuilderStore()
-  const fromQuizRedirect = new URLSearchParams(window.location.search).has('quiz')
-  const [showQuiz, setShowQuiz] = useState(() =>
-    window.location.pathname === '/quiz' || fromQuizRedirect
-  )
-  const [showBeta, setShowBeta] = useState(false)
-
-  function closeQuiz() {
-    setShowQuiz(false)
-    if (fromQuizRedirect) setShowBeta(true)
-  }
+  const [showQuiz, setShowQuiz] = useState(false)
 
   const handleQuizComplete = (payload) => {
     const { companyId, companyName, warriors } = payload
@@ -34,7 +24,7 @@ export default function LandingPage({ onLoad, onNew }) {
       }
       onLoad() // Jump to builder
     }
-    closeQuiz()
+    setShowQuiz(false)
   }
 
   return (
@@ -42,10 +32,9 @@ export default function LandingPage({ onLoad, onNew }) {
       {showQuiz && (
         <QuizOverlay
           onComplete={handleQuizComplete}
-          onClose={closeQuiz}
+          onClose={() => setShowQuiz(false)}
         />
       )}
-      {showBeta && <BetaBanner forceShow />}
 
       {saves.length > 0 ? (
         <>

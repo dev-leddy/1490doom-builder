@@ -42,13 +42,13 @@ export default function App() {
     )
   }
 
-  // Suppress App-level BetaBanner for quiz redirects — LandingPage shows it after quiz closes
-  const fromQuizRedirect = new URLSearchParams(window.location.search).has('quiz')
+  // ?quiz=<payload> means user returned from standalone quiz at /quiz — force-show beta banner
+  const fromStandaloneQuiz = new URLSearchParams(window.location.search).has('quiz')
 
   return (
     <div className="app">
       {trackerActive ? <TrackerPage /> : <BuilderPage />}
-      {!fromQuizRedirect && <BetaBanner />}
+      <BetaBanner forceShow={fromStandaloneQuiz} />
       {toast && <Toast message={toast} />}
       {showRestorePrompt && <RestorePromptModal />}
     </div>

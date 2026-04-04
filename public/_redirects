@@ -1,1 +1,1 @@
-/quiz  /index.html  200
+# No redirect rules needed — quiz.html is served natively at /quiz by CF Pages
