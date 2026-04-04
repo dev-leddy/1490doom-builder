@@ -6,8 +6,8 @@ const DISCORD_URL = 'https://discord.gg/hqTdqGBJyg'
 
 const SEEN_KEY = '1490_beta_ack_v1'
 
-export default function BetaBanner() {
-  const [dismissed, setDismissed] = useState(() => !!localStorage.getItem(SEEN_KEY))
+export default function BetaBanner({ forceShow = false }) {
+  const [dismissed, setDismissed] = useState(() => !forceShow && !!localStorage.getItem(SEEN_KEY))
 
   if (dismissed) return null
 
