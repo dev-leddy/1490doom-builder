@@ -1,4 +1,3 @@
-import { useRegisterSW } from 'virtual:pwa-register/react'
 import { useEffect, useState } from 'react'
 import { useTrackerStore } from './store/trackerStore'
 import BuilderPage from './builder/BuilderPage'
@@ -15,10 +14,15 @@ export default function App() {
   const { doImport } = useBuilderStore()
   const [hashLoaded, setHashLoaded] = useState(false)
 
-  const { needRefresh: [needRefresh], updateServiceWorker } = useRegisterSW()
-
   useEffect(() => {
-    const hash = window.location.hash.slice(1)
+    const rawHash = window.location.hash
+    let hash = rawHash.slice(1)
+    
+    // URL-decode the hash
+    try {
+      hash = decodeURIComponent(hash)
+    } catch {}
+    
     if (hash) {
       const decoded = decodeCompany(hash)
       if (decoded) {
@@ -34,12 +38,6 @@ export default function App() {
         <BuilderPage initialView="builder" />
         <BetaBanner />
         {toast && <Toast message={toast} />}
-        {needRefresh && (
-          <div className="update-banner">
-            <span>New version available</span>
-            <button onClick={() => updateServiceWorker(true)}>Update</button>
-          </div>
-        )}
       </div>
     )
   }
@@ -49,12 +47,6 @@ export default function App() {
       {trackerActive ? <TrackerPage /> : <BuilderPage />}
       <BetaBanner />
       {toast && <Toast message={toast} />}
-      {needRefresh && (
-        <div className="update-banner">
-          <span>New version available</span>
-          <button onClick={() => updateServiceWorker(true)}>Update</button>
-        </div>
-      )}
       {showRestorePrompt && <RestorePromptModal />}
     </div>
   )

@@ -23,10 +23,13 @@ export default function BuilderPage({ initialView = null }) {
   const openTracker = useTrackerStore(s => s.openTracker)
   const builderState = useBuilderStore(s => s)
 
-  // 'landing' | 'builder' - use initialView if provided (from hash import), otherwise check hash
-  const [view, setView] = useState(() =>
-    initialView || (window.location.hash ? 'builder' : 'landing')
-  )
+  // 'landing' | 'builder' - use initialView if provided, or check _fromShare (set by loadInitial
+  // before clearing the hash), or fall back to checking the raw hash
+  const [view, setView] = useState(() => {
+    if (initialView) return initialView
+    if (useBuilderStore.getState()._fromShare) return 'builder'
+    return window.location.hash ? 'builder' : 'landing'
+  })
   // global quick reference overlay — works from any view
   const [refOpen, setRefOpen] = useState(false)
 
@@ -80,8 +83,10 @@ export default function BuilderPage({ initialView = null }) {
           setView('builder')
         }
       } catch (e) { /* ignore malformed param */ }
-      // Clean up URL
-      window.history.replaceState({}, '', window.location.pathname)
+      // Clean up URL (remove ?quiz= param but keep hash for shared URLs)
+      const hash = window.location.hash
+      const newUrl = hash ? `${window.location.pathname}${hash}` : window.location.pathname
+      window.history.replaceState({}, '', newUrl)
     }
   }, []) // eslint-disable-line
 

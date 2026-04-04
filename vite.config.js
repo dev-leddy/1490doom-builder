@@ -7,9 +7,10 @@ const base = process.env.CF_PAGES ? '/' : '/1490doom-builder/'
 export default defineConfig(({ command }) => ({
   plugins: [
     react(),
-    VitePWA({
+    // Disable PWA in dev mode to avoid service worker interfering with URL hash
+    command === 'build' ? VitePWA({
       registerType: 'autoUpdate',
-      base: command === 'serve' ? '/' : base,
+      base: base,
       manifest: {
         name: '1490 DOOM — Company Builder',
         short_name: '1490 DOOM',
@@ -18,8 +19,8 @@ export default defineConfig(({ command }) => ({
         background_color: '#1a1006',
         display: 'standalone',
         orientation: 'portrait',
-        scope: command === 'serve' ? '/' : base,
-        start_url: command === 'serve' ? '/' : base,
+        scope: base,
+        start_url: base,
         icons: [
           { src: 'pwa-64x64.png',            sizes: '64x64',   type: 'image/png' },
           { src: 'pwa-192x192.png',           sizes: '192x192', type: 'image/png' },
@@ -53,7 +54,7 @@ export default defineConfig(({ command }) => ({
           },
         ],
       },
-    }),
+    }) : null,
   ],
 
   base: command === 'serve' ? '/' : base,
