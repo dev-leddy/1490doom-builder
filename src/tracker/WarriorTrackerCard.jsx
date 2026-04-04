@@ -106,7 +106,7 @@ function ConsumableBlock({ wi, warrior: w, wdata }) {
 }
 
 export default function WarriorTrackerCard({ warrior: w, wi }) {
-  const { openCacheLoot, openStatusModal } = useTrackerStore()
+  const { openCacheLoot, openStatusModal, toggleActivated } = useTrackerStore()
   const wdata = WARRIORS[w.type]
   const portrait = WARRIOR_IMAGES[w.type]
   const improvedStat = (w.statImprove && w.ip?.includes('stat')) ? w.statImprove : null
@@ -133,6 +133,14 @@ export default function WarriorTrackerCard({ warrior: w, wi }) {
         </div>
         <div className="tk-warrior-header-text">
           <span className="tk-name">{w.customName || w.type}</span>
+          {!w.dead && (
+            <button
+              className={`tk-activated-btn${w.activated ? ' tk-activated-btn-active' : ''}`}
+              onClick={() => toggleActivated(wi)}
+            >
+              {w.activated ? '✓ ACTIVATED' : 'UNACTIVATED'}
+            </button>
+          )}
         </div>
         <div className="tk-hdr-btn-group">
           <button className="tk-hdr-btn tk-hdr-btn-cache" onClick={() => openCacheLoot(wi)}>+ CACHE</button>

@@ -356,11 +356,11 @@
 }
 
 .tk-warrior-header-text {
-  flex: 1;
+  flex: 0 0 auto;
   min-width: 0;
   display: flex;
-  align-items: center;
-  padding-top: 0.2rem;
+  flex-direction: column;
+  justify-content: flex-start;
 }
 
 .tk-name {
@@ -374,7 +374,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.tk-hdr-btn-group { display: flex; flex-direction: column; gap: 0.25rem; flex-shrink: 0; }
+.tk-hdr-btn-group { display: flex; flex-direction: column; gap: 0.25rem; flex-shrink: 0; margin-left: auto; }
 .tk-dead-badge { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.12em; background: #5a0000; color: #ff8888; padding: 2px 7px; text-transform: uppercase; }
 .tk-captain-badge { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.12em; background: #be4127; color: #000; padding: 2px 6px; text-transform: uppercase; font-weight: 700; }
 
@@ -386,6 +386,7 @@
   letter-spacing: 0.1em;
   flex-shrink: 0;
   border: 1px solid;
+  border-radius: 3px;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   min-height: 36px;
@@ -408,6 +409,7 @@
   color: #888;
   background: #1a1a1a;
   border: 1px solid #2a2a2a;
+  border-radius: 3px;
   padding: 4px 10px;
   white-space: nowrap;
 }
@@ -579,6 +581,12 @@
 .tk-tab:active { background: #1a1a1a; }
 .tk-tab.tk-tab-active { background: #1a1a1a; border-top-color: #be4127; }
 .tk-tab.tk-tab-dead { opacity: 0.35; }
+.tk-tab-vit-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
 .tk-tab-vit {
   font-family: 'Oswald', sans-serif; text-transform: uppercase;
   font-size: 1rem;
@@ -605,6 +613,36 @@
 .tk-tab.tk-tab-active .tk-tab-name { color: #888; }
 .tk-tab-dead-icon { position: absolute; top: 3px; right: 3px; font-size: 0.55rem; color: #5a0000; }
 .tk-tab-captain-dot { position: absolute; top: 3px; left: 3px; font-size: 0.5rem; color: #be4127; }
+.tk-tab-check { color: #4a9a4a; font-size: 0.75rem; }
+.tk-tab.tk-tab-activated { border-top-color: #4a9a4a; }
+
+/* ── ACTIVATED BUTTON ────────────────────────────────────── */
+.tk-activated-btn {
+  display: inline-block;
+  margin-top: 0.3rem;
+  padding: 0.3rem 0.75rem;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 3px;
+  color: #555;
+  cursor: pointer;
+  transition: all 0.15s;
+  min-height: 32px;
+  line-height: 1.2;
+}
+.tk-activated-btn:hover {
+  border-color: #4a9a4a;
+  color: #4a9a4a;
+}
+.tk-activated-btn-active {
+  background: #0d2a0d;
+  border-color: #4a9a4a;
+  color: #4a9a4a;
+}
 
 /* REF tab */
 .tk-tab-ref { border-left: 1px solid #2a2a2a; }

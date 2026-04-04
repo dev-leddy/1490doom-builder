@@ -35,6 +35,7 @@ function buildWarriorTrackerState(slot, index, builderState) {
     maxVit,
     currentVit: maxVit,
     dead: false,
+    activated: false,
     opgUsed: {},
     oprUsed: {},
     consumableUsed: false,
@@ -198,8 +199,21 @@ export const useTrackerStore = create((set, get) => ({
   changeRound(delta) {
     set(state => ({
       round: Math.max(1, state.round + delta),
-      warriors: state.warriors.map(w => ({ ...w, oprUsed: {} })),
+      warriors: state.warriors.map(w => ({ ...w, oprUsed: {}, activated: false })),
     }))
+    persistState(get)
+  },
+
+  // ── ACTIVATED ───────────────────────────────────────────────────────────────
+  toggleActivated(wi) {
+    set(state => {
+      const warriors = [...state.warriors]
+      const w = { ...warriors[wi] }
+      if (w.dead) return state
+      w.activated = !w.activated
+      warriors[wi] = w
+      return { warriors }
+    })
     persistState(get)
   },
 
