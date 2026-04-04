@@ -11,7 +11,7 @@ export function RefContent({ onBack }) {
 
 export default function LandingPage({ onLoad, onNew }) {
   const { saves, setMark, clearBuilder } = useBuilderStore()
-  const [showQuiz, setShowQuiz] = useState(false)
+  const [showQuiz, setShowQuiz] = useState(() => window.location.pathname === '/quiz')
 
   const handleQuizComplete = (payload) => {
     const { companyId, companyName, warriors } = payload
