@@ -11,6 +11,18 @@
     --dim: #222222;
   }
 
+  [data-theme="light"] {
+    --ash: #f0e8d5;
+    --fog: #e4d9c2;
+    --bone: #2a1a0a;
+    --parchment: #1a0e05;
+    --blood: #8b2015;
+    --gold: #8b2015;
+    --rust: #6b1a0e;
+    --mist: #b8a888;
+    --dim: #d0c0a0;
+  }
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {

@@ -1,6 +1,10 @@
 import { createRoot } from 'react-dom/client'
 import './styles/global.css'
 import App from './App'
+import { initTheme } from './utils/theme'
+
+// Apply stored theme before React mounts to prevent flash
+initTheme()
 
 // When a new service worker takes over, reload so users get the latest version.
 if ('serviceWorker' in navigator) {

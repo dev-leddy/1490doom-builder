@@ -60,6 +60,27 @@
   --font-body: 'Caslon Antique', serif;
 }
 
+/* ── LIGHT MODE (PARCHMENT) ───────────────────────────────────────────────── */
+[data-theme="light"] {
+  --bg: #f0e8d5;
+  --bg-card: #e4d9c2;
+  --bg-lift: #ddd0b8;
+  --bg-hover: #cec0a4;
+  --cream: #2a1a0a;
+  --cream-dim: #5a3820;
+  --border-dim: #d0c0a0;
+  --text-muted: #7a6040;
+  --text-dim: #9a7a58;
+  --text-mid: #8a7050;
+  --gold-bg: #f5edd8;
+  --gold-border: #c8b090;
+  --green-bg: #d8edcc;
+  --green-border: #90c080;
+  --red-bg: #f5ddd8;
+  --purple-bg: #ece8f5;
+  --purple-border: #b0a8d8;
+}
+
 /* ── RESET & BASE ─────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
 

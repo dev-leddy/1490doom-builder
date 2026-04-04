@@ -5,6 +5,7 @@ import { getAvatarSrc } from '../data/avatars'
 import { useTrackerStore } from '../store/trackerStore'
 import { MARK_ID_MAP } from '../data/quizData'
 import { hasStoredSession } from '../utils/storage'
+import { getTheme, setTheme } from '../utils/theme'
 import CompanyHeader from './CompanyHeader'
 import WarriorRoster from './WarriorRoster'
 import SaveLoadPanel from './SaveLoadPanel'
@@ -37,6 +38,13 @@ export default function BuilderPage({ initialView = null }) {
   const [modeSelectOpen, setModeSelectOpen] = useState(false)
   const [endOfGameOpen, setEndOfGameOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [theme, setThemeState] = useState(getTheme)
+
+  function handleToggleTheme() {
+    const next = theme === 'dark' ? 'light' : 'dark'
+    setTheme(next)
+    setThemeState(next)
+  }
 
   // Sync company header width to match warrior card width when only 1 card per row
   const builderMainRef = useRef(null)
@@ -232,6 +240,21 @@ export default function BuilderPage({ initialView = null }) {
               <button className="sb-action-btn" onClick={handlePrint}>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true"><path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/></svg>
                 <span>Print</span>
+              </button>
+              <button className="sb-action-btn" onClick={handleToggleTheme}>
+                {theme === 'dark' ? (
+                  /* Sun icon */
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true">
+                    <circle cx="12" cy="12" r="4"/>
+                    <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none"/>
+                  </svg>
+                ) : (
+                  /* Moon icon */
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                  </svg>
+                )}
+                <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
               </button>
               <a
                 className="sb-action-btn sb-action-btn--discord"
