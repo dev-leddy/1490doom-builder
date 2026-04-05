@@ -748,7 +748,7 @@ export const useBuilderStore = create((set, get) => {
       set({ companyMode: mode, ipLimit: mode === 'campaign' ? 0 : 3 })
       get()._autoDraft()
     },
-    awardEndOfGame({ survivorIndices, ipAllocations = {}, newCaptainIndex }) {
+    awardEndOfGame({ survivorIndices, ipAllocations = {}, newCaptainIndex, retreat = false }) {
       const { slots, campaignGame } = get()
       const newSlots = slots.map((slot, i) => {
         if (!slot.type) return slot
@@ -770,7 +770,7 @@ export const useBuilderStore = create((set, get) => {
       set({ slots: newSlots, campaignGame: nextGame })
       get()._autoDraft()
       const totalIP = Object.values(ipAllocations).reduce((sum, n) => sum + n, 0)
-      get()._toast(totalIP > 0 ? `Game ${nextGame} complete — IP awarded!` : `Game ${nextGame} complete — Coward!`)
+      get()._toast(retreat ? `Game ${nextGame} complete — Coward!` : totalIP > 0 ? `Game ${nextGame} complete — IP awarded!` : `Game ${nextGame} complete — Coward!`)
     },
     addStatImprove(slotIndex, stat) {
       const slots = [...get().slots]

@@ -115,6 +115,7 @@ export default function EndOfGameModal({ onClose, onConfirm }) {
       survivorIndices: [...survivors],
       ipAllocations: {},
       newCaptainIndex: needsCaptainPromo ? newCaptainIndex : null,
+      retreat: true,
     })
     onConfirm?.()
     onClose()
