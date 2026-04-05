@@ -22,7 +22,7 @@ function IPUpgradeNote({ warrior: w }) {
   const upgrades = w.ip || []
   const tags = []
 
-  if (w.statImprove && upgrades.includes('stat'))
+  if (w.statImprove && upgrades.some(ip => ip.startsWith('stat')))
     tags.push({ key: 'stat', label: STAT_IMPROVEMENT[w.statImprove], free: false })
 
   if (w.weapon2) {
@@ -109,7 +109,7 @@ export default function WarriorTrackerCard({ warrior: w, wi }) {
   const { openCacheLoot, openStatusModal, toggleActivated } = useTrackerStore()
   const wdata = WARRIORS[w.type]
   const portrait = WARRIOR_IMAGES[w.type]
-  const improvedStat = (w.statImprove && w.ip?.includes('stat')) ? w.statImprove : null
+  const improvedStat = (w.statImprove && w.ip?.some(ip => ip.startsWith('stat'))) ? w.statImprove : null
 
   const statKeys = ['MOV', 'ATK', 'VIT', 'SKL', 'DEF', 'COM']
 
