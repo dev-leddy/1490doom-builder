@@ -77,6 +77,9 @@ export default function ModeSelectModal({ onSelect, onCancel }) {
             className={`mode-option-btn${mode === 'standard' ? ' selected' : ''}`}
             onClick={() => handleModeChosen('standard')}
           >
+            <div className="mode-option-icon" aria-hidden="true">
+              <img src={`${import.meta.env.BASE_URL}assets/icons/battle-gear.svg`} alt="Standard mode" />
+            </div>
             <div className="mode-option-name">STANDARD</div>
             <div className="mode-option-desc">Setup your company and start playing.</div>
           </button>
@@ -84,6 +87,9 @@ export default function ModeSelectModal({ onSelect, onCancel }) {
             className={`mode-option-btn${mode === 'campaign' ? ' selected' : ''}`}
             onClick={() => handleModeChosen('campaign')}
           >
+            <div className="mode-option-icon" aria-hidden="true">
+              <img src={`${import.meta.env.BASE_URL}assets/icons/quill-ink.svg`} alt="Campaign mode" />
+            </div>
             <div className="mode-option-name">CAMPAIGN</div>
             <div className="mode-option-desc">Warriors earn IP after each scenario they survive.</div>
           </button>

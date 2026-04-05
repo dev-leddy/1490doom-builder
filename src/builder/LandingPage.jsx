@@ -69,7 +69,7 @@ export default function LandingPage({ onLoad, onNew }) {
         <div className="quiz-card quiz-card--hero" onClick={() => setShowQuiz(true)}>
           <h2 className="quiz-card-headline">Take The Quiz,<br/>Find Your Company</h2>
           <p className="quiz-card-sub">Answer five questions. We'll build your roster, assign your mark, and send you straight to battle.</p>
-          <span className="quiz-card-btn">Start →</span>
+          <span className="quiz-card-btn">Start</span>
         </div>
       )}
 
