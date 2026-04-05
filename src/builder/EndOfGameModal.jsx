@@ -260,7 +260,7 @@ export default function EndOfGameModal({ onClose, onConfirm }) {
                     <span className="eog-dead-label">💀 DEAD</span>
                   ) : (
                     <div className="eog-stepper">
-                      <button className="eog-stepper-btn" onClick={() => adjustAllocation(s.index, -1)} disabled={cur <= 0}>−</button>
+                      <button className="eog-stepper-btn" onClick={() => adjustAllocation(s.index, -1)} disabled={cur <= (captainBonusHere ? 1 : 0)}>−</button>
                       <span className="eog-stepper-val">{cur}</span>
                       <button className="eog-stepper-btn" onClick={() => adjustAllocation(s.index, 1)} disabled={remaining <= 0}>+</button>
                     </div>

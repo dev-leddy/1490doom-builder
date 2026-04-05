@@ -769,7 +769,8 @@ export const useBuilderStore = create((set, get) => {
       const nextGame = campaignGame + 1
       set({ slots: newSlots, campaignGame: nextGame })
       get()._autoDraft()
-      get()._toast(`Game ${nextGame} complete — IP awarded!`)
+      const totalIP = Object.values(ipAllocations).reduce((sum, n) => sum + n, 0)
+      get()._toast(totalIP > 0 ? `Game ${nextGame} complete — IP awarded!` : `Game ${nextGame} complete — Coward!`)
     },
     addStatImprove(slotIndex, stat) {
       const slots = [...get().slots]
