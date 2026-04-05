@@ -3172,7 +3172,6 @@
   background: var(--blood);
   border: none;
   border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.8);
   color: #fff;
   font-family: 'Oswald', sans-serif;
   font-size: 0.75rem;
@@ -3513,6 +3512,17 @@
   transition: border-color 0.15s;
 }
 .eog-win-btn.selected { border-color: var(--gold); color: var(--gold); }
+.eog-win-btn--retreat { color: var(--mist); }
+.eog-win-btn--retreat.selected { border-color: var(--mist); color: var(--bone); }
+.eog-retreat-note {
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--mist);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 6px;
+  padding: 0.6rem 0.75rem;
+  margin-bottom: 0.5rem;
+}
 .eog-captain-bonus {
   display: flex;
   align-items: center;
@@ -3561,7 +3571,7 @@
   margin-bottom: 1rem;
 }
 .eog-captain-promo-note {
-  font-size: 0.78rem;
+  font-size: 0.92rem;
   color: var(--bone);
   margin-bottom: 0.75rem;
   opacity: 0.75;
@@ -3584,6 +3594,183 @@
   display: flex;
   justify-content: flex-end;
   gap: 0.75rem;
+}
+
+/* ── EOG STEP 4: IP ALLOCATION ──────────────────────────── */
+.eog-rulebook-reminder {
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: var(--bone);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 6px;
+  padding: 0.65rem 0.8rem;
+  margin-bottom: 1rem;
+}
+.eog-objective-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  margin-bottom: 0.75rem;
+}
+.eog-objective-label {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--bone);
+}
+.eog-captain-bonus-note {
+  font-size: 0.72rem;
+  color: var(--gold);
+  font-family: 'Oswald', sans-serif;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.75rem;
+  padding: 0.4rem 0.6rem;
+  background: rgba(190,65,39,0.08);
+  border: 1px solid rgba(190,65,39,0.2);
+  border-radius: 4px;
+}
+.eog-captain-victory-row {
+  background: rgba(190,65,39,0.08);
+  border-color: rgba(190,65,39,0.35) !important;
+}
+.eog-alloc-warrior-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+/* ── Warrior identity (portrait + name + class) ─────────── */
+.eog-identity {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex: 1;
+  min-width: 0;
+}
+.eog-portrait {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: top center;
+  flex-shrink: 0;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: #1a1a1a;
+}
+.eog-identity-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+.eog-warrior-class {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mist);
+  opacity: 0.7;
+}
+
+.eog-current-ip {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+  color: var(--mist);
+  text-transform: uppercase;
+  padding-left: calc(30px + 0.55rem); /* indent to align under name */
+}
+.eog-victory-badge {
+  display: inline-block;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #fff;
+  background: var(--blood);
+  border-radius: 3px;
+  padding: 0.1rem 0.4rem;
+  width: fit-content;
+}
+.eog-alloc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mist);
+  margin-bottom: 0.4rem;
+}
+.eog-remaining {
+  font-size: 0.8rem;
+  color: var(--gold);
+  transition: color 0.15s;
+}
+.eog-remaining[data-over="true"] {
+  color: #e05555;
+}
+.eog-alloc-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: default;
+}
+.eog-stepper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.eog-stepper-btn {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 4px;
+  color: var(--bone);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.12s;
+  -webkit-tap-highlight-color: transparent;
+}
+.eog-stepper-btn:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+@media (hover: hover) {
+  .eog-stepper-btn:not(:disabled):hover {
+    background: rgba(255,255,255,0.1);
+  }
+}
+.eog-stepper-val {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.95rem;
+  min-width: 1.2rem;
+  text-align: center;
+  color: var(--bone);
+}
+.eog-dead-label {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  color: var(--mist);
+  opacity: 0.6;
+}
+.eog-alloc-hint {
+  font-size: 0.72rem;
+  color: var(--mist);
+  text-align: center;
+  margin-top: 0.6rem;
+  font-style: italic;
 }
 
 /* ── WIZARD ─────────────────────────────────────────────── */
@@ -4682,7 +4869,7 @@
   background: rgba(255, 255, 255, 0.025);
 }
 .ch-identity-btn {
-  flex: 1;
+  flex: 0 0 50%;
   min-width: 0;
   align-items: flex-start;
   position: relative;
@@ -4697,8 +4884,8 @@
   background: rgba(190, 65, 39, 0.2);
 }
 .ch-sigil-btn {
-  flex: 0 0 auto;
-  max-width: 48%;
+  flex: 0 0 50%;
+  max-width: 50%;
   align-items: flex-start;
 }
 
@@ -4921,14 +5108,18 @@
 .ch-campaign-badge {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.4rem;
-  background: rgba(190, 65, 39, 0.08);
+  justify-content: center;
+  gap: 0.6rem;
   border-top: 1px solid rgba(190, 65, 39, 0.2);
   padding: 0.25rem 0.9rem;
 }
+.ch-campaign-eog-row {
+  display: flex;
+  justify-content: center;
+  padding: 0.3rem 0.9rem 0.4rem;
+}
 .ch-campaign-eog-btn {
-  margin-left: auto;
+  margin-left: 0;
   background: rgba(190, 65, 39, 0.15);
   border: 1px solid rgba(190, 65, 39, 0.4);
   border-radius: 3px;

@@ -321,7 +321,10 @@ export const useBuilderStore = create((set, get) => {
     removeSlot() {
       const { slots } = get()
       if (slots.length <= 1) return
-      set({ slots: slots.slice(0, -1) })
+      // Always remove an empty slot first; fall back to last slot
+      const lastEmptyIdx = slots.map((s, i) => (!s.type ? i : -1)).filter(i => i !== -1).pop()
+      const removeIdx = lastEmptyIdx ?? slots.length - 1
+      set({ slots: slots.filter((_, i) => i !== removeIdx) })
       get()._autoDraft()
     },
     changeIPLimit(delta) {
@@ -745,7 +748,7 @@ export const useBuilderStore = create((set, get) => {
       set({ companyMode: mode, ipLimit: mode === 'campaign' ? 0 : 3 })
       get()._autoDraft()
     },
-    awardEndOfGame({ survivorIndices, captainWon, newCaptainIndex }) {
+    awardEndOfGame({ survivorIndices, ipAllocations = {}, newCaptainIndex }) {
       const { slots, campaignGame } = get()
       const newSlots = slots.map((slot, i) => {
         if (!slot.type) return slot
@@ -754,9 +757,8 @@ export const useBuilderStore = create((set, get) => {
           // Warrior fell — replace with a fresh empty slot
           return emptySlot(i, false)
         }
-        // Survived — award 1 IP (+ captain bonus if applicable)
-        let add = 1
-        if (captainWon && slot.isCaptain) add += 1
+        // Survived — add manually allocated IPs
+        const add = ipAllocations[i] || 0
         // Handle captain promotion: override isCaptain on promoted warrior
         let isCaptain = slot.isCaptain
         if (newCaptainIndex != null) {

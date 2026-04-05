@@ -138,7 +138,7 @@ export const useTrackerStore = create((set, get) => ({
   closeTracker() {
     const { companyName } = get()
     if (companyName) clearTrackerSession(companyName)
-    set({ active: false, sessionId: null, savedBuilderSlots: null, restored: false })
+    set({ active: false, returnToBuilder: true, sessionId: null, savedBuilderSlots: null, restored: false })
   },
   checkMismatch(builderSlots) {
     const state = get()

@@ -1,16 +1,21 @@
 import { useState } from 'react'
 import { useTrackerStore } from '../store/trackerStore'
+import { useBuilderStore } from '../store/builderStore'
 import { MARK_IMAGES } from '../data/images'
 import { getAvatarSrc } from '../data/avatars'
 import ConfirmModal from '../shared/ConfirmModal'
 import BottomSheet from '../shared/BottomSheet'
+import EndOfGameModal from '../builder/EndOfGameModal'
 
 export default function TrackerTopbar() {
   const { mark, companyName, companyAvatar, round, changeRound, resetTracker, closeTracker, openMarkPopup, refOpen, openRef, closeRef } = useTrackerStore()
+  const { companyMode, campaignGame } = useBuilderStore()
+  const isCampaign = companyMode === 'campaign'
   const markImg = mark ? MARK_IMAGES[mark] : null
   const avatarSrc = getAvatarSrc(companyAvatar)
   const [confirmReset, setConfirmReset] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [endOfGameOpen, setEndOfGameOpen] = useState(false)
 
   function handleResetConfirm() {
     setConfirmReset(false)
@@ -29,6 +34,12 @@ export default function TrackerTopbar() {
             </svg>
           </button>
 
+          {isCampaign && (
+            <button className="tk-topbar-eog-btn" onClick={() => setEndOfGameOpen(true)}>
+              End of Game
+            </button>
+          )}
+
           <div className="tk-round-ctrl">
             <button className="tk-round-btn" onClick={() => changeRound(-1)} aria-label="Previous round">−</button>
             <div className="tk-round-display">
@@ -39,7 +50,7 @@ export default function TrackerTopbar() {
           </div>
         </div>
 
-        {/* Row 2: avatar + stacked name/mark (left) */}
+        {/* Row 2: avatar + stacked name/mark (left) | game label (right, campaign only) */}
         <div className="tk-topbar-row2">
           <div className="tk-topbar-identity">
             {avatarSrc && (
@@ -59,6 +70,9 @@ export default function TrackerTopbar() {
               )}
             </div>
           </div>
+          {isCampaign && (
+            <span className="tk-topbar-game-label">Game {campaignGame + 1}</span>
+          )}
         </div>
 
       </div>
@@ -91,6 +105,13 @@ export default function TrackerTopbar() {
             </button>
           </div>
         </BottomSheet>
+      )}
+
+      {endOfGameOpen && (
+        <EndOfGameModal
+          onClose={() => setEndOfGameOpen(false)}
+          onConfirm={() => { setEndOfGameOpen(false); resetTracker() }}
+        />
       )}
 
       {confirmReset && (

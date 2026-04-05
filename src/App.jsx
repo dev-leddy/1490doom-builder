@@ -9,6 +9,7 @@ import RestorePromptModal from './shared/RestorePromptModal'
 
 export default function App() {
   const trackerActive = useTrackerStore(s => s.active)
+  const returnToBuilder = useTrackerStore(s => s.returnToBuilder)
   const showRestorePrompt = useTrackerStore(s => s.showRestorePrompt)
   const toast = useBuilderStore(s => s.toast)
   const { doImport } = useBuilderStore()
@@ -47,7 +48,7 @@ export default function App() {
 
   return (
     <div className="app">
-      {trackerActive ? <TrackerPage /> : <BuilderPage />}
+      {trackerActive ? <TrackerPage /> : <BuilderPage initialView={returnToBuilder ? 'builder' : undefined} />}
       <BetaBanner forceShow={fromStandaloneQuiz} />
       {toast && <Toast message={toast} />}
       {showRestorePrompt && <RestorePromptModal />}

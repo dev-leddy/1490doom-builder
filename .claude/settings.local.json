@@ -44,7 +44,8 @@
       "Bash(curl -s http://localhost:5173/quiz)",
       "Bash(ipconfig)",
       "Bash(findstr /i \"IPv4\")",
-      "Bash(rtk git:*)"
+      "Bash(rtk git:*)",
+      "Bash(npm run:*)"
     ]
   }
 }

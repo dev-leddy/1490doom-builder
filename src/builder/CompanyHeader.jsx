@@ -82,14 +82,18 @@ export default function CompanyHeader({ onSettings, onEndOfGame }) {
 
         {/* Campaign badge */}
         {companyMode === 'campaign' && (
-          <div className="ch-campaign-badge">
-            <span className="ch-campaign-text">CAMPAIGN</span>
-            <span className="ch-campaign-dot" aria-hidden="true" />
-            <span className="ch-campaign-text">GAME {campaignGame}</span>
-            <button className="ch-campaign-eog-btn" onClick={onEndOfGame}>
-              End of Game
-            </button>
-          </div>
+          <>
+            <div className="ch-campaign-badge">
+              <span className="ch-campaign-text">CAMPAIGN</span>
+              <span className="ch-campaign-dot" aria-hidden="true" />
+              <span className="ch-campaign-text">GAME {campaignGame}</span>
+            </div>
+            <div className="ch-campaign-eog-row">
+              <button className="ch-campaign-eog-btn" onClick={onEndOfGame}>
+                End of Game
+              </button>
+            </div>
+          </>
         )}
 
       </div>

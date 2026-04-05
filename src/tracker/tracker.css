@@ -37,6 +37,34 @@
   position: absolute;
   left: max(0.5rem, env(safe-area-inset-left));
 }
+.tk-topbar-game-label {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-left: auto;
+  padding-right: max(0.75rem, env(safe-area-inset-right));
+  color: rgba(190, 65, 39, 0.6);
+}
+.tk-topbar-eog-btn {
+  position: absolute;
+  right: max(0.5rem, env(safe-area-inset-right));
+  background: rgba(190, 65, 39, 0.15);
+  border: 1px solid rgba(190, 65, 39, 0.4);
+  border-radius: 4px;
+  color: rgba(190, 65, 39, 0.9);
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.25rem 0.6rem;
+  cursor: pointer;
+  transition: background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+@media (hover: hover) {
+  .tk-topbar-eog-btn:hover { background: rgba(190, 65, 39, 0.3); }
+}
 .tk-topbar-identity {
   display: flex;
   align-items: center;
@@ -156,7 +184,7 @@
 .tk-topbar-row2 {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: space-between;
   border-top: 1px solid #1e1e1e;
   padding: 0.3rem max(0rem, env(safe-area-inset-right)) 0.3rem max(0.75rem, env(safe-area-inset-left));
   min-height: 38px;
