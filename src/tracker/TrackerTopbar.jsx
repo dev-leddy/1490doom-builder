@@ -71,7 +71,7 @@ export default function TrackerTopbar() {
             </div>
           </div>
           {isCampaign && (
-            <span className="tk-topbar-game-label">Game {campaignGame + 1}</span>
+            <span className="tk-topbar-game-label">Game {campaignGame}</span>
           )}
         </div>
 
