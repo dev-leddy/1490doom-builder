@@ -20,7 +20,9 @@ function buildWarriorTrackerState(slot, index, builderState) {
   if (!slot.type) return null
   const wdata = WARRIORS[slot.type]
   const baseVit = parseInt(wdata.stats.VIT)
-  const bonusVit = slot.ip.includes('stat') && slot.statImprove === 'VIT' ? 1 : 0
+  // Handle both campaign mode (statImproves array) and standard mode (statImprove single)
+  const statImprove = slot.statImproves?.[0] || slot.statImprove || null
+  const bonusVit = slot.ip.includes('stat') && statImprove === 'VIT' ? 1 : 0
   const maxVit = baseVit + bonusVit
   return {
     index,
@@ -31,7 +33,7 @@ function buildWarriorTrackerState(slot, index, builderState) {
     climbing: slot.climbing,
     consumable: slot.consumable || null,
     ip: slot.ip || [],
-    statImprove: slot.statImprove || null,
+    statImprove: statImprove,
     maxVit,
     currentVit: maxVit,
     dead: false,
