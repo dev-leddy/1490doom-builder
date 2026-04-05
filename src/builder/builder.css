@@ -5467,6 +5467,11 @@
   transition: color 0.2s;
   margin-bottom: 0.25rem;
 }
+.mode-option-icon img {
+  width: 32px;
+  height: 32px;
+  display: block;
+}
 .mode-option-btn:hover .mode-option-icon { color: var(--bone); }
 .mode-option-btn.selected .mode-option-icon { color: var(--gold); }
 .mode-option-name {
