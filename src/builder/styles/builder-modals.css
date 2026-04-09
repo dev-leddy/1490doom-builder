@@ -1,0 +1,869 @@
+/* ── Mark Picker: rectangular portrait icons ─────────────── */
+.mark-option-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  filter: sepia(0.1) brightness(0.95);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ch-identity-btn, .ch-sigil-btn,
+  .ch-avatar-img, .ch-sigil-img,
+  .ch-name-underline, .ch-edit-hint,
+  .ch-avatar-ring, .ch-sigil-ring {
+    transition: none;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPANY SETTINGS MODAL — GAME UI STYLING
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Modal container — wider, with red top border */
+.co-settings-modal {
+  max-width: 460px;
+  width: 94vw;
+  border-top: 2px solid rgba(190, 65, 39, 0.65) !important;
+  border-bottom: 1px solid rgba(190, 65, 39, 0.2) !important;
+  position: relative;
+}
+
+/* Corner L-bracket ornaments (matching ch-frame) */
+.co-settings-modal::before,
+.co-settings-modal::after {
+  content: '';
+  position: absolute;
+  top: -1px;
+  width: 14px;
+  height: 14px;
+  border-top: 2px solid rgba(190, 65, 39, 0.85);
+  pointer-events: none;
+}
+.co-settings-modal::before { left: -1px; border-left: 2px solid rgba(190, 65, 39, 0.85); }
+.co-settings-modal::after  { right: -1px; border-right: 2px solid rgba(190, 65, 39, 0.85); }
+
+/* Title — larger, more dramatic */
+.co-settings-title {
+  font-size: 1rem;
+  letter-spacing: 0.3em;
+  color: var(--parchment);
+  margin-bottom: 1.75rem;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid var(--dim);
+  position: relative;
+}
+/* Decorative diamond under title */
+.co-settings-title::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 5px;
+  height: 5px;
+  background: rgba(190, 65, 39, 0.7);
+}
+
+/* Field rows — subtle separator lines */
+.co-settings-field {
+  padding-bottom: 1.1rem;
+  border-bottom: 1px solid var(--dim);
+  margin-bottom: 1.1rem;
+}
+.co-settings-field:last-of-type {
+  border-bottom: none;
+}
+
+/* Labels — brighter, more uppercase */
+.co-settings-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  color: rgba(190, 65, 39, 0.9);
+}
+
+/* Input — crisper */
+.co-settings-input {
+  background: var(--fog);
+  border: 1px solid var(--dim);
+  border-bottom: 2px solid rgba(190, 65, 39, 0.5);
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
+  padding: 0.4rem 0.75rem;
+}
+.co-settings-input:focus {
+  border-bottom-color: rgba(190, 65, 39, 0.9);
+  outline: none;
+}
+
+/* Stepper buttons — square game buttons */
+.co-settings-step-btn {
+  width: 32px;
+  height: 32px;
+  background: var(--fog);
+  border: 1px solid var(--dim);
+  font-size: 1.1rem;
+  font-family: 'Oswald', sans-serif;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.co-settings-step-btn:hover {
+  border-color: rgba(190, 65, 39, 0.8);
+  color: rgba(190, 65, 39, 1);
+  background: rgba(190, 65, 39, 0.08);
+}
+
+/* Step value — larger */
+.co-settings-step-val {
+  font-size: 1.3rem;
+  min-width: 2rem;
+  color: var(--parchment);
+}
+
+/* Logo trigger — match ch-avatar-ring style */
+.co-settings-logo-trigger {
+  width: 64px !important;
+  height: 64px !important;
+  border: 2px solid rgba(220, 220, 220, 0.2) !important;
+  border-radius: 50% !important;
+  padding: 2px !important;
+  background: #f0ebe0 !important;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.co-settings-logo-trigger:hover {
+  border-color: rgba(190, 65, 39, 0.75) !important;
+  transform: scale(1.06);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   WIZARD REDESIGN — RPG Company Creator  (wiz-* prefix)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Modal frame ───────────────────────────────────────────── */
+.mode-select-modal {
+  max-width: 480px;
+  width: 94vw;
+  background: var(--ash);
+  border: 1px solid var(--dim);
+  border-top: 2px solid rgba(190, 65, 39, 0.65);
+  border-radius: 2px;
+  padding: 1.75rem 1.75rem 1.5rem;
+  position: relative;
+}
+
+/* corner ornaments */
+.mode-select-modal::before,
+.mode-select-modal::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-color: rgba(190, 65, 39, 0.35);
+  border-style: solid;
+}
+.mode-select-modal::before {
+  bottom: 10px; left: 10px;
+  border-width: 0 0 1px 1px;
+}
+.mode-select-modal::after {
+  bottom: 10px; right: 10px;
+  border-width: 0 1px 1px 0;
+}
+
+/* ── Close button ──────────────────────────────────────────── */
+.wiz-close-btn {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  color: var(--mist);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+  transition: color 0.15s;
+}
+.wiz-close-btn:hover { color: var(--parchment); }
+
+/* ── Step indicator ─────────────────────────────────────────── */
+.wiz-step-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+}
+.wiz-step-badge {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid var(--mist);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 0;
+  color: var(--mist);
+  flex-shrink: 0;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+.wiz-step-badge--active {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: rgba(190, 65, 39, 0.1);
+}
+.wiz-step-badge--done {
+  border-color: rgba(190, 65, 39, 0.35);
+  color: rgba(190, 65, 39, 0.55);
+}
+.wiz-step-line {
+  flex: 0 0 32px;
+  height: 1px;
+  background: var(--mist);
+  opacity: 0.35;
+}
+.wiz-step-line--done {
+  background: rgba(190, 65, 39, 0.45);
+  opacity: 1;
+}
+
+/* ── Title & subtitle ──────────────────────────────────────── */
+.mode-select-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.4rem;
+  letter-spacing: 0.18em;
+  color: var(--gold);
+  text-align: center;
+  margin-bottom: 0.35rem;
+}
+.mode-select-subtitle {
+  font-family: 'Caslon Antique', serif;
+  font-size: 1.25rem;
+  color: #ffffff;
+  text-align: center;
+  font-style: italic;
+  margin-bottom: 1.5rem;
+}
+
+/* ── Mode cards ────────────────────────────────────────────── */
+.mode-select-options {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+.mode-option-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.5rem;
+  padding: 1.25rem 0.75rem 1rem;
+  background: rgba(0,0,0,0.25);
+  border: 1px solid var(--dim);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  min-height: 150px;
+  text-align: center;
+}
+.mode-option-btn:hover {
+  border-color: var(--mist);
+  background: rgba(255,255,255,0.03);
+}
+.mode-option-btn.selected {
+  border-color: rgba(190, 65, 39, 0.8);
+  background: rgba(190, 65, 39, 0.1);
+}
+.mode-option-icon {
+  color: var(--mist);
+  transition: color 0.2s;
+  margin-bottom: 0.25rem;
+}
+.mode-option-icon img {
+  width: 32px;
+  height: 32px;
+  display: block;
+}
+.mode-option-btn:hover .mode-option-icon { color: var(--bone); }
+.mode-option-btn.selected .mode-option-icon { color: var(--gold); }
+.mode-option-name {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.15em;
+  color: var(--bone);
+  transition: color 0.2s;
+}
+.mode-option-btn.selected .mode-option-name { color: var(--gold); }
+.mode-option-desc {
+  font-family: 'Caslon Antique', serif;
+  font-size: 1.15rem;
+  color: #ffffff;
+  line-height: 1.4;
+  font-style: italic;
+}
+
+/* ── Footer ────────────────────────────────────────────────── */
+.mode-select-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+.mode-select-footer--single {
+  justify-content: center;
+}
+.wiz-next-btn {
+  min-width: 160px;
+  padding: 0.75rem 2rem;
+  font-size: 0.9rem;
+  letter-spacing: 0.12em;
+}
+.wiz-begin-btn {
+  padding: 0.6rem 1.25rem;
+}
+.wiz-randomize-btn {
+  font-size: 0.72rem;
+  padding: 0.5rem 0.75rem;
+}
+
+/* ── Step 2 scoped overrides ───────────────────────────────── */
+.mode-select-modal .co-settings-step-val {
+  font-size: 1.8rem;
+  min-width: 2.5rem;
+}
+.mode-select-modal .co-settings-step-btn {
+  width: 36px;
+  height: 36px;
+  font-size: 1.2rem;
+}
+.mode-select-modal .co-settings-logo-trigger {
+  width: 72px !important;
+  height: 72px !important;
+}
+.mode-select-modal .co-settings-input {
+  font-size: 1.05rem;
+}
+
+/* ── Mobile ────────────────────────────────────────────────── */
+@media (max-width: 400px) {
+  .mode-select-modal { padding: 1.4rem 1.1rem 1.25rem; }
+  .mode-select-options { flex-direction: column; }
+  .mode-option-btn { min-height: auto; flex-direction: row; justify-content: flex-start; text-align: left; gap: 0.75rem; padding: 0.85rem 1rem; }
+  .mode-option-icon { margin-bottom: 0; }
+  .mode-select-title { font-size: 1.2rem; }
+}
+
+/* ── CompanyForm Emblem Portrait ───────────────────────────── */
+.cf-emblem-row {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+}
+
+.cf-emblem-trigger {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.cf-emblem-ring {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  border: 2px solid rgba(190, 65, 39, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s, transform 0.2s;
+  flex-shrink: 0;
+}
+.cf-emblem-trigger:hover .cf-emblem-ring {
+  border-color: rgba(190, 65, 39, 0.85);
+  transform: scale(1.04);
+}
+
+.cf-emblem-inner {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: #f0ebe0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cf-emblem-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.cf-emblem-empty {
+  font-family: 'Caslon Antique', serif;
+  font-size: 1.8rem;
+  color: rgba(80, 60, 40, 0.3);
+  line-height: 1;
+  user-select: none;
+}
+
+.cf-emblem-hint {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.2em;
+  color: #ffffff;
+  text-transform: uppercase;
+  transition: color 0.2s;
+}
+.cf-emblem-trigger:hover .cf-emblem-hint {
+  color: var(--bone);
+}
+
+/* In the settings modal (not wizard), keep the old inline logo trigger working */
+.co-settings-logo-trigger {
+  cursor: pointer;
+}
+
+/* ── COMPANY SETTINGS SHEET ─────────────────────────────────────────────────── */
+
+/* Backdrop */
+.co-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.88);
+  z-index: 700;
+}
+
+/* Sheet — desktop: centered modal */
+.co-settings-sheet {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 94vw;
+  max-width: 460px;
+  z-index: 701;
+  background: var(--ash);
+  border: 1px solid var(--dim);
+  border-top: 2px solid rgba(190, 65, 39, 0.65);
+  max-height: 90vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.co-sheet-handle { display: none !important; }
+
+.co-sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 1.75rem 0;
+  flex-shrink: 0;
+}
+
+.co-sheet-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.3em;
+  color: var(--parchment);
+}
+
+.co-sheet-close {
+  background: none;
+  border: none;
+  color: var(--mist);
+  font-size: 1.3rem;
+  cursor: pointer;
+  padding: 0.2rem 0.5rem;
+  line-height: 1;
+  transition: color 0.15s;
+}
+.co-sheet-close:hover { color: var(--parchment); }
+
+.co-sheet-body {
+  padding: 1.25rem 1.75rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  flex: 1;
+}
+
+.co-sheet-footer {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0 1.75rem 1.75rem;
+  flex-shrink: 0;
+}
+
+.co-sheet-randomize {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid var(--dim);
+  color: #fff;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.6rem 0.5rem;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  line-height: 1.2;
+  text-align: center;
+}
+.co-sheet-randomize:hover {
+  border-color: rgba(190, 65, 39, 0.5);
+  color: var(--parchment);
+}
+.co-sheet-randomize-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+.co-sheet-randomize-text {
+  text-align: left;
+}
+
+.co-sheet-done {
+  flex: 2;
+  background: var(--blood);
+  border: 1px solid var(--rust);
+  color: #fff;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.95rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.75rem;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.co-sheet-done:hover {
+  background: #a52020;
+  box-shadow: 0 0 12px rgba(190, 65, 39, 0.3);
+}
+.co-sheet-done:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: grayscale(0.5);
+}
+
+/* Shared pair row — emblem+name and warriors+IP both use this */
+.cf-pair-row {
+  display: flex;
+  gap: 1.5rem;
+  padding-bottom: 1.1rem;
+  border-bottom: 1px solid var(--dim);
+  margin-bottom: 1.1rem;
+}
+
+.cf-pair-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cf-pair-item .co-settings-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  color: rgba(190, 65, 39, 0.9);
+}
+
+/* Identity row: labels top-aligned, content vertically centered within shared height */
+.cf-identity-row {
+  align-items: stretch;
+}
+
+.cf-identity-row .cf-pair-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.cf-identity-row .cf-pair-item:first-child {
+  flex: 0 0 auto;
+  align-items: center;
+}
+
+.cf-name-item {
+  flex: 1 !important;
+  align-items: stretch !important;
+}
+
+/* Shared content area — fills remaining height and centers child vertically */
+.cf-identity-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cf-name-input-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.cf-name-input-wrap .co-settings-input {
+  width: 100%;
+  padding-right: 2.2rem;
+  box-sizing: border-box;
+}
+
+.cf-dice-inline {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--mist);
+  cursor: pointer;
+  transition: color 0.15s;
+  padding: 0;
+}
+.cf-dice-inline:hover { color: var(--parchment); }
+
+/* Mobile: bottom sheet — overlays the builder navbar */
+@media (max-width: 600px) {
+  .co-sheet-backdrop {
+    background: rgba(0, 0, 0, 0.6);
+  }
+
+  .co-settings-sheet {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    transform: none;
+    width: 100%;
+    max-width: 100%;
+    border-radius: 20px 20px 0 0;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    max-height: 85dvh;
+    animation: co-sheet-up 0.35s cubic-bezier(0.32, 0.72, 0, 1) both;
+  }
+
+  .co-sheet-handle {
+    display: block;
+    width: 40px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.18);
+    border-radius: 2px;
+    margin: 14px auto 0;
+    flex-shrink: 0;
+    cursor: grab;
+    touch-action: none;
+  }
+
+  .co-sheet-header {
+    padding: 0.75rem 1.25rem 0;
+  }
+
+  .co-sheet-body {
+    padding: 1rem 1.25rem;
+  }
+
+  .co-sheet-footer {
+    padding: 0.75rem 1.25rem max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
+@keyframes co-sheet-up {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+/* ── Captain label in slot header ── */
+.slot-captain-label {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+  border: 1px solid var(--gold);
+  border-radius: 2px;
+  padding: 0.05rem 0.35rem;
+  margin-right: 0.45rem;
+  vertical-align: middle;
+  opacity: 0.9;
+  display: inline-block;
+  line-height: 1.4;
+}
+
+/* ── Portrait column (portrait + class label) ── */
+.slot-portrait-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  flex-shrink: 0;
+}
+.slot-class-label {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.65);
+  text-align: center;
+  line-height: 1.1;
+  max-width: 64px;
+  min-height: 2.2em;
+}
+
+/* ── Gear button in slot header ── */
+.slot-gear-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  color: #fff;
+  opacity: 0.6;
+  transition: opacity 0.15s, color 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+.slot-gear-btn:hover { opacity: 1; color: #fff; }
+
+/* ── Choose Warrior CTA (empty slot) ── */
+.slot-choose-btn {
+  display: block;
+  width: 100%;
+  margin: 0.5rem 0 1rem;
+  padding: 0.75rem 1rem;
+  background: none;
+  border: 1px dashed rgba(190, 65, 39, 0.45);
+  border-radius: 6px;
+  color: var(--mist);
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.slot-choose-btn:hover {
+  border-color: rgba(190, 65, 39, 0.75);
+  color: var(--parchment);
+}
+
+/* ── Warrior Settings Sheet sections ── */
+.ws-section {
+  margin-bottom: 1.25rem;
+}
+.ws-section-label {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(190, 65, 39, 0.9);
+  margin-bottom: 0.5rem;
+}
+.ws-section--row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.ws-section--row .ws-section-label {
+  margin-bottom: 0;
+  flex-shrink: 0;
+  min-width: 4rem;
+}
+
+/* ── Captain toggle in warrior settings ── */
+.ws-captain-toggle {
+  background: none;
+  border: 1px solid var(--dim);
+  border-radius: 4px;
+  padding: 0.35rem 0.75rem;
+  cursor: pointer;
+  color: var(--mist);
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: border-color 0.15s, color 0.15s;
+}
+.ws-captain-toggle:hover:not([disabled]) {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.ws-captain-toggle.is-captain {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.ws-captain-toggle[disabled] {
+  cursor: default;
+  border-color: var(--gold);
+  color: var(--gold);
+  opacity: 0.85;
+}
+
+/* ── Warrior class picker grid ── */
+.wcp-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+.wcp-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.4rem 0.2rem 0.5rem;
+  background: var(--fog);
+  border: 2px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.wcp-item:hover { border-color: var(--mist); }
+.wcp-item.selected {
+  border-color: var(--blood);
+  background: rgba(190, 65, 39, 0.1);
+}
+.wcp-portrait {
+  width: 44px;
+  height: 44px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--dim);
+  flex-shrink: 0;
+}
+.wcp-portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  filter: sepia(0.1) brightness(0.95);
+}
+.wcp-name {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--bone);
+  text-align: center;
+  line-height: 1.2;
+}
