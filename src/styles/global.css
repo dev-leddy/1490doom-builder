@@ -8,6 +8,7 @@
   src: url('/fonts/CaslonAntique-Regular.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
@@ -15,6 +16,7 @@
   src: url('/fonts/CaslonAntique-Bold.ttf') format('truetype');
   font-weight: bold;
   font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
@@ -22,6 +24,7 @@
   src: url('/fonts/CaslonAntique-Italic.ttf') format('truetype');
   font-weight: normal;
   font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
@@ -29,6 +32,7 @@
   src: url('/fonts/CaslonAntique-BoldItalic.ttf') format('truetype');
   font-weight: bold;
   font-style: italic;
+  font-display: swap;
 }
 
 /* ── CSS VARIABLES ────────────────────────────────────────────────────────── */
