@@ -4,7 +4,8 @@ import BuilderPage from './builder/BuilderPage'
 import TrackerPage from './tracker/TrackerPage'
 import Toast from './shared/Toast'
 import BetaBanner from './shared/BetaBanner'
-import { useBuilderStore, decodeCompany } from './store/builderStore'
+import { useBuilderStore } from './store/builderStore'
+import { decodeCompany } from './store/builderEncoding'
 import RestorePromptModal from './shared/RestorePromptModal'
 
 export default function App() {
