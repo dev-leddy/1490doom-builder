@@ -526,14 +526,6 @@ if (typeof window !== 'undefined') {
   window.addEventListener('beforeunload', () => {
     const state = useTrackerStore.getState()
     if (state.active && state.companyName) {
-      console.log('beforeunload saving', {
-        round: state.round,
-        warriors: state.warriors?.map(w => ({
-          type: w.type,
-          currentVit: w.currentVit,
-          statuses: w.statuses
-        }))
-      })
       saveTrackerSession({
         active: state.active,
         round: state.round,
