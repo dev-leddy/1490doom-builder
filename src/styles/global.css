@@ -230,6 +230,21 @@ input:focus, select:focus, textarea:focus {
 }
 .update-banner button:hover { background: #2a2000; }
 
+/* ── APP VERSION ──────────────────────────────────────────────────────────── */
+.app-version {
+  position: fixed;
+  bottom: 0.5rem;
+  left: 0.75rem;
+  font-size: 0.65rem;
+  font-family: 'Oswald', sans-serif;
+  letter-spacing: 0.06em;
+  color: var(--cream);
+  opacity: 0.2;
+  pointer-events: none;
+  z-index: 10;
+  user-select: none;
+}
+
 /* ── SCROLLBAR ────────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: var(--bg); }

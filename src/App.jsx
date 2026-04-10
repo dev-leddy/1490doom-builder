@@ -40,6 +40,7 @@ export default function App() {
         <BuilderPage initialView="builder" />
         <BetaBanner />
         {toast && <Toast message={toast} />}
+        <span className="app-version">v{__APP_VERSION__}</span>
       </div>
     )
   }
@@ -53,6 +54,7 @@ export default function App() {
       <BetaBanner forceShow={fromStandaloneQuiz} />
       {toast && <Toast message={toast} />}
       {showRestorePrompt && <RestorePromptModal />}
+      <span className="app-version">v{__APP_VERSION__}</span>
     </div>
   )
 }
