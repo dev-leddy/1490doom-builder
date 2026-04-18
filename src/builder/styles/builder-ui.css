@@ -3057,6 +3057,10 @@
 .auth-provider-btn--light {
   color: #fff;
 }
+.auth-provider-btn--email {
+  background: var(--ash);
+  border: 1px solid rgba(255,255,255,0.15);
+}
 .auth-sheet-note {
   color: rgba(255,255,255,0.55);
   font-size: 0.75rem;
@@ -3167,3 +3171,100 @@
   opacity: 0.8;
 }
 
+/* ── Email Auth Forms ────────────────────────────────────── */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.auth-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.auth-form-label {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.65);
+}
+.auth-form-hint {
+  font-size: 0.7rem;
+  text-transform: none;
+  letter-spacing: 0;
+  color: rgba(255,255,255,0.4);
+}
+.auth-form-input {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 6px;
+  padding: 0.6rem 0.75rem;
+  color: var(--bone);
+  font-size: 0.9rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.auth-form-input:focus {
+  border-color: rgba(255,255,255,0.45);
+}
+.auth-form-error {
+  color: #ff6b6b;
+  font-size: 0.8rem;
+  margin: 0;
+}
+.auth-form-submit {
+  background: var(--gold);
+  color: #1a1008;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: filter 0.15s, opacity 0.15s;
+}
+.auth-form-submit:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+@media (hover: hover) {
+  .auth-form-submit:not(:disabled):hover { filter: brightness(1.1); }
+}
+.auth-form-submit:not(:disabled):active { filter: brightness(0.9); }
+.auth-form-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  align-items: center;
+}
+.auth-form-link {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.5);
+  font-size: 0.8rem;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  padding: 0;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.15s;
+}
+@media (hover: hover) {
+  .auth-form-link:hover { color: rgba(255,255,255,0.85); }
+}
+.auth-form-link--back {
+  color: rgba(255,255,255,0.35);
+  text-decoration: none;
+  margin-top: 0.25rem;
+}
+@media (hover: hover) {
+  .auth-form-link--back:hover { color: rgba(255,255,255,0.65); }
+}

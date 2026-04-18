@@ -47,6 +47,8 @@ export default function BuilderPage({ initialView = null }) {
   // Auth
   const { user, status: authStatus, fetchMe, logout } = useAuthStore()
   const [authSheetOpen, setAuthSheetOpen] = useState(false)
+  const [authSheetState, setAuthSheetState] = useState('providers')
+  const [resetToken, setResetToken] = useState(null)
   const [syncPromptCount, setSyncPromptCount] = useState(0)
   useEffect(() => {
     fetchMe().then(async () => {
@@ -138,6 +140,21 @@ export default function BuilderPage({ initialView = null }) {
     }
   }, []) // eslint-disable-line
 
+  // Detect ?reset=TOKEN on mount — open password reset form
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const token = params.get('reset')
+    if (token) {
+      setResetToken(token)
+      setAuthSheetState('reset')
+      setAuthSheetOpen(true)
+      // Clean URL
+      const hash = window.location.hash
+      const newUrl = hash ? `${window.location.pathname}${hash}` : window.location.pathname
+      window.history.replaceState({}, '', newUrl)
+    }
+  }, []) // eslint-disable-line
+
   function goBuilder() { setView('builder') }
 
   function handleGoHome() {
@@ -215,7 +232,7 @@ export default function BuilderPage({ initialView = null }) {
         onHome={handleLogoClick}
         user={user}
         authStatus={authStatus}
-        onAuthClick={() => setAuthSheetOpen(true)}
+        onAuthClick={() => { setAuthSheetState('providers'); setAuthSheetOpen(true) }}
         onLogout={logout}
         syncCount={syncPromptCount}
         onSyncLocal={() => setSyncPromptCount(prev => { pushLocalSavesToCloud(() => user); return 0 })}
@@ -351,7 +368,13 @@ export default function BuilderPage({ initialView = null }) {
 
       <ShareModal />
       <ImportModal />
-      {authSheetOpen && <AuthSheet onClose={() => setAuthSheetOpen(false)} />}
+      {authSheetOpen && (
+        <AuthSheet
+          onClose={() => { setAuthSheetOpen(false); setAuthSheetState('providers'); setResetToken(null) }}
+          initialState={authSheetState}
+          resetToken={resetToken}
+        />
+      )}
       {syncPromptCount > 0 && user && (
         <ConfirmModal
           title="Upload Local Companies?"
