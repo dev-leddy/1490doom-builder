@@ -22,7 +22,7 @@ export async function onRequestGet(context) {
 
   let tokens
   try {
-    tokens = await discord.validateAuthorizationCode(code)
+    tokens = await discord.validateAuthorizationCode(code, null)
   } catch {
     return json({ error: 'Failed to exchange code' }, 400)
   }

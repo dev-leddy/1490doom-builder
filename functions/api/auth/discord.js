@@ -16,7 +16,7 @@ export async function onRequestGet(context) {
   )
 
   const state = randomHex(16)
-  const url = discord.createAuthorizationURL(state, ['identify'])
+  const url = discord.createAuthorizationURL(state, null, ['identify'])
 
   return new Response(null, {
     status: 302,
