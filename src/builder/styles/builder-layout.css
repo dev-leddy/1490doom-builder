@@ -1,0 +1,1750 @@
+
+  :root {
+    --blood: #be4127;
+    --ash: #080808;
+    --fog: #111111;
+    --bone: #dcdcdc;
+    --parchment: #ffffff;
+    --rust: #5c180e;
+    --gold: #be4127;
+    --mist: #444444;
+    --dim: #222222;
+  }
+
+  [data-theme="light"] {
+    --ash: #f0e8d5;
+    --fog: #e4d9c2;
+    --bone: #2a1a0a;
+    --parchment: #1a0e05;
+    --blood: #8b2015;
+    --gold: #8b2015;
+    --rust: #6b1a0e;
+    --mist: #b8a888;
+    --dim: #d0c0a0;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background-color: var(--ash);
+    color: var(--bone);
+    font-family: 'Caslon Antique', serif;
+    font-size: 18px;
+    min-height: 100vh;
+    background-image: 
+      radial-gradient(ellipse at 20% 50%, rgba(139,26,26,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, rgba(122,61,26,0.08) 0%, transparent 50%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  }
+
+  /* HEADER */
+  .builder-header {
+    text-align: center;
+    padding: 3rem 1rem 2rem;
+    padding-top: max(3rem, env(safe-area-inset-top));
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+    border-bottom: 1px solid var(--mist);
+    position: relative;
+    overflow: hidden;
+  }
+  .builder-header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--blood), var(--gold), var(--blood), transparent);
+  }
+  .builder-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 10%; right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--mist), transparent);
+  }
+  .builder-title-main {
+    font-family: 'UnifrakturMaguntia', serif;
+    font-size: clamp(2.5rem, 6vw, 5rem);
+    color: var(--parchment);
+    text-shadow: 0 0 40px rgba(139,26,26,0.5), 2px 2px 0 rgba(0,0,0,0.8);
+    letter-spacing: 0.05em;
+    line-height: 1;
+  }
+  .builder-title-sub {
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.2em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-top: 0.5rem;
+    opacity: 0.8;
+  }
+
+  /* INSTALL BUTTON */
+  .install-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.9rem;
+    background: none;
+    border: 1px solid var(--mist);
+    color: var(--bone);
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 0.35rem 0.75rem;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.15s, border-color 0.15s, color 0.15s;
+  }
+  .install-btn:hover { opacity: 1; border-color: var(--gold); color: var(--gold); }
+
+  /* iOS INSTALL GUIDE MODAL */
+  .install-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 800;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .install-guide {
+    background: var(--fog);
+    border: 1px solid var(--mist);
+    border-bottom: 3px solid var(--gold);
+    width: 100%;
+    max-width: 360px;
+    padding: 1.25rem 1.4rem 1rem;
+    margin-bottom: 2rem;
+  }
+  .install-guide-header {
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
+    font-size: 1rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 1rem;
+  }
+  .install-guide-steps {
+    padding-left: 1.2rem;
+    margin: 0 0 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  .install-guide-steps li {
+    font-family: 'Caslon Antique', serif;
+    font-size: 1.05rem;
+    color: var(--parchment);
+    line-height: 1.4;
+  }
+  .install-guide-steps strong { color: var(--bone); }
+  .install-share-icon {
+    display: inline-flex;
+    vertical-align: middle;
+    color: var(--gold);
+    position: relative;
+    top: -1px;
+  }
+  .install-guide-close {
+    display: block;
+    width: 100%;
+    background: var(--gold);
+    border: none;
+    color: var(--ash);
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .install-guide-close:hover { opacity: 0.85; }
+
+  /* NAVBAR */
+.navbar-inner {
+    display: flex;
+    width: 100%;
+  }
+
+
+
+  /* SAVED COMPANIES */
+  .saved-section {
+    margin-bottom: 2.5rem;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  .section-title {
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
+    font-size: 0.9rem;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+  .section-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--mist), transparent);
+  }
+  .saved-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .saved-chip {
+    width: 100%;
+    background: var(--fog);
+    border: 1px solid var(--mist);
+    border-radius: 4px;
+    padding: 0.55rem 0.85rem;
+    min-height: calc(36px + 1.1rem); /* avatar height + vertical padding */
+    cursor: pointer;
+    font-family: 'Caslon Antique', serif;
+    font-size: 1.15rem;
+    color: var(--parchment);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    box-sizing: border-box;
+  }
+  .saved-chip:hover { border-color: var(--gold); color: var(--parchment); }
+  .saved-chip--draft {
+    border-style: dashed;
+    border-color: rgba(190, 65, 39, 0.4);
+    background: rgba(190, 65, 39, 0.04);
+  }
+  .saved-chip--draft:hover { border-color: rgba(190, 65, 39, 0.8); }
+  .saved-chip-unsaved {
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.58rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gold);
+    border: 1px solid rgba(190, 65, 39, 0.4);
+    padding: 0.1rem 0.35rem;
+    border-radius: 2px;
+    white-space: nowrap;
+    margin-left: auto;
+  }
+  .saved-chip .chip-delete {
+    color: var(--blood);
+    font-size: 0.75rem;
+    opacity: 0.7;
+    cursor: pointer;
+    margin-left: auto;
+  }
+  .saved-chip .chip-delete:hover { opacity: 1; }
+  .no-saves {
+    color: var(--bone);
+    font-style: italic;
+    font-size: 1rem;
+  }
+
+  /* BUILDER CARD */
+  .builder {
+    background: var(--fog);
+    border: 1px solid var(--mist);
+    border-top: 2px solid var(--blood);
+    padding: 2rem;
+    position: relative;
+  }
+
+  /* COMPANY NAME */
+
+  .company-identity-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    background: rgba(0, 0, 0, 0.45);
+    border: 1px solid var(--dim);
+    padding: 1.5rem;
+    border-radius: 4px;
+    margin-bottom: 2rem;
+    box-shadow: inset 0 0 15px rgba(0,0,0,0.6);
+    max-width: 100%; /* Will be constrained by parent or MQ */
+    margin-left: auto;
+    margin-right: auto;
+    width: auto;
+  }
+  @media (max-width: 1024px) {
+    .company-identity-wrap { max-width: 500px; width: 100%; }
+  }
+  @media (min-width: 1025px) {
+    .company-identity-wrap {
+      flex-direction: row;
+      max-width: 1547px; /* Matches 3 x 500px + 2 x 1.5rem gap */
+      width: 100%;
+      align-items: stretch;
+      gap: 2rem;
+    }
+  }
+
+  .company-id-main {
+    flex: 1.2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding-bottom: 1.5rem;
+    min-width: 0;
+  }
+  @media (min-width: 1025px) {
+    .company-id-main {
+      border-bottom: none;
+      border-right: none;
+      padding-bottom: 0;
+      padding-right: 2.5rem;
+    }
+  }
+  .company-id-mark {
+    margin-top: 0.25rem;
+    flex: 1;
+    min-width: 0;
+  }
+  @media (min-width: 1025px) {
+    .company-id-mark { margin-top: 0; }
+  }
+
+  .company-id-branding {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+  }
+
+  .company-avatar-wrapper {
+    position: relative;
+    width: 90px;
+    height: 90px;
+    border-radius: 4px;
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,0.06),
+      inset 0 1px 4px rgba(0,0,0,0.9),
+      0 2px 8px rgba(0,0,0,0.7);
+    background: var(--ash);
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    filter: sepia(0.1) contrast(1.05) brightness(0.95);
+    transition: box-shadow 0.2s;
+    overflow: hidden;
+  }
+  .company-avatar-wrapper:hover {
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,0.1),
+      inset 0 1px 4px rgba(0,0,0,0.9),
+      0 0 12px rgba(190,65,39,0.3),
+      0 2px 8px rgba(0,0,0,0.7);
+  }
+  .company-avatar-img, .company-avatar-placeholder {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 3px;
+    object-fit: cover;
+    object-position: center;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.2), inset 0 0 0 1px rgba(0,0,0,0.15);
+  }
+  .company-avatar-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    color: var(--mist);
+    opacity: 0.7;
+  }
+
+  .company-name-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    justify-content: center;
+  }
+  .company-header-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.15rem;
+  }
+  .btn-header-util {
+    background: none;
+    border: none;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    color: var(--mist);
+    text-transform: uppercase;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: all 0.15s;
+  }
+  .btn-header-util:hover {
+    opacity: 1;
+    color: var(--rust);
+  }
+  .btn-header-util svg {
+    opacity: 0.8;
+  }
+  .company-name-display {
+    font-family: 'Oswald', sans-serif;
+    font-size: 1.35rem;
+    letter-spacing: 0.05em;
+    color: var(--parchment);
+    text-transform: uppercase;
+    cursor: pointer;
+    line-height: 1;
+    white-space: normal;
+    overflow-wrap: break-word;
+    text-overflow: clip;
+    overflow: visible;
+  }
+
+  .mark-interaction-row {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .mark-icon-box {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    border: 2px solid var(--mist);
+    box-shadow: 0 0 0 1px var(--dim), inset 0 0 8px rgba(0,0,0,0.5);
+    background: var(--ash);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+    filter: sepia(0.1) contrast(1.05) brightness(0.95);
+  }
+
+  .mark-preview-img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .mark-selection-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+
+  .mark-select-premium {
+    width: 100%;
+    background: var(--fog);
+    border: 1px solid var(--mist);
+    color: var(--parchment);
+    font-family: 'Caslon Antique', serif;
+    font-size: 1.1rem;
+    padding: 0.5rem 0.75rem;
+    outline: none;
+    cursor: pointer;
+    border-radius: 2px;
+    margin-bottom: 0;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M0 0l6 8 6-8z' fill='%237a3d1a'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    padding-right: 2rem;
+  }
+  .mark-select-premium:focus { border-color: var(--gold); }
+
+  .mark-details-desc {
+    font-size: 0.82rem;
+    color: var(--bone);
+    line-height: 1.4;
+    font-style: italic;
+    opacity: 0.8;
+  }
+  .mark-name-display {
+    font-family: 'Oswald', sans-serif;
+    font-size: 1.35rem;
+    letter-spacing: 0.05em;
+    color: var(--parchment);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .mark-edit-icon {
+    font-size: 0.8rem;
+    color: var(--gold);
+    opacity: 0.6;
+  }
+  .mark-interaction-row {
+     cursor: pointer;
+     transition: background 0.2s;
+     border: 1px solid transparent;
+     border-radius: 4px;
+     padding: 0.5rem;
+     display: flex;
+     gap: 1rem;
+     align-items: center;
+  }
+  .mark-interaction-row--centered {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .mark-interaction-row:hover {
+    background: rgba(255,255,255,0.03);
+    border-color: var(--dim);
+  }
+
+  /* MARK PICKER MODAL */
+  .mark-picker-modal {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .mark-picker {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .mark-picker-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-auto-rows: auto;
+    gap: 0.5rem;
+    padding: 0.25rem 0 0.5rem;
+  }
+  .mark-option-btn {
+    background: var(--fog);
+    border: 2px solid transparent;
+    border-radius: 6px;
+    padding: 0.4rem 0.3rem 0.35rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    overflow: hidden;
+  }
+  .mark-option-btn:hover { border-color: var(--mist); }
+  .mark-option-btn.selected {
+    border-color: var(--blood);
+    background: rgba(190, 65, 39, 0.1);
+  }
+  .mark-option-btn--text {
+    color: var(--mist);
+  }
+  .mark-option-btn--text:hover { color: var(--bone); }
+  .mark-option-btn--text.selected { color: var(--gold); }
+  .mark-option-icon--none {
+    font-size: 1.2rem;
+    color: var(--mist);
+    background: rgba(0,0,0,0.2);
+  }
+  .mark-option-btn--text:hover .mark-option-icon--none { color: var(--bone); }
+  .mark-option-btn--text.selected .mark-option-icon--none { color: var(--gold); }
+  .mark-option-icon {
+    width: 52px;
+    height: 52px;
+    flex-shrink: 0;
+    background: var(--dim);
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .mark-option-label {
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    color: var(--bone);
+    text-transform: uppercase;
+    text-align: center;
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .mark-picker-footer {
+    flex-shrink: 0;
+    border-top: 1px solid var(--dim);
+    padding: 0.85rem 0 0;
+    background: var(--ash);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .mark-picker-description {
+    min-height: 60px;
+    padding: 0 0.5rem;
+  }
+  .mark-picker-apply-btn {
+    width: 100%;
+    padding: 0.55rem 1rem;
+    background: var(--blood);
+    border: 1px solid rgba(190, 65, 39, 0.5);
+    color: var(--parchment);
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .mark-picker-apply-btn:hover { background: rgba(190, 65, 39, 0.8); }
+  @media (max-width: 480px) {
+    .mark-picker-grid { grid-template-columns: repeat(3, 1fr); gap: 0.4rem; }
+    .mark-option-icon { width: 44px; height: 44px; }
+    .mark-option-btn { padding: 0.3rem 0.25rem; }
+  }
+  .mark-desc-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.9rem;
+    letter-spacing: 0.15em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+  .mark-desc-text {
+    font-family: 'Caslon Antique', serif;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    color: var(--parchment);
+    font-style: italic;
+  }
+  .mark-desc-placeholder {
+    color: var(--mist);
+    font-style: italic;
+    font-size: 0.9rem;
+    text-align: center;
+    margin-top: 1rem;
+  }
+
+  /* Mark sheet body: description pinned, grid scrolls */
+  .co-sheet-body--mark {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding-bottom: 0;
+  }
+  .mark-grid-scroll {
+    flex: 1;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    min-height: 0;
+    padding-bottom: 0.75rem;
+  }
+
+  /* Mark sheet description panel (top of sheet) */
+  .mark-sheet-desc {
+    background: rgba(0,0,0,0.25);
+    border: 1px solid var(--dim);
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .mark-sheet-desc-name {
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.15em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 0.35rem;
+  }
+  .mark-sheet-desc-text {
+    font-family: 'Caslon Antique', serif;
+    font-size: 0.88rem;
+    line-height: 1.45;
+    color: var(--parchment);
+    font-style: italic;
+  }
+  .mark-sheet-desc-placeholder {
+    color: var(--mist);
+    font-style: italic;
+    font-size: 0.82rem;
+    text-align: center;
+  }
+  .name-input {
+    flex: 1;
+    min-width: 200px;
+    background: var(--ash);
+    border: 1px solid var(--mist);
+    border-bottom: 2px solid var(--blood);
+    color: var(--parchment);
+    font-family: 'Caslon Antique', serif;
+    font-size: 1.3rem;
+    padding: 0.4rem 0.75rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .name-input:focus { border-bottom-color: var(--gold); }
+  .name-input::placeholder { color: var(--mist); font-style: italic; }
+
+  /* WARRIORS GRID */
+  .warriors-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+    gap: 1.5rem;
+    justify-content: center;
+    margin-bottom: 2rem;
+    justify-items: center;
+  }
+  @media (max-width: 1024px) {
+    /* Layout */
+    .builder-scroll-area { padding-left: 0.6rem !important; padding-right: 0.6rem !important; }
+    .warriors-grid { grid-template-columns: minmax(330px, 1fr); }
+    .builder-main { padding: 1rem 0.25rem 2rem !important; }
+
+
+    /* Header */
+    .builder-header { padding: 1.5rem 1rem 1.25rem; padding-top: max(1.5rem, env(safe-area-inset-top)); padding-left: max(1rem, env(safe-area-inset-left)); padding-right: max(1rem, env(safe-area-inset-right)); }
+    .builder-title-main { font-size: clamp(2rem, 10vw, 3.5rem); }
+
+    /* Company header */
+    .company-name-row { gap: 0.5rem; margin-bottom: 1rem; }
+    .name-input { font-size: 1.1rem; }
+    .mark-section { padding: 0.85rem; margin-bottom: 1.25rem; }
+
+    /* IP pool */
+    .ip-pool { padding: 0.4rem 0.75rem; margin-bottom: 1rem; gap: 0.75rem; }
+    .ip-limit-btn { width: 28px; height: 28px; font-size: 1rem; }
+
+    /* Warrior card */
+    .warrior-slot { padding: 0.5rem !important; }
+    .warrior-header-row { gap: 0.5rem; }
+    .warrior-portrait, .warrior-portrait-placeholder { width: 48px; height: 48px; }
+
+    /* Stats */
+    .stats-row { gap: 0.25rem; }
+    .stat-box { padding: 0.25rem 0.3rem; min-width: 32px; }
+    .stat-label { font-size: 0.65rem; }
+    .stat-val { font-size: 0.9rem; }
+
+    /* Abilities */
+    .abilities-list { margin-bottom: 0.75rem; }
+    .ability-item { font-size: 0.95rem; }
+
+    /* IP upgrades */
+    .upgrade-cards { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+    .upgrade-choice-grid { grid-template-columns: 1fr; }
+    .upgrade-choice-btn { font-size: 0.95rem; padding: 0.5rem 0.6rem; }
+
+    /* Captain */
+    .captain-toggle { font-size: 1rem; }
+
+    /* Saved companies */
+    .saved-list { gap: 0.5rem; }
+    .saved-chip { font-size: 0.9rem; padding: 0.4rem 0.75rem; min-height: calc(36px + 0.8rem); }
+  }
+
+  /* ── Phone-specific (≤480px) ───────────────────────────── */
+  @media (max-width: 480px) {
+    /* Minimal side padding on mobile */
+    .builder-scroll-area { padding-left: 0.25rem !important; padding-right: 0.25rem !important; }
+
+    .warrior-slot { padding: 0.5rem 1rem 1rem !important; }
+  }
+
+
+  .warrior-slot {
+    background: var(--ash);
+    border: 1px solid var(--dim);
+    padding: 0.5rem 1rem 1rem;
+    position: relative;
+    transition: border-color 0.2s;
+    min-width: 0;
+    max-width: 500px; /* Locked to perfect equipment width */
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  .warrior-slot.is-captain { }
+
+  .slot-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+  }
+  .slot-number {
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.15em;
+    color: var(--bone);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.1rem;
+  }
+  .slot-name-input {
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--bone);
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--gold);
+    outline: none;
+    width: 12ch;
+    padding: 0;
+  }
+  .captain-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.1rem;
+    line-height: 1;
+    padding: 0.1rem 0.25rem;
+    color: var(--mist);
+    opacity: 0.5;
+    transition: opacity 0.15s, color 0.15s;
+  }
+  .captain-toggle:hover { opacity: 1; color: var(--gold); }
+  .captain-toggle.is-captain { color: var(--gold); opacity: 1; }
+
+  /* ADD NOTE TOGGLE */
+  .note-toggle {
+    display: block;
+    width: 100%;
+    margin-top: 0.75rem;
+    background: none;
+    border: 1px dashed var(--mist);
+    color: var(--bone);
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 0.4rem;
+    cursor: pointer;
+    opacity: 0.55;
+    transition: opacity 0.15s, border-color 0.15s, color 0.15s;
+  }
+  .note-toggle:hover { opacity: 1; border-color: var(--gold); color: var(--gold); }
+
+  /* NOTE PANEL */
+  .note-panel {
+    margin-top: 0.75rem;
+    border: 1px solid var(--mist);
+    background: var(--fog);
+  }
+  .note-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.3rem 0.5rem;
+    border-bottom: 1px solid var(--dim);
+  }
+  .note-panel-label {
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+  .note-panel-close {
+    background: none;
+    border: none;
+    color: var(--mist);
+    font-size: 1.1rem;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0 0.1rem;
+    transition: color 0.15s;
+  }
+  .pwa-banner-close:hover { background: rgba(255, 255, 255, 0.05); color: var(--parchment); }
+  .note-title-input {
+    display: block;
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--dim);
+    color: var(--parchment);
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    padding: 0.4rem 0.5rem;
+    outline: none;
+    box-sizing: border-box;
+  }
+  .note-title-input:focus { border-bottom-color: var(--gold); }
+  .note-title-input::placeholder { color: #7a7268; font-family: 'Caslon Antique', serif; font-style: italic; letter-spacing: 0; }
+
+  /* NOTES SECTION */
+  .notes-section { margin-top: auto; padding-top: 0.75rem; }
+  .notes-section .note-panel { margin-top: 0; margin-bottom: 0.5rem; }
+  .notes-section .note-panel:last-of-type { margin-bottom: 0; }
+
+  /* NOTE BODY WRAPPER — positions the save button */
+  .note-body-wrap {
+    position: relative;
+  }
+  .note-save-btn {
+    position: absolute;
+    bottom: 0.35rem;
+    right: 0.35rem;
+    background: var(--dim);
+    border: 1px solid var(--mist);
+    color: var(--bone);
+    cursor: pointer;
+    padding: 0.25rem 0.35rem;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .note-save-btn:hover { background: var(--gold); border-color: var(--gold); color: var(--ash); }
+
+  /* NOTE CHIP — collapsed saved note */
+  .note-chip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--fog);
+    border: 1px solid var(--dim);
+    border-left: 2px solid var(--gold);
+    padding: 0.3rem 0.5rem;
+    margin-bottom: 0.4rem;
+  }
+  .note-chip-title {
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--bone);
+  }
+  .note-chip-actions { display: flex; gap: 0.4rem; }
+  .note-chip-edit, .note-chip-remove {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--mist);
+    font-size: 0.9rem;
+    line-height: 1;
+    padding: 0 0.1rem;
+    transition: color 0.15s;
+  }
+  .note-chip-edit:hover { color: var(--gold); }
+  .note-chip-remove:hover { color: var(--parchment); }
+
+  /* WARRIOR NOTE TEXTAREA */
+  .warrior-note {
+    display: block;
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: var(--parchment);
+    font-family: 'Caslon Antique', serif;
+    font-size: 0.95rem;
+    padding: 0.4rem 0.5rem;
+    padding-bottom: 2rem;
+    resize: vertical;
+    min-height: 3rem;
+    outline: none;
+    box-sizing: border-box;
+  }
+  .warrior-note:focus { background: rgba(255,255,255,0.02); }
+  .warrior-note::placeholder { color: #7a7268; font-style: italic; }
+
+  /* WARRIOR SELECT */
+  .warrior-select {
+    width: 100%;
+    background: var(--fog);
+    border: 1px solid var(--mist);
+    color: var(--parchment);
+    font-family: 'Caslon Antique', serif;
+    font-size: 1.1rem;
+    padding: 0.5rem 0.75rem;
+    outline: none;
+    cursor: pointer;
+    margin-bottom: 1rem;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M0 0l6 8 6-8z' fill='%237a3d1a'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    padding-right: 2rem;
+  }
+  .warrior-select:focus { border-color: var(--gold); }
+
+  /* STATS DISPLAY */
+  .stats-row {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+  .stat-box {
+    background: var(--fog);
+    border: 1px solid var(--dim);
+    padding: 0.3rem 0.5rem;
+    text-align: center;
+    flex: 1;
+    min-width: 40px;
+  }
+  .stat-label {
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    color: var(--parchment);
+    text-transform: uppercase;
+    display: block;
+  }
+  .stat-val {
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
+    font-size: 1rem;
+    color: var(--bone);
+    font-weight: 700;
+  }
+  .stat-val.modified { color: var(--green); }
+  .stat-val.debuffed { color: var(--blood); }
+
+  /* ABILITIES — play-mode style */
+  .bd-abilities {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-bottom: 0.75rem;
+  }
+  .bd-ability {
+    background: var(--ash);
+    border-left: 3px solid var(--dim);
+    padding: 0.45rem 0.65rem;
+  }
+  .bd-ability-name {
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--bone);
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.2rem;
+  }
+  .bd-ability-desc {
+    font-size: 0.9rem;
+    color: var(--parchment);
+    line-height: 1.5;
+  }
+
+  .lr-section {
+    display: flex;
+    flex-direction: column;
+    margin-top: 0.85rem;
+    margin-bottom: 0.2rem;
+  }
+  .lr-section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0 0.1rem 0.4rem;
+    border-bottom: 1px solid var(--dim);
+    margin-bottom: 0.1rem;
+  }
+  .lr-section-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.8rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--bone);
+  }
+  .lr-pips {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .lr-ip-pip {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: 1px solid var(--mist);
+    background: transparent;
+    display: inline-block;
+    flex-shrink: 0;
+    transition: background 0.2s;
+  }
+  .lr-ip-pip.lr-pip-filled {
+    background: var(--gold);
+    border-color: var(--gold);
+  }
+  .lr-section-ip {
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    color: #5a5550;
+    margin-left: auto;
+  }
+
+  /* Individual row */
+  .lr-row {
+    border-left: 3px solid transparent;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .lr-row.lr-open {
+    border-left-color: var(--gold);
+  }
+  .lr-row.lr-selected {
+    border-left-color: var(--gold);
+  }
+  .lr-row.lr-free {
+    border-left-color: #4e4a44;
+  }
+  .lr-row.lr-locked {
+    opacity: 0.3;
+    pointer-events: none;
+  }
+
+  /* Row header (clickable bar) */
+  .lr-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.42rem 0.55rem;
+    cursor: pointer;
+    user-select: none;
+    border-bottom: 1px solid var(--dim);
+    transition: background 0.12s;
+  }
+  .lr-header:hover { background: var(--dim); }
+  .lr-row.lr-open > .lr-header { background: var(--dim); }
+
+  .lr-icon {
+    flex-shrink: 0;
+    font-size: 1em;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    color: #6a6460;
+  }
+  .lr-row.lr-selected > .lr-header .lr-icon,
+  .lr-row.lr-open     > .lr-header .lr-icon { color: #9a8f80; }
+
+  .lr-label {
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--mist);
+    flex-shrink: 0;
+    min-width: 52px;
+  }
+
+  .lr-value {
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--bone);
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .lr-value.lr-value-empty {
+    color: #4a4540;
+    font-style: italic;
+    font-size: 0.72rem;
+  }
+  .lr-row.lr-selected > .lr-header .lr-value { color: var(--gold); }
+
+  .lr-pill {
+    background: var(--ash);
+    border: 1px solid var(--dim);
+    color: #7a7068;
+    padding: 0 4px;
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* Right-side cluster: badge + × + chevron */
+  .lr-right {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+  .lr-badge {
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
+    font-size: 0.56rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    padding: 1px 4px;
+  }
+  .lr-badge-ip     { color: #5a5450; border: 1px solid #3a3530; }
+  .lr-badge-spent  { color: #8a7840; border: 1px solid #6a5c28; }
+  .lr-badge-free   { color: #5a5450; border: 1px solid #3a3530; font-style: italic; }
+  .lr-badge-full   { color: var(--rust); border: 1px solid #4a2a10; }
+
+  .lr-remove {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: var(--mist);
+    line-height: 1;
+    padding: 0 2px;
+  }
+  .lr-remove:hover { color: var(--blood); }
+
+  .lr-chevron {
+    font-size: 0.6rem;
+    color: #5a5450;
+    line-height: 1;
+  }
+  .lr-row.lr-open > .lr-header .lr-chevron { color: var(--gold); }
+
+  /* Collapsed selected-item strip */
+  .lr-collapsed-sel {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.55rem 0.3rem 2rem;
+    background: var(--ash);
+    border-bottom: 1px solid var(--dim);
+  }
+  .lr-csel-icon {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+    opacity: 0.85;
+    filter: sepia(0.3) brightness(0.95);
+    flex-shrink: 0;
+  }
+  .lr-csel-name {
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--gold);
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Inline picker panel */
+  .lr-panel {
+    background: var(--ash);
+    border-bottom: 1px solid var(--dim);
+    padding: 0.6rem 0.7rem;
+  }
+
+  /* PRIMARY WEAPON SELECT — kept for weapon dropdown */
+  .opt-label {
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.25em;
+    color: var(--parchment);
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 0.4rem;
+  }
+  .opt-select {
+    width: 100%;
+    background: var(--fog);
+    border: 1px solid var(--dim);
+    color: var(--bone);
+    font-family: 'Caslon Antique', serif;
+    font-size: 1rem;
+    padding: 0.4rem 0.6rem;
+    outline: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%234a4540'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.5rem center;
+    padding-right: 1.5rem;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+  }
+  .opt-select:focus { border-color: var(--mist); }
+
+  /* COMPANY IP POOL */
+  .ip-pool {
+    background: var(--fog);
+    border: 1px solid var(--dim);
+    border-top: 2px solid var(--gold);
+    padding: 0.45rem 1rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+  }
+  .ip-pool-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .ip-pool-divider {
+    width: 1px;
+    height: 1.4rem;
+    background: #333;
+    flex-shrink: 0;
+  }
+  .ip-pool-label {
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.68rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.5);
+    white-space: nowrap;
+  }
+  .ip-limit-ctrl {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+  .ip-limit-btn {
+    background: transparent;
+    border: 1px solid #333;
+    color: #888;
+    width: 20px;
+    height: 20px;
+    font-size: 0.85rem;
+    line-height: 1;
+    cursor: pointer;
+    font-family: 'Oswald', sans-serif;
+    transition: border-color 0.15s, color 0.15s;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ip-limit-btn:hover { border-color: var(--gold); color: var(--gold); }
+  .ip-limit-display {
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--bone);
+    white-space: nowrap;
+    min-width: 1.2rem;
+    text-align: center;
+  }
+  .ip-pool-pips {
+    display: flex;
+    gap: 0.22rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .ip-pool-pip {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    border: 1.5px solid #3a3a3a;
+    background: transparent;
+    transition: background 0.15s, border-color 0.15s;
+    flex-shrink: 0;
+  }
+  .ip-pool-pip.filled { background: var(--gold); border-color: var(--gold); }
+  .ip-pool-pip.over { background: var(--blood); border-color: var(--blood); }
+  .ip-pool-count {
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.68rem;
+    color: rgba(255, 255, 255, 0.45);
+    white-space: nowrap;
+  }
+
+  /* UPGRADE TRAY */
+  .upgrade-tray {
+    margin-top: 1rem;
+    margin-bottom: 0.75rem;
+  }
+  .upgrade-tray-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.6rem;
+  }
+  .upgrade-tray-label {
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+  .upgrade-tray-count {
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
+    font-size: 0.8rem;
+    color: var(--mist);
+    margin-left: auto;
+  }
+  .upgrade-ip-pips {
+    display: flex;
+    gap: 0.3rem;
+  }
+  .upgrade-ip-pip {
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    border: 1px solid var(--bone);
+    background: transparent;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .upgrade-ip-pip.filled {
+    background: var(--gold);
+    border-color: var(--gold);
+  }
+  .upgrade-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+    min-width: 0;
+  }
+  .upgrade-card {
+    min-width: 0;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid var(--dim);
+    border-radius: 3px;
+    padding: 0.6rem 0.5rem;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    user-select: none;
+    position: relative;
+    text-align: center;
+  }
+  .upgrade-card:hover:not(.locked) {
+    border-color: var(--mist);
+  }
+  .upgrade-card.selected {
+    border-color: var(--blood);
+    background: rgba(190, 65, 39, 0.18);
+  }
+  .upgrade-card.locked {
+    opacity: 0.28;
+    cursor: not-allowed;
+  }
+  .upgrade-card-icon {
+    font-size: 1.4rem;
+    color: var(--mist);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 0.3rem;
+    line-height: 1;
+  }
+  .upgrade-card-label {
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
+    font-size: 0.68rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--parchment);
+    display: block;
+    line-height: 1.2;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+  }
+  .upgrade-card.selected .upgrade-card-label { color: var(--gold); }
+  .upgrade-card.selected .upgrade-card-icon { color: var(--gold); }
+  .upgrade-card-check {
+    position: absolute;
+    top: 3px;
+    right: 5px;
+    font-size: 0.8rem;
+    color: var(--gold);
+    display: none;
+  }
+  .upgrade-card.selected .upgrade-card-check { display: block; }
+
+  /* UPGRADE DETAIL — sub-select that appears below the tray */
+  .upgrade-detail {
+    background: var(--fog);
+    border: 1px solid var(--dim);
+    border-top: 2px solid var(--gold);
+    padding: 0.75rem;
+    margin-top: 0.5rem;
+  }
+  .upgrade-detail-label {
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
+    font-size: 0.9rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 0.6rem;
+    display: block;
+  }
+  .upgrade-choice-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+  }
+  .upgrade-choice-btn {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid var(--dim);
+    color: var(--parchment);
+    font-family: 'Caslon Antique', serif;
+    font-size: 0.95rem;
+    padding: 0.3rem 0.45rem;
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.15s, background 0.15s;
+    line-height: 1.3;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  @media (hover: hover) {
+    .upgrade-choice-btn:hover { border-color: var(--gold); background: rgba(184, 151, 42, 0.05); }
+  }
+  .upgrade-choice-btn.active {
+    border-color: var(--blood);
+    border-left: 3px solid var(--blood);
+    background: rgba(190, 65, 39, 0.18);
+    color: var(--parchment);
+  }
+  .upgrade-icon {
+    width: 1.2rem;
+    height: 1.2rem;
+    flex-shrink: 0;
+    filter: sepia(0.3) brightness(0.95);
+    opacity: 0.9;
+  }
+  .upgrade-btn-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 0;
+  }
+  .upgrade-btn-name {
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--parchment);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .upgrade-choice-btn.active .upgrade-btn-name { color: #fff; }
+  .upgrade-btn-stats {
+    font-size: 0.78rem;
+    color: var(--bone);
+    opacity: 0.75;
+  }
+  /* STAT PICK — card grid matching mark/warrior picker style */
+  .stat-pick-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.5rem;
+    padding-top: 0.5rem;
+  }
+  .stat-pick-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid transparent;
+    border-radius: 6px;
+    padding: 0.65rem 0.25rem 0.55rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .stat-pick-btn:hover:not(:disabled) { border-color: rgba(255, 255, 255, 0.3); background: rgba(255,255,255,0.15); }
+  .stat-pick-btn.active {
+    border-color: var(--blood);
+    background: rgba(190, 65, 39, 0.18);
+  }
+  .stat-pick-btn:disabled { opacity: 0.38; cursor: not-allowed; }
+  .stat-pick-abbrev {
+    font-family: 'Oswald', sans-serif;
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.04em;
+    line-height: 1;
+  }
+  .stat-pick-btn.active .stat-pick-abbrev { color: var(--blood); }
+  .stat-pick-label {
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.58rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.6);
+    text-align: center;
+    line-height: 1.2;
+  }
+  .stat-pick-taken {
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.55rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--blood);
+    margin-top: 0.1rem;
+  }
+
+  .polearm-ip-note {
+    font-size: 0.72rem;
+    color: var(--rust);
+    font-style: italic;
+  }
+  .upgrade-choice-note {
+    font-size: 0.95rem;
+    color: var(--bone);
+    font-style: italic;
+    margin-top: 0.4rem;
+    line-height: 1.4;
+  }
+
+
+  /* COMPANY MARK */
+  .mark-section {
+    background: var(--ash);
+    border: 1px solid var(--dim);
+    border-left: 3px solid var(--blood);
+    padding: 1.25rem;
+    margin-bottom: 2rem;
+  }
+  .mark-header {
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
+    font-size: 0.95rem;
+    letter-spacing: 0.3em;
+    color: var(--blood);
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+  .mark-select {
+    width: 100%;
+    background: var(--fog);
+    border: 1px solid var(--mist);
+    color: var(--parchment);
+    font-family: 'Caslon Antique', serif;
+    font-size: 1.25rem;
+    padding: 0.6rem 0.85rem;
+    outline: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M0 0l6 8 6-8z' fill='%238B1A1A'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    padding-right: 2rem;
+    cursor: pointer;
+    margin-bottom: 0;
+  }
+  .mark-select-row {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+  }
+  .mark-select-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+    min-width: 0;
+  }
+  .mark-placeholder-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: 1px solid var(--dim);
+    background: var(--fog);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--mist);
+  }
+  .mark-desc {
+    font-size: 1.15rem;
+    color: var(--parchment);
+    font-style: italic;
+    line-height: 1.5;
+    padding: 0.6rem;
+    background: var(--fog);
+    border-left: 2px solid var(--blood);
+  }
+
+
+  /* ACTIONS */
+  .actions-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .btn {
+    font-family: 'Oswald', sans-serif; text-transform: uppercase;
+    font-size: 0.9rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    padding: 0.7rem 1.5rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .btn-primary {
+    background: var(--blood);
+    color: var(--parchment);
+  }
+  .btn-primary:hover { background: #a52020; }
+  .btn-secondary {
+    background: transparent;
+    border: 1px solid var(--mist);
+    color: #fff;
+  }
+  .btn-secondary:hover { border-color: var(--gold); color: var(--gold); }
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--dim);
+    color: #fff;
+  }
+  .btn-ghost:hover { border-color: var(--mist); color: var(--parchment); }
+  .btn-gold {
+    background: var(--gold);
+    border: 1px solid var(--gold);
+    color: var(--ash);
+    font-weight: 700;
+  }
+  .btn-play {
+    color: #fff !important;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 400;
+    text-transform: uppercase;
+  }
+  .btn-gold:hover { background: var(--bone); border-color: var(--bone); }
+
+  /* VALIDATION */
+  .validation-msg {
+    font-size: 1rem;
+    color: var(--blood);
+    font-style: italic;
+    margin-left: auto;
+    align-self: center;
+  }
+

@@ -7,8 +7,6 @@ export const setTheme = (t) => {
   document.documentElement.setAttribute('data-theme', t)
 }
 
-export const toggleTheme = () => setTheme(getTheme() === 'dark' ? 'light' : 'dark')
-
 export const initTheme = () => {
   const t = getTheme()
   document.documentElement.setAttribute('data-theme', t)

@@ -8,6 +8,7 @@
   src: url('/fonts/CaslonAntique-Regular.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
@@ -15,6 +16,7 @@
   src: url('/fonts/CaslonAntique-Bold.ttf') format('truetype');
   font-weight: bold;
   font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
@@ -22,6 +24,7 @@
   src: url('/fonts/CaslonAntique-Italic.ttf') format('truetype');
   font-weight: normal;
   font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
@@ -29,6 +32,7 @@
   src: url('/fonts/CaslonAntique-BoldItalic.ttf') format('truetype');
   font-weight: bold;
   font-style: italic;
+  font-display: swap;
 }
 
 /* ── CSS VARIABLES ────────────────────────────────────────────────────────── */
@@ -225,6 +229,21 @@ input:focus, select:focus, textarea:focus {
   text-transform: uppercase;
 }
 .update-banner button:hover { background: #2a2000; }
+
+/* ── APP VERSION ──────────────────────────────────────────────────────────── */
+.app-version {
+  position: fixed;
+  bottom: 0.5rem;
+  left: 0.75rem;
+  font-size: 0.65rem;
+  font-family: 'Oswald', sans-serif;
+  letter-spacing: 0.06em;
+  color: var(--cream);
+  opacity: 0.2;
+  pointer-events: none;
+  z-index: 10;
+  user-select: none;
+}
 
 /* ── SCROLLBAR ────────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 4px; }

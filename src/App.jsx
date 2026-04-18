@@ -4,7 +4,8 @@ import BuilderPage from './builder/BuilderPage'
 import TrackerPage from './tracker/TrackerPage'
 import Toast from './shared/Toast'
 import BetaBanner from './shared/BetaBanner'
-import { useBuilderStore, decodeCompany } from './store/builderStore'
+import { useBuilderStore } from './store/builderStore'
+import { decodeCompany } from './store/builderEncoding'
 import RestorePromptModal from './shared/RestorePromptModal'
 
 export default function App() {
@@ -39,6 +40,7 @@ export default function App() {
         <BuilderPage initialView="builder" />
         <BetaBanner />
         {toast && <Toast message={toast} />}
+        <span className="app-version">v{__APP_VERSION__}</span>
       </div>
     )
   }
@@ -52,6 +54,7 @@ export default function App() {
       <BetaBanner forceShow={fromStandaloneQuiz} />
       {toast && <Toast message={toast} />}
       {showRestorePrompt && <RestorePromptModal />}
+      <span className="app-version">v{__APP_VERSION__}</span>
     </div>
   )
 }

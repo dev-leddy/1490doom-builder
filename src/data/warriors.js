@@ -176,13 +176,9 @@ export const MARKS_MAP = {
 
 }
 
-// Display labels for marks where the faction name differs from the ability name
-export const MARK_LABELS = {
-}
-
 export const MARKS = Object.entries(MARKS_MAP).map(([name, desc]) => ({
   name,
-  label: MARK_LABELS[name] || name,
+  label: name,
   desc,
 })).sort((a, b) => a.label.localeCompare(b.label))
 

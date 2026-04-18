@@ -17,7 +17,10 @@ import EndOfGameModal from './EndOfGameModal'
 import CompanyForm from './CompanyForm'
 import ModeSelectModal from './ModeSelectModal'
 import LandingPage, { RefContent } from './LandingPage'
-import './builder.css'
+import './styles/builder-layout.css'
+import './styles/builder-print.css'
+import './styles/builder-ui.css'
+import './styles/builder-modals.css'
 
 export default function BuilderPage({ initialView = null }) {
   const { validationMsg, dismissValidation, openShare, openImport, clearBuilder, setCompanyMode, companyMode, setMark } = useBuilderStore()
