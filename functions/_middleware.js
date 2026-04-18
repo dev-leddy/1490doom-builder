@@ -49,12 +49,29 @@ export async function onRequest(context) {
 
   const response = await next()
 
-  // Attach CORS headers to every response
+  // Attach CORS headers to every response, preserving all Set-Cookie headers
   const corsH = corsHeaders(origin)
-  const newHeaders = new Headers(response.headers)
+  const newHeaders = new Headers()
+
+  // Copy all headers from the original response
+  response.headers.forEach((value, key) => {
+    // Skip Set-Cookie here — we handle it separately below
+    if (key.toLowerCase() !== 'set-cookie') {
+      newHeaders.set(key, value)
+    }
+  })
+
+  // Re-append each Set-Cookie header individually (browsers require separate headers)
+  const cookies = response.headers.getSetCookie?.() ?? []
+  for (const cookie of cookies) {
+    newHeaders.append('Set-Cookie', cookie)
+  }
+
+  // Add CORS headers
   for (const [k, v] of Object.entries(corsH)) {
     newHeaders.set(k, v)
   }
+
   return new Response(response.body, {
     status: response.status,
     statusText: response.statusText,
