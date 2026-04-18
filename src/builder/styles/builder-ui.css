@@ -2993,6 +2993,7 @@
   object-fit: cover;
   display: block;
   transition: border-color 0.15s;
+  background: var(--parchment);
 }
 @media (hover: hover) {
   .auth-avatar-btn:hover .auth-avatar-img { border-color: var(--gold); }
@@ -3129,6 +3130,7 @@
   overflow: hidden;
   border: 2px solid var(--dim);
   transition: border-color 0.15s;
+  background: var(--parchment);
 }
 @media (hover: hover) {
   .auth-account-avatar-edit-btn:hover .auth-account-avatar-edit-wrap {
