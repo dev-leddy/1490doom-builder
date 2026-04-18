@@ -1,6 +1,6 @@
 // GET /api/auth/discord/callback — Discord OAuth callback
 import { Discord } from 'arctic'
-import { getCookie, randomHex, json } from '../../_middleware.js'
+import { getCookie, randomHex, json } from '../../../_middleware.js'
 
 export async function onRequestGet(context) {
   const { env, request } = context
