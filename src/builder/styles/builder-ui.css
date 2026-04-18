@@ -3114,6 +3114,29 @@
   margin-top: 0.15rem;
   text-transform: capitalize;
 }
+.auth-sync-btn {
+  background: none;
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  padding: 0.65rem 1rem;
+  border-radius: 8px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s, color 0.15s;
+}
+@media (hover: hover) {
+  .auth-sync-btn:hover {
+    background: var(--gold);
+    color: #000;
+  }
+}
+.auth-sync-btn:active { opacity: 0.8; }
+
 .auth-logout-btn {
   background: none;
   border: 1px solid var(--dim);

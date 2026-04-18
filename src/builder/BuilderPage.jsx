@@ -217,6 +217,8 @@ export default function BuilderPage({ initialView = null }) {
         authStatus={authStatus}
         onAuthClick={() => setAuthSheetOpen(true)}
         onLogout={logout}
+        syncCount={syncPromptCount}
+        onSyncLocal={() => setSyncPromptCount(prev => { pushLocalSavesToCloud(() => user); return 0 })}
       />
 
       {/* ── SCROLLABLE AREA ────────────────────────────── */}
@@ -437,7 +439,7 @@ function CompanySettingsModal({ onClose }) {
 }
 
 /* ── TOPBAR ────────────────────────────────────────────── */
-function BuilderTopbar({ onMenuToggle, onHome, user, authStatus, onAuthClick, onLogout }) {
+function BuilderTopbar({ onMenuToggle, onHome, user, authStatus, onAuthClick, onLogout, syncCount, onSyncLocal }) {
   const [accountOpen, setAccountOpen] = useState(false)
 
   return (
@@ -472,6 +474,8 @@ function BuilderTopbar({ onMenuToggle, onHome, user, authStatus, onAuthClick, on
                 user={user}
                 onClose={() => setAccountOpen(false)}
                 onLogout={() => { setAccountOpen(false); onLogout() }}
+                syncCount={syncCount}
+                onSyncLocal={() => { setAccountOpen(false); onSyncLocal() }}
               />
             )}
           </>
@@ -482,7 +486,7 @@ function BuilderTopbar({ onMenuToggle, onHome, user, authStatus, onAuthClick, on
 }
 
 /* ── ACCOUNT SHEET (shown when avatar is tapped) ───────── */
-function AuthAccountSheet({ user, onClose, onLogout }) {
+function AuthAccountSheet({ user, onClose, onLogout, syncCount, onSyncLocal }) {
   return (
     <BottomSheet title="Account" onClose={onClose}>
       <div className="auth-account-sheet">
@@ -496,6 +500,11 @@ function AuthAccountSheet({ user, onClose, onLogout }) {
             <div className="auth-account-provider">via {user.provider}</div>
           </div>
         </div>
+        {syncCount > 0 && (
+          <button className="auth-sync-btn" onClick={onSyncLocal}>
+            Upload {syncCount} local {syncCount === 1 ? 'company' : 'companies'} to cloud
+          </button>
+        )}
         <button className="auth-logout-btn" onClick={onLogout}>Sign Out</button>
       </div>
     </BottomSheet>
