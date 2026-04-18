@@ -42,6 +42,28 @@ export async function syncDeleteFromCloud(companyId, getUser) {
   }
 }
 
+// Push all local saves to cloud (called on login if user has local saves).
+export async function pushLocalSavesToCloud(getUser) {
+  if (!getUser()) return 0
+  const local = getSaves()
+  if (!local.length) return 0
+  let count = 0
+  for (const save of local) {
+    try {
+      await saveCompany({
+        id: save.companyId || save.id,
+        name: save.companyName || save.name,
+        mode: save.companyMode || 'standard',
+        data: save,
+      })
+      count++
+    } catch (err) {
+      console.warn('[cloud sync] push failed for', save.companyName, err)
+    }
+  }
+  return count
+}
+
 // Merge cloud saves into localStorage on first authenticated load.
 // Cloud wins on same id; unique locals are kept.
 // Returns the merged array and writes it to localStorage.

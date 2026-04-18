@@ -19,7 +19,7 @@ import ModeSelectModal from './ModeSelectModal'
 import LandingPage, { RefContent } from './LandingPage'
 import AuthSheet from './AuthSheet'
 import { useAuthStore } from '../store/authStore'
-import { mergeCloudSaves } from '../store/builderPersistence'
+import { mergeCloudSaves, pushLocalSavesToCloud } from '../store/builderPersistence'
 import './styles/builder-layout.css'
 import './styles/builder-print.css'
 import './styles/builder-ui.css'
@@ -47,12 +47,27 @@ export default function BuilderPage({ initialView = null }) {
   // Auth
   const { user, status: authStatus, fetchMe, logout } = useAuthStore()
   const [authSheetOpen, setAuthSheetOpen] = useState(false)
+  const [syncPromptCount, setSyncPromptCount] = useState(0)
   useEffect(() => {
-    fetchMe().then(() => {
+    fetchMe().then(async () => {
       const { user } = useAuthStore.getState()
-      if (user) mergeCloudSaves(() => user).then(merged => {
-        if (merged.length) useBuilderStore.setState({ saves: merged })
-      })
+      if (!user) return
+      // Snapshot local saves before merging so we know what's local-only
+      const { getSaves: getLocalSaves, listCompanies: listCloud } = await Promise.all([
+        import('../store/builderPersistence.js'),
+        import('../api/companies.js'),
+      ]).then(([p, c]) => ({ getSaves: p.getSaves, listCompanies: c.listCompanies }))
+      const localSaves = getLocalSaves()
+      let cloudIds = new Set()
+      try {
+        const cloud = await listCloud()
+        cloudIds = new Set(cloud.map(c => c.id))
+      } catch { /* ignore */ }
+      const localOnly = localSaves.filter(s => s.companyId && !cloudIds.has(s.companyId))
+      if (localOnly.length > 0) setSyncPromptCount(localOnly.length)
+      // Merge cloud into local
+      const merged = await mergeCloudSaves(() => user)
+      if (merged.length) useBuilderStore.setState({ saves: merged })
     })
   }, []) // eslint-disable-line
 
@@ -335,6 +350,17 @@ export default function BuilderPage({ initialView = null }) {
       <ShareModal />
       <ImportModal />
       {authSheetOpen && <AuthSheet onClose={() => setAuthSheetOpen(false)} />}
+      {syncPromptCount > 0 && user && (
+        <ConfirmModal
+          title="Upload Local Companies?"
+          subtitle={`You have ${syncPromptCount} local ${syncPromptCount === 1 ? 'company' : 'companies'} not yet in the cloud. Upload ${syncPromptCount === 1 ? 'it' : 'them'} now?`}
+          onConfirm={() => {
+            setSyncPromptCount(0)
+            pushLocalSavesToCloud(() => user)
+          }}
+          onCancel={() => setSyncPromptCount(0)}
+        />
+      )}
 
       {modeSelectOpen && (
         <ModeSelectModal
