@@ -14,16 +14,10 @@ export async function onRequestGet(context) {
   const codeVerifier = randomHex(32)
   const url = google.createAuthorizationURL(state, codeVerifier, ['openid', 'profile'])
 
-  return new Response(null, {
-    status: 302,
-    headers: {
-      Location: url.toString(),
-      'Set-Cookie': [
-        `oauth_state=${state}; HttpOnly; SameSite=Lax; Path=/; Max-Age=600`,
-        `oauth_cv=${codeVerifier}; HttpOnly; SameSite=Lax; Path=/; Max-Age=600`,
-      ].join(', '),
-    },
-  })
+  const headers = new Headers({ Location: url.toString() })
+  headers.append('Set-Cookie', `oauth_state=${state}; HttpOnly; SameSite=Lax; Path=/; Max-Age=600`)
+  headers.append('Set-Cookie', `oauth_cv=${codeVerifier}; HttpOnly; SameSite=Lax; Path=/; Max-Age=600`)
+  return new Response(null, { status: 302, headers })
 }
 
 function callbackUrl(request, path) {
