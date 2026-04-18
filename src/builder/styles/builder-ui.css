@@ -3074,10 +3074,15 @@
 .auth-account-info {
   display: flex;
   align-items: center;
-  gap: 0.85rem;
+  gap: 0.75rem;
   padding: 0.75rem;
   background: rgba(255,255,255,0.04);
   border-radius: 8px;
+}
+.auth-account-provider-icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
 }
 .auth-account-avatar {
   width: 44px;
