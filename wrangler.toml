@@ -1,8 +1,13 @@
 name = "1490doom-builder"
 compatibility_date = "2024-01-01"
 
-# Vite outputs to dist/, so tell Pages where to find functions
-main = "./dist/_worker.js"
-
 [env.production]
 vars = { NODE_ENV = "production" }
+
+# D1 database binding
+# After running `wrangler d1 create doom-builder`, paste the database_id below
+[[d1_databases]]
+binding = "DB"
+database_name = "doom-builder"
+database_id = "local"   # replace with real ID for production deploy
+

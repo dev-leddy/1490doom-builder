@@ -77,5 +77,9 @@ export default defineConfig(({ command }) => ({
   server: {
     host: true,
     port: 5173,
+    proxy: {
+      // Proxy /api requests to the local wrangler pages dev server
+      '/api': 'http://localhost:8788',
+    },
   },
 }))

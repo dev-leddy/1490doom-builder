@@ -17,6 +17,9 @@ import EndOfGameModal from './EndOfGameModal'
 import CompanyForm from './CompanyForm'
 import ModeSelectModal from './ModeSelectModal'
 import LandingPage, { RefContent } from './LandingPage'
+import AuthSheet from './AuthSheet'
+import { useAuthStore } from '../store/authStore'
+import { mergeCloudSaves } from '../store/builderPersistence'
 import './styles/builder-layout.css'
 import './styles/builder-print.css'
 import './styles/builder-ui.css'
@@ -41,6 +44,18 @@ export default function BuilderPage({ initialView = null }) {
     if (useBuilderStore.getState()._fromShare) return 'builder'
     return window.location.hash ? 'builder' : 'landing'
   })
+  // Auth
+  const { user, status: authStatus, fetchMe, logout } = useAuthStore()
+  const [authSheetOpen, setAuthSheetOpen] = useState(false)
+  useEffect(() => {
+    fetchMe().then(() => {
+      const { user } = useAuthStore.getState()
+      if (user) mergeCloudSaves(() => user).then(merged => {
+        if (merged.length) useBuilderStore.setState({ saves: merged })
+      })
+    })
+  }, []) // eslint-disable-line
+
   // global quick reference overlay — works from any view
   const [refOpen, setRefOpen] = useState(false)
 
@@ -183,6 +198,10 @@ export default function BuilderPage({ initialView = null }) {
       <BuilderTopbar
         onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
         onHome={handleLogoClick}
+        user={user}
+        authStatus={authStatus}
+        onAuthClick={() => setAuthSheetOpen(true)}
+        onLogout={logout}
       />
 
       {/* ── SCROLLABLE AREA ────────────────────────────── */}
@@ -315,6 +334,7 @@ export default function BuilderPage({ initialView = null }) {
 
       <ShareModal />
       <ImportModal />
+      {authSheetOpen && <AuthSheet onClose={() => setAuthSheetOpen(false)} />}
 
       {modeSelectOpen && (
         <ModeSelectModal
@@ -391,7 +411,9 @@ function CompanySettingsModal({ onClose }) {
 }
 
 /* ── TOPBAR ────────────────────────────────────────────── */
-function BuilderTopbar({ onMenuToggle, onHome }) {
+function BuilderTopbar({ onMenuToggle, onHome, user, authStatus, onAuthClick, onLogout }) {
+  const [accountOpen, setAccountOpen] = useState(false)
+
   return (
     <div className="builder-topbar">
       <button className="topbar-menu-btn" onClick={onMenuToggle} title="Saved Companies">
@@ -405,8 +427,52 @@ function BuilderTopbar({ onMenuToggle, onHome }) {
         <span className="topbar-brand-sub">Company Builder</span>
       </button>
 
-      <div className="topbar-actions" />
+      <div className="topbar-actions">
+        {authStatus === 'guest' && (
+          <button className="auth-sign-in-btn" onClick={onAuthClick} title="Sign in to sync companies">
+            Sign In
+          </button>
+        )}
+        {authStatus === 'authed' && user && (
+          <>
+            <button className="auth-avatar-btn" onClick={() => setAccountOpen(true)} title={user.username}>
+              {user.avatar_url
+                ? <img className="auth-avatar-img" src={user.avatar_url} alt={user.username} />
+                : <span className="auth-avatar-fallback">{(user.username || '?')[0]}</span>
+              }
+            </button>
+            {accountOpen && (
+              <AuthAccountSheet
+                user={user}
+                onClose={() => setAccountOpen(false)}
+                onLogout={() => { setAccountOpen(false); onLogout() }}
+              />
+            )}
+          </>
+        )}
+      </div>
     </div>
+  )
+}
+
+/* ── ACCOUNT SHEET (shown when avatar is tapped) ───────── */
+function AuthAccountSheet({ user, onClose, onLogout }) {
+  return (
+    <BottomSheet title="Account" onClose={onClose}>
+      <div className="auth-account-sheet">
+        <div className="auth-account-info">
+          {user.avatar_url
+            ? <img className="auth-account-avatar" src={user.avatar_url} alt={user.username} />
+            : <span className="auth-account-avatar-fallback">{(user.username || '?')[0]}</span>
+          }
+          <div>
+            <div className="auth-account-name">{user.username}</div>
+            <div className="auth-account-provider">via {user.provider}</div>
+          </div>
+        </div>
+        <button className="auth-logout-btn" onClick={onLogout}>Sign Out</button>
+      </div>
+    </BottomSheet>
   )
 }
 

@@ -2938,3 +2938,204 @@
   .ch-sigil-no-mark { width: 56px; height: 56px; }
 }
 
+/* ── AUTH UI ─────────────────────────────────────────────── */
+
+/* Sign-in button in the topbar (guest state) */
+.auth-sign-in-btn {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.4);
+  color: #fff;
+  height: 32px;
+  padding: 0 0.75rem;
+  border-radius: 20px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: border-color 0.15s, color 0.15s;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+@media (hover: hover) {
+  .auth-sign-in-btn:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+}
+.auth-sign-in-btn:active {
+  color: #fff;
+  border-color: rgba(255,255,255,0.6);
+}
+
+/* Avatar button in topbar (authenticated state) */
+.auth-avatar-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+.auth-avatar-img {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1.5px solid var(--dim);
+  object-fit: cover;
+  display: block;
+  transition: border-color 0.15s;
+}
+@media (hover: hover) {
+  .auth-avatar-btn:hover .auth-avatar-img { border-color: var(--gold); }
+}
+.auth-avatar-fallback {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1.5px solid var(--dim);
+  background: var(--ash);
+  color: var(--parchment);
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-transform: uppercase;
+}
+
+/* Auth bottom sheet content */
+.auth-sheet-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  padding: 0.5rem 0;
+}
+.auth-sheet-desc {
+  color: #fff;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 0;
+  text-align: center;
+}
+.auth-sheet-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.auth-provider-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: var(--provider-color, var(--ash));
+  color: #fff;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: filter 0.15s;
+}
+@media (hover: hover) {
+  .auth-provider-btn:hover { filter: brightness(1.12); }
+}
+.auth-provider-btn:active { filter: brightness(0.9); }
+.auth-provider-btn--light {
+  color: #fff;
+}
+.auth-sheet-note {
+  color: rgba(255,255,255,0.55);
+  font-size: 0.75rem;
+  text-align: center;
+  margin: 0;
+}
+
+/* User account sheet */
+.auth-account-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0.5rem 0;
+}
+.auth-account-info {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.75rem;
+  background: rgba(255,255,255,0.04);
+  border-radius: 8px;
+}
+.auth-account-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid var(--dim);
+  flex-shrink: 0;
+}
+.auth-account-avatar-fallback {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--ash);
+  color: var(--parchment);
+  font-family: 'Oswald', sans-serif;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  text-transform: uppercase;
+  border: 1.5px solid var(--dim);
+}
+.auth-account-name {
+  color: var(--parchment);
+  font-family: 'Oswald', sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.05em;
+}
+.auth-account-provider {
+  color: var(--fog);
+  font-size: 0.75rem;
+  margin-top: 0.15rem;
+  text-transform: capitalize;
+}
+.auth-logout-btn {
+  background: none;
+  border: 1px solid var(--dim);
+  color: var(--parchment);
+  padding: 0.65rem 1rem;
+  border-radius: 8px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.15s, color 0.15s;
+}
+@media (hover: hover) {
+  .auth-logout-btn:hover {
+    border-color: var(--blood);
+    color: var(--blood);
+  }
+}
+.auth-logout-btn:active {
+  opacity: 0.8;
+}
+

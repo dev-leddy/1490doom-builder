@@ -1,1 +1,5 @@
 # No redirect rules needed — quiz.html is served natively at /quiz by CF Pages
+
+# dbtest branch preview — proxies /dbtest to the branch deployment
+/dbtest https://dbtest.1490doom-builder.pages.dev 301
+/dbtest/* https://dbtest.1490doom-builder.pages.dev/:splat 301

@@ -9,7 +9,10 @@ const randomUUID = () =>
 import { WARRIORS, MARKS, STAT_IMPROVEMENT, IP_OPTIONS } from '../data/warriors'
 import { WEAPON_NAMES, CLIMBING_ITEMS, CONSUMABLE_NAMES } from '../data/weapons'
 import { encodeCompany, decodeCompany } from './builderEncoding'
-import { getSaves, setSaves } from './builderPersistence'
+import { getSaves, setSaves, syncSaveToCloud, syncDeleteFromCloud } from './builderPersistence'
+import { useAuthStore } from './authStore'
+
+function getUser() { return useAuthStore.getState().user }
 
 // ── HELPERS ──────────────────────────────────────────────────────────────────
 
@@ -470,6 +473,7 @@ export const useBuilderStore = create((set, get) => {
       }
       setSaves(saves)
       set({ saves })
+      syncSaveToCloud({ ...saveData, id: saveData.companyId, name: saveData.companyName }, getUser)
       get()._toast('Company saved.')
       return true
     },
@@ -483,9 +487,11 @@ export const useBuilderStore = create((set, get) => {
     },
     deleteCompany(index) {
       const saves = getSaves()
+      const removed = saves[index]
       saves.splice(index, 1)
       setSaves(saves)
       set({ saves })
+      if (removed?.companyId) syncDeleteFromCloud(removed.companyId, getUser)
     },
     clearBuilder() {
       const fresh = defaultState()
@@ -711,6 +717,7 @@ export const useBuilderStore = create((set, get) => {
         if (saves.length > 10) saves.pop()
       }
       try { setSaves(saves); set({ saves }) } catch {}
+      if (mark) syncSaveToCloud({ ...saveData, id: saveData.companyId, name: saveData.companyName }, getUser)
     },
     _validate() {
       const { slots } = get()
