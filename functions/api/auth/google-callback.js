@@ -52,17 +52,11 @@ export async function onRequestGet(context) {
   const isSecure = origin.protocol === 'https:'
   const cookieFlags = isSecure ? '; Secure' : ''
 
-  return new Response(null, {
-    status: 302,
-    headers: {
-      Location: '/',
-      'Set-Cookie': [
-        `session=${sessionId}; HttpOnly; SameSite=Lax; Path=/; Max-Age=2592000${cookieFlags}`,
-        `oauth_state=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0`,
-        `oauth_cv=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0`,
-      ].join(', '),
-    },
-  })
+  const headers = new Headers({ Location: '/' })
+  headers.append('Set-Cookie', `session=${sessionId}; HttpOnly; SameSite=Lax; Path=/; Max-Age=2592000${cookieFlags}`)
+  headers.append('Set-Cookie', `oauth_state=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0`)
+  headers.append('Set-Cookie', `oauth_cv=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0`)
+  return new Response(null, { status: 302, headers })
 }
 
 async function upsertUser(db, { provider, providerId, username, avatarUrl }) {
