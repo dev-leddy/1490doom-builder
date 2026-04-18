@@ -1,5 +1,5 @@
 // POST /api/auth/email/register
-import { randomHex, json } from '../../../../_middleware.js'
+import { randomHex, json } from '../../../_middleware.js'
 import { hashPassword } from '../../../lib/crypto.js'
 
 export async function onRequestPost(context) {

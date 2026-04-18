@@ -1,5 +1,5 @@
 // POST /api/auth/email/forgot
-import { randomHex, json } from '../../../../_middleware.js'
+import { randomHex, json } from '../../../_middleware.js'
 
 const FOUR_HOURS_MS = 4 * 60 * 60 * 1000
 const ONE_HOUR_MS   = 60 * 60 * 1000

@@ -1,5 +1,5 @@
 // POST /api/auth/email/login
-import { randomHex, json } from '../../../../_middleware.js'
+import { randomHex, json } from '../../../_middleware.js'
 import { verifyPassword } from '../../../lib/crypto.js'
 
 const INVALID_MSG = 'Invalid email or password'
