@@ -34,12 +34,13 @@ function StatsRow({ slot, wdata }) {
         }
 
         let displayVal = base
-        if (improved) displayVal = improveStatDisplay(base, s)
-        else if (polearmDebuff) displayVal = debuffStatDisplay(base, s)
+        if (improved) displayVal = improveStatDisplay(displayVal, s)
+        if (polearmDebuff) displayVal = debuffStatDisplay(displayVal, s)
 
+        const bothModified = improved && polearmDebuff
         let statClass = ''
-        if (improved || (s === 'ATK' && dualWieldBonus > 0)) statClass = 'modified'
-        else if (polearmDebuff) statClass = 'debuffed'
+        if ((improved && !bothModified) || (s === 'ATK' && dualWieldBonus > 0)) statClass = 'modified'
+        else if (polearmDebuff && !bothModified) statClass = 'debuffed'
 
         return (
           <div key={s} className="stat-box">

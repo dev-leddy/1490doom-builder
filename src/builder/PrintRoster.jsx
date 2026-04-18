@@ -170,12 +170,13 @@ export default function PrintRoster() {
                     const isStatImproved = improved || isDualWieldImproved
                     
                     let display = base
-                    if (isStatImproved) display = improveStatDisplayPrint(base, s)
-                    else if (polearmDebuff) display = debuffStatDisplayPrint(base, s)
-                    
+                    if (isStatImproved) display = improveStatDisplayPrint(display, s)
+                    if (polearmDebuff) display = debuffStatDisplayPrint(display, s)
+
+                    const bothModified = isStatImproved && polearmDebuff
                     let statClass = ''
-                    if (isStatImproved) statClass = 'improved'
-                    else if (polearmDebuff) statClass = 'debuffed'
+                    if (isStatImproved && !bothModified) statClass = 'improved'
+                    else if (polearmDebuff && !bothModified) statClass = 'debuffed'
 
                     return (
                       <div key={s} className="pr-stat">
