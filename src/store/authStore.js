@@ -28,4 +28,18 @@ export const useAuthStore = create((set) => ({
     } catch { /* ignore */ }
     set({ user: null, status: 'guest' })
   },
+
+  updateAvatar: async (avatarKey) => {
+    try {
+      const res = await fetch('/api/auth/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ avatar: avatarKey }),
+      })
+      if (res.ok) {
+        set(state => ({ user: state.user ? { ...state.user, avatar_url: avatarKey } : state.user }))
+      }
+    } catch { /* ignore */ }
+  },
 }))

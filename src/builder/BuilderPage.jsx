@@ -18,7 +18,9 @@ import CompanyForm from './CompanyForm'
 import ModeSelectModal from './ModeSelectModal'
 import LandingPage, { RefContent } from './LandingPage'
 import AuthSheet from './AuthSheet'
+import AvatarPicker from './AvatarPicker'
 import { useAuthStore } from '../store/authStore'
+import { getAvatarSrc } from '../data/avatars'
 import { mergeCloudSaves, pushLocalSavesToCloud } from '../store/builderPersistence'
 import './styles/builder-layout.css'
 import './styles/builder-print.css'
@@ -487,10 +489,12 @@ function BuilderTopbar({ onMenuToggle, onHome, user, authStatus, onAuthClick, on
         {authStatus === 'authed' && user && (
           <>
             <button className="auth-avatar-btn" onClick={() => setAccountOpen(true)} title={user.username}>
-              {user.avatar_url
-                ? <img className="auth-avatar-img" src={user.avatar_url} alt={user.username} />
-                : <span className="auth-avatar-fallback">{(user.username || '?')[0]}</span>
-              }
+              {(() => {
+                const src = getAvatarSrc(user.avatar_url)
+                return src
+                  ? <img className="auth-avatar-img" src={src} alt={user.username} />
+                  : <span className="auth-avatar-fallback">{(user.username || '?')[0]}</span>
+              })()}
             </button>
             {accountOpen && (
               <AuthAccountSheet
@@ -529,17 +533,51 @@ function GoogleIconColored() {
 
 /* ── ACCOUNT SHEET (shown when avatar is tapped) ───────── */
 function AuthAccountSheet({ user, onClose, onLogout, syncCount, onSyncLocal }) {
+  const [pickingAvatar, setPickingAvatar] = useState(false)
+  const { updateAvatar } = useAuthStore()
+  const avatarSrc = getAvatarSrc(user.avatar_url)
+
+  async function handleAvatarChange(val) {
+    await updateAvatar(val)
+    setPickingAvatar(false)
+  }
+
   return (
     <BottomSheet title="Account" onClose={onClose}>
       <div className="auth-account-sheet">
         <div className="auth-account-info">
-          <span className="auth-account-provider-icon">
-            {user.provider === 'discord' && <DiscordIconColored />}
-            {user.provider === 'google'  && <GoogleIconColored />}
-            {user.provider === 'email'   && <span style={{ fontSize: '1.5rem' }}>✉️</span>}
-          </span>
+          {user.provider === 'email' ? (
+            <button
+              className="auth-account-avatar-edit-btn"
+              onClick={() => setPickingAvatar(v => !v)}
+              title="Change avatar"
+            >
+              <div className="auth-account-avatar-edit-wrap">
+                {avatarSrc
+                  ? <img className="auth-account-avatar-edit-img" src={avatarSrc} alt="" />
+                  : <span className="auth-account-avatar-edit-initial">{(user.username || '?')[0].toUpperCase()}</span>
+                }
+                <div className="auth-account-avatar-edit-overlay">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                </div>
+              </div>
+            </button>
+          ) : (
+            <span className="auth-account-provider-icon">
+              {user.provider === 'discord' && <DiscordIconColored />}
+              {user.provider === 'google'  && <GoogleIconColored />}
+            </span>
+          )}
           <div className="auth-account-name">{user.username}</div>
         </div>
+
+        {pickingAvatar && user.provider === 'email' && (
+          <div className="auth-account-avatar-picker">
+            <p className="auth-account-avatar-picker-label">Choose your avatar</p>
+            <AvatarPicker value={user.avatar_url} onChange={handleAvatarChange} />
+          </div>
+        )}
+
         {syncCount > 0 && (
           <button className="auth-sync-btn" onClick={onSyncLocal}>
             Upload {syncCount} local {syncCount === 1 ? 'company' : 'companies'} to cloud

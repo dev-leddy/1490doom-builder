@@ -2,6 +2,11 @@
 import { randomHex, json } from '../../../_middleware.js'
 import { hashPassword } from '../../../lib/crypto.js'
 
+const AVATAR_KEYS = [
+  'battle','trio','warrior','standoff','eaters','push',
+  'choke','choke2','climbing','bridge','bullseye','throne','rest-stop','road-sign',
+]
+
 export async function onRequestPost(context) {
   const { env, request } = context
 
@@ -35,11 +40,12 @@ export async function onRequestPost(context) {
   const passwordHash = await hashPassword(password)
   const userId = randomHex(16)
   const now = Date.now()
+  const randomAvatar = AVATAR_KEYS[Math.floor(Math.random() * AVATAR_KEYS.length)]
 
   await env.DB.prepare(
     `INSERT INTO users (id, provider, provider_id, username, avatar_url, email, password_hash, created_at)
-     VALUES (?, 'email', ?, ?, NULL, ?, ?, ?)`
-  ).bind(userId, normalEmail, username.trim(), normalEmail, passwordHash, now).run()
+     VALUES (?, 'email', ?, ?, ?, ?, ?, ?)`
+  ).bind(userId, normalEmail, username.trim(), randomAvatar, normalEmail, passwordHash, now).run()
 
   // Create session
   const sessionId = randomHex(32)
