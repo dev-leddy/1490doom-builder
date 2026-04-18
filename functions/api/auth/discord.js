@@ -4,6 +4,11 @@ import { randomHex } from '../../_middleware.js'
 
 export async function onRequestGet(context) {
   const { env, request } = context
+
+  if (!env.DISCORD_CLIENT_ID || !env.DISCORD_CLIENT_SECRET) {
+    return new Response('Discord OAuth not configured (missing env vars)', { status: 500 })
+  }
+
   const discord = new Discord(
     env.DISCORD_CLIENT_ID,
     env.DISCORD_CLIENT_SECRET,
