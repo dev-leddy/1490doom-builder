@@ -9,5 +9,5 @@ vars = { NODE_ENV = "production" }
 [[d1_databases]]
 binding = "DB"
 database_name = "doom-builder"
-database_id = "local"   # replace with real ID for production deploy
+database_id = "39a0958c-ffa3-40a7-99ca-46d8bf48c3d9"
 
