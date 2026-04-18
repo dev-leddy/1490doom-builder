@@ -11,8 +11,11 @@ export async function onRequestGet(context) {
   const storedState = getCookie(request, 'oauth_state')
   const codeVerifier = getCookie(request, 'oauth_cv')
 
+  console.log('[google-callback] code:', !!code, 'state:', !!state, 'storedState:', !!storedState, 'codeVerifier:', !!codeVerifier, 'stateMatch:', state === storedState)
+
   if (!code || !state || state !== storedState || !codeVerifier) {
-    return json({ error: 'Invalid OAuth state' }, 400)
+    console.error('[google-callback] state validation failed', { code: !!code, state, storedState, codeVerifier: !!codeVerifier })
+    return json({ error: 'Invalid OAuth state', detail: { code: !!code, hasState: !!state, hasStoredState: !!storedState, hasCV: !!codeVerifier, match: state === storedState } }, 400)
   }
 
   const google = new Google(
@@ -24,13 +27,16 @@ export async function onRequestGet(context) {
   let tokens
   try {
     tokens = await google.validateAuthorizationCode(code, codeVerifier)
-  } catch {
+    console.log('[google-callback] token exchange ok')
+  } catch (e) {
+    console.error('[google-callback] token exchange failed:', e.message)
     return json({ error: 'Failed to exchange code' }, 400)
   }
 
   // Decode the id_token claims (Google returns openid profile)
   const idToken = tokens.idToken()
   const claims = decodeJwtPayload(idToken)
+  console.log('[google-callback] claims sub:', claims?.sub, 'name:', claims?.name)
   if (!claims?.sub) return json({ error: 'Invalid id_token' }, 400)
 
   const userId = await upsertUser(env.DB, {
@@ -40,6 +46,8 @@ export async function onRequestGet(context) {
     avatarUrl: claims.picture || null,
   })
 
+  console.log('[google-callback] upserted user:', userId)
+
   // Create session
   const sessionId = randomHex(32)
   const now = Date.now()
@@ -47,6 +55,7 @@ export async function onRequestGet(context) {
   await env.DB.prepare(
     `INSERT INTO sessions (id, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)`
   ).bind(sessionId, userId, now, expiresAt).run()
+  console.log('[google-callback] session created:', sessionId.slice(0, 8) + '...')
 
   const origin = new URL(request.url)
   const isSecure = origin.protocol === 'https:'
