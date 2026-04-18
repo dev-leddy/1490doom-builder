@@ -27,6 +27,13 @@ export async function syncSaveToCloud(saveEntry, getUser) {
       mode: saveEntry.data?.companyMode || 'standard',
       data: saveEntry,
     })
+    // Mark as cloud-synced in localStorage so it's never flagged as local-only
+    const saves = getSaves()
+    const idx = saves.findIndex(s => s.id === saveEntry.id || s.companyId === saveEntry.id)
+    if (idx !== -1 && !saves[idx].cloudSynced) {
+      saves[idx] = { ...saves[idx], cloudSynced: true }
+      setSaves(saves)
+    }
   } catch (err) {
     console.warn('[cloud sync] save failed:', err)
   }
@@ -43,12 +50,16 @@ export async function syncDeleteFromCloud(companyId, getUser) {
 }
 
 // Push all local saves to cloud (called on login if user has local saves).
+// Marks each successfully uploaded save with cloudSynced:true in localStorage
+// so the user isn't prompted again on future logins.
 export async function pushLocalSavesToCloud(getUser) {
   if (!getUser()) return 0
   const local = getSaves()
   if (!local.length) return 0
   let count = 0
-  for (const save of local) {
+  const updated = local.map(s => ({ ...s }))
+  for (let i = 0; i < updated.length; i++) {
+    const save = updated[i]
     try {
       await saveCompany({
         id: save.companyId || save.id,
@@ -56,11 +67,13 @@ export async function pushLocalSavesToCloud(getUser) {
         mode: save.companyMode || 'standard',
         data: save,
       })
+      updated[i].cloudSynced = true
       count++
     } catch (err) {
       console.warn('[cloud sync] push failed for', save.companyName, err)
     }
   }
+  setSaves(updated)
   return count
 }
 

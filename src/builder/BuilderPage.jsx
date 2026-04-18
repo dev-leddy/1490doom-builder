@@ -66,7 +66,7 @@ export default function BuilderPage({ initialView = null }) {
         const cloud = await listCloud()
         cloudIds = new Set(cloud.map(c => c.id))
       } catch { /* ignore */ }
-      const localOnly = localSaves.filter(s => s.companyId && !cloudIds.has(s.companyId))
+      const localOnly = localSaves.filter(s => s.companyId && !cloudIds.has(s.companyId) && !s.cloudSynced)
       if (localOnly.length > 0) setSyncPromptCount(localOnly.length)
       // Merge cloud into local
       const merged = await mergeCloudSaves(() => user)
