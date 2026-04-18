@@ -66,7 +66,7 @@ export default function BuilderPage({ initialView = null }) {
         const cloud = await listCloud()
         cloudIds = new Set(cloud.map(c => c.id))
       } catch { /* ignore */ }
-      const localOnly = localSaves.filter(s => s.companyId && !cloudIds.has(s.companyId) && !s.cloudSynced)
+      const localOnly = localSaves.filter(s => s.companyId && !cloudIds.has(s.companyId))
       if (localOnly.length > 0) setSyncPromptCount(localOnly.length)
       // Merge cloud into local
       const merged = await mergeCloudSaves(() => user)
@@ -236,7 +236,12 @@ export default function BuilderPage({ initialView = null }) {
         onAuthClick={() => { setAuthSheetState('providers'); setAuthSheetOpen(true) }}
         onLogout={logout}
         syncCount={syncPromptCount}
-        onSyncLocal={() => setSyncPromptCount(prev => { pushLocalSavesToCloud(() => user); return 0 })}
+        onSyncLocal={async () => {
+          setSyncPromptCount(0)
+          await pushLocalSavesToCloud(() => user)
+          const merged = await mergeCloudSaves(() => user)
+          if (merged.length) useBuilderStore.setState({ saves: merged })
+        }}
       />
 
       {/* ── SCROLLABLE AREA ────────────────────────────── */}
@@ -380,9 +385,11 @@ export default function BuilderPage({ initialView = null }) {
         <ConfirmModal
           title="Upload Local Companies?"
           subtitle={`You have ${syncPromptCount} local ${syncPromptCount === 1 ? 'company' : 'companies'} not yet in the cloud. Upload ${syncPromptCount === 1 ? 'it' : 'them'} now?`}
-          onConfirm={() => {
+          onConfirm={async () => {
             setSyncPromptCount(0)
-            pushLocalSavesToCloud(() => user)
+            await pushLocalSavesToCloud(() => user)
+            const merged = await mergeCloudSaves(() => user)
+            if (merged.length) useBuilderStore.setState({ saves: merged })
           }}
           onCancel={() => setSyncPromptCount(0)}
         />
