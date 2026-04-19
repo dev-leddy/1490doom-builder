@@ -1,7 +1,6 @@
 // ── Discord Image Roster ───────────────────────────────────────────────────────
-// Off-screen render of a builder-style roster for html2canvas capture.
-// Matches the builder page aesthetic: dark cards, stat boxes, upgrade tray,
-// ability name rows. Ability descriptions omitted. IP upgrades underlined.
+// Compact list-style image export, similar to Star Wars Legion list builder.
+// Portrait + name on one line, stats as text, equipment + ability pills below.
 
 import { forwardRef, useMemo } from 'react'
 import { WARRIORS, MARKS_MAP } from '../data/warriors'
@@ -22,364 +21,236 @@ function debuffStatDisplay(base, stat) {
 
 const STAT_KEYS = ['MOV', 'ATK', 'VIT', 'SKL', 'DEF', 'COM']
 
-// ── Colors (builder CSS vars resolved to hex) ─────────────────────────────────
+// ── Colors ────────────────────────────────────────────────────────────────────
 const C = {
-  ash:       '#080808',   // --ash  (page + card bg)
-  fog:       '#111111',   // --fog  (stat box bg)
-  dim:       '#222222',   // --dim  (borders)
-  bone:      '#dcdcdc',   // --bone (primary text)
-  parchment: '#ffffff',   // --parchment (bright text)
-  mist:      '#444444',   // --mist (muted)
-  blood:     '#be4127',   // --blood / --gold (accent, captain)
-  green:     '#4a9a4a',   // --green (modified stat)
+  ash:       '#080808',
+  fog:       '#111111',
+  dim:       '#252525',
+  bone:      '#dcdcdc',
+  parchment: '#ffffff',
+  mist:      '#555555',
+  blood:     '#be4127',
+  green:     '#4a9a4a',
 }
 
-// ── Inline styles ─────────────────────────────────────────────────────────────
-
+// ── Styles ────────────────────────────────────────────────────────────────────
 const S = {
   page: {
     width: '420px',
     background: C.ash,
-    padding: '14px',
+    padding: '14px 14px 10px',
     fontFamily: "'Oswald', 'Arial Narrow', Arial, sans-serif",
     color: C.bone,
     boxSizing: 'border-box',
   },
 
-  // ── Company header ──
-  header: {
+  // Header
+  pageHeader: {
+    marginBottom: '10px',
+    paddingBottom: '8px',
+    borderBottom: `1px solid ${C.dim}`,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderBottom: `1px solid ${C.dim}`,
-    paddingBottom: '10px',
-    marginBottom: '12px',
-    gap: '10px',
+    gap: '8px',
   },
   companyName: {
     fontFamily: "'Caslon Antique', 'Palatino Linotype', Georgia, serif",
-    fontSize: '20px',
-    fontWeight: '700',
-    letterSpacing: '0.03em',
-    lineHeight: '1',
-    color: C.parchment,
-  },
-  companySub: {
-    fontSize: '9px',
-    letterSpacing: '0.25em',
-    textTransform: 'uppercase',
-    color: C.mist,
-    marginTop: '4px',
-  },
-  markWrap: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '7px',
-    borderLeft: `1px solid ${C.dim}`,
-    paddingLeft: '10px',
-    flexShrink: 0,
-  },
-  markImg: {
-    width: '30px',
-    height: '30px',
-    borderRadius: '50%',
-    objectFit: 'cover',
-    objectPosition: 'center',
-    border: `1px solid ${C.dim}`,
-    flexShrink: 0,
-  },
-  markLabel: {
-    fontSize: '8px',
-    letterSpacing: '0.2em',
-    textTransform: 'uppercase',
-    color: C.mist,
-    lineHeight: '1',
-    marginBottom: '2px',
-  },
-  markName: {
-    fontSize: '11px',
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: '0.05em',
-    color: C.bone,
-  },
-
-  // ── Warrior cards ──
-  warriors: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px',
-  },
-  card: {
-    background: C.ash,
-    border: `1px solid ${C.dim}`,
-    padding: '8px 10px 10px',
-  },
-  cardCaptain: {
-    background: C.ash,
-    border: `1px solid ${C.blood}`,
-    padding: '8px 10px 10px',
-  },
-
-  // ── Card header ──
-  slotHeader: {
-    display: 'flex',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    marginBottom: '8px',
-  },
-  captainLabel: {
-    fontFamily: "'Oswald', sans-serif",
-    fontSize: '8px',
-    fontWeight: '700',
-    letterSpacing: '0.2em',
-    textTransform: 'uppercase',
-    color: C.blood,
-    display: 'block',
-    marginBottom: '2px',
-  },
-  warriorName: {
-    fontFamily: "'Caslon Antique', 'Palatino Linotype', Georgia, serif",
-    fontSize: '17px',
+    fontSize: '18px',
     fontWeight: '700',
     color: C.parchment,
     lineHeight: '1',
   },
-  classLabel: {
-    fontSize: '9px',
-    letterSpacing: '0.1em',
-    textTransform: 'uppercase',
-    color: C.mist,
-    marginTop: '3px',
-  },
-
-  // ── Portrait + stats row ──
-  headerRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-    marginBottom: '10px',
-  },
-  portraitCol: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: '4px',
-    flexShrink: 0,
-  },
-  portrait: {
-    width: '48px',
-    height: '48px',
-    borderRadius: '50%',
-    objectFit: 'cover',
-    objectPosition: 'top center',
-    border: `1px solid ${C.dim}`,
-    display: 'block',
-  },
-  portraitCaptain: {
-    width: '48px',
-    height: '48px',
-    borderRadius: '50%',
-    objectFit: 'cover',
-    objectPosition: 'top center',
-    border: `2px solid ${C.blood}`,
-    display: 'block',
-  },
-
-  // ── Stats (3×2 grid) ──
-  statsRow: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(3, 1fr)',
-    gap: '4px',
-    flex: 1,
-  },
-  statBox: {
-    background: C.fog,
-    border: `1px solid ${C.dim}`,
-    padding: '3px 5px',
-    textAlign: 'center',
-  },
-  statBoxModified: {
-    background: C.fog,
-    border: `1px solid ${C.dim}`,
-    padding: '3px 5px',
-    textAlign: 'center',
-  },
-  statLabel: {
-    fontFamily: "'Oswald', sans-serif",
-    fontSize: '8px',
-    letterSpacing: '0.12em',
-    textTransform: 'uppercase',
-    color: C.mist,
-    display: 'block',
-    lineHeight: '1',
-  },
-  statVal: {
-    fontFamily: "'Oswald', sans-serif",
-    fontSize: '14px',
-    fontWeight: '700',
-    color: C.bone,
-    display: 'block',
-    lineHeight: '1.2',
-  },
-  statValModified: {
-    fontFamily: "'Oswald', sans-serif",
-    fontSize: '14px',
-    fontWeight: '700',
-    color: C.green,
-    textDecoration: 'underline',
-    display: 'block',
-    lineHeight: '1.2',
-  },
-  statValDebuffed: {
-    fontFamily: "'Oswald', sans-serif",
-    fontSize: '14px',
-    fontWeight: '700',
-    color: C.blood,
-    display: 'block',
-    lineHeight: '1.2',
-  },
-
-  // ── Equipment chips (matches builder eq-chip grid) ──
-  sectionHeader: {
+  headerRight: {
     display: 'flex',
     alignItems: 'center',
     gap: '6px',
-    paddingBottom: '4px',
-    borderBottom: `1px solid ${C.dim}`,
-    marginBottom: '6px',
+    flexShrink: 0,
   },
-  sectionTitle: {
-    fontFamily: "'Oswald', sans-serif",
-    fontSize: '9px',
-    letterSpacing: '0.18em',
+  markImg: {
+    width: '22px',
+    height: '22px',
+    borderRadius: '50%',
+    objectFit: 'cover',
+    border: `1px solid ${C.dim}`,
+    flexShrink: 0,
+  },
+  markName: {
+    fontSize: '10px',
+    letterSpacing: '0.1em',
     textTransform: 'uppercase',
-    color: C.bone,
+    color: C.mist,
   },
-  equipGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(4, 1fr)',
-    gap: '5px',
-    marginBottom: '8px',
-  },
-  chip: {
+
+  // Warrior rows
+  warriors: {
     display: 'flex',
     flexDirection: 'column',
-    alignItems: 'center',
-    background: '#0d0d0d',
-    border: `1px solid ${C.dim}`,
-    padding: '6px 4px 0',
-    textAlign: 'center',
-    minHeight: '72px',
-    boxSizing: 'border-box',
   },
-  chipIP: {
+  warriorRow: {
+    padding: '7px 0',
+    borderBottom: `1px solid ${C.dim}`,
+  },
+
+  // Name line: portrait + name + captain badge
+  nameLine: {
     display: 'flex',
-    flexDirection: 'column',
     alignItems: 'center',
-    background: '#0d0d0d',
-    border: `1px solid ${C.dim}`,
-    padding: '6px 4px 0',
-    textAlign: 'center',
-    minHeight: '72px',
-    boxSizing: 'border-box',
-    textDecoration: 'underline',
+    gap: '7px',
+    marginBottom: '5px',
   },
-  chipIcon: {
-    width: '28px',
-    height: '28px',
-    marginBottom: '3px',
-    opacity: 0.9,
+  portrait: {
+    width: '26px',
+    height: '26px',
+    borderRadius: '50%',
+    objectFit: 'cover',
+    objectPosition: 'top center',
+    border: `1px solid ${C.dim}`,
     flexShrink: 0,
     display: 'block',
   },
-  chipName: {
+  portraitCaptain: {
+    width: '26px',
+    height: '26px',
+    borderRadius: '50%',
+    objectFit: 'cover',
+    objectPosition: 'top center',
+    border: `1.5px solid ${C.blood}`,
+    flexShrink: 0,
+    display: 'block',
+  },
+  warriorName: {
+    fontFamily: "'Caslon Antique', 'Palatino Linotype', Georgia, serif",
+    fontSize: '15px',
+    fontWeight: '700',
+    color: C.parchment,
+    lineHeight: '1',
+    flex: 1,
+  },
+  captainBadge: {
     fontFamily: "'Oswald', sans-serif",
     fontSize: '8px',
-    letterSpacing: '0.05em',
+    fontWeight: '700',
+    letterSpacing: '0.15em',
     textTransform: 'uppercase',
-    color: C.bone,
-    lineHeight: '1.15',
-    flex: '1',
-    overflow: 'hidden',
-  },
-  chipNameIP: {
-    fontFamily: "'Oswald', sans-serif",
-    fontSize: '8px',
-    letterSpacing: '0.05em',
-    textTransform: 'uppercase',
-    color: C.bone,
-    lineHeight: '1.15',
-    flex: '1',
-    overflow: 'hidden',
-    textDecoration: 'underline',
-  },
-  chipStats: {
-    width: '100%',
-    display: 'flex',
-    borderTop: `1px solid ${C.dim}`,
-    marginTop: '4px',
-    height: '16px',
-  },
-  chipStatBox: {
-    flex: '1',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  chipStatBoxBorder: {
-    flex: '1',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderLeft: `1px solid ${C.dim}`,
-  },
-  chipStatDmg: {
-    fontFamily: "'Oswald', sans-serif",
-    fontSize: '8px',
     color: C.blood,
-    letterSpacing: '0.04em',
-    lineHeight: '1',
+    flexShrink: 0,
   },
-  chipStatRng: {
-    fontFamily: "'Oswald', sans-serif",
-    fontSize: '8px',
-    color: C.bone,
-    letterSpacing: '0.04em',
-    lineHeight: '1',
+  customSubname: {
+    fontSize: '9px',
+    color: C.mist,
+    letterSpacing: '0.06em',
+    textTransform: 'uppercase',
   },
 
-  // ── Abilities (pills) ──
-  abilitiesPills: {
+  // Stats: single text line with · separators
+  statsLine: {
+    display: 'flex',
+    gap: '3px',
+    alignItems: 'center',
+    marginBottom: '5px',
+    flexWrap: 'wrap',
+    paddingLeft: '33px', // align with name (portrait width + gap)
+  },
+  statChunk: {
+    fontFamily: "'Oswald', sans-serif",
+    fontSize: '10px',
+    letterSpacing: '0.05em',
+    color: C.bone,
+    whiteSpace: 'nowrap',
+  },
+  statChunkModified: {
+    fontFamily: "'Oswald', sans-serif",
+    fontSize: '10px',
+    letterSpacing: '0.05em',
+    color: C.green,
+    textDecoration: 'underline',
+    whiteSpace: 'nowrap',
+  },
+  statChunkDebuffed: {
+    fontFamily: "'Oswald', sans-serif",
+    fontSize: '10px',
+    letterSpacing: '0.05em',
+    color: C.blood,
+    whiteSpace: 'nowrap',
+  },
+  statSep: {
+    fontSize: '9px',
+    color: C.mist,
+  },
+
+  // Pills row (equipment + abilities share same pill style, abilities slightly muted)
+  pillsRow: {
     display: 'flex',
     flexWrap: 'wrap',
-    gap: '4px',
+    gap: '3px',
+    paddingLeft: '33px',
+    marginBottom: '4px',
+  },
+  pill: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '3px',
+    fontFamily: "'Oswald', sans-serif",
+    fontSize: '9px',
+    letterSpacing: '0.04em',
+    textTransform: 'uppercase',
+    color: C.bone,
+    background: C.fog,
+    border: `1px solid ${C.dim}`,
+    padding: '2px 5px',
+    whiteSpace: 'nowrap',
+  },
+  pillIP: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '3px',
+    fontFamily: "'Oswald', sans-serif",
+    fontSize: '9px',
+    letterSpacing: '0.04em',
+    textTransform: 'uppercase',
+    color: C.bone,
+    background: C.fog,
+    border: `1px solid ${C.dim}`,
+    padding: '2px 5px',
+    whiteSpace: 'nowrap',
+    textDecoration: 'underline',
+  },
+  pillIcon: {
+    width: '11px',
+    height: '11px',
+    opacity: 0.7,
+    flexShrink: 0,
+    display: 'block',
+  },
+  pillStat: {
+    fontSize: '8px',
+    color: C.mist,
+    letterSpacing: '0.03em',
   },
   abilityPill: {
     fontFamily: "'Oswald', sans-serif",
-    fontSize: '9px',
-    fontWeight: '700',
-    letterSpacing: '0.08em',
+    fontSize: '8px',
+    letterSpacing: '0.06em',
     textTransform: 'uppercase',
-    color: C.bone,
+    color: C.mist,
     border: `1px solid ${C.dim}`,
-    background: C.fog,
-    padding: '3px 7px',
+    padding: '2px 5px',
     whiteSpace: 'nowrap',
+    background: 'transparent',
   },
 
-  // ── Footer ──
+  // Footer
   footer: {
-    marginTop: '12px',
-    paddingTop: '8px',
-    borderTop: `1px solid ${C.dim}`,
-    fontSize: '8px',
+    marginTop: '10px',
+    fontSize: '7px',
     color: C.mist,
     letterSpacing: '0.04em',
     textAlign: 'center',
+    borderTop: `1px solid ${C.dim}`,
+    paddingTop: '7px',
   },
 }
-
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
@@ -402,19 +273,15 @@ const DiscordImageRoster = forwardRef(function DiscordImageRoster({ state }, ref
   return (
     <div ref={ref} style={S.page}>
 
-      {/* ── Company header ── */}
-      <div style={S.header}>
+      {/* ── Header ── */}
+      <div style={S.pageHeader}>
         <div>
           <div style={S.companyName}>{companyName || 'Unnamed Company'}</div>
-          <div style={S.companySub}>Doom Company Roster</div>
         </div>
         {markName && (
-          <div style={S.markWrap}>
-            {markImgSrc && <img src={markImgSrc} alt={markName} style={S.markImg} crossOrigin="anonymous" />}
-            <div>
-              <div style={S.markLabel}>Company Mark</div>
-              <div style={S.markName}>{markName}</div>
-            </div>
+          <div style={S.headerRight}>
+            {markImgSrc && <img src={markImgSrc} alt={markName} style={S.markImg} />}
+            <span style={S.markName}>{markName}</span>
           </div>
         )}
       </div>
@@ -431,22 +298,39 @@ const DiscordImageRoster = forwardRef(function DiscordImageRoster({ state }, ref
           const isDualWielding = slot.weapon1 === 'Light Weapon' && slot.weapon2 === 'Light Weapon'
           const dualWieldBonus = (isDualWielding && !wdata.fixedDualWield) ? 1 : 0
 
-          // Equipment chips
-          const equipChips = []
+          // Build stat entries
+          const stats = STAT_KEYS.map(s => {
+            let base = wdata.stats[s]
+            if (s === 'ATK') base = parseInt(base) + dualWieldBonus
+            const improved = (slot.statImproves?.includes(s)) || (spent.includes('stat') && slot.statImprove === s)
+            const debuffed = slot.weapon1 === 'Polearm (one-handed)' && s === 'COM'
+            const both = improved && debuffed
+            let val = base
+            if (improved && !both) val = improveStatDisplay(val, s)
+            else if (debuffed && !both) val = debuffStatDisplay(val, s)
+            const isModified = (improved && !both) || (s === 'ATK' && dualWieldBonus > 0 && !both)
+            return { s, val, isModified, isDebuffed: debuffed && !both }
+          })
+
+          // Build equipment pills
+          const equipPills = []
           for (const [weaponKey, isIP] of [[slot.weapon1, false], [slot.weapon2, spent.includes('weapon2')]]) {
             if (!weaponKey) continue
             const w = WEAPONS[weaponKey]
-            equipChips.push({ key: weaponKey + (isIP ? '-ip' : ''), iconKey: weaponKey, name: weaponKey, dmg: w?.damage > 0 ? `${w.damage} DMG` : null, rng: (w?.range && w.range !== '—' && w.range !== 'Base') ? w.range : null, isIP })
+            const statParts = []
+            if (w?.damage > 0) statParts.push(`${w.damage}dmg`)
+            if (w?.range && w.range !== '—' && w.range !== 'Base') statParts.push(w.range)
+            equipPills.push({ key: weaponKey + (isIP ? '-ip' : ''), iconKey: weaponKey, name: weaponKey, stat: statParts.join(' · '), isIP })
           }
           if (slot.climbing && slot.climbing !== 'None') {
             const c = CLIMBING_ITEMS[slot.climbing]
-            equipChips.push({ key: 'climb', iconKey: slot.climbing, name: slot.climbing, dmg: null, rng: c ? `HT ${c.height}` : null, isIP: spent.includes('climbing') })
+            equipPills.push({ key: 'climb', iconKey: slot.climbing, name: slot.climbing, stat: c ? `HT ${c.height}` : null, isIP: spent.includes('climbing') })
           }
           if (slot.consumable && slot.consumable !== 'None') {
-            equipChips.push({ key: 'consumable', iconKey: slot.consumable, name: slot.consumable, dmg: null, rng: null, isIP: spent.includes('consumable') })
+            equipPills.push({ key: 'consumable', iconKey: slot.consumable, name: slot.consumable, stat: null, isIP: spent.includes('consumable') })
           }
 
-          // Ability names
+          // Build ability names
           const abilityNames = (wdata.abilities || []).map(a => a.name.toUpperCase())
           for (const wKey of [slot.weapon1, slot.weapon2]) {
             if (!wKey) continue
@@ -454,97 +338,55 @@ const DiscordImageRoster = forwardRef(function DiscordImageRoster({ state }, ref
             if (w?.abilityName) abilityNames.push(w.abilityName.toUpperCase())
           }
 
+          const displayName = slot.customName || slot.type
+
           return (
-            <div key={idx} style={isCaptain ? S.cardCaptain : S.card}>
+            <div key={idx} style={S.warriorRow}>
 
-              {/* Header: name + class */}
-              <div style={S.slotHeader}>
-                <div>
-                  {isCaptain && <span style={S.captainLabel}>★ Captain</span>}
-                  <div style={S.warriorName}>{slot.customName || slot.type}</div>
-                  {slot.customName && <div style={S.classLabel}>{slot.type}</div>}
-                </div>
+              {/* Name row */}
+              <div style={S.nameLine}>
+                {portraitSrc
+                  ? <img src={portraitSrc} alt={slot.type} style={isCaptain ? S.portraitCaptain : S.portrait} />
+                  : <div style={{ ...S.portrait, background: C.fog }} />
+                }
+                <span style={S.warriorName}>{displayName}</span>
+                {slot.customName && <span style={S.customSubname}>{slot.type}</span>}
+                {isCaptain && <span style={S.captainBadge}>★ Captain</span>}
               </div>
 
-              {/* Portrait + stats */}
-              <div style={S.headerRow}>
-                <div style={S.portraitCol}>
-                  {portraitSrc
-                    ? <img src={portraitSrc} alt={slot.type} style={isCaptain ? S.portraitCaptain : S.portrait} />
-                    : <div style={{ ...S.portrait, background: C.fog }} />
-                  }
-                </div>
-                <div style={S.statsRow}>
-                  {STAT_KEYS.map(s => {
-                    let base = wdata.stats[s]
-                    if (s === 'ATK') base = parseInt(base) + dualWieldBonus
-
-                    const improved = (slot.statImproves?.includes(s)) || (spent.includes('stat') && slot.statImprove === s)
-                    const debuffed = slot.weapon1 === 'Polearm (one-handed)' && s === 'COM'
-                    const both = improved && debuffed
-
-                    let val = base
-                    if (improved && !both) val = improveStatDisplay(val, s)
-                    else if (debuffed && !both) val = debuffStatDisplay(val, s)
-
-                    const isModified = (improved && !both) || (s === 'ATK' && dualWieldBonus > 0 && !both)
-                    const isDebuffed = debuffed && !both
-
-                    return (
-                      <div key={s} style={S.statBox}>
-                        <span style={S.statLabel}>{s}</span>
-                        <span style={isModified ? S.statValModified : isDebuffed ? S.statValDebuffed : S.statVal}>
-                          {val}
-                        </span>
-                      </div>
-                    )
-                  })}
-                </div>
+              {/* Stats line */}
+              <div style={S.statsLine}>
+                {stats.map((st, i) => (
+                  <span key={st.s} style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                    {i > 0 && <span style={S.statSep}>·</span>}
+                    <span style={st.isModified ? S.statChunkModified : st.isDebuffed ? S.statChunkDebuffed : S.statChunk}>
+                      {st.s} {st.val}
+                    </span>
+                  </span>
+                ))}
               </div>
 
-              {/* Equipment chips */}
-              {equipChips.length > 0 && (
-                <div style={{ marginBottom: '8px' }}>
-                  <div style={S.sectionHeader}>
-                    <span style={S.sectionTitle}>Equipment</span>
-                  </div>
-                  <div style={S.equipGrid}>
-                    {equipChips.map(chip => (
-                      <div key={chip.key} style={S.chip}>
-                        {ITEM_ICONS[chip.iconKey]
-                          ? <img src={ITEM_ICONS[chip.iconKey]} alt="" style={S.chipIcon} />
-                          : <div style={{ ...S.chipIcon, background: C.fog }} />
-                        }
-                        <span style={chip.isIP ? S.chipNameIP : S.chipName}>{chip.name}</span>
-                        {(chip.dmg || chip.rng) && (
-                          <div style={S.chipStats}>
-                            <div style={S.chipStatBox}>
-                              {chip.dmg && <span style={S.chipStatDmg}>{chip.dmg}</span>}
-                            </div>
-                            {chip.rng && (
-                              <div style={S.chipStatBoxBorder}>
-                                <span style={S.chipStatRng}>{chip.rng}</span>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+              {/* Equipment pills */}
+              {equipPills.length > 0 && (
+                <div style={S.pillsRow}>
+                  {equipPills.map(pill => (
+                    <span key={pill.key} style={pill.isIP ? S.pillIP : S.pill}>
+                      {ITEM_ICONS[pill.iconKey] && (
+                        <img src={ITEM_ICONS[pill.iconKey]} alt="" style={S.pillIcon} />
+                      )}
+                      {pill.name}
+                      {pill.stat && <span style={S.pillStat}>{pill.stat}</span>}
+                    </span>
+                  ))}
                 </div>
               )}
 
-              {/* Abilities — pills */}
+              {/* Ability pills */}
               {abilityNames.length > 0 && (
-                <div>
-                  <div style={S.sectionHeader}>
-                    <span style={S.sectionTitle}>Abilities</span>
-                  </div>
-                  <div style={S.abilitiesPills}>
-                    {abilityNames.map(name => (
-                      <span key={name} style={S.abilityPill}>{name}</span>
-                    ))}
-                  </div>
+                <div style={S.pillsRow}>
+                  {abilityNames.map(name => (
+                    <span key={name} style={S.abilityPill}>{name}</span>
+                  ))}
                 </div>
               )}
 
@@ -553,9 +395,9 @@ const DiscordImageRoster = forwardRef(function DiscordImageRoster({ state }, ref
         })}
       </div>
 
-      {/* ── Footer ── */}
+      {/* Footer */}
       <div style={S.footer}>
-        1490 DOOM · Compatible with the Buer Games Third Party License · Warrior &amp; Mark artwork © Buer Games
+        1490 DOOM · Warrior &amp; Mark artwork © Buer Games
       </div>
 
     </div>
