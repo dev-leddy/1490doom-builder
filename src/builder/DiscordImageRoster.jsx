@@ -244,83 +244,14 @@ const S = {
     lineHeight: '1.2',
   },
 
-  // ── Upgrade tray ──
-  upgradeTray: {
-    marginBottom: '8px',
-  },
-  upgradeTrayHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    marginBottom: '6px',
-  },
-  upgradeTrayLabel: {
-    fontFamily: "'Oswald', sans-serif",
-    fontSize: '9px',
-    letterSpacing: '0.2em',
-    textTransform: 'uppercase',
-    color: C.blood,
-  },
-  upgradeCards: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(4, 1fr)',
-    gap: '4px',
-  },
-  upgradeCard: {
-    background: 'rgba(255,255,255,0.05)',
-    border: `1px solid ${C.dim}`,
-    borderRadius: '3px',
-    padding: '5px 4px',
-    textAlign: 'center',
-  },
-  upgradeCardSelected: {
-    background: 'rgba(190,65,39,0.15)',
-    border: `1px solid ${C.blood}`,
-    borderRadius: '3px',
-    padding: '5px 4px',
-    textAlign: 'center',
-  },
-  upgradeIcon: {
-    width: '14px',
-    height: '14px',
-    margin: '0 auto 3px',
-    display: 'block',
-    filter: 'brightness(0) invert(0.4)',
-  },
-  upgradeIconSelected: {
-    width: '14px',
-    height: '14px',
-    margin: '0 auto 3px',
-    display: 'block',
-    filter: 'brightness(0) invert(0.7) sepia(1) saturate(2) hue-rotate(330deg)',
-  },
-  upgradeLabel: {
-    fontFamily: "'Oswald', sans-serif",
-    fontSize: '7px',
-    letterSpacing: '0.03em',
-    textTransform: 'uppercase',
-    color: C.mist,
-    lineHeight: '1.2',
-    display: 'block',
-  },
-  upgradeLabelSelected: {
-    fontFamily: "'Oswald', sans-serif",
-    fontSize: '7px',
-    letterSpacing: '0.03em',
-    textTransform: 'uppercase',
-    color: C.blood,
-    lineHeight: '1.2',
-    display: 'block',
-  },
-
-  // ── Equipment ──
+  // ── Equipment chips (matches builder eq-chip grid) ──
   sectionHeader: {
     display: 'flex',
     alignItems: 'center',
     gap: '6px',
     paddingBottom: '4px',
     borderBottom: `1px solid ${C.dim}`,
-    marginBottom: '4px',
+    marginBottom: '6px',
   },
   sectionTitle: {
     fontFamily: "'Oswald', sans-serif",
@@ -329,45 +260,97 @@ const S = {
     textTransform: 'uppercase',
     color: C.bone,
   },
-  equipList: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '3px',
+  equipGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(4, 1fr)',
+    gap: '5px',
     marginBottom: '8px',
   },
-  equipRow: {
+  chip: {
     display: 'flex',
+    flexDirection: 'column',
     alignItems: 'center',
-    gap: '5px',
+    background: '#0d0d0d',
+    border: `1px solid ${C.dim}`,
+    padding: '6px 4px 0',
+    textAlign: 'center',
+    minHeight: '72px',
+    boxSizing: 'border-box',
   },
-  equipIcon: {
-    width: '11px',
-    height: '11px',
-    flexShrink: 0,
-    filter: 'brightness(0) invert(0.5)',
-  },
-  equipName: {
-    fontSize: '11px',
-    textTransform: 'uppercase',
-    letterSpacing: '0.04em',
-    color: C.bone,
-  },
-  equipNameIP: {
-    fontSize: '11px',
-    textTransform: 'uppercase',
-    letterSpacing: '0.04em',
-    color: C.bone,
+  chipIP: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    background: '#0d0d0d',
+    border: `1px solid ${C.dim}`,
+    padding: '6px 4px 0',
+    textAlign: 'center',
+    minHeight: '72px',
+    boxSizing: 'border-box',
     textDecoration: 'underline',
   },
-  equipPill: {
+  chipIcon: {
+    width: '28px',
+    height: '28px',
+    marginBottom: '3px',
+    filter: 'sepia(0.3) brightness(0.95)',
+    opacity: '0.9',
+    flexShrink: 0,
+  },
+  chipName: {
+    fontFamily: "'Oswald', sans-serif",
     fontSize: '8px',
-    border: `1px solid ${C.dim}`,
-    background: C.fog,
-    padding: '1px 4px',
-    color: C.mist,
     letterSpacing: '0.05em',
     textTransform: 'uppercase',
-    whiteSpace: 'nowrap',
+    color: C.bone,
+    lineHeight: '1.15',
+    flex: '1',
+    overflow: 'hidden',
+  },
+  chipNameIP: {
+    fontFamily: "'Oswald', sans-serif",
+    fontSize: '8px',
+    letterSpacing: '0.05em',
+    textTransform: 'uppercase',
+    color: C.bone,
+    lineHeight: '1.15',
+    flex: '1',
+    overflow: 'hidden',
+    textDecoration: 'underline',
+  },
+  chipStats: {
+    width: '100%',
+    display: 'flex',
+    borderTop: `1px solid ${C.dim}`,
+    marginTop: '4px',
+    height: '16px',
+  },
+  chipStatBox: {
+    flex: '1',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  chipStatBoxBorder: {
+    flex: '1',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderLeft: `1px solid ${C.dim}`,
+  },
+  chipStatDmg: {
+    fontFamily: "'Oswald', sans-serif",
+    fontSize: '8px',
+    color: C.blood,
+    letterSpacing: '0.04em',
+    lineHeight: '1',
+  },
+  chipStatRng: {
+    fontFamily: "'Oswald', sans-serif",
+    fontSize: '8px',
+    color: C.bone,
+    letterSpacing: '0.04em',
+    lineHeight: '1',
   },
 
   // ── Abilities ──
@@ -402,29 +385,6 @@ const S = {
   },
 }
 
-// ── Upgrade card definitions ───────────────────────────────────────────────────
-
-const UPGRADE_DEFS = [
-  { id: 'weapon2',    icon: 'Dual Wield',          label: '2nd\nWeapon' },
-  { id: 'climbing',   icon: 'Grappling Hook',       label: 'Climbing\nItem' },
-  { id: 'consumable', icon: 'Fog of War Flask',     label: 'Consumable\nItem' },
-  { id: 'stat',       icon: null,                   label: 'Improve\na Stat' },
-]
-
-const StatArrowSVG = ({ selected }) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke={selected ? '#be4127' : '#444'}
-    strokeWidth="2.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    style={{ width: '14px', height: '14px', display: 'block', margin: '0 auto 3px' }}
-  >
-    <line x1="12" y1="19" x2="12" y2="5" />
-    <polyline points="5 12 12 5 19 12" />
-  </svg>
-)
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
@@ -476,22 +436,19 @@ const DiscordImageRoster = forwardRef(function DiscordImageRoster({ state }, ref
           const isDualWielding = slot.weapon1 === 'Light Weapon' && slot.weapon2 === 'Light Weapon'
           const dualWieldBonus = (isDualWielding && !wdata.fixedDualWield) ? 1 : 0
 
-          // Equipment rows
-          const equipRows = []
+          // Equipment chips
+          const equipChips = []
           for (const [weaponKey, isIP] of [[slot.weapon1, false], [slot.weapon2, spent.includes('weapon2')]]) {
             if (!weaponKey) continue
             const w = WEAPONS[weaponKey]
-            const pills = []
-            if (w?.damage > 0) pills.push(`${w.damage}dmg`)
-            if (w?.range && w.range !== 'Base' && w.range !== '—') pills.push(w.range)
-            equipRows.push({ key: weaponKey + (isIP ? '-ip' : ''), iconKey: weaponKey, name: weaponKey, pills, isIP })
+            equipChips.push({ key: weaponKey + (isIP ? '-ip' : ''), iconKey: weaponKey, name: weaponKey, dmg: w?.damage > 0 ? `${w.damage} DMG` : null, rng: (w?.range && w.range !== '—' && w.range !== 'Base') ? w.range : null, isIP })
           }
           if (slot.climbing && slot.climbing !== 'None') {
             const c = CLIMBING_ITEMS[slot.climbing]
-            equipRows.push({ key: 'climb', iconKey: slot.climbing, name: slot.climbing, pills: c ? [`HT ${c.height}`] : [], isIP: spent.includes('climbing') })
+            equipChips.push({ key: 'climb', iconKey: slot.climbing, name: slot.climbing, dmg: null, rng: c ? `HT ${c.height}` : null, isIP: spent.includes('climbing') })
           }
           if (slot.consumable && slot.consumable !== 'None') {
-            equipRows.push({ key: 'consumable', iconKey: slot.consumable, name: slot.consumable, pills: [], isIP: spent.includes('consumable') })
+            equipChips.push({ key: 'consumable', iconKey: slot.consumable, name: slot.consumable, dmg: null, rng: null, isIP: spent.includes('consumable') })
           }
 
           // Ability names
@@ -500,16 +457,6 @@ const DiscordImageRoster = forwardRef(function DiscordImageRoster({ state }, ref
             if (!wKey) continue
             const w = WEAPONS[wKey]
             if (w?.abilityName) abilityNames.push(w.abilityName.toUpperCase())
-          }
-
-          // Upgrade card labels (what was actually selected)
-          const upgradeLabels = {
-            weapon2:    slot.weapon2 || null,
-            climbing:   (slot.climbing && slot.climbing !== 'None') ? slot.climbing : null,
-            consumable: (slot.consumable && slot.consumable !== 'None') ? slot.consumable : null,
-            stat:       slot.statImproves?.length
-              ? `+${slot.statImproves.join(', ')}`
-              : slot.statImprove ? `+${slot.statImprove}` : null,
           }
 
           return (
@@ -560,53 +507,32 @@ const DiscordImageRoster = forwardRef(function DiscordImageRoster({ state }, ref
                 </div>
               </div>
 
-              {/* Upgrade tray — only if any upgrades purchased */}
-              {spent.length > 0 && (
-                <div style={S.upgradeTray}>
-                  <div style={S.upgradeTrayHeader}>
-                    <span style={S.upgradeTrayLabel}>Upgrades</span>
-                  </div>
-                  <div style={S.upgradeCards}>
-                    {UPGRADE_DEFS.map(upg => {
-                      const selected = spent.includes(upg.id)
-                      const cardStyle = selected ? S.upgradeCardSelected : S.upgradeCard
-                      const labelStyle = selected ? S.upgradeLabelSelected : S.upgradeLabel
-                      const sublabel = selected && upgradeLabels[upg.id]
-                        ? upgradeLabels[upg.id]
-                        : upg.label
-
-                      return (
-                        <div key={upg.id} style={cardStyle}>
-                          {upg.icon
-                            ? <img
-                                src={ITEM_ICONS[upg.icon] || ''}
-                                alt=""
-                                style={selected ? S.upgradeIconSelected : S.upgradeIcon}
-                              />
-                            : <StatArrowSVG selected={selected} />
-                          }
-                          <span style={labelStyle}>{sublabel}</span>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Equipment */}
-              {equipRows.length > 0 && (
+              {/* Equipment chips */}
+              {equipChips.length > 0 && (
                 <div style={{ marginBottom: '8px' }}>
                   <div style={S.sectionHeader}>
                     <span style={S.sectionTitle}>Equipment</span>
                   </div>
-                  <div style={S.equipList}>
-                    {equipRows.map(row => (
-                      <div key={row.key} style={S.equipRow}>
-                        {ITEM_ICONS[row.iconKey] && (
-                          <img src={ITEM_ICONS[row.iconKey]} alt="" style={S.equipIcon} />
+                  <div style={S.equipGrid}>
+                    {equipChips.map(chip => (
+                      <div key={chip.key} style={S.chip}>
+                        {ITEM_ICONS[chip.iconKey]
+                          ? <img src={ITEM_ICONS[chip.iconKey]} alt="" style={S.chipIcon} />
+                          : <div style={{ ...S.chipIcon, background: C.fog }} />
+                        }
+                        <span style={chip.isIP ? S.chipNameIP : S.chipName}>{chip.name}</span>
+                        {(chip.dmg || chip.rng) && (
+                          <div style={S.chipStats}>
+                            <div style={S.chipStatBox}>
+                              {chip.dmg && <span style={S.chipStatDmg}>{chip.dmg}</span>}
+                            </div>
+                            {chip.rng && (
+                              <div style={S.chipStatBoxBorder}>
+                                <span style={S.chipStatRng}>{chip.rng}</span>
+                              </div>
+                            )}
+                          </div>
                         )}
-                        <span style={row.isIP ? S.equipNameIP : S.equipName}>{row.name}</span>
-                        {row.pills.map(p => <span key={p} style={S.equipPill}>{p}</span>)}
                       </div>
                     ))}
                   </div>
