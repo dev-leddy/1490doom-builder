@@ -50,20 +50,50 @@ function buildStats(slot, wdata) {
   }).join('  ')
 }
 
-// ── Equipment line ────────────────────────────────────────────────────────────
+// ── IP upgrades line ──────────────────────────────────────────────────────────
+
+function buildIPLine(slot) {
+  const parts = []
+
+  if (slot.ip?.length) {
+    for (const ip of slot.ip) {
+      if (ip === 'weapon2') {
+        parts.push('Dual Wield')
+      } else if (ip === 'climbing' && slot.climbing && slot.climbing !== 'None') {
+        parts.push(slot.climbing)
+      } else if (ip === 'consumable' && slot.consumable && slot.consumable !== 'None') {
+        parts.push(slot.consumable)
+      } else if (ip === 'stat') {
+        // Standard: single statImprove; campaign: statImproves array
+        if (slot.statImproves?.length) {
+          parts.push(`Stat (${slot.statImproves.join(', ')})`)
+        } else if (slot.statImprove) {
+          parts.push(`Stat (${slot.statImprove})`)
+        }
+      }
+    }
+  } else if (slot.statImproves?.length) {
+    // Campaign warriors without slot.ip wrapper
+    parts.push(`Stat (${slot.statImproves.join(', ')})`)
+  }
+
+  return parts.length ? `IP: ${parts.join(' · ')}` : null
+}
+
+// ── Equipment lines ───────────────────────────────────────────────────────────
 
 function weaponLabel(weaponName) {
   if (!weaponName) return null
   const w = WEAPONS[weaponName]
   if (!w) return weaponName
-  const parts = [weaponName]
+  const details = []
   // Show damage for non-zero weapons, range for ranged
-  if (w.damage > 0) parts.push(`+${w.damage} dmg`)
-  if (w.range && w.range !== 'Base' && w.range !== '—') parts.push(w.range)
-  return parts.length > 1 ? `${weaponName} (${parts.slice(1).join(', ')})` : weaponName
+  if (w.damage > 0) details.push(`${w.damage}dmg`)
+  if (w.range && w.range !== 'Base' && w.range !== '—') details.push(w.range)
+  return details.length ? `${weaponName} (${details.join(', ')})` : weaponName
 }
 
-function buildEquipment(slot) {
+function buildEquipmentLines(slot) {
   const items = []
 
   if (slot.weapon1) items.push(weaponLabel(slot.weapon1))
@@ -79,16 +109,13 @@ function buildEquipment(slot) {
     items.push(slot.consumable)
   }
 
-  return items.join(' · ')
+  return items.filter(Boolean)
 }
 
 // ── Abilities line ────────────────────────────────────────────────────────────
 
 function buildAbilities(slot, wdata) {
   const names = []
-
-  // Captain Re-Roll first
-  if (slot.isCaptain) names.push('★ Captain Re-Roll')
 
   // Class abilities
   if (wdata?.abilities) {
@@ -114,19 +141,23 @@ function formatWarrior(slot) {
 
   const lines = []
 
-  // Header: bold name, class in parens if custom-named, captain star
+  // Header: bold name, class in parens if custom-named, captain tag inline
   const displayName = slot.customName
     ? `${slot.customName} (${slot.type})`
     : slot.type
-  const captainTag = slot.isCaptain ? ' ★' : ''
-  lines.push(`**${displayName}**${captainTag}`)
+  const captainTag = slot.isCaptain ? ' ★ Captain' : ''
+  lines.push(`**${displayName}${captainTag}**`)
+
+  // IP upgrades (directly below class name)
+  const ipLine = buildIPLine(slot)
+  if (ipLine) lines.push(ipLine)
 
   // Stats row
   lines.push(buildStats(slot, wdata))
 
-  // Equipment
-  const gear = buildEquipment(slot)
-  if (gear) lines.push(gear)
+  // Equipment — each item on its own line
+  const equipItems = buildEquipmentLines(slot)
+  for (const item of equipItems) lines.push(item)
 
   // Abilities
   const abilities = buildAbilities(slot, wdata)
