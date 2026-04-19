@@ -40,12 +40,18 @@ export default function ShareModal() {
     if (!imageRosterRef.current) return
     setImageStatus('rendering')
 
+    // Wait for all web fonts (Oswald, Caslon Antique) to finish loading
+    // before capture — otherwise html2canvas falls back to system fonts
+    // which have different metrics and break the layout
+    await document.fonts.ready
+
     const blobPromise = html2canvas(imageRosterRef.current, {
       backgroundColor: '#080808',
       scale: 2,
       useCORS: true,
       allowTaint: true,
       logging: false,
+      removeContainer: true,
     }).then(canvas => new Promise((resolve, reject) => {
       canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('toBlob failed')), 'image/png')
     }))
@@ -86,7 +92,7 @@ export default function ShareModal() {
   return (
     <>
       {/* Off-screen image roster for html2canvas capture */}
-      <div style={{ position: 'fixed', left: '-9999px', top: 0, pointerEvents: 'none', zIndex: -1 }}>
+      <div style={{ position: 'absolute', top: '-99999px', left: 0, pointerEvents: 'none', opacity: 0 }}>
         <DiscordImageRoster ref={imageRosterRef} state={state} />
       </div>
 
