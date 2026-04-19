@@ -5,7 +5,7 @@
 import { forwardRef, useMemo } from 'react'
 import { WARRIORS, MARKS_MAP } from '../data/warriors'
 import { WEAPONS, CLIMBING_ITEMS } from '../data/weapons'
-import { WARRIOR_IMAGES, MARK_IMAGES, ITEM_ICONS } from '../data/images'
+import { ITEM_ICONS } from '../data/images'
 
 // ── Stat helpers ──────────────────────────────────────────────────────────────
 
@@ -49,10 +49,6 @@ const S = {
     marginBottom: '10px',
     paddingBottom: '8px',
     borderBottom: `1px solid ${C.dim}`,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: '8px',
   },
   companyName: {
     fontFamily: "'Caslon Antique', 'Palatino Linotype', Georgia, serif",
@@ -60,26 +56,21 @@ const S = {
     fontWeight: '700',
     color: C.parchment,
     lineHeight: '1',
-  },
-  headerRight: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    flexShrink: 0,
-  },
-  markImg: {
-    width: '22px',
-    height: '22px',
-    borderRadius: '50%',
-    objectFit: 'cover',
-    border: `1px solid ${C.dim}`,
-    flexShrink: 0,
+    marginBottom: '4px',
   },
   markName: {
+    fontFamily: "'Oswald', sans-serif",
     fontSize: '10px',
-    letterSpacing: '0.1em',
+    fontWeight: '700',
+    letterSpacing: '0.15em',
     textTransform: 'uppercase',
+    color: C.blood,
+    marginBottom: '2px',
+  },
+  markDesc: {
+    fontSize: '10px',
     color: C.mist,
+    lineHeight: '1.4',
   },
 
   // Warrior rows
@@ -92,32 +83,12 @@ const S = {
     borderBottom: `1px solid ${C.dim}`,
   },
 
-  // Name line: portrait + name + captain badge
+  // Name line: name + captain badge
   nameLine: {
     display: 'flex',
     alignItems: 'center',
     gap: '7px',
-    marginBottom: '5px',
-  },
-  portrait: {
-    width: '26px',
-    height: '26px',
-    borderRadius: '50%',
-    objectFit: 'cover',
-    objectPosition: 'top center',
-    border: `1px solid ${C.dim}`,
-    flexShrink: 0,
-    display: 'block',
-  },
-  portraitCaptain: {
-    width: '26px',
-    height: '26px',
-    borderRadius: '50%',
-    objectFit: 'cover',
-    objectPosition: 'top center',
-    border: `1.5px solid ${C.blood}`,
-    flexShrink: 0,
-    display: 'block',
+    marginBottom: '4px',
   },
   warriorName: {
     fontFamily: "'Caslon Antique', 'Palatino Linotype', Georgia, serif",
@@ -150,7 +121,7 @@ const S = {
     alignItems: 'center',
     marginBottom: '5px',
     flexWrap: 'wrap',
-    paddingLeft: '33px', // align with name (portrait width + gap)
+    paddingLeft: '0',
   },
   statChunk: {
     fontFamily: "'Oswald', sans-serif",
@@ -258,7 +229,6 @@ const DiscordImageRoster = forwardRef(function DiscordImageRoster({ state }, ref
   const { companyName, mark, slots = [] } = state
 
   const markName = (mark && typeof mark === 'object') ? mark.name : mark
-  const markImgSrc = markName ? (MARK_IMAGES[markName] || '') : ''
 
   const filledSlots = useMemo(() => slots.filter(s => s?.type), [slots])
   const captainIndex = useMemo(() => {
@@ -275,14 +245,12 @@ const DiscordImageRoster = forwardRef(function DiscordImageRoster({ state }, ref
 
       {/* ── Header ── */}
       <div style={S.pageHeader}>
-        <div>
-          <div style={S.companyName}>{companyName || 'Unnamed Company'}</div>
-        </div>
+        <div style={S.companyName}>{companyName || 'Unnamed Company'}</div>
         {markName && (
-          <div style={S.headerRight}>
-            {markImgSrc && <img src={markImgSrc} alt={markName} style={S.markImg} />}
-            <span style={S.markName}>{markName}</span>
-          </div>
+          <>
+            <div style={S.markName}>{markName}</div>
+            {MARKS_MAP[markName] && <div style={S.markDesc}>{MARKS_MAP[markName]}</div>}
+          </>
         )}
       </div>
 
@@ -292,7 +260,6 @@ const DiscordImageRoster = forwardRef(function DiscordImageRoster({ state }, ref
           const wdata = WARRIORS[slot.type]
           if (!wdata) return null
           const isCaptain = idx === 0 && filledSlots[captainIndex] === slot
-          const portraitSrc = WARRIOR_IMAGES[slot.type] || ''
           const spent = slot.ip || []
 
           const isDualWielding = slot.weapon1 === 'Light Weapon' && slot.weapon2 === 'Light Weapon'
@@ -345,10 +312,6 @@ const DiscordImageRoster = forwardRef(function DiscordImageRoster({ state }, ref
 
               {/* Name row */}
               <div style={S.nameLine}>
-                {portraitSrc
-                  ? <img src={portraitSrc} alt={slot.type} style={isCaptain ? S.portraitCaptain : S.portrait} />
-                  : <div style={{ ...S.portrait, background: C.fog }} />
-                }
                 <span style={S.warriorName}>{displayName}</span>
                 {slot.customName && <span style={S.customSubname}>{slot.type}</span>}
                 {isCaptain && <span style={S.captainBadge}>★ Captain</span>}
