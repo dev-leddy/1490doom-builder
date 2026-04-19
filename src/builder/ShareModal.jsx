@@ -38,36 +38,41 @@ export default function ShareModal() {
   async function handleCopyImage() {
     if (!imageRosterRef.current) return
     setImageStatus('rendering')
+
+    // Build the blob promise first so we can pass it to ClipboardItem
+    // immediately (within the user gesture), avoiding the gesture-expiry issue
+    const blobPromise = html2canvas(imageRosterRef.current, {
+      backgroundColor: '#1a1614',
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      logging: false,
+    }).then(canvas => new Promise((resolve, reject) => {
+      canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('toBlob failed')), 'image/png')
+    }))
+
     try {
-      const canvas = await html2canvas(imageRosterRef.current, {
-        backgroundColor: '#1a1614',
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        logging: false,
-      })
-      canvas.toBlob(async (blob) => {
-        if (!blob) { setImageStatus('error'); return }
-        try {
-          await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
-          setImageStatus('done')
-          setTimeout(() => setImageStatus(null), 2500)
-        } catch {
-          // Clipboard write failed — fall back to download
-          const url = URL.createObjectURL(blob)
-          const a = document.createElement('a')
-          a.href = url
-          a.download = `${state.companyName || 'doom-company'}.png`
-          a.click()
-          URL.revokeObjectURL(url)
-          setImageStatus('done')
-          setTimeout(() => setImageStatus(null), 2500)
-        }
-      }, 'image/png')
+      // Pass the promise directly — ClipboardItem accepts Promise<Blob>
+      // and clipboard.write is called now, within the gesture context
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blobPromise })])
+      setImageStatus('done')
+      setTimeout(() => setImageStatus(null), 2500)
     } catch (err) {
-      console.error('[discord image]', err)
-      setImageStatus('error')
-      setTimeout(() => setImageStatus(null), 3000)
+      console.warn('[discord image] clipboard.write failed, downloading instead:', err)
+      try {
+        const blob = await blobPromise
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `${state.companyName || 'doom-company'}.png`
+        a.click()
+        URL.revokeObjectURL(url)
+        setImageStatus('done')
+      } catch (err2) {
+        console.error('[discord image]', err2)
+        setImageStatus('error')
+      }
+      setTimeout(() => setImageStatus(null), 2500)
     }
   }
 
