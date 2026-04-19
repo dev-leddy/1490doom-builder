@@ -26,7 +26,7 @@ function buildStats(slot, wdata) {
   const dualWieldBonus = (isDualWielding && !wdata.fixedDualWield) ? 1 : 0
   const polearmDebuff = slot.weapon1 === 'Polearm (one-handed)'
 
-  return '`' + STAT_ORDER.map(s => {
+  return STAT_ORDER.map(s => {
     let base = wdata.stats[s]
 
     // ATK dual-wield bonus
@@ -46,8 +46,9 @@ function buildStats(slot, wdata) {
     else if (debuffed && !improved) val = debuffStatDisplay(val, s)
     // if both cancel out, leave base
 
-    return `${s} ${val}`
-  }).join(' | ') + '`'
+    const label = `${s} ${val}`
+    return improved ? `__${label}__` : label
+  }).join(' | ')
 }
 
 // ── IP upgrades line ──────────────────────────────────────────────────────────
@@ -93,30 +94,29 @@ function weaponLabel(weaponName) {
   return details.length ? `${weaponName} (${details.join(', ')})` : weaponName
 }
 
-const IP_MARKER = '◆ '
+function ipWrap(text, isIP) {
+  return isIP ? `__${text}__` : text
+}
 
 function buildEquipmentLines(slot) {
   const items = []
 
-  // weapon1 is always base — no IP marker
+  // weapon1 is always base — never IP
   if (slot.weapon1) items.push(weaponLabel(slot.weapon1))
 
   // weapon2 is an IP upgrade
   if (slot.weapon2) {
-    const isIP = slot.ip?.includes('weapon2')
-    items.push(`${isIP ? IP_MARKER : ''}${weaponLabel(slot.weapon2)}`)
+    items.push(ipWrap(weaponLabel(slot.weapon2), slot.ip?.includes('weapon2')))
   }
 
   if (slot.climbing && slot.climbing !== 'None') {
     const c = CLIMBING_ITEMS[slot.climbing]
     const detail = c ? ` (${c.height})` : ''
-    const isIP = slot.ip?.includes('climbing')
-    items.push(`${isIP ? IP_MARKER : ''}${slot.climbing}${detail}`)
+    items.push(ipWrap(`${slot.climbing}${detail}`, slot.ip?.includes('climbing')))
   }
 
   if (slot.consumable && slot.consumable !== 'None') {
-    const isIP = slot.ip?.includes('consumable')
-    items.push(`${isIP ? IP_MARKER : ''}${slot.consumable}`)
+    items.push(ipWrap(slot.consumable, slot.ip?.includes('consumable')))
   }
 
   return items.filter(Boolean)
