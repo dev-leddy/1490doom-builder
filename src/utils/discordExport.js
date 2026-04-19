@@ -26,7 +26,7 @@ function buildStats(slot, wdata) {
   const dualWieldBonus = (isDualWielding && !wdata.fixedDualWield) ? 1 : 0
   const polearmDebuff = slot.weapon1 === 'Polearm (one-handed)'
 
-  return STAT_ORDER.map(s => {
+  return '`' + STAT_ORDER.map(s => {
     let base = wdata.stats[s]
 
     // ATK dual-wield bonus
@@ -47,7 +47,7 @@ function buildStats(slot, wdata) {
     // if both cancel out, leave base
 
     return `${s} ${val}`
-  }).join('  ')
+  }).join(' | ') + '`'
 }
 
 // ── IP upgrades line ──────────────────────────────────────────────────────────
