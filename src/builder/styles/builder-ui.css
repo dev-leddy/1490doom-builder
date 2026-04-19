@@ -651,6 +651,20 @@
 @media (hover: hover) {
   .share-copy-btn--discord:hover { background: rgba(88,101,242,0.15); }
 }
+.share-discord-text-details {
+  margin-top: 0.75rem;
+}
+.share-discord-text-summary {
+  font-size: 0.75rem;
+  color: var(--fog);
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  user-select: none;
+  margin-bottom: 0.5rem;
+}
+.share-discord-text-details[open] .share-discord-text-summary {
+  margin-bottom: 0.6rem;
+}
 
 /* Tracker modal items */
 .tracker-modal-title { font-family:'Oswald', sans-serif;font-size:0.7rem;letter-spacing:0.15em;color:#888;margin-bottom:0.75rem;text-transform:uppercase; }

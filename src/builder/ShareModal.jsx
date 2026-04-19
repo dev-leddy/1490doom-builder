@@ -1,18 +1,23 @@
 import { useRef, useState } from 'react'
+import html2canvas from 'html2canvas'
 import { useBuilderStore } from '../store/builderStore'
 import BottomSheet from '../shared/BottomSheet'
 import { generateDiscordExport } from '../utils/discordExport'
+import DiscordImageRoster from './DiscordImageRoster'
 
 export default function ShareModal() {
   const { shareCode, closeShare } = useBuilderStore()
   const [copiedLink, setCopiedLink] = useState(false)
   const [copiedDiscord, setCopiedDiscord] = useState(false)
+  const [imageStatus, setImageStatus] = useState(null) // null | 'rendering' | 'done' | 'error'
   const linkRef = useRef(null)
   const discordRef = useRef(null)
+  const imageRosterRef = useRef(null)
 
   if (!shareCode) return null
 
-  const discordText = generateDiscordExport(useBuilderStore.getState())
+  const state = useBuilderStore.getState()
+  const discordText = generateDiscordExport(state)
 
   function copyText(text, ref, setFlag) {
     function markCopied() { setFlag(true); setTimeout(() => setFlag(false), 2000) }
@@ -30,55 +35,118 @@ export default function ShareModal() {
     }
   }
 
+  async function handleCopyImage() {
+    if (!imageRosterRef.current) return
+    setImageStatus('rendering')
+    try {
+      const canvas = await html2canvas(imageRosterRef.current, {
+        backgroundColor: '#1a1614',
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        logging: false,
+      })
+      canvas.toBlob(async (blob) => {
+        if (!blob) { setImageStatus('error'); return }
+        try {
+          await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+          setImageStatus('done')
+          setTimeout(() => setImageStatus(null), 2500)
+        } catch {
+          // Clipboard write failed — fall back to download
+          const url = URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = url
+          a.download = `${state.companyName || 'doom-company'}.png`
+          a.click()
+          URL.revokeObjectURL(url)
+          setImageStatus('done')
+          setTimeout(() => setImageStatus(null), 2500)
+        }
+      }, 'image/png')
+    } catch (err) {
+      console.error('[discord image]', err)
+      setImageStatus('error')
+      setTimeout(() => setImageStatus(null), 3000)
+    }
+  }
+
   function handleCopyLink() { copyText(shareCode, linkRef, setCopiedLink) }
   function handleCopyDiscord() { copyText(discordText, discordRef, setCopiedDiscord) }
   function handleFocus(e) { e.target.select() }
 
+  const imageLabel =
+    imageStatus === 'rendering' ? '⏳ Generating…' :
+    imageStatus === 'done'      ? '✓ Copied!' :
+    imageStatus === 'error'     ? '✗ Failed' :
+    'Copy as Image'
+
   return (
-    <BottomSheet title="SHARE COMPANY" onClose={closeShare}>
-      {/* ── Share Link ─────────────────────────────────── */}
-      <div className="share-section">
-        <div className="share-section-label">Share Link</div>
-        <textarea
-          ref={linkRef}
-          className="share-code-box"
-          readOnly
-          value={shareCode}
-          onFocus={handleFocus}
-          onClick={handleFocus}
-          rows={3}
-        />
-        <p className="share-modal-note">
-          Anyone who opens this link will load your company automatically.
-        </p>
-        <button className="share-copy-btn" onClick={handleCopyLink}>
-          {copiedLink ? '✓ Copied!' : 'Copy Link'}
-        </button>
+    <>
+      {/* Off-screen image roster — always rendered so ref is available */}
+      <div style={{ position: 'fixed', left: '-9999px', top: 0, pointerEvents: 'none', zIndex: -1 }}>
+        <DiscordImageRoster ref={imageRosterRef} state={state} />
       </div>
 
-      {/* ── Discord Export ──────────────────────────────── */}
-      <div className="share-section share-section--discord">
-        <div className="share-section-label">
-          <DiscordIcon />
-          Post to Discord
+      <BottomSheet title="SHARE COMPANY" onClose={closeShare}>
+        {/* ── Share Link ─────────────────────────────────── */}
+        <div className="share-section">
+          <div className="share-section-label">Share Link</div>
+          <textarea
+            ref={linkRef}
+            className="share-code-box"
+            readOnly
+            value={shareCode}
+            onFocus={handleFocus}
+            onClick={handleFocus}
+            rows={3}
+          />
+          <p className="share-modal-note">
+            Anyone who opens this link will load your company automatically.
+          </p>
+          <button className="share-copy-btn" onClick={handleCopyLink}>
+            {copiedLink ? '✓ Copied!' : 'Copy Link'}
+          </button>
         </div>
-        <textarea
-          ref={discordRef}
-          className="share-code-box share-discord-box"
-          readOnly
-          value={discordText}
-          onFocus={handleFocus}
-          onClick={handleFocus}
-          rows={6}
-        />
-        <p className="share-modal-note">
-          Class, stats, equipment, and ability names — ready to paste.
-        </p>
-        <button className="share-copy-btn share-copy-btn--discord" onClick={handleCopyDiscord}>
-          {copiedDiscord ? '✓ Copied!' : 'Copy for Discord'}
-        </button>
-      </div>
-    </BottomSheet>
+
+        {/* ── Discord Export ──────────────────────────────── */}
+        <div className="share-section share-section--discord">
+          <div className="share-section-label">
+            <DiscordIcon />
+            Post to Discord
+          </div>
+
+          {/* Image export */}
+          <button
+            className="share-copy-btn share-copy-btn--discord"
+            onClick={handleCopyImage}
+            disabled={imageStatus === 'rendering'}
+          >
+            {imageLabel}
+          </button>
+          <p className="share-modal-note">
+            Copies a formatted image card to your clipboard — paste directly into Discord.
+          </p>
+
+          {/* Text export fallback */}
+          <details className="share-discord-text-details">
+            <summary className="share-discord-text-summary">Text version (fallback)</summary>
+            <textarea
+              ref={discordRef}
+              className="share-code-box share-discord-box"
+              readOnly
+              value={discordText}
+              onFocus={handleFocus}
+              onClick={handleFocus}
+              rows={6}
+            />
+            <button className="share-copy-btn share-copy-btn--discord" onClick={handleCopyDiscord}>
+              {copiedDiscord ? '✓ Copied!' : 'Copy Text'}
+            </button>
+          </details>
+        </div>
+      </BottomSheet>
+    </>
   )
 }
 
