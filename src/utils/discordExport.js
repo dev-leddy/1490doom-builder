@@ -51,36 +51,6 @@ function buildStats(slot, wdata) {
   }).join(' | ')
 }
 
-// ── IP upgrades line ──────────────────────────────────────────────────────────
-
-function buildIPLine(slot) {
-  const parts = []
-
-  if (slot.ip?.length) {
-    for (const ip of slot.ip) {
-      if (ip === 'weapon2') {
-        parts.push('Dual Wield')
-      } else if (ip === 'climbing' && slot.climbing && slot.climbing !== 'None') {
-        parts.push(slot.climbing)
-      } else if (ip === 'consumable' && slot.consumable && slot.consumable !== 'None') {
-        parts.push(slot.consumable)
-      } else if (ip === 'stat') {
-        // Standard: single statImprove; campaign: statImproves array
-        if (slot.statImproves?.length) {
-          parts.push(`Stat (${slot.statImproves.join(', ')})`)
-        } else if (slot.statImprove) {
-          parts.push(`Stat (${slot.statImprove})`)
-        }
-      }
-    }
-  } else if (slot.statImproves?.length) {
-    // Campaign warriors without slot.ip wrapper
-    parts.push(`Stat (${slot.statImproves.join(', ')})`)
-  }
-
-  return parts.length ? `IP: ${parts.join(' · ')}` : null
-}
-
 // ── Equipment lines ───────────────────────────────────────────────────────────
 
 function weaponLabel(weaponName) {
@@ -88,7 +58,6 @@ function weaponLabel(weaponName) {
   const w = WEAPONS[weaponName]
   if (!w) return weaponName
   const details = []
-  // Show damage for non-zero weapons, range for ranged
   if (w.damage > 0) details.push(`${w.damage}dmg`)
   if (w.range && w.range !== 'Base' && w.range !== '—') details.push(w.range)
   return details.length ? `${weaponName} (${details.join(', ')})` : weaponName
@@ -129,14 +98,14 @@ function buildAbilities(slot, wdata) {
 
   // Class abilities
   if (wdata?.abilities) {
-    names.push(...wdata.abilities.map(a => a.name))
+    names.push(...wdata.abilities.map(a => a.name.toUpperCase()))
   }
 
   // Weapon special abilities
   for (const weaponKey of [slot.weapon1, slot.weapon2]) {
     if (!weaponKey) continue
     const w = WEAPONS[weaponKey]
-    if (w?.abilityName) names.push(w.abilityName)
+    if (w?.abilityName) names.push(w.abilityName.toUpperCase())
   }
 
   return names.length ? `*${names.join(' · ')}*` : null
@@ -151,30 +120,32 @@ function formatWarrior(slot) {
 
   const lines = []
 
-  // Header: bold name, class in parens if custom-named, captain tag inline
+  // Header: bold name + optional captain tag + IP count
   const displayName = slot.customName
     ? `${slot.customName} (${slot.type})`
     : slot.type
   const captainTag = slot.isCaptain ? ' ★ Captain' : ''
-  lines.push(`**${displayName}${captainTag}**`)
+  const ipCount = slot.ip?.length || 0
+  const ipTag = ipCount > 0 ? ` | ${ipCount} IP` : ''
+  lines.push(`**${displayName}${captainTag}**${ipTag}`)
 
-  // IP upgrades (directly below class name)
-  const ipLine = buildIPLine(slot)
-  if (ipLine) lines.push(ipLine)
+  // Stats
+  lines.push('Stats')
+  lines.push(`> ${buildStats(slot, wdata)}`)
 
-  // Stats row
-  lines.push(buildStats(slot, wdata))
-
-  // Equipment — section header + each item on its own line
+  // Equipment
   const equipItems = buildEquipmentLines(slot)
   if (equipItems.length) {
-    lines.push('__Equipment__')
-    for (const item of equipItems) lines.push(item)
+    lines.push('Equipment')
+    for (const item of equipItems) lines.push(`> ${item}`)
   }
 
   // Abilities
   const abilities = buildAbilities(slot, wdata)
-  if (abilities) lines.push(abilities)
+  if (abilities) {
+    lines.push('Abilities')
+    lines.push(`> ${abilities}`)
+  }
 
   return lines.join('\n')
 }
