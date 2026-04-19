@@ -5,7 +5,6 @@
 import { forwardRef, useMemo } from 'react'
 import { WARRIORS, MARKS_MAP } from '../data/warriors'
 import { WEAPONS, CLIMBING_ITEMS } from '../data/weapons'
-import { ITEM_ICONS } from '../data/images'
 
 // ── Stat helpers ──────────────────────────────────────────────────────────────
 
@@ -185,18 +184,7 @@ const S = {
     textDecoration: 'underline',
   },
   pillTopRow: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '4px',
     whiteSpace: 'nowrap',
-  },
-  pillIcon: {
-    width: '12px',
-    height: '12px',
-    opacity: 0.8,
-    flexShrink: 0,
-    verticalAlign: 'middle',
   },
   pillStat: {
     fontSize: '8px',
@@ -342,12 +330,7 @@ const DiscordImageRoster = forwardRef(function DiscordImageRoster({ state }, ref
                 <div style={S.pillsRow}>
                   {equipPills.map(pill => (
                     <span key={pill.key} style={pill.isIP ? S.pillIP : S.pill}>
-                      <span style={S.pillTopRow}>
-                        {ITEM_ICONS[pill.iconKey] && (
-                          <img src={ITEM_ICONS[pill.iconKey]} alt="" style={S.pillIcon} />
-                        )}
-                        {pill.name}
-                      </span>
+                      <span style={S.pillTopRow}>{pill.name}</span>
                       {pill.stat && <span style={S.pillStat}>{pill.stat}</span>}
                     </span>
                   ))}
