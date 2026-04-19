@@ -186,28 +186,24 @@ const S = {
     display: 'block',
   },
 
-  // ── Stats ──
+  // ── Stats (3×2 grid) ──
   statsRow: {
-    display: 'flex',
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, 1fr)',
     gap: '4px',
     flex: 1,
-    flexWrap: 'wrap',
   },
   statBox: {
     background: C.fog,
     border: `1px solid ${C.dim}`,
     padding: '3px 5px',
     textAlign: 'center',
-    flex: '1',
-    minWidth: '32px',
   },
   statBoxModified: {
     background: C.fog,
     border: `1px solid ${C.dim}`,
     padding: '3px 5px',
     textAlign: 'center',
-    flex: '1',
-    minWidth: '32px',
   },
   statLabel: {
     fontFamily: "'Oswald', sans-serif",
@@ -293,9 +289,9 @@ const S = {
     width: '28px',
     height: '28px',
     marginBottom: '3px',
-    filter: 'sepia(0.3) brightness(0.95)',
-    opacity: '0.9',
+    opacity: 0.9,
     flexShrink: 0,
+    display: 'block',
   },
   chipName: {
     fontFamily: "'Oswald', sans-serif",
@@ -353,24 +349,23 @@ const S = {
     lineHeight: '1',
   },
 
-  // ── Abilities ──
-  abilitiesList: {
+  // ── Abilities (pills) ──
+  abilitiesPills: {
     display: 'flex',
-    flexDirection: 'column',
-    gap: '3px',
+    flexWrap: 'wrap',
+    gap: '4px',
   },
-  abilityRow: {
-    background: C.ash,
-    borderLeft: `3px solid ${C.dim}`,
-    padding: '4px 6px',
-  },
-  abilityName: {
+  abilityPill: {
     fontFamily: "'Oswald', sans-serif",
-    fontSize: '10px',
+    fontSize: '9px',
     fontWeight: '700',
     letterSpacing: '0.08em',
     textTransform: 'uppercase',
     color: C.bone,
+    border: `1px solid ${C.dim}`,
+    background: C.fog,
+    padding: '3px 7px',
+    whiteSpace: 'nowrap',
   },
 
   // ── Footer ──
@@ -539,17 +534,15 @@ const DiscordImageRoster = forwardRef(function DiscordImageRoster({ state }, ref
                 </div>
               )}
 
-              {/* Abilities — names only */}
+              {/* Abilities — pills */}
               {abilityNames.length > 0 && (
                 <div>
                   <div style={S.sectionHeader}>
                     <span style={S.sectionTitle}>Abilities</span>
                   </div>
-                  <div style={S.abilitiesList}>
+                  <div style={S.abilitiesPills}>
                     {abilityNames.map(name => (
-                      <div key={name} style={S.abilityRow}>
-                        <span style={S.abilityName}>{name}</span>
-                      </div>
+                      <span key={name} style={S.abilityPill}>{name}</span>
                     ))}
                   </div>
                 </div>
