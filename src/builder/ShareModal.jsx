@@ -10,6 +10,7 @@ export default function ShareModal() {
   const [copiedLink, setCopiedLink] = useState(false)
   const [copiedDiscord, setCopiedDiscord] = useState(false)
   const [imageStatus, setImageStatus] = useState(null) // null | 'rendering' | 'done' | 'error'
+  const [showPreview, setShowPreview] = useState(false)
   const linkRef = useRef(null)
   const discordRef = useRef(null)
   const imageRosterRef = useRef(null)
@@ -39,10 +40,8 @@ export default function ShareModal() {
     if (!imageRosterRef.current) return
     setImageStatus('rendering')
 
-    // Build the blob promise first so we can pass it to ClipboardItem
-    // immediately (within the user gesture), avoiding the gesture-expiry issue
     const blobPromise = html2canvas(imageRosterRef.current, {
-      backgroundColor: '#1a1614',
+      backgroundColor: '#080808',
       scale: 2,
       useCORS: true,
       allowTaint: true,
@@ -52,8 +51,6 @@ export default function ShareModal() {
     }))
 
     try {
-      // Pass the promise directly — ClipboardItem accepts Promise<Blob>
-      // and clipboard.write is called now, within the gesture context
       await navigator.clipboard.write([new ClipboardItem({ 'image/png': blobPromise })])
       setImageStatus('done')
       setTimeout(() => setImageStatus(null), 2500)
@@ -88,10 +85,25 @@ export default function ShareModal() {
 
   return (
     <>
-      {/* Off-screen image roster — always rendered so ref is available */}
+      {/* Off-screen image roster for html2canvas capture */}
       <div style={{ position: 'fixed', left: '-9999px', top: 0, pointerEvents: 'none', zIndex: -1 }}>
         <DiscordImageRoster ref={imageRosterRef} state={state} />
       </div>
+
+      {/* Preview modal */}
+      {showPreview && (
+        <div className="discord-preview-overlay" onClick={() => setShowPreview(false)}>
+          <div className="discord-preview-modal" onClick={e => e.stopPropagation()}>
+            <div className="discord-preview-header">
+              <span className="discord-preview-title">Image Preview</span>
+              <button className="discord-preview-close" onClick={() => setShowPreview(false)}>✕</button>
+            </div>
+            <div className="discord-preview-body">
+              <DiscordImageRoster state={state} />
+            </div>
+          </div>
+        </div>
+      )}
 
       <BottomSheet title="SHARE COMPANY" onClose={closeShare}>
         {/* ── Share Link ─────────────────────────────────── */}
@@ -121,14 +133,21 @@ export default function ShareModal() {
             Post to Discord
           </div>
 
-          {/* Image export */}
-          <button
-            className="share-copy-btn share-copy-btn--discord"
-            onClick={handleCopyImage}
-            disabled={imageStatus === 'rendering'}
-          >
-            {imageLabel}
-          </button>
+          <div className="share-btn-row">
+            <button
+              className="share-copy-btn share-copy-btn--discord"
+              onClick={handleCopyImage}
+              disabled={imageStatus === 'rendering'}
+            >
+              {imageLabel}
+            </button>
+            <button
+              className="share-copy-btn share-copy-btn--preview"
+              onClick={() => setShowPreview(true)}
+            >
+              Preview
+            </button>
+          </div>
           <p className="share-modal-note">
             Copies a formatted image card to your clipboard — paste directly into Discord.
           </p>
