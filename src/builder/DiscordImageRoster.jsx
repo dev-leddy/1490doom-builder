@@ -159,9 +159,8 @@ const S = {
   },
   pill: {
     display: 'inline-flex',
+    flexDirection: 'column',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: '4px',
     fontFamily: "'Oswald', sans-serif",
     fontSize: '9px',
     letterSpacing: '0.04em',
@@ -170,23 +169,27 @@ const S = {
     background: C.fog,
     border: `1px solid ${C.dim}`,
     padding: '3px 6px',
-    whiteSpace: 'nowrap',
   },
   pillIP: {
+    display: 'inline-flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    fontFamily: "'Oswald', sans-serif",
+    fontSize: '9px',
+    letterSpacing: '0.04em',
+    textTransform: 'uppercase',
+    color: C.bone,
+    background: C.fog,
+    border: `1px solid ${C.dim}`,
+    padding: '3px 6px',
+    textDecoration: 'underline',
+  },
+  pillTopRow: {
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
     gap: '4px',
-    fontFamily: "'Oswald', sans-serif",
-    fontSize: '9px',
-    letterSpacing: '0.04em',
-    textTransform: 'uppercase',
-    color: C.bone,
-    background: C.fog,
-    border: `1px solid ${C.dim}`,
-    padding: '3px 6px',
     whiteSpace: 'nowrap',
-    textDecoration: 'underline',
   },
   pillIcon: {
     width: '12px',
@@ -199,6 +202,9 @@ const S = {
     fontSize: '8px',
     color: C.mist,
     letterSpacing: '0.03em',
+    whiteSpace: 'nowrap',
+    marginTop: '1px',
+    textDecoration: 'none',
   },
   abilityPill: {
     display: 'inline-flex',
@@ -336,10 +342,12 @@ const DiscordImageRoster = forwardRef(function DiscordImageRoster({ state }, ref
                 <div style={S.pillsRow}>
                   {equipPills.map(pill => (
                     <span key={pill.key} style={pill.isIP ? S.pillIP : S.pill}>
-                      {ITEM_ICONS[pill.iconKey] && (
-                        <img src={ITEM_ICONS[pill.iconKey]} alt="" style={S.pillIcon} />
-                      )}
-                      {pill.name}
+                      <span style={S.pillTopRow}>
+                        {ITEM_ICONS[pill.iconKey] && (
+                          <img src={ITEM_ICONS[pill.iconKey]} alt="" style={S.pillIcon} />
+                        )}
+                        {pill.name}
+                      </span>
                       {pill.stat && <span style={S.pillStat}>{pill.stat}</span>}
                     </span>
                   ))}
