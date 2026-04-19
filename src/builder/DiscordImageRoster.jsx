@@ -80,7 +80,6 @@ const S = {
   },
   warriorRow: {
     padding: '7px 0',
-    borderBottom: `1px solid ${C.dim}`,
   },
 
   // Name line: name + captain badge
@@ -135,6 +134,7 @@ const S = {
     letterSpacing: '0.05em',
     color: C.green,
     textDecoration: 'underline',
+    textDecorationSkipInk: 'none',
     whiteSpace: 'nowrap',
   },
   statChunkDebuffed: {
@@ -215,15 +215,13 @@ const S = {
     background: 'transparent',
   },
 
-  // Footer
-  footer: {
+  // Website URL line
+  siteUrl: {
     marginTop: '10px',
-    fontSize: '7px',
+    fontSize: '8px',
     color: C.mist,
-    letterSpacing: '0.04em',
+    letterSpacing: '0.06em',
     textAlign: 'center',
-    borderTop: `1px solid ${C.dim}`,
-    paddingTop: '7px',
   },
 }
 
@@ -327,7 +325,7 @@ const DiscordImageRoster = forwardRef(function DiscordImageRoster({ state }, ref
                   <span key={st.s} style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
                     {i > 0 && <span style={S.statSep}>·</span>}
                     <span style={st.isModified ? S.statChunkModified : st.isDebuffed ? S.statChunkDebuffed : S.statChunk}>
-                      {st.s} {st.val}
+                      {`${st.s} ${st.val}`}
                     </span>
                   </span>
                 ))}
@@ -362,10 +360,7 @@ const DiscordImageRoster = forwardRef(function DiscordImageRoster({ state }, ref
         })}
       </div>
 
-      {/* Footer */}
-      <div style={S.footer}>
-        1490 DOOM · Warrior &amp; Mark artwork © Buer Games
-      </div>
+      <div style={S.siteUrl}>1490doomcompanybuilder.com</div>
 
     </div>
   )
