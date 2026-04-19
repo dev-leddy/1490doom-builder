@@ -43,7 +43,7 @@ const C = {
 
 const S = {
   page: {
-    width: '840px',
+    width: '420px',
     background: C.bg,
     padding: '24px',
     fontFamily: "'Oswald', 'Arial Narrow', Arial, sans-serif",
