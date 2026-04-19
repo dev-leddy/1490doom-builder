@@ -93,20 +93,30 @@ function weaponLabel(weaponName) {
   return details.length ? `${weaponName} (${details.join(', ')})` : weaponName
 }
 
+const IP_MARKER = '◆ '
+
 function buildEquipmentLines(slot) {
   const items = []
 
+  // weapon1 is always base — no IP marker
   if (slot.weapon1) items.push(weaponLabel(slot.weapon1))
-  if (slot.weapon2) items.push(weaponLabel(slot.weapon2))
+
+  // weapon2 is an IP upgrade
+  if (slot.weapon2) {
+    const isIP = slot.ip?.includes('weapon2')
+    items.push(`${isIP ? IP_MARKER : ''}${weaponLabel(slot.weapon2)}`)
+  }
 
   if (slot.climbing && slot.climbing !== 'None') {
     const c = CLIMBING_ITEMS[slot.climbing]
     const detail = c ? ` (${c.height})` : ''
-    items.push(`${slot.climbing}${detail}`)
+    const isIP = slot.ip?.includes('climbing')
+    items.push(`${isIP ? IP_MARKER : ''}${slot.climbing}${detail}`)
   }
 
   if (slot.consumable && slot.consumable !== 'None') {
-    items.push(slot.consumable)
+    const isIP = slot.ip?.includes('consumable')
+    items.push(`${isIP ? IP_MARKER : ''}${slot.consumable}`)
   }
 
   return items.filter(Boolean)
@@ -155,9 +165,12 @@ function formatWarrior(slot) {
   // Stats row
   lines.push(buildStats(slot, wdata))
 
-  // Equipment — each item on its own line
+  // Equipment — section header + each item on its own line
   const equipItems = buildEquipmentLines(slot)
-  for (const item of equipItems) lines.push(item)
+  if (equipItems.length) {
+    lines.push('__Equipment__')
+    for (const item of equipItems) lines.push(item)
+  }
 
   // Abilities
   const abilities = buildAbilities(slot, wdata)
