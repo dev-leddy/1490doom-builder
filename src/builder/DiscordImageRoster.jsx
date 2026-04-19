@@ -108,8 +108,8 @@ const S = {
     color: C.text,
   },
   warriors: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
+    display: 'flex',
+    flexDirection: 'column',
     gap: '12px',
   },
   card: {
