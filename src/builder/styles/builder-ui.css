@@ -3737,6 +3737,26 @@
 }
 .ncp-slot-remove:hover { color: var(--bone); background: rgba(190,65,39,0.15); }
 
+/* NCP: all muted/grey text → white */
+.ncp-back-btn,
+.ncp-topbar-title,
+.ncp-hero-sub,
+.ncp-section-label,
+.ncp-mode-pill:not(.active),
+.ncp-mode-desc,
+.ncp-emblem-hint,
+.ncp-emblem-empty,
+.ncp-input-label,
+.ncp-mark-select-none,
+.ncp-mark-hint,
+.ncp-mark-name,
+.ncp-mark-desc--empty,
+.ncp-stepper-label,
+.ncp-btn--ghost,
+.ncp-slot-portrait-empty,
+.ncp-slot-ip-label,
+.ncp-slot-remove { color: #fff; }
+
 /* Sidebar new company row — no separator, styled via sb-action-btn */
 .sb-new-company-row { border-top: none; }
 
