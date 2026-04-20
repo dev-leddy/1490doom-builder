@@ -3518,8 +3518,8 @@
 .ncp-campaign-notice strong { color: var(--gold); }
 
 /* Identity */
-.ncp-identity-row { display: flex; align-items: flex-start; gap: 1.25rem; }
-.ncp-emblem-btn { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; background: none; border: none; cursor: pointer; flex-shrink: 0; padding: 0; }
+.ncp-identity-row { display: flex; align-items: center; gap: 1.25rem; }
+.ncp-emblem-btn { display: flex; align-items: center; background: none; border: none; cursor: pointer; flex-shrink: 0; padding: 0; }
 .ncp-emblem-btn:hover .ncp-emblem-img, .ncp-emblem-btn:hover .ncp-emblem-empty { border-color: var(--mist); }
 .ncp-emblem-img, .ncp-emblem-empty { width: 72px; height: 72px; border-radius: 50%; border: 2px solid var(--dim); object-fit: cover; object-position: top; transition: border-color 0.15s; background: #fff; display: flex; align-items: center; justify-content: center; }
 .ncp-emblem-empty { font-size: 1.5rem; color: var(--mist); font-family: 'Oswald', sans-serif; }

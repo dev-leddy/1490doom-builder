@@ -141,7 +141,6 @@ export default function NewCompanyPage({ onStart, onBack }) {
                   ? <img src={avatarSrc} className="ncp-emblem-img" alt="Company emblem" />
                   : <span className="ncp-emblem-empty">?</span>
                 }
-                <span className="ncp-emblem-hint">Emblem</span>
               </button>
               <div className="ncp-name-block">
                 <label className="ncp-input-label">Company Name</label>
