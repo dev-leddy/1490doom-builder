@@ -19,10 +19,9 @@ function randomAvatarKey() {
   return COMPANY_AVATARS[Math.floor(Math.random() * COMPANY_AVATARS.length)].key
 }
 
-function SectionLabel({ num, children }) {
+function SectionLabel({ children }) {
   return (
     <div className="ncp-section-label">
-      <span className="ncp-section-num">{num}</span>
       <span>{children}</span>
     </div>
   )
@@ -132,7 +131,7 @@ export default function NewCompanyPage({ onStart, onBack }) {
 
           {/* 01 IDENTITY + MODE — combined */}
           <section className="ncp-section">
-            <SectionLabel num="01">Identity</SectionLabel>
+            <SectionLabel>Company</SectionLabel>
 
             {/* Emblem + name row */}
             <div className="ncp-identity-row">
@@ -190,7 +189,7 @@ export default function NewCompanyPage({ onStart, onBack }) {
 
           {/* 02 COMPANY MARK */}
           <section className="ncp-section">
-            <SectionLabel num="02">Company Mark</SectionLabel>
+            <SectionLabel>Company Mark</SectionLabel>
             <button
               className="ncp-mark-select-row ncp-mark-select-row--btn"
               onClick={() => { setTempMark(mark); setShowMarkPicker(true) }}
@@ -212,7 +211,7 @@ export default function NewCompanyPage({ onStart, onBack }) {
 
           {/* 03 WARRIORS */}
           <section className="ncp-section">
-            <SectionLabel num="03">Warriors</SectionLabel>
+            <SectionLabel>Warriors</SectionLabel>
 
             {/* Controls row — sits above the list */}
             <div className="ncp-warriors-controls">
@@ -271,7 +270,7 @@ export default function NewCompanyPage({ onStart, onBack }) {
           {/* Random preview */}
           {randomPreview && (
             <section className="ncp-section">
-              <SectionLabel num="—">Preview</SectionLabel>
+              <SectionLabel>Preview</SectionLabel>
               <div className="random-preview">
                 <div className="random-preview-header">
                   {avatar
