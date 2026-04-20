@@ -3665,11 +3665,12 @@
   max-width: 110px; text-align: center;
 }
 .ncp-slot-pill-name { flex: 1; white-space: normal; line-height: 1.2; overflow-wrap: anywhere; }
-.ncp-slot-pill-stat {
-  color: var(--mist); font-size: 0.6rem;
-  margin-top: auto; padding-top: 0.2rem;
-  white-space: nowrap;
+.ncp-slot-pill-stats {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 0.25rem;
+  margin-top: auto; padding-top: 0.2rem; font-size: 0.6rem;
 }
+.ncp-slot-pill-dmg { color: var(--blood); white-space: nowrap; }
+.ncp-slot-pill-info { color: #fff; white-space: nowrap; }
 .ncp-slot-label { flex: 1; font-family: 'Oswald', sans-serif; font-size: 0.85rem; letter-spacing: 0.06em; color: var(--parchment); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ncp-slot-placeholder { color: rgba(255,255,255,0.22); }
 

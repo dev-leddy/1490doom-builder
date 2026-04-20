@@ -108,21 +108,19 @@ export default function NewCompanyPage({ onStart, onBack }) {
     for (const wKey of [slotData.weapon1, slotData.weapon2]) {
       if (!wKey) continue
       const w = WEAPONS[wKey]
-      const stat = [
-        w?.damage > 0 ? `${w.damage} dmg` : null,
-        w?.range && w.range !== '—' ? w.range : null,
-      ].filter(Boolean).join(' · ')
-      pills.push({ key: wKey, label: wKey, stat: stat || null })
+      const dmg = w?.damage > 0 ? `${w.damage} dmg` : null
+      const info = w?.range && w.range !== '—' ? w.range : null
+      pills.push({ key: wKey, label: wKey, dmg, info })
     }
     if (slotData.climbing) {
       const c = CLIMBING_ITEMS[slotData.climbing]
-      pills.push({ key: 'climb', label: slotData.climbing, stat: c ? `HT ${c.height}` : null })
+      pills.push({ key: 'climb', label: slotData.climbing, dmg: null, info: c ? `HT ${c.height}` : null })
     }
     if (slotData.consumable) {
-      pills.push({ key: 'consumable', label: slotData.consumable, stat: null })
+      pills.push({ key: 'consumable', label: slotData.consumable, dmg: null, info: null })
     }
     if (slotData.statImprove) {
-      pills.push({ key: 'stat', label: `${slotData.statImprove} +1`, stat: null })
+      pills.push({ key: 'stat', label: `${slotData.statImprove} +1`, dmg: null, info: null })
     }
     return pills
   }
@@ -296,7 +294,12 @@ export default function NewCompanyPage({ onStart, onBack }) {
                         {pills.map(p => (
                           <span key={p.key} className="ncp-slot-pill">
                             <span className="ncp-slot-pill-name">{p.label}</span>
-                            {p.stat && <span className="ncp-slot-pill-stat">{p.stat}</span>}
+                            {(p.dmg || p.info) && (
+                              <span className="ncp-slot-pill-stats">
+                                {p.dmg && <span className="ncp-slot-pill-dmg">{p.dmg}</span>}
+                                {p.info && <span className="ncp-slot-pill-info">{p.info}</span>}
+                              </span>
+                            )}
                           </span>
                         ))}
                       </div>
