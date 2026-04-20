@@ -107,7 +107,7 @@ export default function NewCompanyPage({ onStart, onBack }) {
       const w = WEAPONS[wKey]
       const stat = [
         w?.damage > 0 ? `${w.damage} dmg` : null,
-        w?.range && w.range !== '—' && w.range !== 'Base' ? w.range : null,
+        w?.range && w.range !== '—' ? w.range : null,
       ].filter(Boolean).join(' · ')
       pills.push({ key: wKey, label: wKey, stat: stat || null })
     }
