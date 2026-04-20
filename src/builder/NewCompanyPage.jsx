@@ -53,6 +53,8 @@ export default function NewCompanyPage({ onStart, onBack }) {
   const [mark, setMark] = useState('')
   const [tempMark, setTempMark] = useState('')
   const [showMarkPicker, setShowMarkPicker] = useState(false)
+  const [editingSlot, setEditingSlot] = useState(null) // index of slot being picked
+  const [tempSlotType, setTempSlotType] = useState(null)
   const [randomPreview, setRandomPreview] = useState(null)
   const [showAvatarPicker, setShowAvatarPicker] = useState(false)
 
@@ -201,22 +203,23 @@ export default function NewCompanyPage({ onStart, onBack }) {
             <div className="ncp-slot-list">
               {slots.map((type, idx) => (
                 <div key={idx} className="ncp-slot-row">
-                  <div className="ncp-slot-portrait">
-                    {type && WARRIOR_IMAGES[type]
-                      ? <img src={WARRIOR_IMAGES[type]} alt={type} className="ncp-slot-portrait-img" />
-                      : <span className="ncp-slot-portrait-empty">{idx + 1}</span>
-                    }
-                  </div>
-                  <select
-                    className="ncp-slot-select"
-                    value={type || ''}
-                    onChange={e => setSlotType(idx, e.target.value)}
+                  <button
+                    className="ncp-slot-btn"
+                    onClick={() => { setTempSlotType(type); setEditingSlot(idx) }}
                   >
-                    <option value="">— Choose class —</option>
-                    {WARRIOR_NAMES.map(w => (
-                      <option key={w} value={w}>{w}</option>
-                    ))}
-                  </select>
+                    <div className="ncp-slot-portrait">
+                      {type && WARRIOR_IMAGES[type]
+                        ? <img src={WARRIOR_IMAGES[type]} alt={type} className="ncp-slot-portrait-img" />
+                        : <span className="ncp-slot-portrait-empty">{idx + 1}</span>
+                      }
+                    </div>
+                    <span className="ncp-slot-label">
+                      {type || <span className="ncp-slot-placeholder">Choose class…</span>}
+                    </span>
+                    <svg className="ncp-slot-chevron" viewBox="0 0 24 24" fill="currentColor" width="14" height="14">
+                      <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/>
+                    </svg>
+                  </button>
                   {slots.length > 1 && (
                     <button
                       className="ncp-slot-remove"
@@ -284,6 +287,36 @@ export default function NewCompanyPage({ onStart, onBack }) {
 
         </div>
       </div>
+
+      {/* Warrior class picker sheet */}
+      {editingSlot !== null && (
+        <BottomSheet
+          title={`WARRIOR ${editingSlot + 1} — CLASS`}
+          onClose={() => setEditingSlot(null)}
+          zIndex={900}
+          footer={
+            <>
+              <button className="co-sheet-randomize" onClick={() => setEditingSlot(null)}>Cancel</button>
+              <button className="co-sheet-done" onClick={() => { setSlotType(editingSlot, tempSlotType); setEditingSlot(null) }}>Done</button>
+            </>
+          }
+        >
+          <div className="wcp-grid">
+            {WARRIOR_NAMES.map(wt => (
+              <button
+                key={wt}
+                className={`wcp-item${tempSlotType === wt ? ' selected' : ''}`}
+                onClick={() => setTempSlotType(wt)}
+              >
+                <div className="wcp-portrait">
+                  {WARRIOR_IMAGES[wt] && <img src={WARRIOR_IMAGES[wt]} alt={wt} />}
+                </div>
+                <div className="wcp-name">{wt}</div>
+              </button>
+            ))}
+          </div>
+        </BottomSheet>
+      )}
 
       {/* Mark picker sheet */}
       {showMarkPicker && (
