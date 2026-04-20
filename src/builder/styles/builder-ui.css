@@ -3566,8 +3566,8 @@
 
 /* Roster */
 .ncp-roster-row { display: flex; gap: 2rem; }
-.ncp-stepper-group { display: flex; flex-direction: column; gap: 0.5rem; }
-.ncp-stepper-label { font-family: 'Oswald', sans-serif; font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--mist); }
+.ncp-stepper-group { display: flex; flex-direction: row; align-items: center; gap: 0.6rem; }
+.ncp-stepper-label { font-family: 'Oswald', sans-serif; font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--mist); white-space: nowrap; }
 .ncp-stepper { display: flex; align-items: center; border: 1px solid var(--dim); background: var(--fog); border-radius: 2px; overflow: hidden; width: fit-content; }
 .ncp-stepper-btn { background: none; border: none; color: var(--bone); font-size: 1.1rem; width: 36px; height: 36px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; }
 .ncp-stepper-btn:hover:not(:disabled) { background: var(--dim); }
@@ -3596,14 +3596,14 @@
   gap: 1rem; margin-bottom: 0.65rem;
 }
 .ncp-add-slot-btn {
-  background: none; border: 1px dashed var(--dim); color: var(--mist);
+  background: rgba(255,255,255,0.08); border: 1px solid var(--dim); color: var(--bone);
   font-family: 'Oswald', sans-serif; font-size: 0.75rem; letter-spacing: 0.1em;
   text-transform: uppercase; padding: 0.45rem 0.9rem; cursor: pointer; border-radius: 2px;
-  transition: border-color 0.15s, color 0.15s;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
 }
-.ncp-add-slot-btn:hover { border-color: var(--mist); color: var(--bone); }
-.ncp-add-slot-btn--maxed { cursor: default; opacity: 0.4; border-style: solid; }
-.ncp-add-slot-btn--maxed:hover { border-color: var(--dim); color: var(--mist); }
+.ncp-add-slot-btn:hover { border-color: var(--mist); color: var(--parchment); background: rgba(255,255,255,0.13); }
+.ncp-add-slot-btn--maxed { cursor: default; opacity: 0.35; }
+.ncp-add-slot-btn--maxed:hover { border-color: var(--dim); color: var(--bone); background: rgba(255,255,255,0.08); }
 
 /* Slot list */
 .ncp-slot-list { display: flex; flex-direction: column; gap: 0.4rem; }
