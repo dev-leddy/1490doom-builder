@@ -117,13 +117,12 @@ export default function NewCompanyPage({ onStart, onBack }) {
       })
     }
     if (slotData.climbing) {
-      const c = CLIMBING_ITEMS[slotData.climbing]
       chips.push({
         key: 'climb',
         icon: ITEM_ICONS[slotData.climbing] || null,
         label: slotData.climbing,
         dmg: null,
-        info: c ? `HT ${c.height}` : null,
+        info: null,
       })
     }
     if (slotData.consumable) {
