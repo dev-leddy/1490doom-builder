@@ -20,13 +20,19 @@ export function setSaves(saves) {
 // getUser() should return the current user from authStore, or null.
 export async function syncSaveToCloud(saveEntry, getUser) {
   if (!getUser()) return
+  const id = saveEntry.id || saveEntry.companyId
+  const name = saveEntry.name || saveEntry.companyName
   try {
     await saveCompany({
-      id: saveEntry.id,
-      name: saveEntry.name,
-      mode: saveEntry.data?.companyMode || 'standard',
+      id,
+      name,
+      mode: saveEntry.companyMode || saveEntry.data?.companyMode || 'standard',
       data: saveEntry,
     })
+    // Mark local copy as synced so the upload-prompt doesn't re-trigger
+    const saves = getSaves()
+    const idx = saves.findIndex(s => (s.companyId || s.id) === id)
+    if (idx >= 0) { saves[idx] = { ...saves[idx], cloudSynced: true }; setSaves(saves) }
   } catch (err) {
     console.warn('[cloud sync] save failed:', err)
   }
@@ -79,17 +85,24 @@ export async function mergeCloudSaves(getUser) {
   try {
     const cloudSaves = await listCompanies()
     const local = getSaves()
-    const localById = Object.fromEntries(local.map(s => [s.id, s]))
+    // Key by companyId OR id — handles both old and new save formats
+    const localById = {}
+    for (const s of local) {
+      const key = s.companyId || s.id
+      if (key) localById[key] = s
+    }
 
     for (const cloud of cloudSaves) {
-      // cloud.data is the full save entry (we stored the whole saveEntry as data)
+      // cloud.data is the full save entry; fall back to cloud.id as key
       const entry = cloud.data
-      if (entry && entry.id) {
-        localById[entry.id] = entry
+      const key = (entry?.companyId || entry?.id) || cloud.id
+      if (key) {
+        // Cloud wins on conflict; mark as synced either way
+        localById[key] = { ...(entry || {}), companyId: key, cloudSynced: true }
       }
     }
 
-    const merged = Object.values(localById).sort((a, b) => b.savedAt - a.savedAt)
+    const merged = Object.values(localById).sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0))
     setSaves(merged)
     return merged
   } catch (err) {

@@ -56,22 +56,15 @@ export default function BuilderPage({ initialView = null }) {
     fetchMe().then(async () => {
       const { user } = useAuthStore.getState()
       if (!user) return
-      // Snapshot local saves before merging so we know what's local-only
-      const { getSaves: getLocalSaves, listCompanies: listCloud } = await Promise.all([
-        import('../store/builderPersistence.js'),
-        import('../api/companies.js'),
-      ]).then(([p, c]) => ({ getSaves: p.getSaves, listCompanies: c.listCompanies }))
-      const localSaves = getLocalSaves()
-      let cloudIds = new Set()
-      try {
-        const cloud = await listCloud()
-        cloudIds = new Set(cloud.map(c => c.id))
-      } catch { /* ignore */ }
-      const localOnly = localSaves.filter(s => s.companyId && !cloudIds.has(s.companyId))
-      if (localOnly.length > 0) setSyncPromptCount(localOnly.length)
-      // Merge cloud into local
+      // Merge cloud saves first — this also stamps cloudSynced: true on known saves
       const merged = await mergeCloudSaves(() => user)
       if (merged.length) useBuilderStore.setState({ saves: merged })
+      // Find saves that pre-date login: no cloudSynced flag, not the active company
+      const { getSaves: getLocalSaves } = await import('../store/builderPersistence.js')
+      const activeId = useBuilderStore.getState().companyId
+      const localSaves = getLocalSaves()
+      const localOnly = localSaves.filter(s => s.companyId && !s.cloudSynced && s.companyId !== activeId)
+      if (localOnly.length > 0) setSyncPromptCount(localOnly.length)
     })
   }, []) // eslint-disable-line
 

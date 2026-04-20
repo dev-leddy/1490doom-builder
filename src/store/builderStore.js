@@ -735,10 +735,11 @@ export const useBuilderStore = create((set, get) => {
       const saveData = { ...data, savedAt: Date.now() }
       const existingIndex = saves.findIndex(s => s.companyId === companyId)
       if (existingIndex >= 0) {
-        saves[existingIndex] = saveData
+        // Preserve cloudSynced flag — auto-draft edits don't un-sync a company
+        saves[existingIndex] = { ...saveData, cloudSynced: saves[existingIndex].cloudSynced }
       } else if (mark) {
         // Only add to saves list if a company type (mark) has been chosen
-        saves.unshift(saveData)
+        saves.unshift(saveData) // cloudSynced left unset (falsy) until pushed to cloud
         if (saves.length > 10) saves.pop()
       }
       try { setSaves(saves); set({ saves }) } catch {}
