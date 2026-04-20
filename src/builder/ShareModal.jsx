@@ -45,6 +45,9 @@ export default function ShareModal() {
     // which have different metrics and break the layout
     await document.fonts.ready
 
+    const linkText = `<${shareCode}>`
+    const linkBlob = new Blob([linkText], { type: 'text/plain' })
+
     const blobPromise = html2canvas(imageRosterRef.current, {
       backgroundColor: '#080808',
       scale: 2,
@@ -52,12 +55,28 @@ export default function ShareModal() {
       allowTaint: true,
       logging: false,
       removeContainer: true,
+      // The wrapper div has opacity:0 to hide it from the user, but html2canvas
+      // propagates parent opacity when compositing — the capture comes out blank.
+      // Fix the wrapper in the clone so html2canvas sees fully opaque content.
+      onclone: (_doc, el) => {
+        const wrapper = el.parentElement
+        if (wrapper) {
+          wrapper.style.opacity = '1'
+          wrapper.style.position = 'static'
+          wrapper.style.top = 'auto'
+          wrapper.style.left = 'auto'
+        }
+      },
     }).then(canvas => new Promise((resolve, reject) => {
       canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('toBlob failed')), 'image/png')
     }))
 
     try {
-      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blobPromise })])
+      // Write image + link together — Discord will show the image; the <url>
+      // text suppresses the embed and lets the recipient load the company.
+      await navigator.clipboard.write([
+        new ClipboardItem({ 'image/png': blobPromise, 'text/plain': linkBlob }),
+      ])
       setImageStatus('done')
       setTimeout(() => setImageStatus(null), 2500)
     } catch (err) {

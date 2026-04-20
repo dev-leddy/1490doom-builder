@@ -16,6 +16,7 @@ import PrintRoster from './PrintRoster'
 import EndOfGameModal from './EndOfGameModal'
 import CompanyForm from './CompanyForm'
 import ModeSelectModal from './ModeSelectModal'
+import NewCompanyPage from './NewCompanyPage'
 import LandingPage, { RefContent } from './LandingPage'
 import AuthSheet from './AuthSheet'
 import AvatarPicker from './AvatarPicker'
@@ -72,6 +73,21 @@ export default function BuilderPage({ initialView = null }) {
       const merged = await mergeCloudSaves(() => user)
       if (merged.length) useBuilderStore.setState({ saves: merged })
     })
+  }, []) // eslint-disable-line
+
+  // Sync current company to cloud when the user leaves the page
+  useEffect(() => {
+    function handleUnload() {
+      const { mark, companyName, companyAvatar, ipLimit, slots, companyId, companyMode, campaignGame } = useBuilderStore.getState()
+      const { user } = useAuthStore.getState()
+      if (!user || !mark) return
+      const saveData = { mark, companyName, companyAvatar, ipLimit, slots, companyId, companyMode, campaignGame, savedAt: Date.now() }
+      // Use sendBeacon so the request survives page unload
+      const payload = JSON.stringify({ id: companyId, name: companyName, mode: companyMode, data: saveData })
+      navigator.sendBeacon?.('/api/companies', new Blob([payload], { type: 'application/json' }))
+    }
+    window.addEventListener('beforeunload', handleUnload)
+    return () => window.removeEventListener('beforeunload', handleUnload)
   }, []) // eslint-disable-line
 
   // global quick reference overlay — works from any view
@@ -193,11 +209,10 @@ export default function BuilderPage({ initialView = null }) {
 
   function handleNew() {
     setSidebarOpen(false)
-    setModeSelectOpen(true)
+    setView('new-company')
   }
 
-  function handleModeSelect(mode, name, avatar, warriors, ip, randomPreview = null) {
-    setModeSelectOpen(false)
+  function handleModeSelect(mode, name, avatar, warriors, ip, randomPreview = null, mark = null, pickedSlots = null) {
     clearBuilder()
     setCompanyMode(mode)
     const s = useBuilderStore.getState()
@@ -208,9 +223,19 @@ export default function BuilderPage({ initialView = null }) {
     } else {
       if (name) s.setCompanyName(name)
       if (avatar) s.setCompanyAvatar(avatar)
+      // Adjust slot count to match chosen warrior count
       const diff = warriors - 3
       if (diff > 0) for (let i = 0; i < diff; i++) s.addSlot()
       else if (diff < 0) for (let i = 0; i < -diff; i++) s.removeSlot()
+      // Apply pre-selected warrior classes
+      if (pickedSlots) {
+        const state = useBuilderStore.getState()
+        pickedSlots.forEach((type, idx) => {
+          if (type && state.slots[idx] !== undefined) {
+            s.selectWarrior(idx, type)
+          }
+        })
+      }
       if (mode === 'campaign') {
         if (ip > 0) s.setEarnedIPAll(ip)
       } else {
@@ -218,6 +243,7 @@ export default function BuilderPage({ initialView = null }) {
         if (ipDiff !== 0) s.changeIPLimit(ipDiff)
       }
     }
+    if (mark) s.setMark(mark)
     setView('builder')
   }
 
@@ -251,6 +277,11 @@ export default function BuilderPage({ initialView = null }) {
           <RefContent onBack={() => setRefOpen(false)} />
         ) : view === 'landing' ? (
           <LandingPage onLoad={goBuilder} onNew={handleNew} />
+        ) : view === 'new-company' ? (
+          <NewCompanyPage
+            onStart={handleModeSelect}
+            onBack={() => setView('landing')}
+          />
         ) : (
           <main className="builder-main" ref={builderMainRef}>
             <CompanyHeader onSettings={() => setSettingsOpen(true)} onEndOfGame={() => setEndOfGameOpen(true)} />
@@ -289,14 +320,11 @@ export default function BuilderPage({ initialView = null }) {
             <div className="sb-action-strip">
               {companyMode === 'campaign' ? (
                 <>
+                  {/* Campaign: Share + Print / Quick Ref + End Game */}
                   <div className="sb-action-row">
                     <button className="sb-action-btn" onClick={() => { setSidebarOpen(false); openShare() }}>
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true"><path d="M16 5l-1.42 1.42-1.59-1.59V16h-1.98V4.83L9.42 6.42 8 5l4-4 4 4zm4 5v11c0 1.1-.9 2-2 2H6c-1.11 0-2-.9-2-2V10c0-1.11.89-2 2-2h3v2H6v11h12V10h-3V8h3c1.1 0 2 .89 2 2z"/></svg>
                       <span>Share</span>
-                    </button>
-                    <button className="sb-action-btn" onClick={() => { setSidebarOpen(false); openImport() }}>
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
-                      <span>Import</span>
                     </button>
                     <button className="sb-action-btn" onClick={handlePrint}>
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true"><path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/></svg>
@@ -316,28 +344,25 @@ export default function BuilderPage({ initialView = null }) {
                 </>
               ) : (
                 <>
+                  {/* Standard: Home + Quick Ref / Share + Print */}
                   <div className="sb-action-row">
                     <button className="sb-action-btn" onClick={() => { setSidebarOpen(false); handleGoHome() }}>
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
                       <span>Home</span>
                     </button>
+                    <button className="sb-action-btn" onClick={() => { setSidebarOpen(false); setRefOpen(v => !v) }}>
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 14H7v-2h10v2zm0-4H7v-2h10v2zm0-4H7V6h10v2z"/></svg>
+                      <span>Quick Ref</span>
+                    </button>
+                  </div>
+                  <div className="sb-action-row">
                     <button className="sb-action-btn" onClick={() => { setSidebarOpen(false); openShare() }}>
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true"><path d="M16 5l-1.42 1.42-1.59-1.59V16h-1.98V4.83L9.42 6.42 8 5l4-4 4 4zm4 5v11c0 1.1-.9 2-2 2H6c-1.11 0-2-.9-2-2V10c0-1.11.89-2 2-2h3v2H6v11h12V10h-3V8h3c1.1 0 2 .89 2 2z"/></svg>
                       <span>Share</span>
                     </button>
-                    <button className="sb-action-btn" onClick={() => { setSidebarOpen(false); openImport() }}>
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
-                      <span>Import</span>
-                    </button>
                     <button className="sb-action-btn" onClick={handlePrint}>
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true"><path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/></svg>
                       <span>Print</span>
-                    </button>
-                  </div>
-                  <div className="sb-action-row">
-                    <button className="sb-action-btn" onClick={() => { setSidebarOpen(false); setRefOpen(v => !v) }}>
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 14H7v-2h10v2zm0-4H7v-2h10v2zm0-4H7V6h10v2z"/></svg>
-                      <span>Quick Ref</span>
                     </button>
                   </div>
                 </>
@@ -369,7 +394,19 @@ export default function BuilderPage({ initialView = null }) {
             </div>
           }
         >
-          <SaveLoadPanel onSelect={handleLoadCompany} />
+          <>
+            <SaveLoadPanel onSelect={handleLoadCompany} />
+            <div style={{ padding: '0 0 0.5rem' }}>
+              <button
+                className="landing-new-company-btn"
+                style={{ marginTop: '0.75rem' }}
+                onClick={() => { setSidebarOpen(false); handleNew() }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="14" height="14" aria-hidden="true"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
+                New Company
+              </button>
+            </div>
+          </>
         </BottomSheet>
       )}
 

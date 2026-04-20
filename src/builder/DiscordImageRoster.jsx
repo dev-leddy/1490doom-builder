@@ -37,7 +37,7 @@ const S = {
   page: {
     width: '420px',
     background: C.ash,
-    padding: '14px 14px 10px',
+    padding: '14px 14px 18px',
     fontFamily: "'Oswald', 'Arial Narrow', Arial, sans-serif",
     color: C.bone,
     boxSizing: 'border-box',
@@ -78,7 +78,7 @@ const S = {
     flexDirection: 'column',
   },
   warriorRow: {
-    padding: '7px 0',
+    padding: '2px 0',
   },
 
   // Name line: name + captain badge
@@ -98,12 +98,16 @@ const S = {
   },
   captainBadge: {
     fontFamily: "'Oswald', sans-serif",
-    fontSize: '8px',
+    fontSize: '15px',
     fontWeight: '700',
-    letterSpacing: '0.15em',
-    textTransform: 'uppercase',
     color: C.blood,
     flexShrink: 0,
+  },
+  classIpLine: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    marginBottom: '4px',
   },
   customSubname: {
     fontSize: '9px',
@@ -111,13 +115,27 @@ const S = {
     letterSpacing: '0.06em',
     textTransform: 'uppercase',
   },
+  ipLabel: {
+    fontFamily: "'Oswald', sans-serif",
+    fontSize: '9px',
+    letterSpacing: '0.06em',
+    textTransform: 'uppercase',
+    color: C.blood,
+  },
+  ipLabelZero: {
+    fontFamily: "'Oswald', sans-serif",
+    fontSize: '9px',
+    letterSpacing: '0.06em',
+    textTransform: 'uppercase',
+    color: C.mist,
+  },
 
   // Stats: single text line with · separators
   statsLine: {
     display: 'flex',
     gap: '3px',
     alignItems: 'center',
-    marginBottom: '5px',
+    marginBottom: '8px',
     flexWrap: 'wrap',
   },
   statChunk: {
@@ -153,8 +171,10 @@ const S = {
     display: 'flex',
     flexWrap: 'wrap',
     gap: '3px',
-    marginBottom: '4px',
+    marginBottom: '1px',
+    marginTop: '2px',
     justifyContent: 'flex-start',
+    width: '100%'
   },
   pill: {
     display: 'inline-flex',
@@ -162,12 +182,15 @@ const S = {
     alignItems: 'center',
     fontFamily: "'Oswald', sans-serif",
     fontSize: '9px',
+    lineHeight: '1.2',
     letterSpacing: '0.04em',
     textTransform: 'uppercase',
     color: C.bone,
     background: C.fog,
     border: `1px solid ${C.dim}`,
-    padding: '3px 6px',
+    padding: '3px 6px 11px',
+    width: '80px'
+
   },
   pillIP: {
     display: 'inline-flex',
@@ -175,16 +198,22 @@ const S = {
     alignItems: 'center',
     fontFamily: "'Oswald', sans-serif",
     fontSize: '9px',
+    lineHeight: '1.2',
     letterSpacing: '0.04em',
     textTransform: 'uppercase',
-    color: C.bone,
+    color: C.green,
     background: C.fog,
     border: `1px solid ${C.dim}`,
-    padding: '3px 6px',
-    textDecoration: 'underline',
+    padding: '3px 6px 11px',
+    width: '80px',
   },
   pillTopRow: {
     whiteSpace: 'nowrap',
+  },
+  pillTopRowIP: {
+    whiteSpace: 'nowrap',
+    textDecoration: 'underline',
+    textDecorationSkipInk: 'none',
   },
   pillStat: {
     fontSize: '8px',
@@ -200,11 +229,12 @@ const S = {
     justifyContent: 'center',
     fontFamily: "'Oswald', sans-serif",
     fontSize: '8px',
+    lineHeight: '1.2',
     letterSpacing: '0.06em',
     textTransform: 'uppercase',
     color: C.mist,
     border: `1px solid ${C.dim}`,
-    padding: '3px 6px',
+    padding: '3px 6px 11px',
     whiteSpace: 'nowrap',
     background: 'transparent',
   },
@@ -281,24 +311,24 @@ const DiscordImageRoster = forwardRef(function DiscordImageRoster({ state }, ref
             if (!weaponKey) continue
             const w = WEAPONS[weaponKey]
             const statParts = []
-            if (w?.damage > 0) statParts.push(`${w.damage}dmg`)
+            if (w?.damage > 0) statParts.push(`${w.damage} dmg`)
             if (w?.range && w.range !== '—' && w.range !== 'Base') statParts.push(w.range)
-            equipPills.push({ key: weaponKey + (isIP ? '-ip' : ''), iconKey: weaponKey, name: weaponKey, stat: statParts.join(' · '), isIP })
+            equipPills.push({ key: weaponKey + (isIP ? '-ip' : ''), name: weaponKey, stat: statParts.join(' · '), isIP })
           }
           if (slot.climbing && slot.climbing !== 'None') {
             const c = CLIMBING_ITEMS[slot.climbing]
-            equipPills.push({ key: 'climb', iconKey: slot.climbing, name: slot.climbing, stat: c ? `HT ${c.height}` : null, isIP: spent.includes('climbing') })
+            equipPills.push({ key: 'climb', name: slot.climbing, stat: c ? `HT ${c.height}` : null, isIP: spent.includes('climbing') })
           }
           if (slot.consumable && slot.consumable !== 'None') {
-            equipPills.push({ key: 'consumable', iconKey: slot.consumable, name: slot.consumable, stat: null, isIP: spent.includes('consumable') })
+            equipPills.push({ key: 'consumable', name: slot.consumable, stat: null, isIP: spent.includes('consumable') })
           }
 
-          // Build ability names
-          const abilityNames = (wdata.abilities || []).map(a => a.name.toUpperCase())
+          // Build abilities — track whether each comes from class or equipment/upgrade
+          const abilities = (wdata.abilities || []).map(a => ({ name: a.name.toUpperCase(), fromEquip: false }))
           for (const wKey of [slot.weapon1, slot.weapon2]) {
             if (!wKey) continue
             const w = WEAPONS[wKey]
-            if (w?.abilityName) abilityNames.push(w.abilityName.toUpperCase())
+            if (w?.abilityName) abilities.push({ name: w.abilityName.toUpperCase(), fromEquip: true })
           }
 
           const displayName = slot.customName || slot.type
@@ -308,9 +338,18 @@ const DiscordImageRoster = forwardRef(function DiscordImageRoster({ state }, ref
 
               {/* Name row */}
               <div style={S.nameLine}>
-                <span style={S.warriorName}>{displayName}</span>
+                <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: '5px' }}>
+                  {isCaptain && <span style={S.captainBadge}>★</span>}
+                  <span style={S.warriorName}>{displayName}</span>
+                </span>
+              </div>
+
+              {/* Class + IP line — always shown */}
+              <div style={S.classIpLine}>
                 {slot.customName && <span style={S.customSubname}>{slot.type}</span>}
-                {isCaptain && <span style={S.captainBadge}>★ Captain</span>}
+                <span style={spent.length > 0 ? S.ipLabel : S.ipLabelZero}>
+                  {spent.length} IP Upgrade{spent.length !== 1 ? 's' : ''}
+                </span>
               </div>
 
               {/* Stats line */}
@@ -330,7 +369,7 @@ const DiscordImageRoster = forwardRef(function DiscordImageRoster({ state }, ref
                 <div style={S.pillsRow}>
                   {equipPills.map(pill => (
                     <span key={pill.key} style={pill.isIP ? S.pillIP : S.pill}>
-                      <span style={S.pillTopRow}>{pill.name}</span>
+                      <span style={pill.isIP ? S.pillTopRowIP : S.pillTopRow}>{pill.name}</span>
                       {pill.stat && <span style={S.pillStat}>{pill.stat}</span>}
                     </span>
                   ))}
@@ -338,10 +377,12 @@ const DiscordImageRoster = forwardRef(function DiscordImageRoster({ state }, ref
               )}
 
               {/* Ability pills */}
-              {abilityNames.length > 0 && (
+              {abilities.length > 0 && (
                 <div style={S.pillsRow}>
-                  {abilityNames.map(name => (
-                    <span key={name} style={S.abilityPill}>{name}</span>
+                  {abilities.map(ability => (
+                    <span key={ability.name} style={S.abilityPill}>
+                      {ability.fromEquip ? `*${ability.name}` : ability.name}
+                    </span>
                   ))}
                 </div>
               )}

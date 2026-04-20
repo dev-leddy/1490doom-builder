@@ -481,8 +481,14 @@ export const useBuilderStore = create((set, get) => {
       const saves = getSaves()
       const save = saves[index]
       if (!save) return
-      const { mark, companyName, companyAvatar = null, ipLimit, slots, companyId, companyMode = 'standard', campaignGame = 0 } = save
-      set({ mark, companyName, companyAvatar, ipLimit, slots, companyId: companyId || randomUUID(), companyMode, campaignGame })
+      // Sync the current company before switching away — captures any unsaved edits
+      const { mark, companyName, companyAvatar, ipLimit, slots, companyId, companyMode, campaignGame } = get()
+      if (mark) {
+        const saveData = { mark, companyName, companyAvatar, ipLimit, slots, companyId, companyMode, campaignGame, savedAt: Date.now() }
+        syncSaveToCloud({ ...saveData, id: companyId, name: companyName }, getUser)
+      }
+      const { mark: m, companyName: n, companyAvatar: a = null, ipLimit: ip, slots: sl, companyId: cid, companyMode: cm = 'standard', campaignGame: cg = 0 } = save
+      set({ mark: m, companyName: n, companyAvatar: a, ipLimit: ip, slots: sl, companyId: cid || randomUUID(), companyMode: cm, campaignGame: cg })
       get()._toast('Company loaded!')
     },
     deleteCompany(index) {
@@ -502,10 +508,15 @@ export const useBuilderStore = create((set, get) => {
 
     // ── SHARE / IMPORT ─────────────────────────────────────────────────────────
     openShare() {
-      const { mark, companyName, ipLimit, slots } = get()
+      const { mark, companyName, companyAvatar, ipLimit, slots, companyId, companyMode, campaignGame } = get()
       const code = encodeCompany({ mark, companyName, ipLimit, slots })
       const url = `${window.location.origin}${window.location.pathname}#${code}`
       set({ shareCode: url })
+      // Good moment to sync — user is actively sharing, company is in a meaningful state
+      if (mark) {
+        const saveData = { mark, companyName, companyAvatar, ipLimit, slots, companyId, companyMode, campaignGame, savedAt: Date.now() }
+        syncSaveToCloud({ ...saveData, id: companyId, name: companyName }, getUser)
+      }
     },
     closeShare() {
       set({ shareCode: null })
@@ -717,7 +728,8 @@ export const useBuilderStore = create((set, get) => {
         if (saves.length > 10) saves.pop()
       }
       try { setSaves(saves); set({ saves }) } catch {}
-      if (mark) syncSaveToCloud({ ...saveData, id: saveData.companyId, name: saveData.companyName }, getUser)
+      // Cloud sync intentionally removed from auto-draft — syncs happen at
+      // meaningful save points only (explicit save, share, load, page unload).
     },
     _validate() {
       const { slots } = get()
