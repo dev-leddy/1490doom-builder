@@ -311,6 +311,8 @@ export const useBuilderStore = create((set, get) => {
 
         // Absolute invariant: two-handed weapon1 can never have a weapon2
         if (weapon1 && twoHanded.includes(weapon1)) weapon2 = null
+        // weapon2 can ONLY be Shield or Light Weapon — hard game rule, no exceptions
+        if (weapon2 && weapon2 !== 'Shield' && weapon2 !== 'Light Weapon') weapon2 = null
         // Strip any weapon forbidden for this class
         if (weapon2 && cantHave.includes(weapon2)) weapon2 = null
 
@@ -597,6 +599,8 @@ export const useBuilderStore = create((set, get) => {
 
         // Absolute invariant: two-handed weapon1 can never have a weapon2
         if (weapon1 && twoHanded.includes(weapon1)) weapon2 = null
+        // weapon2 can ONLY be Shield or Light Weapon — hard game rule, no exceptions
+        if (weapon2 && weapon2 !== 'Shield' && weapon2 !== 'Light Weapon') weapon2 = null
         // Strip any weapon forbidden for this class
         if (weapon2 && cantHave.includes(weapon2)) weapon2 = null
 
