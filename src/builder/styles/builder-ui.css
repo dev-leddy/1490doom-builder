@@ -3739,3 +3739,12 @@
 
 /* Sidebar new company row — no separator, styled via sb-action-btn */
 .sb-new-company-row { border-top: none; }
+
+/* End Campaign Game button — same shape as New Company but blood-red accent */
+.sb-end-campaign-btn {
+  border-color: var(--blood) !important;
+  color: var(--blood) !important;
+}
+.sb-end-campaign-btn:hover, .sb-end-campaign-btn:active {
+  background: rgba(190, 65, 39, 0.12) !important;
+}

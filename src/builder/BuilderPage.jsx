@@ -330,56 +330,27 @@ export default function BuilderPage({ initialView = null }) {
           onClose={() => setSidebarOpen(false)}
           footer={
             <div className="sb-action-strip">
-              {companyMode === 'campaign' ? (
-                <>
-                  {/* Campaign: Share + Print / Quick Ref + End Game */}
-                  <div className="sb-action-row">
-                    <button className="sb-action-btn" onClick={() => { setSidebarOpen(false); openShare() }}>
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true"><path d="M16 5l-1.42 1.42-1.59-1.59V16h-1.98V4.83L9.42 6.42 8 5l4-4 4 4zm4 5v11c0 1.1-.9 2-2 2H6c-1.11 0-2-.9-2-2V10c0-1.11.89-2 2-2h3v2H6v11h12V10h-3V8h3c1.1 0 2 .89 2 2z"/></svg>
-                      <span>Share</span>
-                    </button>
-                    <button className="sb-action-btn" onClick={handlePrint}>
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true"><path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/></svg>
-                      <span>Print</span>
-                    </button>
-                  </div>
-                  <div className="sb-action-row sb-action-row--large">
-                    <button className="sb-action-btn sb-action-btn--lg" onClick={() => { setSidebarOpen(false); setRefOpen(v => !v) }}>
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 14H7v-2h10v2zm0-4H7v-2h10v2zm0-4H7V6h10v2z"/></svg>
-                      <span>Quick Ref</span>
-                    </button>
-                    <button className="sb-action-btn sb-action-btn--lg" onClick={() => { setSidebarOpen(false); setEndOfGameOpen(true) }}>
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true"><path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z"/></svg>
-                      <span>End Game</span>
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  {/* Standard: Home + Quick Ref / Share + Print */}
-                  <div className="sb-action-row">
-                    <button className="sb-action-btn" onClick={() => { setSidebarOpen(false); handleGoHome() }}>
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-                      <span>Home</span>
-                    </button>
-                    <button className="sb-action-btn" onClick={() => { setSidebarOpen(false); setRefOpen(v => !v) }}>
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 14H7v-2h10v2zm0-4H7v-2h10v2zm0-4H7V6h10v2z"/></svg>
-                      <span>Quick Ref</span>
-                    </button>
-                  </div>
-                  <div className="sb-action-row">
-                    <button className="sb-action-btn" onClick={() => { setSidebarOpen(false); openShare() }}>
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true"><path d="M16 5l-1.42 1.42-1.59-1.59V16h-1.98V4.83L9.42 6.42 8 5l4-4 4 4zm4 5v11c0 1.1-.9 2-2 2H6c-1.11 0-2-.9-2-2V10c0-1.11.89-2 2-2h3v2H6v11h12V10h-3V8h3c1.1 0 2 .89 2 2z"/></svg>
-                      <span>Share</span>
-                    </button>
-                    <button className="sb-action-btn" onClick={handlePrint}>
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true"><path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/></svg>
-                      <span>Print</span>
-                    </button>
-                  </div>
-                </>
-              )}
-              <div className="sb-action-row sb-action-row--large">
+              {/* Row 1: Home | Quick Ref | Share | Print — same on both modes */}
+              <div className="sb-action-row">
+                <button className="sb-action-btn" onClick={() => { setSidebarOpen(false); handleGoHome() }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                  <span>Home</span>
+                </button>
+                <button className="sb-action-btn" onClick={() => { setSidebarOpen(false); setRefOpen(v => !v) }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 14H7v-2h10v2zm0-4H7v-2h10v2zm0-4H7V6h10v2z"/></svg>
+                  <span>Quick Ref</span>
+                </button>
+                <button className="sb-action-btn" onClick={() => { setSidebarOpen(false); openShare() }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true"><path d="M16 5l-1.42 1.42-1.59-1.59V16h-1.98V4.83L9.42 6.42 8 5l4-4 4 4zm4 5v11c0 1.1-.9 2-2 2H6c-1.11 0-2-.9-2-2V10c0-1.11.89-2 2-2h3v2H6v11h12V10h-3V8h3c1.1 0 2 .89 2 2z"/></svg>
+                  <span>Share</span>
+                </button>
+                <button className="sb-action-btn" onClick={handlePrint}>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true"><path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/></svg>
+                  <span>Print</span>
+                </button>
+              </div>
+              {/* Row 2: Discord | 1490 Doom Shop */}
+              <div className="sb-action-row">
                 <a
                   className="sb-action-btn sb-action-btn--discord sb-action-btn--lg"
                   href="https://discord.gg/hqTdqGBJyg"
@@ -387,7 +358,7 @@ export default function BuilderPage({ initialView = null }) {
                   rel="noopener noreferrer"
                   onClick={() => setSidebarOpen(false)}
                 >
-                  <svg width="28" height="21" viewBox="0 0 59 44" fill="currentColor" aria-hidden="true">
+                  <svg width="20" height="15" viewBox="0 0 59 44" fill="currentColor" aria-hidden="true">
                     <path d="M37.1937 0C36.6265 1.0071 36.1172 2.04893 35.6541 3.11392C31.2553 2.45409 26.7754 2.45409 22.365 3.11392C21.9136 2.04893 21.3926 1.0071 20.8254 0C16.6928 0.70613 12.6644 1.94475 8.84436 3.69271C1.27372 14.9098 -0.775214 25.8374 0.243466 36.6146C4.67704 39.8906 9.6431 42.391 14.9333 43.9884C16.1256 42.391 17.179 40.6893 18.0819 38.9182C16.3687 38.2815 14.7133 37.4828 13.1274 36.5567C13.5442 36.2557 13.9493 35.9432 14.3429 35.6422C23.6384 40.0179 34.4039 40.0179 43.711 35.6422C44.1046 35.9663 44.5097 36.2789 44.9264 36.5567C43.3405 37.4943 41.6852 38.2815 39.9604 38.9298C40.8633 40.7009 41.9167 42.4025 43.109 44C48.3992 42.4025 53.3653 39.9137 57.7988 36.6377C59.0027 24.1358 55.7383 13.3007 49.1748 3.70429C45.3663 1.95633 41.3379 0.717706 37.2053 0.0231518L37.1937 0ZM19.3784 29.9816C16.5192 29.9816 14.1461 27.3886 14.1461 24.1821C14.1461 20.9755 16.4266 18.371 19.3669 18.371C22.3071 18.371 24.6455 20.9871 24.5992 24.1821C24.5529 27.377 22.2956 29.9816 19.3784 29.9816ZM38.6639 29.9816C35.7931 29.9816 33.4431 27.3886 33.4431 24.1821C33.4431 20.9755 35.7236 18.371 38.6639 18.371C41.6042 18.371 43.9309 20.9871 43.8846 24.1821C43.8383 27.377 41.581 29.9816 38.6639 29.9816Z" />
                   </svg>
                   <span>Discord</span>
@@ -400,7 +371,7 @@ export default function BuilderPage({ initialView = null }) {
                   onClick={() => setSidebarOpen(false)}
                 >
                   <img src={`${import.meta.env.BASE_URL}logo.png`} alt="1490 DOOM" className="sb-shop-logo" />
-                  <span>Shop</span>
+                  <span>1490 Doom Shop</span>
                 </a>
               </div>
             </div>
@@ -417,6 +388,16 @@ export default function BuilderPage({ initialView = null }) {
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="14" height="14" aria-hidden="true"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
                 New Company
               </button>
+              {companyMode === 'campaign' && (
+                <button
+                  className="landing-new-company-btn sb-end-campaign-btn"
+                  style={{ marginTop: '0.5rem' }}
+                  onClick={() => { setSidebarOpen(false); setEndOfGameOpen(true) }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="14" height="14" aria-hidden="true"><path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z"/></svg>
+                  End Campaign Game
+                </button>
+              )}
             </div>
           </>
         </BottomSheet>
