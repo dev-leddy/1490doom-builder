@@ -309,7 +309,9 @@ export const useBuilderStore = create((set, get) => {
           }
         }
 
-        // Final safety: strip any weapon that is forbidden for this class
+        // Absolute invariant: two-handed weapon1 can never have a weapon2
+        if (weapon1 && twoHanded.includes(weapon1)) weapon2 = null
+        // Strip any weapon forbidden for this class
         if (weapon2 && cantHave.includes(weapon2)) weapon2 = null
 
         // Randomly assign remaining IP options (stat, climbing, consumable)
@@ -593,7 +595,9 @@ export const useBuilderStore = create((set, get) => {
           }
         }
 
-        // Final safety: strip any weapon that is forbidden for this class
+        // Absolute invariant: two-handed weapon1 can never have a weapon2
+        if (weapon1 && twoHanded.includes(weapon1)) weapon2 = null
+        // Strip any weapon forbidden for this class
         if (weapon2 && cantHave.includes(weapon2)) weapon2 = null
 
         const climbingOptions = Object.keys(CLIMBING_ITEMS).filter(k => k !== 'None')
