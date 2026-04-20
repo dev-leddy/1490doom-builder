@@ -99,6 +99,31 @@ export default function NewCompanyPage({ onStart, onBack }) {
     setRandomPreview(result)
   }
 
+  function buildPills(slotData) {
+    if (!slotData) return []
+    const pills = []
+    for (const wKey of [slotData.weapon1, slotData.weapon2]) {
+      if (!wKey) continue
+      const w = WEAPONS[wKey]
+      const stat = [
+        w?.damage > 0 ? `${w.damage} dmg` : null,
+        w?.range && w.range !== '—' && w.range !== 'Base' ? w.range : null,
+      ].filter(Boolean).join(' · ')
+      pills.push({ key: wKey, label: wKey, stat: stat || null })
+    }
+    if (slotData.climbing) {
+      const c = CLIMBING_ITEMS[slotData.climbing]
+      pills.push({ key: 'climb', label: slotData.climbing, stat: c ? `HT ${c.height}` : null })
+    }
+    if (slotData.consumable) {
+      pills.push({ key: 'consumable', label: slotData.consumable, stat: null })
+    }
+    if (slotData.statImprove) {
+      pills.push({ key: 'stat', label: `${slotData.statImprove} +1`, stat: null })
+    }
+    return pills
+  }
+
   function handleStart() {
     onStart(mode, name.trim() || null, avatar, warriorCount, ip, randomPreview, mark || null, slots, slotIps)
   }
@@ -227,118 +252,57 @@ export default function NewCompanyPage({ onStart, onBack }) {
 
             {/* Slot list */}
             <div className="ncp-slot-list">
-              {slots.map((type, idx) => (
-                <div key={idx} className="ncp-slot-box">
-                  {/* Main clickable — opens class picker */}
-                  <button
-                    className="ncp-slot-main"
-                    onClick={() => { setTempSlotType(type); setEditingSlot(idx) }}
-                  >
-                    <div className="ncp-slot-portrait">
-                      {type && WARRIOR_IMAGES[type]
-                        ? <img src={WARRIOR_IMAGES[type]} alt={type} className="ncp-slot-portrait-img" />
-                        : <span className="ncp-slot-portrait-empty">{idx + 1}</span>
-                      }
-                    </div>
-                    <span className="ncp-slot-label">
-                      {type || <span className="ncp-slot-placeholder">Choose class…</span>}
-                    </span>
-                  </button>
+              {slots.map((type, idx) => {
+                const pills = buildPills(randomPreview?.slots[idx])
+                return (
+                  <div key={idx} className="ncp-slot-box">
+                    {/* Top row: portrait + name + IP + remove */}
+                    <div className="ncp-slot-top-row">
+                      <button
+                        className="ncp-slot-main"
+                        onClick={() => { setTempSlotType(type); setEditingSlot(idx) }}
+                      >
+                        <div className="ncp-slot-portrait">
+                          {type && WARRIOR_IMAGES[type]
+                            ? <img src={WARRIOR_IMAGES[type]} alt={type} className="ncp-slot-portrait-img" />
+                            : <span className="ncp-slot-portrait-empty">{idx + 1}</span>
+                          }
+                        </div>
+                        <span className="ncp-slot-label">
+                          {type || <span className="ncp-slot-placeholder">Choose class…</span>}
+                        </span>
+                      </button>
 
-                  {/* Campaign: per-warrior starting IP */}
-                  {isCampaign && (
-                    <div className="ncp-slot-ip">
-                      <span className="ncp-slot-ip-label">IP</span>
-                      <button className="ncp-slot-ip-btn" onClick={() => setSlotIp(idx, slotIps[idx] - 1)} disabled={slotIps[idx] <= 0}>−</button>
-                      <span className="ncp-slot-ip-val">{slotIps[idx]}</span>
-                      <button className="ncp-slot-ip-btn" onClick={() => setSlotIp(idx, slotIps[idx] + 1)} disabled={slotIps[idx] >= 20}>+</button>
-                    </div>
-                  )}
+                      {isCampaign && (
+                        <div className="ncp-slot-ip">
+                          <span className="ncp-slot-ip-label">IP</span>
+                          <button className="ncp-slot-ip-btn" onClick={() => setSlotIp(idx, slotIps[idx] - 1)} disabled={slotIps[idx] <= 0}>−</button>
+                          <span className="ncp-slot-ip-val">{slotIps[idx]}</span>
+                          <button className="ncp-slot-ip-btn" onClick={() => setSlotIp(idx, slotIps[idx] + 1)} disabled={slotIps[idx] >= 20}>+</button>
+                        </div>
+                      )}
 
-                  {/* Remove — only when more than one slot */}
-                  {slots.length > 1 && (
-                    <button
-                      className="ncp-slot-remove"
-                      onClick={() => removeSlot(idx)}
-                      title="Remove warrior"
-                    >×</button>
-                  )}
-                </div>
-              ))}
+                      {slots.length > 1 && (
+                        <button className="ncp-slot-remove" onClick={() => removeSlot(idx)} title="Remove warrior">×</button>
+                      )}
+                    </div>
+
+                    {/* Pills row — only when randomPreview has equipment for this slot */}
+                    {pills.length > 0 && (
+                      <div className="ncp-slot-pills">
+                        {pills.map(p => (
+                          <span key={p.key} className="ncp-slot-pill">
+                            <span className="ncp-slot-pill-name">{p.label}</span>
+                            {p.stat && <span className="ncp-slot-pill-stat">{p.stat}</span>}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
             </div>
           </section>
-
-          {/* Random preview */}
-          {randomPreview && (
-            <section className="ncp-section">
-              <SectionLabel>Preview</SectionLabel>
-              <div className="random-preview">
-                <div className="random-preview-header">
-                  {avatar
-                    ? <img src={getAvatarSrc(avatar)} className="random-preview-avatar" alt="" />
-                    : <div className="random-preview-avatar-empty" />
-                  }
-                  <div className="random-preview-company-info">
-                    <div className="random-preview-company-name">{name.trim() || randomPreview.companyName}</div>
-                    <div className="random-preview-mark-row">
-                      {MARK_IMAGES[randomPreview.mark] && (
-                        <img src={MARK_IMAGES[randomPreview.mark]} className="random-preview-mark-img" alt="" />
-                      )}
-                      <span>{MARKS.find(m => m.name === randomPreview.mark)?.label || randomPreview.mark}</span>
-                    </div>
-                  </div>
-                </div>
-                <ul className="random-preview-warriors">
-                  {randomPreview.slots.map((slot, i) => {
-                    // Build pills same way Discord image does
-                    const pills = []
-                    for (const wKey of [slot.weapon1, slot.weapon2]) {
-                      if (!wKey) continue
-                      const w = WEAPONS[wKey]
-                      const stat = [
-                        w?.damage > 0 ? `${w.damage} dmg` : null,
-                        w?.range && w.range !== '—' && w.range !== 'Base' ? w.range : null,
-                      ].filter(Boolean).join(' · ')
-                      pills.push({ key: wKey, label: wKey, stat: stat || null, kind: 'equip' })
-                    }
-                    if (slot.climbing) {
-                      const c = CLIMBING_ITEMS[slot.climbing]
-                      pills.push({ key: 'climb', label: slot.climbing, stat: c ? `HT ${c.height}` : null, kind: 'equip' })
-                    }
-                    if (slot.consumable) {
-                      pills.push({ key: 'consumable', label: slot.consumable, stat: null, kind: 'equip' })
-                    }
-                    if (slot.statImprove) {
-                      pills.push({ key: 'stat', label: slot.statImprove, stat: '+1', kind: 'stat' })
-                    }
-
-                    return (
-                      <li key={i} className={`random-preview-warrior${slot.isCaptain ? ' is-captain' : ''}`}>
-                        <div className="random-preview-warrior-row">
-                          {WARRIOR_IMAGES[slot.type]
-                            ? <img src={WARRIOR_IMAGES[slot.type]} className="random-preview-warrior-img" alt={slot.type} />
-                            : <div className="random-preview-warrior-img random-preview-warrior-empty" />
-                          }
-                          <span className="random-preview-warrior-name">{slot.type}</span>
-                          {slot.isCaptain && <span className="random-preview-captain">Cpt</span>}
-                        </div>
-                        {pills.length > 0 && (
-                          <div className="random-preview-pills">
-                            {pills.map(p => (
-                              <span key={p.key} className={`random-preview-pill${p.kind === 'stat' ? ' random-preview-pill--stat' : ''}`}>
-                                <span className="random-preview-pill-name">{p.label}</span>
-                                {p.stat && <span className="random-preview-pill-stat">{p.stat}</span>}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </li>
-                    )
-                  })}
-                </ul>
-              </div>
-            </section>
-          )}
 
         </div>
       </div>

@@ -3627,14 +3627,19 @@
 /* Slot list */
 .ncp-slot-list { display: flex; flex-direction: column; gap: 0.4rem; }
 
-/* Each slot is a single bordered box */
+/* Each slot is a single bordered box — column so pills sit below the row */
 .ncp-slot-box {
-  display: flex; align-items: stretch;
+  display: flex; flex-direction: column;
   border: 1px solid var(--dim); border-radius: 2px;
   background: var(--fog); overflow: hidden;
   transition: border-color 0.15s;
 }
 .ncp-slot-box:hover { border-color: var(--mist); }
+
+/* Top row: portrait + name + optional IP + optional remove */
+.ncp-slot-top-row {
+  display: flex; align-items: stretch;
+}
 
 /* Left: clickable area — portrait + name */
 .ncp-slot-main {
@@ -3643,6 +3648,24 @@
   padding: 0.3rem 0.65rem 0.3rem 0.3rem; min-width: 0;
   text-align: left;
 }
+
+/* Equipment / upgrade pills row */
+.ncp-slot-pills {
+  display: flex; flex-wrap: wrap; gap: 0.3rem;
+  padding: 0.35rem 0.5rem 0.4rem calc(38px + 0.3rem + 0.6rem); /* indent past portrait */
+  border-top: 1px solid var(--dim);
+}
+.ncp-slot-pill {
+  display: inline-flex; flex-direction: column; align-items: flex-start;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+  padding: 0.15rem 0.4rem 0.18rem;
+  font-family: 'Oswald', sans-serif; font-size: 0.6rem;
+  letter-spacing: 0.05em; text-transform: uppercase;
+  color: var(--bone); border-radius: 2px;
+  max-width: 110px;
+}
+.ncp-slot-pill-name { white-space: normal; line-height: 1.3; }
+.ncp-slot-pill-stat { color: var(--mist); font-size: 0.55rem; margin-top: 0.05rem; white-space: nowrap; }
 .ncp-slot-label { flex: 1; font-family: 'Oswald', sans-serif; font-size: 0.85rem; letter-spacing: 0.06em; color: var(--parchment); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ncp-slot-placeholder { color: rgba(255,255,255,0.22); }
 
