@@ -3535,9 +3535,17 @@
 
 /* Mark */
 .ncp-mark-select-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+.ncp-mark-select-row--btn {
+  width: 100%; background: var(--fog); border: 1px solid var(--dim);
+  cursor: pointer; border-radius: 2px; padding: 0.4rem 0.75rem 0.4rem 0.4rem;
+  transition: border-color 0.15s;
+}
+.ncp-mark-select-row--btn:hover { border-color: var(--mist); }
 .ncp-mark-select-icon { width: 40px; height: 40px; flex-shrink: 0; border: 1px solid var(--dim); background: #fff; border-radius: 2px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 .ncp-mark-select-icon img { width: 100%; height: 100%; object-fit: contain; }
 .ncp-mark-select-none { font-family: 'Oswald', sans-serif; font-size: 1rem; color: var(--mist); }
+.ncp-mark-select-label { flex: 1; text-align: left; font-family: 'Oswald', sans-serif; font-size: 0.85rem; letter-spacing: 0.06em; color: var(--parchment); }
+.ncp-mark-select-chevron { color: var(--mist); flex-shrink: 0; }
 .ncp-mark-rule { margin: 0.5rem 0 0; padding: 0.6rem 0.9rem; background: var(--fog); border-left: 2px solid var(--blood); font-size: 0.8rem; line-height: 1.55; color: var(--bone); }
 .ncp-mark-hint { font-size: 0.78rem; color: var(--mist); margin: 0 0 0.9rem; line-height: 1.5; }
 .ncp-mark-scroll { display: flex; gap: 0.6rem; overflow-x: auto; padding-bottom: 0.5rem; scrollbar-width: thin; scrollbar-color: var(--dim) transparent; }

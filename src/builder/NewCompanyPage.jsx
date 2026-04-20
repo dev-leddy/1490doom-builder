@@ -6,6 +6,8 @@ import { COMPANY_AVATARS, getAvatarSrc } from '../data/avatars'
 import { MARKS, WARRIORS } from '../data/warriors'
 import { WARRIOR_IMAGES, MARK_IMAGES, ITEM_ICONS } from '../data/images'
 import AvatarPicker from './AvatarPicker'
+import BottomSheet from '../shared/BottomSheet.jsx'
+import MarkPicker from './MarkPicker.jsx'
 
 const DOOM_NAMES = [
   'THE BLOOD SCRIBE', 'IRON RECAPTOR', 'VOID STALKERS', 'GRIM COVENANT', 'BONE RIPPERS',
@@ -49,6 +51,8 @@ export default function NewCompanyPage({ onStart, onBack }) {
   const [slots, setSlots] = useState([null, null, null])
   const [ip, setIp] = useState(3)
   const [mark, setMark] = useState('')
+  const [tempMark, setTempMark] = useState('')
+  const [showMarkPicker, setShowMarkPicker] = useState(false)
   const [randomPreview, setRandomPreview] = useState(null)
   const [showAvatarPicker, setShowAvatarPicker] = useState(false)
 
@@ -169,24 +173,23 @@ export default function NewCompanyPage({ onStart, onBack }) {
           {/* 02 COMPANY MARK */}
           <section className="ncp-section">
             <SectionLabel num="02">Company Mark</SectionLabel>
-            <div className="ncp-mark-select-row">
+            <button
+              className="ncp-mark-select-row ncp-mark-select-row--btn"
+              onClick={() => { setTempMark(mark); setShowMarkPicker(true) }}
+            >
               <div className="ncp-mark-select-icon">
                 {mark && MARK_IMAGES[mark]
                   ? <img src={MARK_IMAGES[mark]} alt="" />
                   : <span className="ncp-mark-select-none">×</span>
                 }
               </div>
-              <select
-                className="ncp-slot-select"
-                value={mark}
-                onChange={e => setMark(e.target.value)}
-              >
-                <option value="">— No Mark —</option>
-                {MARKS.map(m => (
-                  <option key={m.name} value={m.name}>{m.name}</option>
-                ))}
-              </select>
-            </div>
+              <span className="ncp-mark-select-label">
+                {selectedMark ? selectedMark.label || selectedMark.name : 'No Mark'}
+              </span>
+              <svg className="ncp-mark-select-chevron" viewBox="0 0 24 24" fill="currentColor" width="14" height="14">
+                <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/>
+              </svg>
+            </button>
             {selectedMark && (
               <p className="ncp-mark-rule">{selectedMark.desc}</p>
             )}
@@ -281,6 +284,39 @@ export default function NewCompanyPage({ onStart, onBack }) {
 
         </div>
       </div>
+
+      {/* Mark picker sheet */}
+      {showMarkPicker && (
+        <BottomSheet
+          title="COMPANY MARK"
+          onClose={() => setShowMarkPicker(false)}
+          zIndex={900}
+          bodyClass="co-sheet-body--mark"
+          footer={
+            <>
+              <button className="co-sheet-randomize" onClick={() => setShowMarkPicker(false)}>Cancel</button>
+              <button className="co-sheet-done" onClick={() => { setMark(tempMark); setShowMarkPicker(false) }}>Done</button>
+            </>
+          }
+        >
+          <div className="mark-sheet-desc">
+            {(() => {
+              const preview = MARKS.find(m => m.name === tempMark)
+              return preview ? (
+                <>
+                  <div className="mark-sheet-desc-name">{preview.label}</div>
+                  <div className="mark-sheet-desc-text">{preview.desc}</div>
+                </>
+              ) : (
+                <div className="mark-sheet-desc-placeholder">Select a mark to see its battlefield ability.</div>
+              )
+            })()}
+          </div>
+          <div className="mark-grid-scroll">
+            <MarkPicker value={tempMark} onChange={setTempMark} />
+          </div>
+        </BottomSheet>
+      )}
 
       {/* Sticky footer */}
       <div className="ncp-footer">
