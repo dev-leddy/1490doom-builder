@@ -107,36 +107,11 @@ export default function NewCompanyPage({ onStart, onBack }) {
       <div className="ncp-scroll">
         <div className="ncp-inner">
 
-          {/* 01 MODE */}
+          {/* 01 IDENTITY + MODE — combined */}
           <section className="ncp-section">
-            <SectionLabel num="01">Mode</SectionLabel>
-            <div className="ncp-mode-row">
-              <button
-                className={`ncp-mode-card${mode === 'standard' ? ' selected' : ''}`}
-                onClick={() => handleModeChange('standard')}
-              >
-                <div className="ncp-mode-name">Standard</div>
-                <div className="ncp-mode-desc">Shared IP pool, play immediately.</div>
-              </button>
-              <button
-                className={`ncp-mode-card${mode === 'campaign' ? ' selected' : ''}`}
-                onClick={() => handleModeChange('campaign')}
-              >
-                <div className="ncp-mode-name">Campaign</div>
-                <div className="ncp-mode-desc">Warriors earn IP after each scenario.</div>
-              </button>
-            </div>
-            {isCampaign && (
-              <div className="ncp-campaign-notice">
-                <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
-                Warriors start with <strong>0 IP</strong>. IP is earned after each scenario by survivors.
-              </div>
-            )}
-          </section>
+            <SectionLabel num="01">Identity</SectionLabel>
 
-          {/* 02 IDENTITY */}
-          <section className="ncp-section">
-            <SectionLabel num="02">Identity</SectionLabel>
+            {/* Emblem + name row */}
             <div className="ncp-identity-row">
               <button className="ncp-emblem-btn" onClick={() => setShowAvatarPicker(true)} title="Choose emblem">
                 {avatarSrc
@@ -147,7 +122,7 @@ export default function NewCompanyPage({ onStart, onBack }) {
               </button>
               <div className="ncp-name-block">
                 <label className="ncp-input-label">Company Name</label>
-                <div className="ncp-name-row">
+                <div className="ncp-name-wrap">
                   <input
                     className="ncp-name-input"
                     type="text"
@@ -168,13 +143,32 @@ export default function NewCompanyPage({ onStart, onBack }) {
                     </svg>
                   </button>
                 </div>
+
+                {/* Mode toggle — inline, compact */}
+                <div className="ncp-mode-toggle">
+                  <button
+                    className={`ncp-mode-pill${mode === 'standard' ? ' active' : ''}`}
+                    onClick={() => handleModeChange('standard')}
+                  >Standard</button>
+                  <button
+                    className={`ncp-mode-pill${mode === 'campaign' ? ' active' : ''}`}
+                    onClick={() => handleModeChange('campaign')}
+                  >Campaign</button>
+                </div>
               </div>
             </div>
+
+            {isCampaign && (
+              <div className="ncp-campaign-notice" style={{ marginTop: '0.6rem' }}>
+                <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                Warriors start with <strong>0 IP</strong>. IP is earned after each scenario by survivors.
+              </div>
+            )}
           </section>
 
-          {/* 03 COMPANY MARK */}
+          {/* 02 COMPANY MARK */}
           <section className="ncp-section">
-            <SectionLabel num="03">Company Mark</SectionLabel>
+            <SectionLabel num="02">Company Mark</SectionLabel>
             <div className="ncp-mark-select-row">
               <div className="ncp-mark-select-icon">
                 {mark && MARK_IMAGES[mark]
@@ -198,9 +192,9 @@ export default function NewCompanyPage({ onStart, onBack }) {
             )}
           </section>
 
-          {/* 04 WARRIORS */}
+          {/* 03 WARRIORS */}
           <section className="ncp-section">
-            <SectionLabel num="04">Warriors</SectionLabel>
+            <SectionLabel num="03">Warriors</SectionLabel>
             <div className="ncp-slot-list">
               {slots.map((type, idx) => (
                 <div key={idx} className="ncp-slot-row">

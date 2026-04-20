@@ -271,17 +271,21 @@ export default function BuilderPage({ initialView = null }) {
         }}
       />
 
+      {/* New company page — sibling of scroll area, fills remaining height */}
+      {!refOpen && view === 'new-company' && (
+        <NewCompanyPage
+          onStart={handleModeSelect}
+          onBack={() => setView('landing')}
+        />
+      )}
+
       {/* ── SCROLLABLE AREA ────────────────────────────── */}
+      {(refOpen || view !== 'new-company') && (
       <div className="builder-scroll-area">
         {refOpen ? (
           <RefContent onBack={() => setRefOpen(false)} />
         ) : view === 'landing' ? (
           <LandingPage onLoad={goBuilder} onNew={handleNew} />
-        ) : view === 'new-company' ? (
-          <NewCompanyPage
-            onStart={handleModeSelect}
-            onBack={() => setView('landing')}
-          />
         ) : (
           <main className="builder-main" ref={builderMainRef}>
             <CompanyHeader onSettings={() => setSettingsOpen(true)} onEndOfGame={() => setEndOfGameOpen(true)} />
@@ -304,6 +308,7 @@ export default function BuilderPage({ initialView = null }) {
           </footer>
         )}
       </div>
+      )}
 
       {/* ── PRINT ROSTER ───────────────────────────────── */}
       <div id="print-roster">
