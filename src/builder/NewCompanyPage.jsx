@@ -72,6 +72,7 @@ export default function NewCompanyPage({ onStart, onBack }) {
 
   function setSlotType(idx, type) {
     setSlots(s => s.map((v, i) => i === idx ? (type || null) : v))
+    setRandomPreview(null) // pills tied to this exact configuration — clear on any change
   }
 
   function setSlotIp(idx, val) {
@@ -81,11 +82,13 @@ export default function NewCompanyPage({ onStart, onBack }) {
   function addSlot() {
     setSlots(s => [...s, null])
     setSlotIps(s => [...s, 0])
+    setRandomPreview(null)
   }
 
   function removeSlot(idx) {
     setSlots(s => s.filter((_, i) => i !== idx))
     setSlotIps(s => s.filter((_, i) => i !== idx))
+    setRandomPreview(null)
   }
 
   function handleRandomize() {

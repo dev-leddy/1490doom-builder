@@ -33,26 +33,30 @@ export function getTotalCompanyIP(ipLimit) {
 
 export function getAllowedWeapons(wdata) {
   if (!wdata) return WEAPON_NAMES.filter(w => w !== 'Shield')
-  // fixedWeapon warriors have exactly one option
+  // fixedWeapon warriors have exactly one primary — no choice
   if (wdata.fixedWeapon) return [wdata.fixedWeapon]
-  // Use the explicit allowedWeapons whitelist; Shield is always off-hand only, never primary
-  return (wdata.allowedWeapons || WEAPON_NAMES).filter(w => w !== 'Shield')
+  const cantHave = wdata.cantHave || []
+  // Use allowedWeapons whitelist when present; fall back to all weapons minus Shield and cantHave
+  return (wdata.allowedWeapons || WEAPON_NAMES).filter(w => w !== 'Shield' && !cantHave.includes(w))
 }
 
 export function getSecondWeaponOptions(wdata, primaryWeapon) {
   if (!wdata || !primaryWeapon) return []
+  const cantHave = wdata.cantHave || []
   const twoHanded = ['Heavy Weapon', 'Polearm (two-handed)', 'Bow', 'Crossbow']
   if (twoHanded.includes(primaryWeapon)) return []
-  // Polearm (one-handed) is always paired with Shield only
-  if (primaryWeapon === 'Polearm (one-handed)') return ['Shield']
-  const allowed = getAllowedWeapons(wdata) // Shield is stripped here (primary-only filter)
-  const canShield = (wdata.allowedWeapons || []).includes('Shield')
-  // Light Weapon primary: can dual wield OR pair with a Shield (if class allows it)
-  if (primaryWeapon === 'Light Weapon') {
-    return [...allowed.filter(w => w === 'Light Weapon'), ...(canShield ? ['Shield'] : [])]
+  // Polearm (one-handed) always pairs with Shield only
+  if (primaryWeapon === 'Polearm (one-handed)') {
+    return cantHave.includes('Shield') ? [] : ['Shield']
   }
-  // Other one-handed primaries: Light Weapon or Shield offhand
-  return [...allowed.filter(w => w === 'Light Weapon'), ...(canShield ? ['Shield'] : [])]
+  const canShield = (wdata.allowedWeapons || []).includes('Shield') && !cantHave.includes('Shield')
+  const canDualLight = !cantHave.includes('Light Weapon')
+  // Light Weapon primary: can dual-wield or pair with Shield
+  if (primaryWeapon === 'Light Weapon') {
+    return [...(canDualLight ? ['Light Weapon'] : []), ...(canShield ? ['Shield'] : [])]
+  }
+  // Other one-handed: Light Weapon or Shield offhand (if allowed)
+  return [...(canDualLight ? ['Light Weapon'] : []), ...(canShield ? ['Shield'] : [])]
 }
 
 export function isOPG(abilityName) {
@@ -269,7 +273,8 @@ export const useBuilderStore = create((set, get) => {
       const slots = get().slots.map((slot, i) => {
         const type = shuffled[i % shuffled.length]
         const wdata = WARRIORS[type]
-        const allowed = getAllowedWeapons(wdata)
+        const cantHave = wdata.cantHave || []
+        const allowed = getAllowedWeapons(wdata) // already respects cantHave + fixedWeapon
         let ipPool = companyMode === 'campaign' ? (slot.earnedIP || 0) : sharedPool
 
         // Pick weapon1
@@ -296,13 +301,16 @@ export const useBuilderStore = create((set, get) => {
           ip.push('weapon2')
           ipPool--
         } else if (!twoHanded.includes(weapon1)) {
-          const w2opts = getSecondWeaponOptions(wdata, weapon1)
+          const w2opts = getSecondWeaponOptions(wdata, weapon1) // already respects cantHave
           if (w2opts.length && Math.random() > 0.5 && ipPool > 0) {
             weapon2 = w2opts[Math.floor(Math.random() * w2opts.length)]
             ip.push('weapon2')
             ipPool--
           }
         }
+
+        // Final safety: strip any weapon that is forbidden for this class
+        if (weapon2 && cantHave.includes(weapon2)) weapon2 = null
 
         // Randomly assign remaining IP options (stat, climbing, consumable)
         for (const opt of IP_OPTIONS.filter(o => o.id !== 'weapon2').sort(() => Math.random() - 0.5)) {
@@ -551,13 +559,15 @@ export const useBuilderStore = create((set, get) => {
         const type = picked[i] || null
         if (!type) return { type: null, weapon1: null, weapon2: null, consumable: null, climbing: null, ip: [], isCaptain: i === 0, notes: [] }
         const wdata = WARRIORS[type]
-        const allowed = getAllowedWeapons(wdata)
+        const cantHave = wdata.cantHave || []
+        const allowed = getAllowedWeapons(wdata) // already respects cantHave + fixedWeapon
         const twoHanded = ['Heavy Weapon', 'Polearm (two-handed)', 'Bow', 'Crossbow']
 
         const affordableWeapons = allowed.filter(w => {
           if (w === 'Polearm (one-handed)' && !wdata.fixedShield && ipPool < 1) return false
           return true
         })
+        // fixedWeapon always wins; fall back through affordable → allowed[0]
         const weapon1 = wdata.fixedWeapon ||
           affordableWeapons[Math.floor(Math.random() * (affordableWeapons.length || 1))] ||
           allowed[0]
@@ -566,6 +576,7 @@ export const useBuilderStore = create((set, get) => {
         let weapon2 = null
 
         if (wdata.fixedShield) {
+          // Fixed-shield warriors always get Shield as weapon2, free of charge
           weapon2 = 'Shield'
         } else if (wdata.fixedDualWield) {
           weapon2 = 'Light Weapon'
@@ -574,13 +585,16 @@ export const useBuilderStore = create((set, get) => {
           ip.push('weapon2')
           ipPool--
         } else if (!twoHanded.includes(weapon1)) {
-          const w2opts = getSecondWeaponOptions(wdata, weapon1)
+          const w2opts = getSecondWeaponOptions(wdata, weapon1) // already respects cantHave
           if (w2opts.length && Math.random() > 0.5 && ipPool > 0) {
             weapon2 = w2opts[Math.floor(Math.random() * w2opts.length)]
             ip.push('weapon2')
             ipPool--
           }
         }
+
+        // Final safety: strip any weapon that is forbidden for this class
+        if (weapon2 && cantHave.includes(weapon2)) weapon2 = null
 
         const climbingOptions = Object.keys(CLIMBING_ITEMS).filter(k => k !== 'None')
         const statOptions = Object.keys(STAT_IMPROVEMENT)
