@@ -21,7 +21,7 @@ export function setSaves(saves) {
 export async function syncSaveToCloud(saveEntry, getUser) {
   if (!getUser()) return
   const id = saveEntry.id || saveEntry.companyId
-  const name = saveEntry.name || saveEntry.companyName
+  const name = saveEntry.name || saveEntry.companyName || 'Unnamed Company'
   try {
     await saveCompany({
       id,
@@ -62,7 +62,7 @@ export async function pushLocalSavesToCloud(getUser) {
     try {
       await saveCompany({
         id: save.companyId || save.id,
-        name: save.companyName || save.name,
+        name: save.companyName || save.name || 'Unnamed Company',
         mode: save.companyMode || 'standard',
         data: save,
       })
