@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useBuilderStore } from '../store/builderStore'
 import { COMPANY_AVATARS, getAvatarSrc } from '../data/avatars'
 import { MARKS, WARRIORS } from '../data/warriors'
-import { WARRIOR_IMAGES, MARK_IMAGES } from '../data/images'
+import { WARRIOR_IMAGES, MARK_IMAGES, ITEM_ICONS } from '../data/images'
 import { WEAPONS, CLIMBING_ITEMS } from '../data/weapons'
 import AvatarPicker from './AvatarPicker'
 import BottomSheet from '../shared/BottomSheet.jsx'
@@ -102,27 +102,49 @@ export default function NewCompanyPage({ onStart, onBack }) {
     setRandomPreview(result)
   }
 
-  function buildPills(slotData) {
+  function buildChips(slotData) {
     if (!slotData) return []
-    const pills = []
+    const chips = []
     for (const wKey of [slotData.weapon1, slotData.weapon2]) {
       if (!wKey) continue
       const w = WEAPONS[wKey]
-      const dmg = w?.damage > 0 ? `${w.damage} dmg` : null
-      const info = w?.range && w.range !== '—' ? w.range : null
-      pills.push({ key: wKey, label: wKey, dmg, info })
+      chips.push({
+        key: wKey,
+        icon: ITEM_ICONS[wKey] || null,
+        label: wKey,
+        dmg: w?.damage > 0 ? `${w.damage} DMG` : null,
+        info: w?.range && w.range !== '—' ? w.range : null,
+      })
     }
     if (slotData.climbing) {
       const c = CLIMBING_ITEMS[slotData.climbing]
-      pills.push({ key: 'climb', label: slotData.climbing, dmg: null, info: c ? `HT ${c.height}` : null })
+      chips.push({
+        key: 'climb',
+        icon: ITEM_ICONS[slotData.climbing] || null,
+        label: slotData.climbing,
+        dmg: null,
+        info: c ? `HT ${c.height}` : null,
+      })
     }
     if (slotData.consumable) {
-      pills.push({ key: 'consumable', label: slotData.consumable, dmg: null, info: null })
+      chips.push({
+        key: 'consumable',
+        icon: ITEM_ICONS[slotData.consumable] || null,
+        label: slotData.consumable,
+        dmg: null,
+        info: null,
+      })
     }
     if (slotData.statImprove) {
-      pills.push({ key: 'stat', label: `${slotData.statImprove} +1`, dmg: null, info: null })
+      chips.push({
+        key: 'stat',
+        icon: null,
+        label: `${slotData.statImprove} +1`,
+        dmg: null,
+        info: null,
+      })
     }
-    return pills
+    return chips
   }
 
   function handleStart() {
@@ -254,7 +276,7 @@ export default function NewCompanyPage({ onStart, onBack }) {
             {/* Slot list */}
             <div className="ncp-slot-list">
               {slots.map((type, idx) => {
-                const pills = buildPills(randomPreview?.slots[idx])
+                const chips = buildChips(randomPreview?.slots[idx])
                 return (
                   <div key={idx} className="ncp-slot-box">
                     {/* Top row: portrait + name + IP + remove */}
@@ -288,19 +310,31 @@ export default function NewCompanyPage({ onStart, onBack }) {
                       )}
                     </div>
 
-                    {/* Pills row — only when randomPreview has equipment for this slot */}
-                    {pills.length > 0 && (
-                      <div className="ncp-slot-pills">
-                        {pills.map(p => (
-                          <span key={p.key} className="ncp-slot-pill">
-                            <span className="ncp-slot-pill-name">{p.label}</span>
-                            {(p.dmg || p.info) && (
-                              <span className="ncp-slot-pill-stats">
-                                {p.dmg && <span className="ncp-slot-pill-dmg">{p.dmg}</span>}
-                                {p.info && <span className="ncp-slot-pill-info">{p.info}</span>}
-                              </span>
+                    {/* Equipment chips — only when randomPreview has equipment for this slot */}
+                    {chips.length > 0 && (
+                      <div className="ncp-slot-chips">
+                        {chips.map(c => (
+                          <div key={c.key} className="ncp-eq-chip">
+                            <div className="ncp-eq-chip-icon">
+                              {c.icon
+                                ? <img src={c.icon} alt="" style={{ width: 28, height: 28, filter: 'sepia(0.3) brightness(0.95)', opacity: 0.9 }} />
+                                : <span style={{ fontSize: '1.1rem', color: 'var(--mist)' }}>★</span>
+                              }
+                            </div>
+                            <div className="ncp-eq-chip-content">
+                              <span className="ncp-eq-chip-value">{c.label}</span>
+                            </div>
+                            {(c.dmg || c.info) && (
+                              <div className="ncp-eq-chip-stats">
+                                <div className="eq-stat-box">
+                                  {c.dmg && <span className="eq-chip-stat eq-chip-stat--dmg">{c.dmg}</span>}
+                                </div>
+                                <div className="eq-stat-box">
+                                  {c.info && <span className="eq-chip-stat">{c.info}</span>}
+                                </div>
+                              </div>
                             )}
-                          </span>
+                          </div>
                         ))}
                       </div>
                     )}
