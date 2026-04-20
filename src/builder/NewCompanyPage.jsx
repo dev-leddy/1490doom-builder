@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { useBuilderStore } from '../store/builderStore'
 import { COMPANY_AVATARS, getAvatarSrc } from '../data/avatars'
 import { MARKS, WARRIORS } from '../data/warriors'
-import { WARRIOR_IMAGES, MARK_IMAGES, ITEM_ICONS } from '../data/images'
+import { WARRIOR_IMAGES, MARK_IMAGES } from '../data/images'
+import { WEAPONS, CLIMBING_ITEMS } from '../data/weapons'
 import AvatarPicker from './AvatarPicker'
 import BottomSheet from '../shared/BottomSheet.jsx'
 import MarkPicker from './MarkPicker.jsx'
@@ -288,24 +289,52 @@ export default function NewCompanyPage({ onStart, onBack }) {
                   </div>
                 </div>
                 <ul className="random-preview-warriors">
-                  {randomPreview.slots.map((slot, i) => (
-                    <li key={i} className={`random-preview-warrior${slot.isCaptain ? ' is-captain' : ''}`}>
-                      {WARRIOR_IMAGES[slot.type]
-                        ? <img src={WARRIOR_IMAGES[slot.type]} className="random-preview-warrior-img" alt={slot.type} />
-                        : <div className="random-preview-warrior-img random-preview-warrior-empty" />
-                      }
-                      <span className="random-preview-warrior-name">{slot.type}</span>
-                      {slot.isCaptain && <span className="random-preview-captain">Cpt</span>}
-                      <div className="random-preview-upgrades">
-                        {[slot.weapon1, slot.weapon2, slot.climbing, slot.consumable].map((item, j) =>
-                          item && ITEM_ICONS[item]
-                            ? <img key={j} src={ITEM_ICONS[item]} className="random-preview-item-icon" title={item} alt="" />
-                            : null
+                  {randomPreview.slots.map((slot, i) => {
+                    // Build pills same way Discord image does
+                    const pills = []
+                    for (const wKey of [slot.weapon1, slot.weapon2]) {
+                      if (!wKey) continue
+                      const w = WEAPONS[wKey]
+                      const stat = [
+                        w?.damage > 0 ? `${w.damage} dmg` : null,
+                        w?.range && w.range !== '—' && w.range !== 'Base' ? w.range : null,
+                      ].filter(Boolean).join(' · ')
+                      pills.push({ key: wKey, label: wKey, stat: stat || null, kind: 'equip' })
+                    }
+                    if (slot.climbing) {
+                      const c = CLIMBING_ITEMS[slot.climbing]
+                      pills.push({ key: 'climb', label: slot.climbing, stat: c ? `HT ${c.height}` : null, kind: 'equip' })
+                    }
+                    if (slot.consumable) {
+                      pills.push({ key: 'consumable', label: slot.consumable, stat: null, kind: 'equip' })
+                    }
+                    if (slot.statImprove) {
+                      pills.push({ key: 'stat', label: slot.statImprove, stat: '+1', kind: 'stat' })
+                    }
+
+                    return (
+                      <li key={i} className={`random-preview-warrior${slot.isCaptain ? ' is-captain' : ''}`}>
+                        <div className="random-preview-warrior-row">
+                          {WARRIOR_IMAGES[slot.type]
+                            ? <img src={WARRIOR_IMAGES[slot.type]} className="random-preview-warrior-img" alt={slot.type} />
+                            : <div className="random-preview-warrior-img random-preview-warrior-empty" />
+                          }
+                          <span className="random-preview-warrior-name">{slot.type}</span>
+                          {slot.isCaptain && <span className="random-preview-captain">Cpt</span>}
+                        </div>
+                        {pills.length > 0 && (
+                          <div className="random-preview-pills">
+                            {pills.map(p => (
+                              <span key={p.key} className={`random-preview-pill${p.kind === 'stat' ? ' random-preview-pill--stat' : ''}`}>
+                                <span className="random-preview-pill-name">{p.label}</span>
+                                {p.stat && <span className="random-preview-pill-stat">{p.stat}</span>}
+                              </span>
+                            ))}
+                          </div>
                         )}
-                        {slot.statImprove && <span className="random-preview-stat">{slot.statImprove}+1</span>}
-                      </div>
-                    </li>
-                  ))}
+                      </li>
+                    )
+                  })}
                 </ul>
               </div>
             </section>

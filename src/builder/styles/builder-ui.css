@@ -1873,10 +1873,15 @@
 }
 .random-preview-warrior {
   display: flex;
-  align-items: center;
-  gap: 0.35rem;
+  flex-direction: column;
+  gap: 0.3rem;
   font-size: 0.72rem;
   color: var(--bone);
+}
+.random-preview-warrior-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 .random-preview-warrior-img {
   width: 32px;
@@ -1909,28 +1914,42 @@
   border-radius: 2px;
   flex-shrink: 0;
 }
-.random-preview-upgrades {
+/* Equipment + upgrade pills */
+.random-preview-pills {
   display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  padding-left: calc(32px + 0.35rem); /* indent under portrait */
+}
+.random-preview-pill {
+  display: inline-flex;
+  flex-direction: column;
   align-items: center;
-  gap: 0.2rem;
-  flex-shrink: 0;
-}
-.random-preview-item-icon {
-  width: 15px;
-  height: 15px;
-  object-fit: contain;
-  filter: brightness(0) invert(1);
-  opacity: 0.65;
-}
-.random-preview-stat {
-  font-size: 0.58rem;
+  background: var(--fog);
+  border: 1px solid var(--dim);
+  padding: 0.2rem 0.45rem 0.25rem;
   font-family: 'Oswald', sans-serif;
-  letter-spacing: 0.04em;
-  color: var(--gold);
-  background: rgba(212,175,55,0.1);
-  border: 1px solid rgba(212,175,55,0.25);
-  padding: 0.1rem 0.25rem;
+  font-size: 0.6rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--bone);
   border-radius: 2px;
+  min-width: 52px;
+}
+.random-preview-pill--stat {
+  border-color: rgba(212,175,55,0.35);
+  color: var(--gold);
+}
+.random-preview-pill-name { white-space: nowrap; }
+.random-preview-pill-stat {
+  font-size: 0.55rem;
+  color: var(--mist);
+  margin-top: 0.1rem;
+  white-space: nowrap;
+}
+.random-preview-pill--stat .random-preview-pill-stat {
+  color: rgba(212,175,55,0.7);
+  /* legacy — kept for reference */
 }
 
 /* ── COMPANY SETTINGS ───────────────────────────────────── */
