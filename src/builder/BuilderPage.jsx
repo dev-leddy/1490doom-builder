@@ -212,7 +212,7 @@ export default function BuilderPage({ initialView = null }) {
     setView('new-company')
   }
 
-  function handleModeSelect(mode, name, avatar, warriors, ip, randomPreview = null, mark = null, pickedSlots = null) {
+  function handleModeSelect(mode, name, avatar, warriors, ip, randomPreview = null, mark = null, pickedSlots = null, slotIps = null) {
     clearBuilder()
     setCompanyMode(mode)
     const s = useBuilderStore.getState()
@@ -237,7 +237,14 @@ export default function BuilderPage({ initialView = null }) {
         })
       }
       if (mode === 'campaign') {
-        if (ip > 0) s.setEarnedIPAll(ip)
+        // Apply per-warrior starting IP if provided, else fall back to shared ip value
+        if (slotIps) {
+          slotIps.forEach((slotIp, idx) => {
+            if (slotIp > 0) s.setEarnedIP(idx, slotIp)
+          })
+        } else if (ip > 0) {
+          s.setEarnedIPAll(ip)
+        }
       } else {
         const ipDiff = ip - 3
         if (ipDiff !== 0) s.changeIPLimit(ipDiff)

@@ -49,6 +49,7 @@ export default function NewCompanyPage({ onStart, onBack }) {
   const [name, setName] = useState('')
   const [avatar, setAvatar] = useState(() => randomAvatarKey())
   const [slots, setSlots] = useState([null, null, null])
+  const [slotIps, setSlotIps] = useState([0, 0, 0])
   const [ip, setIp] = useState(3)
   const [mark, setMark] = useState('')
   const [tempMark, setTempMark] = useState('')
@@ -73,17 +74,33 @@ export default function NewCompanyPage({ onStart, onBack }) {
     setSlots(s => s.map((v, i) => i === idx ? (type || null) : v))
   }
 
+  function setSlotIp(idx, val) {
+    setSlotIps(s => s.map((v, i) => i === idx ? Math.max(0, Math.min(20, val)) : v))
+  }
+
+  function addSlot() {
+    setSlots(s => [...s, null])
+    setSlotIps(s => [...s, 0])
+  }
+
+  function removeSlot(idx) {
+    setSlots(s => s.filter((_, i) => i !== idx))
+    setSlotIps(s => s.filter((_, i) => i !== idx))
+  }
+
   function handleRandomize() {
     const result = useBuilderStore.getState().buildRandomResult({ warriors: warriorCount, ipLimit: ip })
     setAvatar(randomAvatarKey())
     setName(result.companyName)
     if (result.mark) setMark(result.mark)
-    setSlots(result.slots.map(s => s.type || null))
+    const newSlots = result.slots.map(s => s.type || null)
+    setSlots(newSlots)
+    setSlotIps(newSlots.map(() => 0))
     setRandomPreview(result)
   }
 
   function handleStart() {
-    onStart(mode, name.trim() || null, avatar, warriorCount, ip, randomPreview, mark || null, slots)
+    onStart(mode, name.trim() || null, avatar, warriorCount, ip, randomPreview, mark || null, slots, slotIps)
   }
 
   return (
@@ -197,11 +214,25 @@ export default function NewCompanyPage({ onStart, onBack }) {
           {/* 03 WARRIORS */}
           <section className="ncp-section">
             <SectionLabel num="03">Warriors</SectionLabel>
+
+            {/* Controls row — sits above the list */}
+            <div className="ncp-warriors-controls">
+              {slots.length < MAX_SLOTS
+                ? <button className="ncp-add-slot-btn" onClick={addSlot}>+ Add Warrior</button>
+                : <span className="ncp-add-slot-btn ncp-add-slot-btn--maxed">Max warriors</span>
+              }
+              {!isCampaign && (
+                <Stepper label="Company IP" value={ip} min={0} max={100} onChange={setIp} />
+              )}
+            </div>
+
+            {/* Slot list */}
             <div className="ncp-slot-list">
               {slots.map((type, idx) => (
-                <div key={idx} className="ncp-slot-row">
+                <div key={idx} className="ncp-slot-box">
+                  {/* Main clickable — opens class picker */}
                   <button
-                    className="ncp-slot-btn"
+                    className="ncp-slot-main"
                     onClick={() => { setTempSlotType(type); setEditingSlot(idx) }}
                   >
                     <div className="ncp-slot-portrait">
@@ -214,24 +245,27 @@ export default function NewCompanyPage({ onStart, onBack }) {
                       {type || <span className="ncp-slot-placeholder">Choose class…</span>}
                     </span>
                   </button>
+
+                  {/* Campaign: per-warrior starting IP */}
+                  {isCampaign && (
+                    <div className="ncp-slot-ip">
+                      <span className="ncp-slot-ip-label">IP</span>
+                      <button className="ncp-slot-ip-btn" onClick={() => setSlotIp(idx, slotIps[idx] - 1)} disabled={slotIps[idx] <= 0}>−</button>
+                      <span className="ncp-slot-ip-val">{slotIps[idx]}</span>
+                      <button className="ncp-slot-ip-btn" onClick={() => setSlotIp(idx, slotIps[idx] + 1)} disabled={slotIps[idx] >= 20}>+</button>
+                    </div>
+                  )}
+
+                  {/* Remove — only when more than one slot */}
                   {slots.length > 1 && (
                     <button
                       className="ncp-slot-remove"
-                      onClick={() => setSlots(s => s.filter((_, i) => i !== idx))}
+                      onClick={() => removeSlot(idx)}
                       title="Remove warrior"
                     >×</button>
                   )}
                 </div>
               ))}
-            </div>
-            <div className="ncp-roster-controls">
-              {slots.length < MAX_SLOTS && (
-                <button className="ncp-add-slot-btn" onClick={() => setSlots(s => [...s, null])}>+ Add Warrior</button>
-              )}
-              <div style={{ flex: 1 }} />
-              {!isCampaign && (
-                <Stepper label="Company IP" value={ip} min={0} max={100} onChange={setIp} />
-              )}
             </div>
           </section>
 
