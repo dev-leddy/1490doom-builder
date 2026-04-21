@@ -3596,7 +3596,7 @@
 
 /* Footer */
 .ncp-footer { display: flex; align-items: center; gap: 0.75rem; padding: 0.9rem 1.25rem; border-top: 1px solid var(--dim); flex-shrink: 0; background: var(--ash); }
-.ncp-btn { font-family: 'Oswald', sans-serif; font-size: 0.8rem; letter-spacing: 0.14em; text-transform: uppercase; border: none; padding: 0.65rem 1.4rem; cursor: pointer; border-radius: 2px; transition: opacity 0.15s, background 0.15s, color 0.15s; white-space: nowrap; }
+.ncp-btn { font-family: 'Oswald', sans-serif; font-size: 0.8rem; letter-spacing: 0.14em; text-transform: uppercase; border: none; padding: 0.65rem 1.4rem; cursor: pointer; border-radius: 2px; transition: opacity 0.15s, background 0.15s, color 0.15s; white-space: nowrap; display: inline-flex; align-items: center; }
 .ncp-btn--ghost { background: transparent; border: 1px solid var(--dim); color: var(--mist); }
 .ncp-btn--ghost:hover { border-color: var(--mist); color: var(--bone); }
 .ncp-btn--primary { background: var(--blood); color: var(--parchment); }
