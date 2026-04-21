@@ -149,8 +149,9 @@
 
   .toast {
     position: fixed;
-    bottom: 2rem;
-    right: 2rem;
+    bottom: 1.5rem;
+    left: 50%;
+    right: auto;
     max-width: calc(100vw - 4rem);
     white-space: normal;
     background: var(--fog);
@@ -161,12 +162,12 @@
     font-size: 0.8rem;
     letter-spacing: 0.15em;
     padding: 0.75rem 1.25rem;
-    transform: translateY(100px);
+    transform: translate(-50%, 100px);
     opacity: 0;
     transition: all 0.3s;
     z-index: 1000;
   }
-  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.show { transform: translate(-50%, 0); opacity: 1; }
 
   /* RESTRICTIONS NOTE */
   .restriction-note {
