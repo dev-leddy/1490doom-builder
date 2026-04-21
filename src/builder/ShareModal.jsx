@@ -145,7 +145,7 @@ export default function ShareModal() {
             {imageLabel}
           </button>
           <p className="share-modal-note">
-            Copies a formatted image card to your clipboard — paste directly into Discord.
+            Copies a formatted image card to your clipboard.
           </p>
 
           {/* Inline image preview — appears after first capture */}

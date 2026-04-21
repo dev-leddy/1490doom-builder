@@ -19,6 +19,14 @@
       font-family: 'Crimson Text', Georgia, serif;
       font-size: 9pt;
     }
+
+    /* .app wraps everything and has overflow:hidden + height:100vh — must undo */
+    .app {
+      overflow: visible !important;
+      height: auto !important;
+      position: static !important;
+    }
+
     /* Remove non-print content from document flow entirely (prevents blank pages) */
     .builder-page {
       overflow: visible !important;

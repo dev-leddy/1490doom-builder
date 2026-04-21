@@ -598,7 +598,7 @@
 .share-modal-title { font-family:'Oswald', sans-serif;font-size:0.9rem;letter-spacing:0.15em;color:var(--gold);margin-bottom:0.75rem;text-transform:uppercase; }
 .share-code-box { width:100%;background:#0a0a0a;border:1px solid #333;color:#fff;font-family:monospace;font-size:0.75rem;padding:0.5rem;resize:vertical;box-sizing:border-box; }
 .share-discord-box { color: var(--parchment); font-size: 0.72rem; }
-.share-modal-note { font-size:0.85rem;color:#666;margin:0.5rem 0; }
+.share-modal-note { font-size:0.85rem;color:#fff;margin:0.5rem 0; }
 .share-modal-actions { display:flex;gap:0.5rem;margin-top:0.75rem; }
 .share-modal-actions .btn { flex:1; }
 
@@ -621,10 +621,10 @@
   font-size: 0.75rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--fog);
+  color: #fff;
 }
 .share-section--discord .share-section-label {
-  color: #7289da;
+  color: #fff;
 }
 .share-copy-btn {
   background: rgba(255,255,255,0.08);
@@ -647,7 +647,7 @@
 }
 .share-copy-btn--discord {
   border-color: #5865F2;
-  color: #7289da;
+  color: #fff;
 }
 @media (hover: hover) {
   .share-copy-btn--discord:hover { background: rgba(88,101,242,0.15); }
@@ -2786,8 +2786,15 @@
 .ch-sigil-btn:hover {
   background: rgba(255, 255, 255, 0.025);
 }
-.ch-identity-btn {
+/* Wrapper gives identity panel its own positioning context for quick-actions */
+.ch-identity-wrap {
   flex: 0 0 50%;
+  min-width: 0;
+  position: relative;
+  display: flex;
+}
+.ch-identity-btn {
+  flex: 1 1 auto;
   min-width: 0;
   align-items: flex-start;
   position: relative;
@@ -3075,6 +3082,9 @@
 @media (max-width: 1024px) {
   .ch-frame { padding: 0.2rem 0.4rem 0.6rem; }
   .ch-panels { flex-direction: column; align-items: stretch; }
+  .ch-identity-wrap {
+    width: 100%;
+  }
   .ch-identity-btn {
     width: 100%;
   }

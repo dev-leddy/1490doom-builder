@@ -189,8 +189,7 @@ const S = {
     background: C.fog,
     border: `1px solid ${C.dim}`,
     padding: '3px 6px 11px',
-    width: '80px'
-
+    minWidth: '80px',
   },
   pillIP: {
     display: 'inline-flex',
@@ -205,7 +204,7 @@ const S = {
     background: C.fog,
     border: `1px solid ${C.dim}`,
     padding: '3px 6px 11px',
-    width: '80px',
+    minWidth: '80px',
   },
   pillTopRow: {
     whiteSpace: 'nowrap',
