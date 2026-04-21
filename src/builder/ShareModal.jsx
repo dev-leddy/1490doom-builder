@@ -8,17 +8,14 @@ import DiscordImageRoster from './DiscordImageRoster'
 export default function ShareModal() {
   const { shareCode, closeShare } = useBuilderStore()
   const [copiedLink, setCopiedLink] = useState(false)
-  const [copiedDiscord, setCopiedDiscord] = useState(false)
   const [imageStatus, setImageStatus] = useState(null) // null | 'rendering' | 'done' | 'error'
-  const [showPreview, setShowPreview] = useState(false)
+  const [imageDataUrl, setImageDataUrl] = useState(null)
   const linkRef = useRef(null)
-  const discordRef = useRef(null)
   const imageRosterRef = useRef(null)
 
   if (!shareCode) return null
 
   const state = useBuilderStore.getState()
-  const discordText = generateDiscordExport(state)
 
   function copyText(text, ref, setFlag) {
     function markCopied() { setFlag(true); setTimeout(() => setFlag(false), 2000) }
@@ -40,24 +37,16 @@ export default function ShareModal() {
     if (!imageRosterRef.current) return
     setImageStatus('rendering')
 
-    // Wait for all web fonts (Oswald, Caslon Antique) to finish loading
-    // before capture — otherwise html2canvas falls back to system fonts
-    // which have different metrics and break the layout
+    // Wait for web fonts before capture so layout is correct
     await document.fonts.ready
 
-    const linkText = `<${shareCode}>`
-    const linkBlob = new Blob([linkText], { type: 'text/plain' })
-
-    const blobPromise = html2canvas(imageRosterRef.current, {
+    const canvas = await html2canvas(imageRosterRef.current, {
       backgroundColor: '#080808',
       scale: 2,
       useCORS: true,
       allowTaint: true,
       logging: false,
       removeContainer: true,
-      // The wrapper div has opacity:0 to hide it from the user, but html2canvas
-      // propagates parent opacity when compositing — the capture comes out blank.
-      // Fix the wrapper in the clone so html2canvas sees fully opaque content.
       onclone: (_doc, el) => {
         const wrapper = el.parentElement
         if (wrapper) {
@@ -67,13 +56,19 @@ export default function ShareModal() {
           wrapper.style.left = 'auto'
         }
       },
-    }).then(canvas => new Promise((resolve, reject) => {
+    })
+
+    // Show the rendered image inline in the modal
+    setImageDataUrl(canvas.toDataURL('image/png'))
+
+    const linkText = `<${shareCode}>`
+    const linkBlob = new Blob([linkText], { type: 'text/plain' })
+    const blobPromise = new Promise((resolve, reject) => {
       canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('toBlob failed')), 'image/png')
-    }))
+    })
 
     try {
-      // Write image + link together — Discord will show the image; the <url>
-      // text suppresses the embed and lets the recipient load the company.
+      // Write image + link together — Discord shows the image; the <url> lets recipient load the company
       await navigator.clipboard.write([
         new ClipboardItem({ 'image/png': blobPromise, 'text/plain': linkBlob }),
       ])
@@ -99,7 +94,6 @@ export default function ShareModal() {
   }
 
   function handleCopyLink() { copyText(shareCode, linkRef, setCopiedLink) }
-  function handleCopyDiscord() { copyText(discordText, discordRef, setCopiedDiscord) }
   function handleFocus(e) { e.target.select() }
 
   const imageLabel =
@@ -114,21 +108,6 @@ export default function ShareModal() {
       <div style={{ position: 'absolute', top: '-99999px', left: 0, pointerEvents: 'none', opacity: 0 }}>
         <DiscordImageRoster ref={imageRosterRef} state={state} />
       </div>
-
-      {/* Preview modal */}
-      {showPreview && (
-        <div className="discord-preview-overlay" onClick={() => setShowPreview(false)}>
-          <div className="discord-preview-modal" onClick={e => e.stopPropagation()}>
-            <div className="discord-preview-header">
-              <span className="discord-preview-title">Image Preview</span>
-              <button className="discord-preview-close" onClick={() => setShowPreview(false)}>✕</button>
-            </div>
-            <div className="discord-preview-body">
-              <DiscordImageRoster state={state} />
-            </div>
-          </div>
-        </div>
-      )}
 
       <BottomSheet title="SHARE COMPANY" onClose={closeShare}>
         {/* ── Share Link ─────────────────────────────────── */}
@@ -158,41 +137,23 @@ export default function ShareModal() {
             Post to Discord
           </div>
 
-          <div className="share-btn-row">
-            <button
-              className="share-copy-btn share-copy-btn--discord"
-              onClick={handleCopyImage}
-              disabled={imageStatus === 'rendering'}
-            >
-              {imageLabel}
-            </button>
-            <button
-              className="share-copy-btn share-copy-btn--preview"
-              onClick={() => setShowPreview(true)}
-            >
-              Preview
-            </button>
-          </div>
+          <button
+            className="share-copy-btn share-copy-btn--discord"
+            onClick={handleCopyImage}
+            disabled={imageStatus === 'rendering'}
+          >
+            {imageLabel}
+          </button>
           <p className="share-modal-note">
             Copies a formatted image card to your clipboard — paste directly into Discord.
           </p>
 
-          {/* Text export fallback */}
-          <details className="share-discord-text-details">
-            <summary className="share-discord-text-summary">Text version (fallback)</summary>
-            <textarea
-              ref={discordRef}
-              className="share-code-box share-discord-box"
-              readOnly
-              value={discordText}
-              onFocus={handleFocus}
-              onClick={handleFocus}
-              rows={6}
-            />
-            <button className="share-copy-btn share-copy-btn--discord" onClick={handleCopyDiscord}>
-              {copiedDiscord ? '✓ Copied!' : 'Copy Text'}
-            </button>
-          </details>
+          {/* Inline image preview — appears after first capture */}
+          {imageDataUrl && (
+            <div className="share-image-inline">
+              <img src={imageDataUrl} alt="Company roster" />
+            </div>
+          )}
         </div>
       </BottomSheet>
     </>

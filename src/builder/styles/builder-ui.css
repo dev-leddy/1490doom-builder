@@ -596,7 +596,7 @@
 /* Share/Import modals */
 .share-modal { max-width:400px; }
 .share-modal-title { font-family:'Oswald', sans-serif;font-size:0.9rem;letter-spacing:0.15em;color:var(--gold);margin-bottom:0.75rem;text-transform:uppercase; }
-.share-code-box { width:100%;background:#0a0a0a;border:1px solid #333;color:#888;font-family:monospace;font-size:0.75rem;padding:0.5rem;resize:vertical;box-sizing:border-box; }
+.share-code-box { width:100%;background:#0a0a0a;border:1px solid #333;color:#fff;font-family:monospace;font-size:0.75rem;padding:0.5rem;resize:vertical;box-sizing:border-box; }
 .share-discord-box { color: var(--parchment); font-size: 0.72rem; }
 .share-modal-note { font-size:0.85rem;color:#666;margin:0.5rem 0; }
 .share-modal-actions { display:flex;gap:0.5rem;margin-top:0.75rem; }
@@ -651,6 +651,17 @@
 }
 @media (hover: hover) {
   .share-copy-btn--discord:hover { background: rgba(88,101,242,0.15); }
+}
+.share-image-inline {
+  margin-top: 0.75rem;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 2px;
+  overflow: hidden;
+  background: #080808;
+}
+.share-image-inline img {
+  width: 100%;
+  display: block;
 }
 .share-btn-row {
   display: flex;
