@@ -285,36 +285,35 @@ export const useBuilderStore = create((set, get) => {
           affordableWeapons[Math.floor(Math.random() * (affordableWeapons.length || 1))] ||
           allowed[0]
 
-        // Pick weapon2 + spend IP
+        // ── weapon2: only possible when weapon1 is one-handed ─────────────────
+        // Two-handed weapons (Bow, Crossbow, Heavy Weapon, Polearm two-handed)
+        // occupy both hands — no second weapon is ever possible.
+        // We check this FIRST so no branch below can accidentally assign weapon2.
         const ip = []
         let weapon2 = null
         let climbing = null
         let consumable = null
         let statImprove = null
 
-        if (wdata.fixedShield) {
-          weapon2 = 'Shield'
-        } else if (wdata.fixedDualWield) {
-          weapon2 = 'Light Weapon'
-        } else if (weapon1 === 'Polearm (one-handed)') {
-          weapon2 = 'Shield'
-          ip.push('weapon2')
-          ipPool--
-        } else if (!twoHanded.includes(weapon1)) {
-          const w2opts = getSecondWeaponOptions(wdata, weapon1) // already respects cantHave
-          if (w2opts.length && Math.random() > 0.5 && ipPool > 0) {
-            weapon2 = w2opts[Math.floor(Math.random() * w2opts.length)]
+        if (weapon1 && !twoHanded.includes(weapon1)) {
+          if (wdata.fixedShield) {
+            weapon2 = 'Shield'                          // class rule — free, no IP
+          } else if (wdata.fixedDualWield) {
+            weapon2 = 'Light Weapon'                    // class rule — free, no IP
+          } else if (weapon1 === 'Polearm (one-handed)') {
+            weapon2 = 'Shield'                          // required pairing — costs 1 IP
             ip.push('weapon2')
             ipPool--
+          } else {
+            // Optional offhand: Light Weapon or Shield (if class allows), costs 1 IP
+            const w2opts = getSecondWeaponOptions(wdata, weapon1) // only returns Shield / Light Weapon
+            if (w2opts.length && Math.random() > 0.5 && ipPool > 0) {
+              weapon2 = w2opts[Math.floor(Math.random() * w2opts.length)]
+              ip.push('weapon2')
+              ipPool--
+            }
           }
         }
-
-        // Absolute invariant: two-handed weapon1 can never have a weapon2
-        if (weapon1 && twoHanded.includes(weapon1)) weapon2 = null
-        // weapon2 can ONLY be Shield or Light Weapon — hard game rule, no exceptions
-        if (weapon2 && weapon2 !== 'Shield' && weapon2 !== 'Light Weapon') weapon2 = null
-        // Strip any weapon forbidden for this class
-        if (weapon2 && cantHave.includes(weapon2)) weapon2 = null
 
         // Randomly assign remaining IP options (stat, climbing, consumable)
         for (const opt of IP_OPTIONS.filter(o => o.id !== 'weapon2').sort(() => Math.random() - 0.5)) {
@@ -576,33 +575,32 @@ export const useBuilderStore = create((set, get) => {
           affordableWeapons[Math.floor(Math.random() * (affordableWeapons.length || 1))] ||
           allowed[0]
 
+        // ── weapon2: only possible when weapon1 is one-handed ─────────────────
+        // Two-handed weapons (Bow, Crossbow, Heavy Weapon, Polearm two-handed)
+        // occupy both hands — no second weapon is ever possible.
+        // We check this FIRST so no branch below can accidentally assign weapon2.
         const ip = []
         let weapon2 = null
 
-        if (wdata.fixedShield) {
-          // Fixed-shield warriors always get Shield as weapon2, free of charge
-          weapon2 = 'Shield'
-        } else if (wdata.fixedDualWield) {
-          weapon2 = 'Light Weapon'
-        } else if (weapon1 === 'Polearm (one-handed)') {
-          weapon2 = 'Shield'
-          ip.push('weapon2')
-          ipPool--
-        } else if (!twoHanded.includes(weapon1)) {
-          const w2opts = getSecondWeaponOptions(wdata, weapon1) // already respects cantHave
-          if (w2opts.length && Math.random() > 0.5 && ipPool > 0) {
-            weapon2 = w2opts[Math.floor(Math.random() * w2opts.length)]
+        if (weapon1 && !twoHanded.includes(weapon1)) {
+          if (wdata.fixedShield) {
+            weapon2 = 'Shield'                          // class rule — free, no IP
+          } else if (wdata.fixedDualWield) {
+            weapon2 = 'Light Weapon'                    // class rule — free, no IP
+          } else if (weapon1 === 'Polearm (one-handed)') {
+            weapon2 = 'Shield'                          // required pairing — costs 1 IP
             ip.push('weapon2')
             ipPool--
+          } else {
+            // Optional offhand: Light Weapon or Shield (if class allows), costs 1 IP
+            const w2opts = getSecondWeaponOptions(wdata, weapon1) // only returns Shield / Light Weapon
+            if (w2opts.length && Math.random() > 0.5 && ipPool > 0) {
+              weapon2 = w2opts[Math.floor(Math.random() * w2opts.length)]
+              ip.push('weapon2')
+              ipPool--
+            }
           }
         }
-
-        // Absolute invariant: two-handed weapon1 can never have a weapon2
-        if (weapon1 && twoHanded.includes(weapon1)) weapon2 = null
-        // weapon2 can ONLY be Shield or Light Weapon — hard game rule, no exceptions
-        if (weapon2 && weapon2 !== 'Shield' && weapon2 !== 'Light Weapon') weapon2 = null
-        // Strip any weapon forbidden for this class
-        if (weapon2 && cantHave.includes(weapon2)) weapon2 = null
 
         const climbingOptions = Object.keys(CLIMBING_ITEMS).filter(k => k !== 'None')
         const statOptions = Object.keys(STAT_IMPROVEMENT)

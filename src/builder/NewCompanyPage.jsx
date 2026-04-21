@@ -105,11 +105,13 @@ export default function NewCompanyPage({ onStart, onBack }) {
   function buildChips(slotData) {
     if (!slotData) return []
     const chips = []
-    for (const wKey of [slotData.weapon1, slotData.weapon2]) {
+    // Use positional keys ('weapon1'/'weapon2') so dual-wield warriors
+    // (weapon1 = weapon2 = 'Light Weapon') produce two distinct React keys.
+    for (const [slot, wKey] of [['weapon1', slotData.weapon1], ['weapon2', slotData.weapon2]]) {
       if (!wKey) continue
       const w = WEAPONS[wKey]
       chips.push({
-        key: wKey,
+        key: slot,
         icon: ITEM_ICONS[wKey] || null,
         label: wKey,
         dmg: w?.damage > 0 ? `${w.damage} DMG` : null,
@@ -242,14 +244,13 @@ export default function NewCompanyPage({ onStart, onBack }) {
               className="ncp-mark-select-row ncp-mark-select-row--btn"
               onClick={() => { setTempMark(mark); setShowMarkPicker(true) }}
             >
-              <div className="ncp-mark-select-icon">
-                {mark && MARK_IMAGES[mark]
-                  ? <img src={MARK_IMAGES[mark]} alt="" />
-                  : <span className="ncp-mark-select-none">×</span>
-                }
-              </div>
+              {mark && MARK_IMAGES[mark] && (
+                <div className="ncp-mark-select-icon">
+                  <img src={MARK_IMAGES[mark]} alt="" />
+                </div>
+              )}
               <span className="ncp-mark-select-label">
-                {selectedMark ? selectedMark.label || selectedMark.name : 'No Mark'}
+                {selectedMark ? selectedMark.label || selectedMark.name : 'No Mark — tap to select'}
               </span>
             </button>
             {selectedMark && (
