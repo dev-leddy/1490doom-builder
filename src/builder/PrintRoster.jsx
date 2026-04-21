@@ -254,10 +254,6 @@ export default function PrintRoster() {
         })}
       </div>
 
-      <div className="pr-page-footer">
-        <span className="pr-footer-logo">Compatible with 1490 DOOM</span>
-        <span className="pr-footer-text">Independent production by Michael Leddy · Not affiliated with or endorsed by Buer Games · All related IP © Buer Games · Used under the Buer Games Third Party License · Warrior &amp; Mark artwork © Buer Games</span>
-      </div>
 
       <div className="pr-bottom">
         <div className="pr-ref">
@@ -309,10 +305,6 @@ export default function PrintRoster() {
         </div>
       </div>
 
-      <div className="pr-page-footer">
-        <span className="pr-footer-logo">Compatible with 1490 DOOM</span>
-        <span className="pr-footer-text">Independent production by Michael Leddy · Not affiliated with or endorsed by Buer Games · All related IP © Buer Games · Used under the Buer Games Third Party License · Warrior &amp; Mark artwork © Buer Games</span>
-      </div>
     </div>
   )
 }

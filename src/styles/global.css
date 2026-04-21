@@ -172,7 +172,7 @@ input:focus, select:focus, textarea:focus {
 /* ── TOAST ────────────────────────────────────────────────────────────────── */
 .toast {
   position: fixed;
-  bottom: 5rem;
+  bottom: 1.5rem;
   left: 50%;
   transform: translateX(-50%);
   background: var(--gold-bg);

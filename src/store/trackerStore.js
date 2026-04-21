@@ -71,6 +71,8 @@ function persistState(get) {
         sessionId: state.sessionId,
         savedBuilderSlots: state.savedBuilderSlots,
         companyId: state.companyId,
+        doomedChoirUsed: state.doomedChoirUsed,
+        gravebornUsed: state.gravebornUsed,
       }, state.companyName)
     }
   }, PERSIST_DEBOUNCE_MS)
@@ -97,6 +99,11 @@ export const useTrackerStore = create((set, get) => ({
   statusTarget: null,      // warrior index
   markPopupOpen: false,
   reliquaryModal: null,    // { wi, cacheItemId: number|null }
+  markAbilityModal: null,  // { type: 'ashbound'|'doomed-choir'|'graveborn', warriorIdx?: number }
+
+  // Company mark ability tracking (resets on new game)
+  doomedChoirUsed: false,
+  gravebornUsed: false,
 
   // ── LIFECYCLE ──────────────────────────────────────────────────────────────
   openTracker(builderState) {
@@ -107,12 +114,13 @@ export const useTrackerStore = create((set, get) => ({
       .map((slot, i) => buildWarriorTrackerState(slot, i, builderState))
       .filter(Boolean)
 
+    const newMark = builderState.mark || ''
     set({
       active: true,
       round: 1,
       companyName: builderState.companyName || 'Unnamed Company',
       companyAvatar: builderState.companyAvatar || null,
-      mark: builderState.mark || '',
+      mark: newMark,
       warriors,
       activeWarriorIdx: 0,
       refOpen: false,
@@ -120,6 +128,10 @@ export const useTrackerStore = create((set, get) => ({
       sessionId: Date.now().toString(36),
       savedBuilderSlots: builderState.slots.map(s => s.type),
       restored: false,
+      doomedChoirUsed: false,
+      gravebornUsed: false,
+      // Ashbound: pop up a reminder as soon as the game starts
+      markAbilityModal: newMark === 'Ashbound' ? { type: 'ashbound' } : null,
     })
     const state = get()
     saveTrackerSession({
@@ -169,6 +181,9 @@ export const useTrackerStore = create((set, get) => ({
       sessionId: stored.sessionId,
       savedBuilderSlots: stored.savedBuilderSlots,
       companyId: stored.companyId,
+      doomedChoirUsed: stored.doomedChoirUsed || false,
+      gravebornUsed: stored.gravebornUsed || false,
+      markAbilityModal: null, // never restore transient modal state
       restored: true,
     })
     return true
@@ -179,8 +194,12 @@ export const useTrackerStore = create((set, get) => ({
     set({ active: false, sessionId: null, savedBuilderSlots: null, restored: false })
   },
   resetTracker() {
+    const { mark } = get()
     set(state => ({
       round: 1,
+      doomedChoirUsed: false,
+      gravebornUsed: false,
+      markAbilityModal: mark === 'Ashbound' ? { type: 'ashbound' } : null,
       warriors: state.warriors.map(w => ({
         ...w,
         currentVit: w.maxVit,
@@ -204,6 +223,11 @@ export const useTrackerStore = create((set, get) => ({
       warriors: state.warriors.map(w => ({ ...w, oprUsed: {}, activated: false })),
     }))
     persistState(get)
+    // Doomed Choir: prompt at the start of every round after round 1 (only when advancing)
+    const { round, mark, doomedChoirUsed } = get()
+    if (delta > 0 && round > 1 && mark === 'Doomed Choir' && !doomedChoirUsed) {
+      set({ markAbilityModal: { type: 'doomed-choir' } })
+    }
   },
 
   // ── ACTIVATED ───────────────────────────────────────────────────────────────
@@ -232,6 +256,7 @@ export const useTrackerStore = create((set, get) => ({
 
   // ── VITALITY ───────────────────────────────────────────────────────────────
   hit(wi, vi) {
+    const prevVit = get().warriors[wi]?.currentVit ?? 1
     set(state => {
       const warriors = [...state.warriors]
       const w = { ...warriors[wi] }
@@ -248,6 +273,12 @@ export const useTrackerStore = create((set, get) => ({
       return { warriors }
     })
     persistState(get)
+    // Graveborn: prompt when a warrior drops to 0 VIT (only on the downward transition)
+    const { warriors, mark, gravebornUsed } = get()
+    const w = warriors[wi]
+    if (w && w.currentVit === 0 && prevVit > 0 && mark === 'Graveborn' && !gravebornUsed) {
+      set({ markAbilityModal: { type: 'graveborn', warriorIdx: wi } })
+    }
   },
 
   // ── OPG ABILITIES ──────────────────────────────────────────────────────────
@@ -516,6 +547,19 @@ export const useTrackerStore = create((set, get) => ({
     set({ markPopupOpen: false })
   },
 
+  // ── MARK ABILITY MODAL ─────────────────────────────────────────────────────
+  closeMarkAbilityModal() {
+    set({ markAbilityModal: null })
+  },
+  setDoomedChoirUsed(val) {
+    set({ doomedChoirUsed: val })
+    persistState(get)
+  },
+  setGravebornUsed(val) {
+    set({ gravebornUsed: val })
+    persistState(get)
+  },
+
   // ── RESTORE PROMPT ─────────────────────────────────────────────────────────
   showRestorePrompt: false,
   setShowRestorePrompt: (val) => set({ showRestorePrompt: val }),
@@ -537,6 +581,8 @@ if (typeof window !== 'undefined') {
         sessionId: state.sessionId,
         savedBuilderSlots: state.savedBuilderSlots,
         companyId: state.companyId,
+        doomedChoirUsed: state.doomedChoirUsed,
+        gravebornUsed: state.gravebornUsed,
       }, state.companyName)
     }
   })

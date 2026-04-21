@@ -19,7 +19,7 @@ export const COMPANY_AVATARS = [
 
 export function getAvatarSrc(avatar) {
   if (!avatar) return null
-  if (avatar.startsWith('data:')) return avatar          // user upload
+  if (avatar.startsWith('http') || avatar.startsWith('data:')) return avatar  // external URL or upload
   const found = COMPANY_AVATARS.find(a => a.key === avatar)
   return found ? found.src : null
 }

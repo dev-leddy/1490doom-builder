@@ -9,7 +9,10 @@ const randomUUID = () =>
 import { WARRIORS, MARKS, STAT_IMPROVEMENT, IP_OPTIONS } from '../data/warriors'
 import { WEAPON_NAMES, CLIMBING_ITEMS, CONSUMABLE_NAMES } from '../data/weapons'
 import { encodeCompany, decodeCompany } from './builderEncoding'
-import { getSaves, setSaves } from './builderPersistence'
+import { getSaves, setSaves, syncSaveToCloud, syncDeleteFromCloud } from './builderPersistence'
+import { useAuthStore } from './authStore'
+
+function getUser() { return useAuthStore.getState().user }
 
 // ── HELPERS ──────────────────────────────────────────────────────────────────
 
@@ -30,26 +33,30 @@ export function getTotalCompanyIP(ipLimit) {
 
 export function getAllowedWeapons(wdata) {
   if (!wdata) return WEAPON_NAMES.filter(w => w !== 'Shield')
-  // fixedWeapon warriors have exactly one option
+  // fixedWeapon warriors have exactly one primary — no choice
   if (wdata.fixedWeapon) return [wdata.fixedWeapon]
-  // Use the explicit allowedWeapons whitelist; Shield is always off-hand only, never primary
-  return (wdata.allowedWeapons || WEAPON_NAMES).filter(w => w !== 'Shield')
+  const cantHave = wdata.cantHave || []
+  // Use allowedWeapons whitelist when present; fall back to all weapons minus Shield and cantHave
+  return (wdata.allowedWeapons || WEAPON_NAMES).filter(w => w !== 'Shield' && !cantHave.includes(w))
 }
 
 export function getSecondWeaponOptions(wdata, primaryWeapon) {
   if (!wdata || !primaryWeapon) return []
+  const cantHave = wdata.cantHave || []
   const twoHanded = ['Heavy Weapon', 'Polearm (two-handed)', 'Bow', 'Crossbow']
   if (twoHanded.includes(primaryWeapon)) return []
-  // Polearm (one-handed) is always paired with Shield only
-  if (primaryWeapon === 'Polearm (one-handed)') return ['Shield']
-  const allowed = getAllowedWeapons(wdata) // Shield is stripped here (primary-only filter)
-  const canShield = (wdata.allowedWeapons || []).includes('Shield')
-  // Light Weapon primary: can dual wield OR pair with a Shield (if class allows it)
-  if (primaryWeapon === 'Light Weapon') {
-    return [...allowed.filter(w => w === 'Light Weapon'), ...(canShield ? ['Shield'] : [])]
+  // Polearm (one-handed) always pairs with Shield only
+  if (primaryWeapon === 'Polearm (one-handed)') {
+    return cantHave.includes('Shield') ? [] : ['Shield']
   }
-  // Other one-handed primaries: Light Weapon or Shield offhand
-  return [...allowed.filter(w => w === 'Light Weapon'), ...(canShield ? ['Shield'] : [])]
+  const canShield = (wdata.allowedWeapons || []).includes('Shield') && !cantHave.includes('Shield')
+  const canDualLight = !cantHave.includes('Light Weapon')
+  // Light Weapon primary: can dual-wield or pair with Shield
+  if (primaryWeapon === 'Light Weapon') {
+    return [...(canDualLight ? ['Light Weapon'] : []), ...(canShield ? ['Shield'] : [])]
+  }
+  // Other one-handed: Light Weapon or Shield offhand (if allowed)
+  return [...(canDualLight ? ['Light Weapon'] : []), ...(canShield ? ['Shield'] : [])]
 }
 
 export function isOPG(abilityName) {
@@ -266,7 +273,8 @@ export const useBuilderStore = create((set, get) => {
       const slots = get().slots.map((slot, i) => {
         const type = shuffled[i % shuffled.length]
         const wdata = WARRIORS[type]
-        const allowed = getAllowedWeapons(wdata)
+        const cantHave = wdata.cantHave || []
+        const allowed = getAllowedWeapons(wdata) // already respects cantHave + fixedWeapon
         let ipPool = companyMode === 'campaign' ? (slot.earnedIP || 0) : sharedPool
 
         // Pick weapon1
@@ -277,27 +285,33 @@ export const useBuilderStore = create((set, get) => {
           affordableWeapons[Math.floor(Math.random() * (affordableWeapons.length || 1))] ||
           allowed[0]
 
-        // Pick weapon2 + spend IP
+        // ── weapon2: only possible when weapon1 is one-handed ─────────────────
+        // Two-handed weapons (Bow, Crossbow, Heavy Weapon, Polearm two-handed)
+        // occupy both hands — no second weapon is ever possible.
+        // We check this FIRST so no branch below can accidentally assign weapon2.
         const ip = []
         let weapon2 = null
         let climbing = null
         let consumable = null
         let statImprove = null
 
-        if (wdata.fixedShield) {
-          weapon2 = 'Shield'
-        } else if (wdata.fixedDualWield) {
-          weapon2 = 'Light Weapon'
-        } else if (weapon1 === 'Polearm (one-handed)') {
-          weapon2 = 'Shield'
-          ip.push('weapon2')
-          ipPool--
-        } else if (!twoHanded.includes(weapon1)) {
-          const w2opts = getSecondWeaponOptions(wdata, weapon1)
-          if (w2opts.length && Math.random() > 0.5 && ipPool > 0) {
-            weapon2 = w2opts[Math.floor(Math.random() * w2opts.length)]
+        if (weapon1 && !twoHanded.includes(weapon1)) {
+          if (wdata.fixedShield) {
+            weapon2 = 'Shield'                          // class rule — free, no IP
+          } else if (wdata.fixedDualWield) {
+            weapon2 = 'Light Weapon'                    // class rule — free, no IP
+          } else if (weapon1 === 'Polearm (one-handed)') {
+            weapon2 = 'Shield'                          // required pairing — costs 1 IP
             ip.push('weapon2')
             ipPool--
+          } else {
+            // Optional offhand: Light Weapon or Shield (if class allows), costs 1 IP
+            const w2opts = getSecondWeaponOptions(wdata, weapon1) // only returns Shield / Light Weapon
+            if (w2opts.length && Math.random() > 0.5 && ipPool > 0) {
+              weapon2 = w2opts[Math.floor(Math.random() * w2opts.length)]
+              ip.push('weapon2')
+              ipPool--
+            }
           }
         }
 
@@ -470,6 +484,7 @@ export const useBuilderStore = create((set, get) => {
       }
       setSaves(saves)
       set({ saves })
+      syncSaveToCloud({ ...saveData, id: saveData.companyId, name: saveData.companyName }, getUser)
       get()._toast('Company saved.')
       return true
     },
@@ -477,15 +492,23 @@ export const useBuilderStore = create((set, get) => {
       const saves = getSaves()
       const save = saves[index]
       if (!save) return
-      const { mark, companyName, companyAvatar = null, ipLimit, slots, companyId, companyMode = 'standard', campaignGame = 0 } = save
-      set({ mark, companyName, companyAvatar, ipLimit, slots, companyId: companyId || randomUUID(), companyMode, campaignGame })
+      // Sync the current company before switching away — captures any unsaved edits
+      const { mark, companyName, companyAvatar, ipLimit, slots, companyId, companyMode, campaignGame } = get()
+      if (mark) {
+        const saveData = { mark, companyName, companyAvatar, ipLimit, slots, companyId, companyMode, campaignGame, savedAt: Date.now() }
+        syncSaveToCloud({ ...saveData, id: companyId, name: companyName }, getUser)
+      }
+      const { mark: m, companyName: n, companyAvatar: a = null, ipLimit: ip, slots: sl, companyId: cid, companyMode: cm = 'standard', campaignGame: cg = 0 } = save
+      set({ mark: m, companyName: n, companyAvatar: a, ipLimit: ip, slots: sl, companyId: cid || randomUUID(), companyMode: cm, campaignGame: cg })
       get()._toast('Company loaded!')
     },
     deleteCompany(index) {
       const saves = getSaves()
+      const removed = saves[index]
       saves.splice(index, 1)
       setSaves(saves)
       set({ saves })
+      if (removed?.companyId) syncDeleteFromCloud(removed.companyId, getUser)
     },
     clearBuilder() {
       const fresh = defaultState()
@@ -496,10 +519,15 @@ export const useBuilderStore = create((set, get) => {
 
     // ── SHARE / IMPORT ─────────────────────────────────────────────────────────
     openShare() {
-      const { mark, companyName, ipLimit, slots } = get()
+      const { mark, companyName, companyAvatar, ipLimit, slots, companyId, companyMode, campaignGame } = get()
       const code = encodeCompany({ mark, companyName, ipLimit, slots })
       const url = `${window.location.origin}${window.location.pathname}#${code}`
       set({ shareCode: url })
+      // Good moment to sync — user is actively sharing, company is in a meaningful state
+      if (mark) {
+        const saveData = { mark, companyName, companyAvatar, ipLimit, slots, companyId, companyMode, campaignGame, savedAt: Date.now() }
+        syncSaveToCloud({ ...saveData, id: companyId, name: companyName }, getUser)
+      }
     },
     closeShare() {
       set({ shareCode: null })
@@ -534,34 +562,43 @@ export const useBuilderStore = create((set, get) => {
         const type = picked[i] || null
         if (!type) return { type: null, weapon1: null, weapon2: null, consumable: null, climbing: null, ip: [], isCaptain: i === 0, notes: [] }
         const wdata = WARRIORS[type]
-        const allowed = getAllowedWeapons(wdata)
+        const cantHave = wdata.cantHave || []
+        const allowed = getAllowedWeapons(wdata) // already respects cantHave + fixedWeapon
         const twoHanded = ['Heavy Weapon', 'Polearm (two-handed)', 'Bow', 'Crossbow']
 
         const affordableWeapons = allowed.filter(w => {
           if (w === 'Polearm (one-handed)' && !wdata.fixedShield && ipPool < 1) return false
           return true
         })
+        // fixedWeapon always wins; fall back through affordable → allowed[0]
         const weapon1 = wdata.fixedWeapon ||
           affordableWeapons[Math.floor(Math.random() * (affordableWeapons.length || 1))] ||
           allowed[0]
 
+        // ── weapon2: only possible when weapon1 is one-handed ─────────────────
+        // Two-handed weapons (Bow, Crossbow, Heavy Weapon, Polearm two-handed)
+        // occupy both hands — no second weapon is ever possible.
+        // We check this FIRST so no branch below can accidentally assign weapon2.
         const ip = []
         let weapon2 = null
 
-        if (wdata.fixedShield) {
-          weapon2 = 'Shield'
-        } else if (wdata.fixedDualWield) {
-          weapon2 = 'Light Weapon'
-        } else if (weapon1 === 'Polearm (one-handed)') {
-          weapon2 = 'Shield'
-          ip.push('weapon2')
-          ipPool--
-        } else if (!twoHanded.includes(weapon1)) {
-          const w2opts = getSecondWeaponOptions(wdata, weapon1)
-          if (w2opts.length && Math.random() > 0.5 && ipPool > 0) {
-            weapon2 = w2opts[Math.floor(Math.random() * w2opts.length)]
+        if (weapon1 && !twoHanded.includes(weapon1)) {
+          if (wdata.fixedShield) {
+            weapon2 = 'Shield'                          // class rule — free, no IP
+          } else if (wdata.fixedDualWield) {
+            weapon2 = 'Light Weapon'                    // class rule — free, no IP
+          } else if (weapon1 === 'Polearm (one-handed)') {
+            weapon2 = 'Shield'                          // required pairing — costs 1 IP
             ip.push('weapon2')
             ipPool--
+          } else {
+            // Optional offhand: Light Weapon or Shield (if class allows), costs 1 IP
+            const w2opts = getSecondWeaponOptions(wdata, weapon1) // only returns Shield / Light Weapon
+            if (w2opts.length && Math.random() > 0.5 && ipPool > 0) {
+              weapon2 = w2opts[Math.floor(Math.random() * w2opts.length)]
+              ip.push('weapon2')
+              ipPool--
+            }
           }
         }
 
@@ -704,13 +741,16 @@ export const useBuilderStore = create((set, get) => {
       const saveData = { ...data, savedAt: Date.now() }
       const existingIndex = saves.findIndex(s => s.companyId === companyId)
       if (existingIndex >= 0) {
-        saves[existingIndex] = saveData
+        // Preserve cloudSynced flag — auto-draft edits don't un-sync a company
+        saves[existingIndex] = { ...saveData, cloudSynced: saves[existingIndex].cloudSynced }
       } else if (mark) {
         // Only add to saves list if a company type (mark) has been chosen
-        saves.unshift(saveData)
+        saves.unshift(saveData) // cloudSynced left unset (falsy) until pushed to cloud
         if (saves.length > 10) saves.pop()
       }
       try { setSaves(saves); set({ saves }) } catch {}
+      // Cloud sync intentionally removed from auto-draft — syncs happen at
+      // meaningful save points only (explicit save, share, load, page unload).
     },
     _validate() {
       const { slots } = get()

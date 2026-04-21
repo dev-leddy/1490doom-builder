@@ -36,7 +36,7 @@ export default defineConfig(({ command }) => ({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         globIgnores: ['quiz/Art/**', 'quiz/music/**'],
         navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/quiz/],
+        navigateFallbackDenylist: [/^\/quiz/, /^\/api\//],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MiB (images.js is ~3.3 MB)
         skipWaiting: true,
         clientsClaim: true,
@@ -77,5 +77,9 @@ export default defineConfig(({ command }) => ({
   server: {
     host: true,
     port: 5173,
+    proxy: {
+      // Proxy /api requests to the local wrangler pages dev server
+      '/api': 'http://localhost:8788',
+    },
   },
 }))
