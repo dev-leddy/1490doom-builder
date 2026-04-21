@@ -7,7 +7,7 @@ export const WEAPONS = {
   'Polearm (one-handed)': { range: '2"', damage: 1, note: 'Must be paired with a Shield.\n-1 to all Combat Checks.', special: null },
   'Shield': { range: '—', damage: 0, note: 'Gain +1 DEFENSE against the first attack each round. Grants the Guarded Ability.', abilityName: 'GUARDED', abilityDesc: 'Once per round, the model may use their shield to prevent a PUSH action that targets them.' },
   'Crossbow': { range: '1–5"', damage: 2, note: 'Two-handed ranged. Cannot equip a second weapon.\nAdds the Reload action. (After firing, must use the Reload action before firing again.)', abilityName: 'RELOAD', abilityDesc: 'After firing, must use the Reload action before firing again.' },
-  'Bow': { range: '2–5"', damage: 1, note: 'Two-handed ranged. Cannot equip a second weapon.\nAdds the Overdraw action. (Spend 1 action. Doubles the maximum range for your next ranged attack this round.)', abilityName: 'OVERDRAW', abilityDesc: 'Spend 1 action. Doubles the maximum range for your next ranged attack this round.' },
+  'Bow': { range: '1–5"', damage: 1, note: 'Two-handed ranged. Cannot equip a second weapon.\nAdds the Overdraw action. (Spend 1 action. Doubles the maximum range for your next ranged attack this round.)', abilityName: 'OVERDRAW', abilityDesc: 'Spend 1 action. Doubles the maximum range for your next ranged attack this round.' },
 }
 
 export const CLIMBING_ITEMS = {
