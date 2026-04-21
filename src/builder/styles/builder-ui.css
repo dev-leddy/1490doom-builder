@@ -3549,8 +3549,8 @@
 .ncp-name-input { flex: 1; background: var(--fog); border: 1px solid var(--dim); color: var(--parchment); font-family: 'Oswald', sans-serif; font-size: 1rem; letter-spacing: 0.04em; padding: 0.6rem 2.6rem 0.6rem 0.75rem; border-radius: 2px; outline: none; transition: border-color 0.15s; width: 100%; }
 .ncp-name-input:focus { border-color: var(--mist); }
 .ncp-name-input::placeholder { color: rgba(255,255,255,0.22); }
-.ncp-dice-btn { position: absolute; right: 0; top: 0; bottom: 0; width: 38px; background: none; border: none; border-left: 1px solid var(--dim); color: var(--blood); display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 0 2px 2px 0; transition: color 0.15s, background 0.15s; }
-.ncp-dice-btn:hover { color: var(--parchment); background: rgba(190,65,39,0.15); }
+.ncp-dice-btn { position: absolute; right: 0; top: 0; bottom: 0; width: 38px; background: none; border: none; border-left: 1px solid var(--dim); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 0 2px 2px 0; transition: color 0.15s, background 0.15s; }
+.ncp-dice-btn:hover { color: var(--parchment); background: rgba(255,255,255,0.08); }
 
 /* Mark */
 .ncp-mark-select-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
