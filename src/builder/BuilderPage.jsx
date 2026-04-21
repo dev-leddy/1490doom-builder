@@ -288,7 +288,12 @@ export default function BuilderPage({ initialView = null }) {
           <LandingPage onLoad={goBuilder} onNew={handleNew} />
         ) : (
           <main className="builder-main" ref={builderMainRef}>
-            <CompanyHeader onSettings={() => setSettingsOpen(true)} onEndOfGame={() => setEndOfGameOpen(true)} />
+            <CompanyHeader
+              onSettings={() => setSettingsOpen(true)}
+              onEndOfGame={() => setEndOfGameOpen(true)}
+              onShare={openShare}
+              onPrint={() => setTimeout(() => window.print(), 100)}
+            />
             <WarriorRoster />
           </main>
         )}

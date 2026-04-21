@@ -3092,6 +3092,35 @@
   .ch-sigil-no-mark { width: 56px; height: 56px; }
 }
 
+/* ── Company Header Quick Actions (Share / Print) ─────────── */
+.ch-quick-actions {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+  display: flex;
+  flex-direction: row;
+  gap: 0.15rem;
+  z-index: 5;
+}
+.ch-quick-btn {
+  width: 28px;
+  height: 28px;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 2px;
+  padding: 0;
+  transition: color 0.15s, background 0.15s;
+}
+.ch-quick-btn:hover {
+  color: #fff;
+  background: rgba(255,255,255,0.07);
+}
+
 /* ── AUTH UI ─────────────────────────────────────────────── */
 
 /* Sign-in button in the topbar (guest state) */
