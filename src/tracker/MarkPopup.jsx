@@ -3,13 +3,26 @@ import { MARK_IMAGES } from '../data/images'
 import { MARKS as MARKS_DATA } from '../data/warriors'
 
 export default function MarkPopup() {
-  const { mark, closeMarkPopup } = useTrackerStore()
+  const {
+    mark, closeMarkPopup,
+    doomedChoirUsed, gravebornUsed,
+    setDoomedChoirUsed, setGravebornUsed,
+  } = useTrackerStore()
+
   const markData = MARKS_DATA.find(m => m.name === mark)
-  const imgSrc = mark === 'Ashbound'
-    ? MARK_IMAGES['Wretched Survivors']
-    : MARK_IMAGES[mark]
+  const imgSrc = mark === 'Ashbound' ? MARK_IMAGES['Wretched Survivors'] : MARK_IMAGES[mark]
 
   if (!markData) return null
+
+  const hasToggle = mark === 'Doomed Choir' || mark === 'Graveborn'
+  const isUsed = mark === 'Doomed Choir' ? doomedChoirUsed
+               : mark === 'Graveborn'    ? gravebornUsed
+               : false
+
+  function handleToggle() {
+    if (mark === 'Doomed Choir') setDoomedChoirUsed(!doomedChoirUsed)
+    if (mark === 'Graveborn')    setGravebornUsed(!gravebornUsed)
+  }
 
   return (
     <div
@@ -24,8 +37,19 @@ export default function MarkPopup() {
             <div className="mark-popup-name">{mark}</div>
           </div>
         </div>
+
         <div className="mark-popup-desc">{markData.desc}</div>
-        <button className="mark-popup-close" onClick={closeMarkPopup}>CLOSE</button>
+
+        {hasToggle && (
+          <button
+            className={`mark-popup-toggle${isUsed ? ' mark-popup-toggle--used' : ''}`}
+            onClick={handleToggle}
+          >
+            {isUsed ? '↺  Mark as Available Again' : '✓  Mark as Used This Game'}
+          </button>
+        )}
+
+        <button className="mark-popup-close" onClick={closeMarkPopup}>Close</button>
       </div>
     </div>
   )

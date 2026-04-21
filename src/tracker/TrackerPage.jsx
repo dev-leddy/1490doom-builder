@@ -4,6 +4,7 @@ import WarriorTrackerCard from './WarriorTrackerCard'
 import WarriorTabBar from './WarriorTabBar'
 import QuickRefPanel from './QuickRefPanel'
 import MarkPopup from './MarkPopup'
+import MarkAbilityModal from './MarkAbilityModal'
 import ConfirmModal from '../shared/ConfirmModal'
 import CacheLootModal from './CacheLootModal'
 import StatusModal from './StatusModal'
@@ -15,7 +16,7 @@ export default function TrackerPage() {
     warriors, activeWarriorIdx,
     confirmModal, doConfirm, closeConfirm,
     cacheLootTarget, statusTarget,
-    markPopupOpen,
+    markPopupOpen, markAbilityModal,
     reliquaryModal,
     refOpen,
   } = useTrackerStore()
@@ -51,6 +52,7 @@ export default function TrackerPage() {
       {cacheLootTarget !== null && <CacheLootModal wi={cacheLootTarget} />}
       {statusTarget !== null && <StatusModal wi={statusTarget} />}
       {markPopupOpen && <MarkPopup />}
+      {markAbilityModal && <MarkAbilityModal />}
       {reliquaryModal !== null && <ReliquaryModal />}
     </div>
   )

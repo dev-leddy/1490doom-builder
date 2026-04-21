@@ -755,6 +755,82 @@
   letter-spacing: 0.1em;
 }
 
+/* ── MARK ABILITY MODAL ──────────────────────────────────── */
+.mark-ability-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.85);
+  z-index: 500;
+  display: flex; align-items: center; justify-content: center;
+  padding: 1.5rem;
+}
+.mark-ability-notice {
+  background: #1a1200;
+  border: 1px solid #3a2e00;
+  border-radius: 2px;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.85rem;
+  font-size: 0.88rem;
+  color: #ccc;
+  line-height: 1.4;
+}
+.mark-ability-used-label {
+  font-size: 0.78rem;
+  color: #555;
+  text-align: center;
+  margin-top: 0.6rem;
+  font-style: italic;
+}
+.mark-ability-btn-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1.1rem;
+}
+.mark-ability-skip-btn {
+  flex: 1;
+  background: none;
+  border: 1px solid #333;
+  color: #666;
+  padding: 0.5rem 0.25rem;
+  cursor: pointer;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.mark-ability-use-btn {
+  flex: 2;
+  background: #be4127;
+  border: none;
+  color: #fff;
+  padding: 0.5rem 0.25rem;
+  cursor: pointer;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.mark-ability-use-btn:hover { background: #d44830; }
+/* Toggle button in regular MarkPopup (Doomed Choir / Graveborn) */
+.mark-popup-toggle {
+  margin-top: 0.75rem;
+  width: 100%;
+  background: none;
+  border: 1px solid #be4127;
+  color: #be4127;
+  padding: 0.45rem;
+  cursor: pointer;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: opacity 0.15s;
+}
+.mark-popup-toggle:hover { opacity: 0.75; }
+.mark-popup-toggle--used {
+  border-color: #444;
+  color: #555;
+}
+
 /* ── TRACKER MODALS (Cache / Status) ─────────────────────── */
 .tracker-modal-title {
   font-family: 'Oswald', sans-serif; text-transform: uppercase;
