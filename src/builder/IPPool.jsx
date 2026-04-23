@@ -31,13 +31,8 @@ export default function IPPool({ onEndOfGame }) {
   const spent = getTotalIPSpent()
   const remaining = ipLimit - spent
   const hasCaptain = slots.some(s => s.isCaptain)
-  // In standard mode with a captain: 1 IP reserved for captain
-  // Non-captains can use at most (ipLimit - 1), captain can use full ipLimit
-  const nonCaptainSpent = slots
-    .filter(s => !s.isCaptain)
-    .reduce((sum, s) => sum + (s.ip?.length || 0), 0)
-  const captainReserved = hasCaptain ? 1 : 0
-  const nonCaptainMax = Math.max(0, ipLimit - captainReserved)
+  const captainSlot = slots.find(s => s.isCaptain)
+  const captainHasIP = captainSlot && (captainSlot.ip?.length || 0) > 0
   const pips = Array.from({ length: ipLimit }, (_, i) => i < spent)
 
   return (
@@ -54,7 +49,7 @@ export default function IPPool({ onEndOfGame }) {
             <span key={i} className={`ip-pool-pip${used ? ' filled' : ''}`} />
           ))}
         </div>
-        <span className="ip-pool-count">{hasCaptain ? `${nonCaptainSpent}/${nonCaptainMax} non-cpt` : remaining}/{ipLimit} rem</span>
+        <span className="ip-pool-count">{hasCaptain && !captainHasIP ? 'Reserve 1 for Cpt' : remaining}/{ipLimit} rem</span>
       </div>
 
       <div className="ip-pool-divider" />

@@ -424,14 +424,20 @@ export const useBuilderStore = create((set, get) => {
       set({ slots })
       get()._autoDraft()
     },
-    // In standard mode with a captain: reserve 1 IP for the captain
-    // Non-captains can max out at ipLimit - 1, captain can use all
+    // In standard mode with a captain: only reserve IP if captain has 0 IP used
+    // Once captain uses 1+ IP, pool is fully available
     getMaxIPForSlot(slotIndex) {
       const { companyMode, ipLimit, slots } = get()
       if (companyMode !== 'standard') return slots[slotIndex]?.earnedIP || 0
       const slot = slots[slotIndex]
       if (!slot) return ipLimit
+      const hasCaptain = slots.some(s => s.isCaptain)
+      const captainSlot = slots.find(s => s.isCaptain)
+      const captainHasIP = captainSlot && (captainSlot.ip?.length || 0) > 0
       const isCaptain = slot.isCaptain
+      // If no captain or captain has used IP, no limit
+      if (!hasCaptain || captainHasIP) return ipLimit
+      // Captain hasn't used IP yet - reserve 1 for them
       return isCaptain ? ipLimit : Math.max(0, ipLimit - 1)
     },
     toggleIP(slotIndex, optId, checked) {
@@ -444,8 +450,8 @@ export const useBuilderStore = create((set, get) => {
           if ((slot.ip?.length || 0) >= (slot.earnedIP || 0)) return // warrior's pool full
         } else {
           const spent = getTotalIPSpent()
-          const maxForNonCaptain = slot.isCaptain ? ipLimit : Math.max(0, ipLimit - 1)
-          if (spent >= maxForNonCaptain) return // global pool full (with captain reserve)
+          const max = get().getMaxIPForSlot(slotIndex)
+          if (spent >= max) return // pool full
         }
         slot.ip = [...(slot.ip || []), optId]
       } else {
