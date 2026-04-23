@@ -87,7 +87,7 @@ export default function WarriorCard({ slotIndex, slot }) {
   const wdata = slot.type ? WARRIORS[slot.type] : null
   const poolFull = companyMode === 'campaign'
     ? (slot.ip?.length || 0) >= (slot.earnedIP || 0)
-    : getTotalIPSpent() >= ipLimit
+    : getTotalIPSpent() >= useBuilderStore.getState().getMaxIPForSlot(slotIndex)
   const portraitSrc = slot.type ? WARRIOR_IMAGES[slot.type] : null
 
   const allAbilities = [...(wdata?.abilities || [])]

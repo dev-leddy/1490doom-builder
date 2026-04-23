@@ -226,8 +226,10 @@ export const useBuilderStore = create((set, get) => {
       get()._autoDraft()
     },
     changeIPLimit(delta) {
-      const { ipLimit, slots } = get()
+      const { ipLimit, slots, companyMode } = get()
       const newLimit = Math.max(0, Math.min(20, ipLimit + delta))
+      // In standard mode, maintain captain reserve: non-captains max at newLimit - 1
+      const isStandard = companyMode === 'standard'
       // Remove IP from slots that exceed new pool
       let spent = 0
       const newSlots = slots.map(slot => {
@@ -235,6 +237,8 @@ export const useBuilderStore = create((set, get) => {
         for (const id of (slot.ip || [])) {
           spent++
           if (spent <= newLimit) slotIP.push(id)
+          // Stop early for non-captains in standard mode to preserve 1 for captain
+          else if (isStandard && !slot.isCaptain && spent <= newLimit) slotIP.push(id)
         }
         return { ...slot, ip: slotIP }
       })
@@ -396,10 +400,11 @@ export const useBuilderStore = create((set, get) => {
           const wdata = WARRIORS[slots[slotIndex].type]
           if (!wdata?.fixedShield) {
             if (!slots[slotIndex].ip.includes('weapon2')) {
-              const { companyMode } = get()
+              const { companyMode, ipLimit } = get()
+              const spent = slots.reduce((sum, s) => sum + (s.ip?.length || 0), 0)
               const canAfford = companyMode === 'campaign'
                 ? slots[slotIndex].ip.length < (slots[slotIndex].earnedIP || 0)
-                : slots.reduce((sum, s) => sum + (s.ip?.length || 0), 0) < get().ipLimit
+                : spent < ipLimit
               if (canAfford) {
                 slots[slotIndex].ip = [...slots[slotIndex].ip, 'weapon2']
               }
@@ -419,8 +424,18 @@ export const useBuilderStore = create((set, get) => {
       set({ slots })
       get()._autoDraft()
     },
+    // In standard mode with a captain: reserve 1 IP for the captain
+    // Non-captains can max out at ipLimit - 1, captain can use all
+    getMaxIPForSlot(slotIndex) {
+      const { companyMode, ipLimit, slots } = get()
+      if (companyMode !== 'standard') return slots[slotIndex]?.earnedIP || 0
+      const slot = slots[slotIndex]
+      if (!slot) return ipLimit
+      const isCaptain = slot.isCaptain
+      return isCaptain ? ipLimit : Math.max(0, ipLimit - 1)
+    },
     toggleIP(slotIndex, optId, checked) {
-      const { companyMode, slots: allSlots } = get()
+      const { companyMode, slots: allSlots, ipLimit, getTotalIPSpent } = get()
       const slots = [...allSlots]
       const slot = { ...slots[slotIndex] }
 
@@ -428,7 +443,9 @@ export const useBuilderStore = create((set, get) => {
         if (companyMode === 'campaign') {
           if ((slot.ip?.length || 0) >= (slot.earnedIP || 0)) return // warrior's pool full
         } else {
-          if (get().getTotalIPSpent() >= get().ipLimit) return // global pool full
+          const spent = getTotalIPSpent()
+          const maxForNonCaptain = slot.isCaptain ? ipLimit : Math.max(0, ipLimit - 1)
+          if (spent >= maxForNonCaptain) return // global pool full (with captain reserve)
         }
         slot.ip = [...(slot.ip || []), optId]
       } else {
