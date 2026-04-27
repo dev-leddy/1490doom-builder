@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API Docs — 1490 DOOM Company Builder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600&display=swap" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold:        #be4127;
+      --gold-dim:    #7a6012;
+      --gold-border: #3a2e00;
+      --bg:          #080808;
+      --bg-card:     #0d0d0d;
+      --bg-lift:     #141414;
+      --border-dim:  #222;
+      --cream:       #e8e0d0;
+      --cream-dim:   #aaa090;
+      --text-muted:  #666;
+      --green:       #4a9a4a;
+      --green-bg:    #0e1f0e;
+      --green-border:#1e3e1e;
+      --purple:      #9a9add;
+      --purple-bg:   #0e0e1e;
+      --purple-border:#2a2a5a;
+      --font-display: 'Oswald', sans-serif;
+      --font-mono:    'Courier New', monospace;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--cream);
+      font-family: var(--font-display);
+      font-size: 15px;
+      line-height: 1.6;
+      padding: 2rem 1rem 4rem;
+    }
+
+    a { color: var(--gold); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .wrap {
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ── Header ── */
+    .site-header {
+      border-bottom: 1px solid var(--gold);
+      padding-bottom: 1.25rem;
+      margin-bottom: 2.5rem;
+    }
+    .site-header a {
+      font-size: 0.8rem;
+      color: var(--cream-dim);
+      letter-spacing: 0.05em;
+    }
+    .site-header a:hover { color: var(--gold); }
+    h1 {
+      font-size: 2rem;
+      color: var(--gold);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-top: 0.4rem;
+    }
+    .subtitle {
+      color: var(--cream-dim);
+      font-size: 0.9rem;
+      margin-top: 0.25rem;
+    }
+
+    /* ── Section headings ── */
+    h2 {
+      font-size: 1.25rem;
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      border-bottom: 1px solid var(--gold-border);
+      padding-bottom: 0.4rem;
+      margin: 2.5rem 0 1rem;
+    }
+    h3 {
+      font-size: 1rem;
+      color: var(--cream);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin: 1.75rem 0 0.5rem;
+    }
+
+    /* ── Endpoint pill ── */
+    .endpoint {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-dim);
+      border-left: 3px solid var(--gold);
+      border-radius: 4px;
+      padding: 0.65rem 1rem;
+      margin-bottom: 1rem;
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      flex-wrap: wrap;
+    }
+    .method {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      padding: 0.15rem 0.5rem;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+    .method.get  { background: var(--green-bg);   color: var(--green);  border: 1px solid var(--green-border); }
+    .method.post { background: var(--purple-bg);  color: var(--purple); border: 1px solid var(--purple-border); }
+    .endpoint-path { color: var(--cream); }
+    .endpoint-note { color: var(--cream-dim); font-family: var(--font-display); font-size: 0.78rem; margin-left: auto; }
+
+    /* ── Prose ── */
+    p { color: var(--cream-dim); margin-bottom: 0.75rem; }
+    p strong { color: var(--cream); }
+
+    /* ── Code blocks ── */
+    pre {
+      background: var(--bg-lift);
+      border: 1px solid var(--border-dim);
+      border-radius: 4px;
+      padding: 1rem 1.25rem;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      line-height: 1.55;
+      color: var(--cream);
+      margin: 0.75rem 0 1rem;
+    }
+    code {
+      font-family: var(--font-mono);
+      font-size: 0.85em;
+      background: var(--bg-lift);
+      padding: 0.1em 0.35em;
+      border-radius: 3px;
+      color: var(--cream);
+    }
+    .json-key    { color: #7ec8e3; }
+    .json-str    { color: #b5e8a0; }
+    .json-num    { color: #f0c070; }
+    .json-bool   { color: #d09aff; }
+    .json-null   { color: var(--text-muted); }
+    .json-comment{ color: var(--text-muted); font-style: italic; }
+
+    /* ── Tables ── */
+    .table-wrap { overflow-x: auto; margin: 0.75rem 0 1.25rem; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    thead th {
+      background: var(--bg-lift);
+      color: var(--gold);
+      font-family: var(--font-display);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-size: 0.75rem;
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid var(--gold-border);
+      text-align: left;
+    }
+    tbody td {
+      padding: 0.45rem 0.75rem;
+      border-bottom: 1px solid var(--border-dim);
+      color: var(--cream-dim);
+      vertical-align: top;
+    }
+    tbody td:first-child { color: var(--cream); font-family: var(--font-mono); font-size: 0.82rem; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: var(--bg-lift); }
+
+    .val-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+    }
+    .val {
+      background: var(--bg-lift);
+      border: 1px solid var(--border-dim);
+      border-radius: 3px;
+      padding: 0.1rem 0.4rem;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--green);
+      white-space: nowrap;
+    }
+
+    /* ── Note box ── */
+    .note {
+      background: var(--purple-bg);
+      border: 1px solid var(--purple-border);
+      border-radius: 4px;
+      padding: 0.75rem 1rem;
+      margin: 0.75rem 0 1rem;
+      color: var(--cream-dim);
+      font-size: 0.85rem;
+    }
+    .note strong { color: var(--purple); }
+
+    /* ── TOC ── */
+    .toc {
+      background: var(--bg-card);
+      border: 1px solid var(--border-dim);
+      border-radius: 4px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 2rem;
+    }
+    .toc-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+    .toc ul { list-style: none; padding: 0; }
+    .toc li { padding: 0.15rem 0; }
+    .toc a { color: var(--cream-dim); font-size: 0.88rem; }
+    .toc a:hover { color: var(--gold); }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="site-header">
+    <a href="/">← 1490 DOOM Company Builder</a>
+    <h1>API Documentation</h1>
+    <p class="subtitle">Short links &amp; TTS JSON export for the 1490 DOOM Company Builder</p>
+  </header>
+
+  <div class="toc">
+    <div class="toc-title">Contents</div>
+    <ul>
+      <li><a href="#endpoints">Endpoints</a></li>
+      <li><a href="#tts-format">TTS JSON Format</a></li>
+      <li><a href="#standard-example">Standard Mode Example</a></li>
+      <li><a href="#campaign-example">Campaign Mode Example</a></li>
+      <li><a href="#field-reference">Field Reference</a></li>
+    </ul>
+  </div>
+
+  <!-- ── Endpoints ── -->
+  <h2 id="endpoints">Endpoints</h2>
+
+  <h3>Resolve a short link (browser)</h3>
+  <div class="endpoint">
+    <span class="method get">GET</span>
+    <span class="endpoint-path">/s/:code</span>
+  </div>
+  <p>Loads the company in the builder. Intended for sharing with players.</p>
+  <p><strong>Example:</strong> <code>https://1490doomcompanybuilder.com/s/6i6fmdj</code></p>
+
+  <h3>Fetch company as JSON (TTS integration)</h3>
+  <div class="endpoint">
+    <span class="method get">GET</span>
+    <span class="endpoint-path">/s/:code?tts=1</span>
+    <span class="endpoint-note">CORS: *</span>
+  </div>
+  <p>Returns the company as JSON. Use this endpoint in your TTS script to fetch roster data directly.</p>
+  <p><strong>Example fetch:</strong></p>
+  <pre>const res  = await fetch('https://1490doomcompanybuilder.com/s/6i6fmdj?tts=1')
+const data = await res.json()
+// data.warriors → array of warrior objects</pre>
+  <p>Returns <strong>404</strong> if the code does not exist.</p>
+  <div class="note">
+    <strong>Note:</strong> Short link codes are permanent. The same company state always produces the same code,
+    so you can store a code as a stable reference to a specific roster.
+  </div>
+
+  <h3>Create a short link</h3>
+  <div class="endpoint">
+    <span class="method post">POST</span>
+    <span class="endpoint-path">/api/s</span>
+  </div>
+  <p>Generates a short link from an encoded company hash. This is called automatically by the Share modal — you don't need this unless you're building a custom integration.</p>
+  <pre><span class="json-comment">// Request</span>
+POST /api/s
+Content-Type: application/json
+
+{ <span class="json-key">"encoded"</span>: <span class="json-str">"NnxJcm9u..."</span> }
+
+<span class="json-comment">// Response</span>
+{ <span class="json-key">"code"</span>: <span class="json-str">"abc1234"</span>, <span class="json-key">"url"</span>: <span class="json-str">"https://1490doomcompanybuilder.com/s/abc1234"</span> }</pre>
+
+  <!-- ── TTS Format ── -->
+  <h2 id="tts-format">TTS JSON Format</h2>
+  <p>The top-level object contains company metadata and a <code>warriors</code> array.
+  The shape differs slightly between <strong>standard</strong> and <strong>campaign</strong> mode — campaign adds per-warrior progression fields and replaces <code>ipLimit</code> with <code>campaignGame</code>.</p>
+
+  <h3 id="standard-example">Standard mode example</h3>
+  <pre>{
+  <span class="json-key">"mark"</span>:        <span class="json-str">"Tower Born"</span>,
+  <span class="json-key">"companyName"</span>: <span class="json-str">"Iron Ravens Pack"</span>,
+  <span class="json-key">"companyMode"</span>: <span class="json-str">"standard"</span>,
+  <span class="json-key">"ipLimit"</span>:     <span class="json-num">3</span>,          <span class="json-comment">// total IP available to the company</span>
+  <span class="json-key">"warriors"</span>: [
+    {
+      <span class="json-key">"type"</span>:       <span class="json-str">"Brute"</span>,
+      <span class="json-key">"name"</span>:       <span class="json-null">null</span>,         <span class="json-comment">// null = no custom name</span>
+      <span class="json-key">"isCaptain"</span>:  <span class="json-bool">true</span>,
+      <span class="json-key">"weapon1"</span>:    <span class="json-str">"Heavy Weapon"</span>,
+      <span class="json-key">"weapon2"</span>:    <span class="json-null">null</span>,
+      <span class="json-key">"consumable"</span>: <span class="json-str">"Concentrated Creeping Death Serum"</span>,
+      <span class="json-key">"climbing"</span>:   <span class="json-null">null</span>,
+      <span class="json-key">"ipUpgrades"</span>: [<span class="json-str">"consumable"</span>]
+    },
+    {
+      <span class="json-key">"type"</span>:       <span class="json-str">"Assassin"</span>,
+      <span class="json-key">"name"</span>:       <span class="json-str">"Rook"</span>,
+      <span class="json-key">"isCaptain"</span>:  <span class="json-bool">false</span>,
+      <span class="json-key">"weapon1"</span>:    <span class="json-str">"Bow"</span>,
+      <span class="json-key">"weapon2"</span>:    <span class="json-null">null</span>,
+      <span class="json-key">"consumable"</span>: <span class="json-str">"Fog of War Flask"</span>,
+      <span class="json-key">"climbing"</span>:   <span class="json-str">"Grappling Hook"</span>,
+      <span class="json-key">"ipUpgrades"</span>: [<span class="json-str">"climbing"</span>, <span class="json-str">"consumable"</span>]
+    }
+  ]
+}</pre>
+
+  <h3 id="campaign-example">Campaign mode example</h3>
+  <pre>{
+  <span class="json-key">"mark"</span>:         <span class="json-str">"Graveborn"</span>,
+  <span class="json-key">"companyName"</span>:  <span class="json-str">"The Hollow March"</span>,
+  <span class="json-key">"companyMode"</span>:  <span class="json-str">"campaign"</span>,
+  <span class="json-key">"campaignGame"</span>: <span class="json-num">4</span>,      <span class="json-comment">// which game in the campaign</span>
+  <span class="json-key">"warriors"</span>: [
+    {
+      <span class="json-key">"type"</span>:         <span class="json-str">"Knight"</span>,
+      <span class="json-key">"name"</span>:         <span class="json-null">null</span>,
+      <span class="json-key">"isCaptain"</span>:    <span class="json-bool">true</span>,
+      <span class="json-key">"weapon1"</span>:      <span class="json-str">"Heavy Weapon"</span>,
+      <span class="json-key">"weapon2"</span>:      <span class="json-str">"Shield"</span>,
+      <span class="json-key">"consumable"</span>:   <span class="json-null">null</span>,
+      <span class="json-key">"climbing"</span>:     <span class="json-null">null</span>,
+      <span class="json-key">"ipUpgrades"</span>:   [<span class="json-str">"weapon2"</span>],
+      <span class="json-key">"earnedIP"</span>:     <span class="json-num">3</span>,       <span class="json-comment">// campaign only</span>
+      <span class="json-key">"statImproves"</span>: [<span class="json-str">"VIT"</span>, <span class="json-str">"DEF"</span>] <span class="json-comment">// campaign only</span>
+    }
+  ]
+}</pre>
+
+  <!-- ── Field Reference ── -->
+  <h2 id="field-reference">Field Reference</h2>
+
+  <h3>Top-level fields</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Field</th><th>Type</th><th>Present in</th><th>Values / Notes</th></tr></thead>
+    <tbody>
+      <tr><td>mark</td><td>string</td><td>always</td><td>
+        <div class="val-list">
+          <span class="val">Ashbound</span><span class="val">Doomed Choir</span><span class="val">Fog Walkers</span><span class="val">Graveborn</span><span class="val">Relic Bitten</span><span class="val">Silent Pact</span><span class="val">Tower Born</span><span class="val">Wretched Survivors</span>
+        </div>
+      </td></tr>
+      <tr><td>companyName</td><td>string</td><td>always</td><td>Free text, player-defined</td></tr>
+      <tr><td>companyMode</td><td>string</td><td>always</td><td><span class="val">standard</span> <span class="val">campaign</span></td></tr>
+      <tr><td>ipLimit</td><td>number</td><td>standard only</td><td>Total IP available to the company (typically 3–5)</td></tr>
+      <tr><td>campaignGame</td><td>number</td><td>campaign only</td><td>Which game number in the campaign (0-indexed)</td></tr>
+      <tr><td>warriors</td><td>array</td><td>always</td><td>1–3 entries. Captain is always first.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>Warrior fields</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Field</th><th>Type</th><th>Present in</th><th>Values / Notes</th></tr></thead>
+    <tbody>
+      <tr><td>type</td><td>string</td><td>always</td><td>
+        <div class="val-list">
+          <span class="val">Assassin</span><span class="val">Beekeeper</span><span class="val">Blacksmith</span><span class="val">Brute</span><span class="val">Doom Hunter</span><span class="val">Executioner</span><span class="val">Fighter</span><span class="val">Hedge Knight</span><span class="val">Knight</span><span class="val">Reaver</span><span class="val">Saboteur</span><span class="val">Scavenger</span><span class="val">Scout</span><span class="val">Warrior Priest</span>
+        </div>
+      </td></tr>
+      <tr><td>name</td><td>string | null</td><td>always</td><td>Custom warrior name, or <code>null</code></td></tr>
+      <tr><td>isCaptain</td><td>boolean</td><td>always</td><td>Exactly one warrior per company is captain</td></tr>
+      <tr><td>weapon1</td><td>string</td><td>always</td><td>
+        <div class="val-list">
+          <span class="val">Light Weapon</span><span class="val">Heavy Weapon</span><span class="val">Polearm (two-handed)</span><span class="val">Polearm (one-handed)</span><span class="val">Shield</span><span class="val">Crossbow</span><span class="val">Bow</span>
+        </div>
+      </td></tr>
+      <tr><td>weapon2</td><td>string | null</td><td>always</td><td>Dual-wield weapon. Same values as <code>weapon1</code>, or <code>null</code></td></tr>
+      <tr><td>consumable</td><td>string | null</td><td>always</td><td>
+        <div class="val-list">
+          <span class="val">Canister of Creeping Death</span><span class="val">Concentrated Creeping Death Serum</span><span class="val">Fog of War Flask</span>
+        </div>
+      </td></tr>
+      <tr><td>climbing</td><td>string | null</td><td>always</td><td><span class="val">Ladder</span> <span class="val">Grappling Hook</span> or <code>null</code></td></tr>
+      <tr><td>ipUpgrades</td><td>string[]</td><td>always</td><td>
+        Standard: <span class="val">stat</span> <span class="val">weapon2</span> <span class="val">climbing</span> <span class="val">consumable</span><br><br>
+        Campaign: <span class="val">weapon2</span> <span class="val">climbing</span> <span class="val">consumable</span> <span class="val">stat_0</span>…<span class="val">stat_4</span>
+        (where stat_0=MOV, stat_1=VIT, stat_2=SKL, stat_3=DEF, stat_4=COM)
+      </td></tr>
+      <tr><td>earnedIP</td><td>number</td><td>campaign only</td><td>Total IP this warrior has earned</td></tr>
+      <tr><td>statImproves</td><td>string[]</td><td>campaign only</td><td><span class="val">MOV</span> <span class="val">VIT</span> <span class="val">SKL</span> <span class="val">DEF</span> <span class="val">COM</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+</body>
+</html>
