@@ -17,14 +17,17 @@ export default function App() {
   const [hashLoaded, setHashLoaded] = useState(false)
 
   useEffect(() => {
-    const rawHash = window.location.hash
-    let hash = rawHash.slice(1)
-    
-    // URL-decode the hash
+    // Check sessionStorage first (set by /s/:code short link handler)
+    let pending = null
     try {
-      hash = decodeURIComponent(hash)
+      pending = sessionStorage.getItem('__pendingShare')
+      if (pending) sessionStorage.removeItem('__pendingShare')
     } catch {}
-    
+
+    const rawHash = window.location.hash
+    let hash = pending || rawHash.slice(1)
+    try { hash = decodeURIComponent(hash) } catch {}
+
     if (hash) {
       const decoded = decodeCompany(hash)
       if (decoded) {
@@ -37,7 +40,7 @@ export default function App() {
   if (hashLoaded) {
     return (
       <div className="app">
-        <BuilderPage initialView="builder" />
+        <BuilderPage key="shared" initialView="builder" />
         <BetaBanner />
         {toast && <Toast message={toast} />}
         <span className="app-version">v{__APP_VERSION__}</span>
