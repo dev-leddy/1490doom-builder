@@ -89,15 +89,20 @@ function decodeCompany(code) {
 
       const name = nameEnc && nameEnc !== '-' ? decodeURIComponent(nameEnc) : null
       const earnedIP = earnedEnc && earnedEnc !== '-' ? parseInt(earnedEnc, 36) : undefined
-      const statImproves = (statImpsEnc && statImpsEnc !== '-')
+      const statImproves = isCampaign && statImpsEnc && statImpsEnc !== '-'
         ? statImpsEnc.split('').map(c => ALL_STAT_KEYS[parseInt(c, 36)]).filter(Boolean)
         : undefined
+      const statImprove = !isCampaign && statImpsEnc && statImpsEnc !== '-'
+        ? (ALL_STAT_KEYS[parseInt(statImpsEnc[0], 36)] || null)
+        : null
 
       const warrior = { type, name, isCaptain, weapon1, weapon2, consumable, climbing, ipUpgrades }
       if (notes.length) warrior.notes = notes
       if (isCampaign) {
         warrior.earnedIP = earnedIP ?? 0
         warrior.statImproves = statImproves ?? []
+      } else {
+        warrior.statImprove = statImprove
       }
 
       warriors.push(warrior)

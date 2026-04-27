@@ -50,9 +50,9 @@ export function encodeCompany(s) {
     const notesEnc = (slot.notes && slot.notes.length) ? encodeURIComponent(JSON.stringify(slot.notes)) : '-'
     const nameEnc  = slot.customName ? encodeURIComponent(slot.customName) : '-'
     const earnedEnc   = isCampaign ? (slot.earnedIP || 0).toString(36) : '-'
-    const statImpsEnc = isCampaign && slot.statImproves?.length
-      ? slot.statImproves.map(st => _idx(ALL_STAT_KEYS, st).toString(36)).join('')
-      : '-'
+    const statImpsEnc = isCampaign
+      ? (slot.statImproves?.length ? slot.statImproves.map(st => _idx(ALL_STAT_KEYS, st).toString(36)).join('') : '-')
+      : (slot.statImprove ? _idx(ALL_STAT_KEYS, slot.statImprove).toString(36) : '-')
     parts.push([wIdx, w1Idx, w2Idx, cIdx, clIdx, ipStr, cap, notesEnc, nameEnc, earnedEnc, statImpsEnc].join(':'))
   })
   const encoded = btoa(parts.join('|')).replace(/=/g, '')
@@ -94,9 +94,12 @@ export function decodeCompany(code) {
       const climbing  = clIdx === '-' ? null : Object.keys(CLIMBING_ITEMS)[parseInt(clIdx, 36)] || null
       const ip        = ipStr === '-' ? [] : ipStr.split('').map(c => ipIds[parseInt(c, 36)]).filter(Boolean)
       const earnedIP  = earnedEnc && earnedEnc !== '-' ? parseInt(earnedEnc, 36) : 0
-      const statImproves = (statImpsEnc && statImpsEnc !== '-')
+      const statImproves = isCampaign && statImpsEnc && statImpsEnc !== '-'
         ? statImpsEnc.split('').map(c => ALL_STAT_KEYS[parseInt(c, 36)]).filter(Boolean)
         : []
+      const statImprove = !isCampaign && statImpsEnc && statImpsEnc !== '-'
+        ? (ALL_STAT_KEYS[parseInt(statImpsEnc[0], 36)] || null)
+        : null
       let notes = []
       if (notesEnc && notesEnc !== '-') {
         try {
@@ -105,7 +108,7 @@ export function decodeCompany(code) {
         } catch {}
       }
       const customName = nameEnc && nameEnc !== '-' ? decodeURIComponent(nameEnc) : null
-      return { type, weapon1, weapon2, consumable, climbing, ip, isCaptain: cap === '1', notes, customName, earnedIP, statImproves }
+      return { type, weapon1, weapon2, consumable, climbing, ip, isCaptain: cap === '1', notes, customName, earnedIP, statImproves, statImprove }
     })
     return { mark, companyName, ipLimit, companyMode: isCampaign ? 'campaign' : 'standard', campaignGame, slots }
   } catch (e) {
