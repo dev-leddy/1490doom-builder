@@ -41,7 +41,7 @@ export default function App() {
   if (hashLoaded) {
     return (
       <div className="app">
-        <BuilderPage initialView="builder" />
+        <BuilderPage key="shared" initialView="builder" />
         <BetaBanner />
         {toast && <Toast message={toast} />}
         <span className="app-version">v{__APP_VERSION__}</span>
