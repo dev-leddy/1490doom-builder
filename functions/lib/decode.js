@@ -76,7 +76,7 @@ function decodeCompany(code) {
       const weapon2 = w2Idx === '-' ? null : WEAPON_NAMES[parseInt(w2Idx, 36)] || null
       const consumable = cIdx === '-' ? null : CONSUMABLE_NAMES[parseInt(cIdx, 36)] || null
       const climbing = clIdx === '-' ? null : (CLIMBING_KEYS[parseInt(clIdx, 36)] === 'None' ? null : CLIMBING_KEYS[parseInt(clIdx, 36)]) || null
-      const ipUpgrades = ipStr === '-' ? [] : ipStr.split('').map(c => ipIds[parseInt(c, 36)]).filter(Boolean)
+      const rawUpgrades = ipStr === '-' ? [] : ipStr.split('').map(c => ipIds[parseInt(c, 36)]).filter(Boolean)
       const isCaptain = cap === '1'
 
       let notes = []
@@ -89,21 +89,21 @@ function decodeCompany(code) {
 
       const name = nameEnc && nameEnc !== '-' ? decodeURIComponent(nameEnc) : null
       const earnedIP = earnedEnc && earnedEnc !== '-' ? parseInt(earnedEnc, 36) : undefined
-      const statImproves = isCampaign && statImpsEnc && statImpsEnc !== '-'
-        ? statImpsEnc.split('').map(c => ALL_STAT_KEYS[parseInt(c, 36)]).filter(Boolean)
-        : undefined
+
+      // Resolve stat upgrade IDs to named form (stat_VIT, stat_MOV, etc.)
       const statImprove = !isCampaign && statImpsEnc && statImpsEnc !== '-'
         ? (ALL_STAT_KEYS[parseInt(statImpsEnc[0], 36)] || null)
         : null
+      const ipUpgrades = rawUpgrades.map(id => {
+        if (!isCampaign && id === 'stat') return statImprove ? `stat_${statImprove}` : 'stat'
+        const m = id.match(/^stat_(\d+)$/)
+        if (m) { const k = ALL_STAT_KEYS[parseInt(m[1])]; return k ? `stat_${k}` : id }
+        return id
+      })
 
       const warrior = { type, name, isCaptain, weapon1, weapon2, consumable, climbing, ipUpgrades }
       if (notes.length) warrior.notes = notes
-      if (isCampaign) {
-        warrior.earnedIP = earnedIP ?? 0
-        warrior.statImproves = statImproves ?? []
-      } else {
-        warrior.statImprove = statImprove
-      }
+      if (isCampaign) warrior.earnedIP = earnedIP ?? 0
 
       warriors.push(warrior)
     }

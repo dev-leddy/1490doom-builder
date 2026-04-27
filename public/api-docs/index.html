@@ -345,8 +345,7 @@ const data = await res.json()
       <span class="json-key">"weapon2"</span>:    <span class="json-null">null</span>,
       <span class="json-key">"consumable"</span>: <span class="json-str">"Concentrated Creeping Death Serum"</span>,
       <span class="json-key">"climbing"</span>:   <span class="json-null">null</span>,
-      <span class="json-key">"ipUpgrades"</span>: [<span class="json-str">"consumable"</span>],
-      <span class="json-key">"statImprove"</span>: <span class="json-null">null</span>    <span class="json-comment">// no stat upgrade taken</span>
+      <span class="json-key">"ipUpgrades"</span>: [<span class="json-str">"consumable"</span>]
     },
     {
       <span class="json-key">"type"</span>:       <span class="json-str">"Assassin"</span>,
@@ -356,8 +355,7 @@ const data = await res.json()
       <span class="json-key">"weapon2"</span>:    <span class="json-null">null</span>,
       <span class="json-key">"consumable"</span>: <span class="json-str">"Fog of War Flask"</span>,
       <span class="json-key">"climbing"</span>:   <span class="json-str">"Grappling Hook"</span>,
-      <span class="json-key">"ipUpgrades"</span>: [<span class="json-str">"climbing"</span>, <span class="json-str">"consumable"</span>, <span class="json-str">"stat"</span>],
-      <span class="json-key">"statImprove"</span>: <span class="json-str">"VIT"</span>          <span class="json-comment">// which stat was improved</span>
+      <span class="json-key">"ipUpgrades"</span>: [<span class="json-str">"climbing"</span>, <span class="json-str">"consumable"</span>, <span class="json-str">"stat_VIT"</span>]
     }
   ]
 }</pre>
@@ -377,9 +375,8 @@ const data = await res.json()
       <span class="json-key">"weapon2"</span>:      <span class="json-str">"Shield"</span>,
       <span class="json-key">"consumable"</span>:   <span class="json-null">null</span>,
       <span class="json-key">"climbing"</span>:     <span class="json-null">null</span>,
-      <span class="json-key">"ipUpgrades"</span>:   [<span class="json-str">"weapon2"</span>],
-      <span class="json-key">"earnedIP"</span>:     <span class="json-num">3</span>,       <span class="json-comment">// campaign only</span>
-      <span class="json-key">"statImproves"</span>: [<span class="json-str">"VIT"</span>, <span class="json-str">"DEF"</span>] <span class="json-comment">// campaign only</span>
+      <span class="json-key">"ipUpgrades"</span>:   [<span class="json-str">"weapon2"</span>, <span class="json-str">"stat_VIT"</span>, <span class="json-str">"stat_DEF"</span>],
+      <span class="json-key">"earnedIP"</span>:     <span class="json-num">3</span>         <span class="json-comment">// campaign only</span>
     }
   ]
 }</pre>
@@ -431,13 +428,12 @@ const data = await res.json()
       </td></tr>
       <tr><td>climbing</td><td>string | null</td><td>always</td><td><span class="val">Ladder</span> <span class="val">Grappling Hook</span> or <code>null</code></td></tr>
       <tr><td>ipUpgrades</td><td>string[]</td><td>always</td><td>
-        Standard: <span class="val">stat</span> <span class="val">weapon2</span> <span class="val">climbing</span> <span class="val">consumable</span><br><br>
-        Campaign: <span class="val">weapon2</span> <span class="val">climbing</span> <span class="val">consumable</span> <span class="val">stat_0</span>…<span class="val">stat_4</span><br>
-        <span style="color:var(--text-muted);font-size:0.78rem;">(stat_0=MOV, stat_1=VIT, stat_2=SKL, stat_3=DEF, stat_4=COM)</span>
+        <div class="val-list">
+          <span class="val">weapon2</span><span class="val">climbing</span><span class="val">consumable</span><span class="val">stat_MOV</span><span class="val">stat_VIT</span><span class="val">stat_SKL</span><span class="val">stat_DEF</span><span class="val">stat_COM</span>
+        </div>
+        Campaign warriors can have multiple <code>stat_*</code> entries. Standard warriors have at most one.
       </td></tr>
-      <tr><td>statImprove</td><td>string | null</td><td>standard only</td><td>Stat improved via IP upgrade. <span class="val">MOV</span> <span class="val">VIT</span> <span class="val">SKL</span> <span class="val">DEF</span> <span class="val">COM</span> or <code>null</code></td></tr>
       <tr><td>earnedIP</td><td>number</td><td>campaign only</td><td>Total IP this warrior has earned</td></tr>
-      <tr><td>statImproves</td><td>string[]</td><td>campaign only</td><td>All stat improvements accumulated. <span class="val">MOV</span> <span class="val">VIT</span> <span class="val">SKL</span> <span class="val">DEF</span> <span class="val">COM</span></td></tr>
     </tbody>
   </table>
   </div>
