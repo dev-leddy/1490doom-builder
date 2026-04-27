@@ -1,31 +1,54 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import html2canvas from 'html2canvas'
 import { useBuilderStore } from '../store/builderStore'
 import BottomSheet from '../shared/BottomSheet'
 import { generateDiscordExport } from '../utils/discordExport'
 import DiscordImageRoster from './DiscordImageRoster'
+import { buildTTSPayload, exportAsTTSJSON } from '../utils/ttsExport'
+import { createShortLink } from '../api/companies'
 
 export default function ShareModal() {
   const { shareCode, closeShare } = useBuilderStore()
+  const [shortUrl, setShortUrl]   = useState(null)
+  const [shortLoading, setShortLoading] = useState(false)
   const [copiedLink, setCopiedLink] = useState(false)
+  const [copiedJson, setCopiedJson] = useState(false)
   const [imageStatus, setImageStatus] = useState(null) // null | 'rendering' | 'done' | 'error'
   const [imageDataUrl, setImageDataUrl] = useState(null)
-  const linkRef = useRef(null)
+  const shortRef = useRef(null)
   const imageRosterRef = useRef(null)
+
+  // Extract just the encoded hash from the full shareCode URL
+  const encoded = (() => {
+    try { return new URL(shareCode ?? '').hash.slice(1) } catch { return shareCode ?? '' }
+  })()
+
+  // Generate short link whenever shareCode opens
+  useEffect(() => {
+    if (!encoded) return
+    setShortUrl(null)
+    setShortLoading(true)
+    createShortLink(encoded)
+      .then(({ url }) => setShortUrl(url))
+      .catch(() => setShortUrl(null))
+      .finally(() => setShortLoading(false))
+  }, [encoded])
 
   if (!shareCode) return null
 
   const state = useBuilderStore.getState()
 
+  const displayUrl = shortUrl ?? (shortLoading ? '…generating…' : shareCode)
+
   function copyText(text, ref, setFlag) {
     function markCopied() { setFlag(true); setTimeout(() => setFlag(false), 2000) }
     if (navigator.clipboard) {
-      navigator.clipboard.writeText(text).then(markCopied).catch(() => fallback())
+      navigator.clipboard.writeText(text).then(markCopied).catch(fallback)
     } else {
       fallback()
     }
     function fallback() {
-      const el = ref.current
+      const el = ref?.current
       if (!el) return
       el.select()
       document.execCommand('copy')
@@ -37,7 +60,6 @@ export default function ShareModal() {
     if (!imageRosterRef.current) return
     setImageStatus('rendering')
 
-    // Wait for web fonts before capture so layout is correct
     await document.fonts.ready
 
     const canvas = await html2canvas(imageRosterRef.current, {
@@ -58,17 +80,15 @@ export default function ShareModal() {
       },
     })
 
-    // Show the rendered image inline in the modal
     setImageDataUrl(canvas.toDataURL('image/png'))
 
-    const linkText = `<${shareCode}>`
+    const linkText = `<${shortUrl ?? shareCode}>`
     const linkBlob = new Blob([linkText], { type: 'text/plain' })
     const blobPromise = new Promise((resolve, reject) => {
       canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('toBlob failed')), 'image/png')
     })
 
     try {
-      // Write image + link together — Discord shows the image; the <url> lets recipient load the company
       await navigator.clipboard.write([
         new ClipboardItem({ 'image/png': blobPromise, 'text/plain': linkBlob }),
       ])
@@ -93,8 +113,27 @@ export default function ShareModal() {
     }
   }
 
-  function handleCopyLink() { copyText(shareCode, linkRef, setCopiedLink) }
+  function handleCopyLink() { copyText(displayUrl, shortRef, setCopiedLink) }
   function handleFocus(e) { e.target.select() }
+
+  function handleCopyJSON() {
+    const json = exportAsTTSJSON(buildTTSPayload(state))
+    navigator.clipboard?.writeText(json).then(() => {
+      setCopiedJson(true)
+      setTimeout(() => setCopiedJson(false), 2000)
+    })
+  }
+
+  function handleDownloadJSON() {
+    const json = exportAsTTSJSON(buildTTSPayload(state))
+    const blob = new Blob([json], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${(state.companyName || 'company').replace(/\s+/g, '_')}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
 
   const imageLabel =
     imageStatus === 'rendering' ? '⏳ Generating…' :
@@ -114,18 +153,18 @@ export default function ShareModal() {
         <div className="share-section">
           <div className="share-section-label">Share Link</div>
           <textarea
-            ref={linkRef}
+            ref={shortRef}
             className="share-code-box"
             readOnly
-            value={shareCode}
+            value={displayUrl}
             onFocus={handleFocus}
             onClick={handleFocus}
-            rows={3}
+            rows={2}
           />
           <p className="share-modal-note">
             Anyone who opens this link will load your company automatically.
           </p>
-          <button className="share-copy-btn" onClick={handleCopyLink}>
+          <button className="share-copy-btn" onClick={handleCopyLink} disabled={shortLoading}>
             {copiedLink ? '✓ Copied!' : 'Copy Link'}
           </button>
         </div>
@@ -148,12 +187,29 @@ export default function ShareModal() {
             Copies a formatted image card to your clipboard.
           </p>
 
-          {/* Inline image preview — appears after first capture */}
           {imageDataUrl && (
             <div className="share-image-inline">
               <img src={imageDataUrl} alt="Company roster" />
             </div>
           )}
+        </div>
+
+        {/* ── TTS Export ─────────────────────────────────── */}
+        <div className="share-section">
+          <div className="share-section-label">Tabletop Simulator</div>
+          <p className="share-modal-note">
+            Export company data as JSON for TTS integration.{shortUrl && (
+              <> Fetch directly: <code>{shortUrl}?tts=1</code></>
+            )}
+          </p>
+          <div className="share-btn-row">
+            <button className="share-copy-btn" onClick={handleCopyJSON}>
+              {copiedJson ? '✓ Copied!' : 'Copy JSON'}
+            </button>
+            <button className="share-copy-btn" onClick={handleDownloadJSON}>
+              Download JSON
+            </button>
+          </div>
         </div>
       </BottomSheet>
     </>
