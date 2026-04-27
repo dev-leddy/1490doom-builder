@@ -4,7 +4,6 @@ import { useBuilderStore } from '../store/builderStore'
 import BottomSheet from '../shared/BottomSheet'
 import { generateDiscordExport } from '../utils/discordExport'
 import DiscordImageRoster from './DiscordImageRoster'
-import { buildTTSPayload, exportAsTTSJSON } from '../utils/ttsExport'
 import { createShortLink } from '../api/companies'
 
 export default function ShareModal() {
@@ -12,8 +11,7 @@ export default function ShareModal() {
   const [shortUrl, setShortUrl]   = useState(null)
   const [shortLoading, setShortLoading] = useState(false)
   const [copiedLink, setCopiedLink] = useState(false)
-  const [copiedJson, setCopiedJson] = useState(false)
-  const [imageStatus, setImageStatus] = useState(null) // null | 'rendering' | 'done' | 'error'
+const [imageStatus, setImageStatus] = useState(null) // null | 'rendering' | 'done' | 'error'
   const [imageDataUrl, setImageDataUrl] = useState(null)
   const shortRef = useRef(null)
   const imageRosterRef = useRef(null)
@@ -116,26 +114,7 @@ export default function ShareModal() {
   function handleCopyLink() { copyText(displayUrl, shortRef, setCopiedLink) }
   function handleFocus(e) { e.target.select() }
 
-  function handleCopyJSON() {
-    const json = exportAsTTSJSON(buildTTSPayload(state))
-    navigator.clipboard?.writeText(json).then(() => {
-      setCopiedJson(true)
-      setTimeout(() => setCopiedJson(false), 2000)
-    })
-  }
-
-  function handleDownloadJSON() {
-    const json = exportAsTTSJSON(buildTTSPayload(state))
-    const blob = new Blob([json], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `${(state.companyName || 'company').replace(/\s+/g, '_')}.json`
-    a.click()
-    URL.revokeObjectURL(url)
-  }
-
-  const imageLabel =
+const imageLabel =
     imageStatus === 'rendering' ? '⏳ Generating…' :
     imageStatus === 'done'      ? '✓ Copied!' :
     imageStatus === 'error'     ? '✗ Failed' :
@@ -194,23 +173,6 @@ export default function ShareModal() {
           )}
         </div>
 
-        {/* ── TTS Export ─────────────────────────────────── */}
-        <div className="share-section">
-          <div className="share-section-label">Tabletop Simulator</div>
-          <p className="share-modal-note">
-            Export company data as JSON for TTS integration.{shortUrl && (
-              <> Fetch directly: <code>{shortUrl}?tts=1</code></>
-            )}
-          </p>
-          <div className="share-btn-row">
-            <button className="share-copy-btn" onClick={handleCopyJSON}>
-              {copiedJson ? '✓ Copied!' : 'Copy JSON'}
-            </button>
-            <button className="share-copy-btn" onClick={handleDownloadJSON}>
-              Download JSON
-            </button>
-          </div>
-        </div>
       </BottomSheet>
     </>
   )
