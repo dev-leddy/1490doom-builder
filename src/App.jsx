@@ -26,13 +26,10 @@ export default function App() {
 
     const rawHash = window.location.hash
     let hash = pending || rawHash.slice(1)
-    console.log('[share] pending:', !!pending, 'hash:', rawHash, 'using:', hash?.slice(0, 20))
-
     try { hash = decodeURIComponent(hash) } catch {}
 
     if (hash) {
       const decoded = decodeCompany(hash)
-      console.log('[share] decodeCompany result:', decoded ? 'ok' : 'null')
       if (decoded) {
         doImport(hash)
         setHashLoaded(true)
