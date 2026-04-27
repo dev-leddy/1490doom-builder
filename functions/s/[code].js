@@ -27,13 +27,15 @@ export async function onRequestGet(context) {
     })
   }
 
-  // Fragments (#) are stripped from HTTP redirect Location headers by some
-  // intermediaries. Use a client-side redirect instead so the hash is preserved.
-  const dest = `${url.origin}/#${row.encoded}`
+  // Store encoded value in sessionStorage then navigate to root.
+  // Avoids all fragment-stripping issues with HTTP redirects.
+  const encoded = JSON.stringify(row.encoded)
+  const origin  = JSON.stringify(url.origin)
   return new Response(
-    `<!DOCTYPE html><html><head><meta charset="utf-8">` +
-    `<script>location.replace(${JSON.stringify(dest)})</script>` +
-    `</head><body></body></html>`,
+    `<!DOCTYPE html><html><head><meta charset="utf-8"><script>` +
+    `try{sessionStorage.setItem('__pendingShare',${encoded})}catch(e){}` +
+    `location.replace(${origin}+'/');` +
+    `</script></head><body></body></html>`,
     { status: 200, headers: { 'Content-Type': 'text/html' } }
   )
 }
