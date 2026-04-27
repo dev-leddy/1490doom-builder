@@ -36,7 +36,7 @@ export default defineConfig(({ command }) => ({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         globIgnores: ['quiz/Art/**', 'quiz/music/**'],
         navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/quiz/, /^\/api\//, /^\/s\//],
+        navigateFallbackDenylist: [/^\/quiz/, /^\/api\//, /^\/s\//, /^\/api-docs/],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MiB (images.js is ~3.3 MB)
         skipWaiting: true,
         clientsClaim: true,
