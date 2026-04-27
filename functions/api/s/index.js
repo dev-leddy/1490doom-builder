@@ -19,6 +19,11 @@ export async function onRequestPost(context) {
 
   const origin = new URL(context.request.url).origin
 
+  const existing = await context.env.DB.prepare(
+    'SELECT code FROM short_links WHERE encoded = ?'
+  ).bind(encoded).first()
+  if (existing) return json({ code: existing.code, url: `${origin}/s/${existing.code}` })
+
   for (let attempt = 0; attempt < 3; attempt++) {
     const code = generateCode()
     const result = await context.env.DB.prepare(
