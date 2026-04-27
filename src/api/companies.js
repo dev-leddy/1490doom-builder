@@ -27,3 +27,13 @@ export async function deleteCompany(id) {
   if (!res.ok) throw new Error(`deleteCompany: ${res.status}`)
   return res.json()
 }
+
+export async function createShortLink(encoded) {
+  const res = await fetch('/api/s', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ encoded }),
+  })
+  if (!res.ok) throw new Error(`createShortLink: ${res.status}`)
+  return res.json() // { code, url }
+}
