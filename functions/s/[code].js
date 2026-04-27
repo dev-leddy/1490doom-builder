@@ -27,5 +27,13 @@ export async function onRequestGet(context) {
     })
   }
 
-  return Response.redirect(`${url.origin}/#${row.encoded}`, 302)
+  // Fragments (#) are stripped from HTTP redirect Location headers by some
+  // intermediaries. Use a client-side redirect instead so the hash is preserved.
+  const dest = `${url.origin}/#${row.encoded}`
+  return new Response(
+    `<!DOCTYPE html><html><head><meta charset="utf-8">` +
+    `<script>location.replace(${JSON.stringify(dest)})</script>` +
+    `</head><body></body></html>`,
+    { status: 200, headers: { 'Content-Type': 'text/html' } }
+  )
 }
