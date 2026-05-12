@@ -80,7 +80,7 @@ export default defineConfig(({ command }) => ({
     proxy: {
       // Proxy /api requests to the local wrangler pages dev server
       '/api': 'http://localhost:8788',
-      '/s':   'http://localhost:8788',
+      '/s/':  'http://localhost:8788',
     },
   },
 }))

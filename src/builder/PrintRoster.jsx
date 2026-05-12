@@ -221,10 +221,22 @@ export default function PrintRoster() {
                   </div>
                 ) : null}
 
+                {(() => {
+                  const allAbilities = [...(wdata.abilities || [])]
+                  for (const wKey of [slot.weapon1, slot.weapon2]) {
+                    if (!wKey) continue
+                    const w = WEAPONS[wKey]
+                    if (w?.abilityName) allAbilities.push({ name: w.abilityName, desc: w.abilityDesc, source: `from ${wKey}` })
+                  }
+                  if (isCaptain) {
+                    allAbilities.unshift({ name: '★ Captain Re-Roll', desc: 'Once per game, the Captain may re-roll a single die.' })
+                  }
+                  return (
                 <div className="pr-abilities">
-                  {wdata.abilities.map(ab => (
-                    <div key={ab.name} className="pr-ability">
+                  {allAbilities.map((ab, ai) => (
+                    <div key={`${ab.name}-${ai}`} className="pr-ability">
                       <span className="pr-ability-name">{ab.name}</span>
+                      {ab.source ? <span className="pr-ability-source"> ({ab.source})</span> : null}
                       {isOPGDesc(ab.desc) ? <span className="pr-ability-opg"> [OPG]</span> : null}
                       {' — '}{ab.desc}
                     </div>
@@ -236,6 +248,8 @@ export default function PrintRoster() {
                     </div>
                   ))}
                 </div>
+                  )
+                })()}
 
               </div>
 

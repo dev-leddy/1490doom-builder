@@ -385,6 +385,11 @@
       color: #000;
       font-style: italic;
     }
+    .pr-ability-source {
+      font-size: 7pt;
+      color: #666;
+      font-style: italic;
+    }
     .pr-ability-note .pr-ability-name {
       color: #7a3d1a;
     }
