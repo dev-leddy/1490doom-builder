@@ -94,10 +94,12 @@ export default function WarriorCard({ slotIndex, slot }) {
   const w1d = WEAPONS[slot.weapon1]
   if (w1d?.abilityName) {
     allAbilities.push({ name: w1d.abilityName, desc: w1d.abilityDesc, source: `from ${slot.weapon1}` })
+    if (w1d.ability2Name) allAbilities.push({ name: w1d.ability2Name, desc: w1d.ability2Desc, source: `from ${slot.weapon1}` })
   }
   const w2d = WEAPONS[slot.weapon2]
   if (w2d?.abilityName) {
     allAbilities.push({ name: w2d.abilityName, desc: w2d.abilityDesc, source: `from ${slot.weapon2}` })
+    if (w2d.ability2Name) allAbilities.push({ name: w2d.ability2Name, desc: w2d.ability2Desc, source: `from ${slot.weapon2}` })
   }
   if (slot.isCaptain) {
     allAbilities.unshift({
@@ -168,9 +170,10 @@ export default function WarriorCard({ slotIndex, slot }) {
             <div className="bd-abilities">
               {allAbilities.map((ab, i) => {
                 const abilityIcon = {
-                  'OVERDRAW': ITEM_ICONS['Bow'],
-                  'RELOAD':   ITEM_ICONS['Crossbow'],
-                  'GUARDED':  ITEM_ICONS['Shield'],
+                  'OVERDRAW':             ITEM_ICONS['Bow'],
+                  'RELOAD':               ITEM_ICONS['Crossbow'],
+                  'GUARDED':              ITEM_ICONS['Shield'],
+                  'SHIELD DEFENSE BONUS': ITEM_ICONS['Shield'],
                 }[ab.name]
                 return (
                   <div key={i} className="bd-ability">

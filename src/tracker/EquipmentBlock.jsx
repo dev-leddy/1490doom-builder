@@ -121,7 +121,7 @@ export default function EquipmentBlock({ wi, warrior: w }) {
           wd?.range && wd.range !== '—' ? wd.range : null,
         ].filter(Boolean).join(' | ')
     const desc = isShield
-      ? `${wd.note}${wd.abilityDesc ? `\n\n${wd.abilityDesc}` : ''}`
+      ? `${wd.note}${wd.abilityDesc ? `\n\n${wd.abilityDesc}` : ''}${wd.ability2Desc ? `\n\n${wd.ability2Desc}` : ''}`
       : [wd?.offhandNote || wd?.note, wd?.special].filter(Boolean).join(' ')
     cards.push({
       key: 'w2',

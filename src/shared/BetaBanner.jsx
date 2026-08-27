@@ -23,7 +23,7 @@ export default function BetaBanner({ forceShow = false }) {
       zIndex={1200}
       footer={
         <button className="co-sheet-done" style={{ flex: 1 }} onClick={handleDismiss}>
-          GOT IT — LET'S PLAY
+          GOT IT, LET'S PLAY
         </button>
       }
     >

@@ -105,7 +105,10 @@ function buildAbilities(slot, wdata) {
   for (const weaponKey of [slot.weapon1, slot.weapon2]) {
     if (!weaponKey) continue
     const w = WEAPONS[weaponKey]
-    if (w?.abilityName) names.push(w.abilityName.toUpperCase())
+    if (w?.abilityName) {
+      names.push(w.abilityName.toUpperCase())
+      if (w.ability2Name) names.push(w.ability2Name.toUpperCase())
+    }
   }
 
   return names.length ? `*${names.join(' · ')}*` : null

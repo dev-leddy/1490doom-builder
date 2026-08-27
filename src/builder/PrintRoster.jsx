@@ -226,7 +226,10 @@ export default function PrintRoster() {
                   for (const wKey of [slot.weapon1, slot.weapon2]) {
                     if (!wKey) continue
                     const w = WEAPONS[wKey]
-                    if (w?.abilityName) allAbilities.push({ name: w.abilityName, desc: w.abilityDesc, source: `from ${wKey}` })
+                    if (w?.abilityName) {
+                      allAbilities.push({ name: w.abilityName, desc: w.abilityDesc, source: `from ${wKey}` })
+                      if (w.ability2Name) allAbilities.push({ name: w.ability2Name, desc: w.ability2Desc, source: `from ${wKey}` })
+                    }
                   }
                   if (isCaptain) {
                     allAbilities.unshift({ name: '★ Captain Re-Roll', desc: 'Once per game, the Captain may re-roll a single die.' })

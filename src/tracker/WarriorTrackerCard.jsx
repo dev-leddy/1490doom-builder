@@ -160,21 +160,22 @@ export default function WarriorTrackerCard({ warrior: w, wi }) {
           }
           
           const isVit = s === 'VIT'
+          const isSwarmed = w.statuses.some(st => st.name === 'SWARMED')
           const polearmDebuff = w.weapon1 === 'Polearm (one-handed)' && s === 'COM'
-          const statusDebuffCOM = s === 'COM' && w.statuses.some(st => st.name === 'SWARMED' || st.name === 'SUNDERED')
-          const isComDebuffed = (polearmDebuff || statusDebuffCOM) && !isVit
+          const statusDebuffCOM = s === 'COM' && w.statuses.some(st => st.name === 'SUNDERED')
+          const isDebuffed = (polearmDebuff || statusDebuffCOM || (isSwarmed && (s === 'MOV' || s === 'DEF'))) && !isVit
 
           let val = base
           if (improvedStat === s) val = improveStatDisplay(val, s)
-          if (isComDebuffed) val = debuffStatDisplay(val, s)
+          if (isDebuffed) val = debuffStatDisplay(val, s)
 
           const isDualWieldImproved = s === 'ATK' && w.weapon1 === 'Light Weapon' && w.weapon2 === 'Light Weapon' && !wdata.fixedDualWield
           const isStatImproved = improvedStat === s || isDualWieldImproved
 
-          const bothModified = (improvedStat === s) && isComDebuffed
+          const bothModified = (improvedStat === s) && isDebuffed
           let statClass = ''
           if (isStatImproved && !bothModified) statClass = 'tk-stat-improved'
-          else if (isComDebuffed && !bothModified) statClass = 'tk-stat-debuffed'
+          else if (isDebuffed && !bothModified) statClass = 'tk-stat-debuffed'
           
           return (
             <div key={s} className={`tk-stat ${statClass}`}>
