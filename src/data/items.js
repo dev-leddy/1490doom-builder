@@ -15,7 +15,7 @@ export const STATUS_DEFS = [
   ['IMMOBILIZED', 'The model cannot move or climb until the end of their next activation.'],
   ['HINDERED', 'The model loses their next action. The status then clears.'],
   ['SUNDERED', "The model's weapon has -1 COMBAT for the rest of the game. Permanent."],
-  ['SWARMED', 'The model suffers -1 to all COMBAT Checks while this status persists.'],
+  ['SWARMED', 'The model suffers a -1 penalty to both MOVE and DEFENSE until their next activation.'],
 ]
 
 export const ACTION_DEFS = [

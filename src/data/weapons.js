@@ -5,7 +5,7 @@ export const WEAPONS = {
   'Heavy Weapon': { range: 'Base', damage: 2, note: 'Two-handed. Cannot equip a second weapon.', special: null },
   'Polearm (two-handed)': { range: '2"', damage: 1, note: 'Two-handed. Cannot equip a second weapon.', special: null },
   'Polearm (one-handed)': { range: '2"', damage: 1, note: 'Must be paired with a Shield.\n-1 to all Combat Checks.', special: null },
-  'Shield': { range: '—', damage: 0, note: 'Gain +1 DEFENSE against the first attack each round. Grants the Guarded Ability.', abilityName: 'GUARDED', abilityDesc: 'Once per round, the model may use their shield to prevent a PUSH action that targets them.' },
+  'Shield': { range: '—', damage: 0, note: 'Gain +1 DEFENSE against the first attack each round. Grants the Guarded Ability.', abilityName: 'GUARDED', abilityDesc: 'Once per round, the model may use their shield to prevent a PUSH action that targets them.', ability2Name: 'SHIELD DEFENSE BONUS', ability2Desc: 'Once per round, gain +1 to your first Defense roll.' },
   'Crossbow': { range: '1–5"', damage: 2, note: 'Two-handed ranged. Cannot equip a second weapon.\nAdds the Reload action. (After firing, must use the Reload action before firing again.)', abilityName: 'RELOAD', abilityDesc: 'After firing, must use the Reload action before firing again.' },
   'Bow': { range: '1–5"', damage: 1, note: 'Two-handed ranged. Cannot equip a second weapon.\nAdds the Overdraw action. (Spend 1 action. Doubles the maximum range for your next ranged attack this round.)', abilityName: 'OVERDRAW', abilityDesc: 'Spend 1 action. Doubles the maximum range for your next ranged attack this round.' },
 }

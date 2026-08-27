@@ -327,7 +327,10 @@ const DiscordImageRoster = forwardRef(function DiscordImageRoster({ state }, ref
           for (const wKey of [slot.weapon1, slot.weapon2]) {
             if (!wKey) continue
             const w = WEAPONS[wKey]
-            if (w?.abilityName) abilities.push({ name: w.abilityName.toUpperCase(), fromEquip: true })
+            if (w?.abilityName) {
+              abilities.push({ name: w.abilityName.toUpperCase(), fromEquip: true })
+              if (w.ability2Name) abilities.push({ name: w.ability2Name.toUpperCase(), fromEquip: true })
+            }
           }
 
           const displayName = slot.customName || slot.type
