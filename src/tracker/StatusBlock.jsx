@@ -9,7 +9,7 @@ const STATUS_SHORT = {
   'IMMOBILIZED': 'NO MOVE',
   'HINDERED':    'LOSE 1 ACTION',
   'SUNDERED':    '-1 COM (PERM)',
-  'SWARMED':     '-1 COMBAT CHK',
+  'SWARMED':     '-1 MOV & DEF',
 }
 
 function StatusDetailModal({ status, onClose, onClear, dead }) {
