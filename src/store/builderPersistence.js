@@ -1,112 +1,196 @@
 // ── Builder Save Persistence ──────────────────────────────────────────────────
-// Reads/writes saved companies to localStorage.
-// When the user is authenticated, changes are also synced to the cloud API.
+// Companies live in the cloud only (/api/companies); nothing is kept in
+// localStorage. Edits are queued per company and saved after a short debounce,
+// one request at a time, retrying while offline.
+//
+// Stale-save guard: every save sends the saved_at we last read or wrote for that
+// company. If another tab/device saved since, the server answers 409 with its
+// copy and we adopt it rather than overwrite it.
 
 import { listCompanies, saveCompany, deleteCompany } from '../api/companies.js'
+import { saveGame } from '../api/games.js'
 
-const SAVES_KEY = 'doom_saves'
+const DEBOUNCE_MS = 1500
+const RETRY_MS = 5000
 
-export function getSaves() {
-  try { return JSON.parse(localStorage.getItem(SAVES_KEY) || '[]') } catch { return [] }
+// companyId → saved_at of the copy last read from / written to the server
+const baseSavedAt = new Map()
+
+// Builder state → the save entry stored in companies.data
+export function snapshotCompany(state) {
+  const { mark, companyName, companyAvatar, ipLimit, slots, companyId, companyMode, campaignGame } = state
+  return { mark, companyName, companyAvatar, ipLimit, slots, companyId, companyMode, campaignGame }
 }
 
-export function setSaves(saves) {
-  localStorage.setItem(SAVES_KEY, JSON.stringify(saves))
+// API row → save entry used by the saved-companies list
+function rowToSave(row) {
+  return { ...row.data, companyId: row.id, companyName: row.data?.companyName ?? row.name, savedAt: row.saved_at }
 }
 
-// ── Cloud sync helpers ─────────────────────────────────────────────────────────
-
-// Call after saving a company locally to also push it to the cloud.
-// getUser() should return the current user from authStore, or null.
-export async function syncSaveToCloud(saveEntry, getUser) {
-  if (!getUser()) return
-  const id = saveEntry.id || saveEntry.companyId
-  const name = saveEntry.name || saveEntry.companyName || 'Unnamed Company'
-  try {
-    await saveCompany({
-      id,
-      name,
-      mode: saveEntry.companyMode || saveEntry.data?.companyMode || 'standard',
-      data: saveEntry,
-    })
-    // Mark local copy as synced so the upload-prompt doesn't re-trigger
-    const saves = getSaves()
-    const idx = saves.findIndex(s => (s.companyId || s.id) === id)
-    if (idx >= 0) { saves[idx] = { ...saves[idx], cloudSynced: true }; setSaves(saves) }
-  } catch (err) {
-    console.warn('[cloud sync] save failed:', err)
+function payloadFor(snapshot) {
+  return {
+    id: snapshot.companyId,
+    name: snapshot.companyName?.trim() || 'Unnamed Company',
+    mode: snapshot.companyMode || 'standard',
+    data: snapshot,
+    baseSavedAt: baseSavedAt.get(snapshot.companyId) ?? null,
   }
 }
 
-// Call after deleting a company locally to also remove it from the cloud.
-export async function syncDeleteFromCloud(companyId, getUser) {
-  if (!getUser()) return
-  try {
-    await deleteCompany(companyId)
-  } catch (err) {
-    console.warn('[cloud sync] delete failed:', err)
-  }
+export async function fetchCloudSaves() {
+  const rows = await listCompanies()
+  baseSavedAt.clear()
+  for (const row of rows) baseSavedAt.set(row.id, row.saved_at)
+  return rows.map(rowToSave)
 }
 
-// Push all local saves to cloud (called on login if user has local saves).
-// Removes each successfully uploaded save from localStorage so the user
-// isn't prompted again. Caller should re-run mergeCloudSaves() afterwards
-// to pull them back from cloud into the current session.
-export async function pushLocalSavesToCloud(getUser) {
-  if (!getUser()) return 0
-  const local = getSaves()
-  if (!local.length) return 0
-  let count = 0
-  const remaining = []
-  for (const save of local) {
-    try {
-      await saveCompany({
-        id: save.companyId || save.id,
-        name: save.companyName || save.name || 'Unnamed Company',
-        mode: save.companyMode || 'standard',
-        data: save,
-      })
-      count++
-      // Successfully uploaded — drop from local storage
-    } catch (err) {
-      console.warn('[cloud sync] push failed for', save.companyName, err)
-      remaining.push(save)
-    }
-  }
-  setSaves(remaining)
-  return count
+export async function removeCloudCompany(companyId) {
+  await deleteCompany(companyId)
+  baseSavedAt.delete(companyId)
 }
 
-// Merge cloud saves into localStorage on first authenticated load.
-// Cloud wins on same id; unique locals are kept.
-// Returns the merged array and writes it to localStorage.
-export async function mergeCloudSaves(getUser) {
-  if (!getUser()) return getSaves()
-  try {
-    const cloudSaves = await listCompanies()
-    const local = getSaves()
-    // Key by companyId OR id — handles both old and new save formats
-    const localById = {}
-    for (const s of local) {
-      const key = s.companyId || s.id
-      if (key) localById[key] = s
-    }
+// ── Auto-save queue ───────────────────────────────────────────────────────────
+// onStatus('saving' | 'saved' | 'offline')
+// onSaved(snapshot, savedAt) — server accepted the save
+// onConflict(save)            — server had a newer copy; adopt it
+// onForbidden(snapshot)       — id belongs to another account; return a new id
+export function createSaver({ onStatus, onSaved, onConflict, onForbidden }) {
+  const pending = new Map() // companyId → latest snapshot not yet saved
+  let timer = null
+  let running = null        // promise of the current flush loop
 
-    for (const cloud of cloudSaves) {
-      // cloud.data is the full save entry; fall back to cloud.id as key
-      const entry = cloud.data
-      const key = (entry?.companyId || entry?.id) || cloud.id
-      if (key) {
-        // Cloud wins on conflict; mark as synced either way
-        localById[key] = { ...(entry || {}), companyId: key, cloudSynced: true }
+  function schedule(snapshot) {
+    pending.set(snapshot.companyId, snapshot)
+    onStatus('saving')
+    clearTimeout(timer)
+    timer = setTimeout(flush, DEBOUNCE_MS)
+  }
+
+  function flush() {
+    clearTimeout(timer)
+    if (!running) running = run().finally(() => { running = null })
+    return running
+  }
+
+  async function run() {
+    while (pending.size) {
+      const [id, snapshot] = pending.entries().next().value
+      pending.delete(id)
+      try {
+        const result = await saveCompany(payloadFor(snapshot))
+        if (result.status === 'ok') {
+          baseSavedAt.set(id, result.savedAt)
+          onSaved(snapshot, result.savedAt)
+        } else if (result.status === 'conflict') {
+          baseSavedAt.set(id, result.company.saved_at)
+          pending.delete(id) // edits made meanwhile were based on the stale copy too
+          onConflict(rowToSave(result.company))
+        } else if (result.status === 'forbidden') {
+          const moved = onForbidden(snapshot)
+          if (moved) pending.set(moved.companyId, moved)
+        }
+      } catch (err) {
+        console.warn('[cloud save] failed, will retry:', err)
+        if (!pending.has(id)) pending.set(id, snapshot)
+        onStatus('offline')
+        timer = setTimeout(flush, RETRY_MS)
+        return
       }
     }
-
-    const merged = Object.values(localById).sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0))
-    setSaves(merged)
-    return merged
-  } catch (err) {
-    console.warn('[cloud sync] merge failed:', err)
-    return getSaves()
+    onStatus('saved')
   }
+
+  // Page is closing: send whatever is still queued without waiting.
+  function flushOnUnload() {
+    clearTimeout(timer)
+    for (const snapshot of pending.values()) {
+      saveCompany(payloadFor(snapshot), { keepalive: true }).catch(() => {})
+    }
+    pending.clear()
+  }
+
+  function cancel() {
+    clearTimeout(timer)
+    pending.clear()
+  }
+
+  return { schedule, flush, flushOnUnload, cancel, hasPending: () => pending.size > 0 || !!running }
+}
+
+// ── One-time migration of browser data ────────────────────────────────────────
+// Before cloud-only saves, companies and play-mode games lived in localStorage.
+// On login, upload whatever is still there (skipping companies whose cloud copy
+// is newer), then remove it from the browser. Items that fail to upload stay put
+// and are retried on the next login.
+
+const LEGACY_SAVES_KEY = 'doom_saves'
+const LEGACY_DRAFT_KEY = 'doom_draft'
+const LEGACY_GAME_PREFIX = '1490_tracker_session_'
+
+function readJSON(key, fallback) {
+  try { return JSON.parse(localStorage.getItem(key)) ?? fallback } catch { return fallback }
+}
+
+export function hasLegacyLocalData() {
+  try {
+    if (localStorage.getItem(LEGACY_SAVES_KEY) || localStorage.getItem(LEGACY_DRAFT_KEY)) return true
+    for (let i = 0; i < localStorage.length; i++) {
+      if (localStorage.key(i)?.startsWith(LEGACY_GAME_PREFIX)) return true
+    }
+  } catch { /* storage unavailable */ }
+  return false
+}
+
+// Returns the number of companies uploaded.
+export async function migrateLocalData(cloudSaves) {
+  if (!hasLegacyLocalData()) return 0
+
+  const local = readJSON(LEGACY_SAVES_KEY, [])
+  const draft = readJSON(LEGACY_DRAFT_KEY, null)
+  if (draft?.companyId && !local.some(s => s.companyId === draft.companyId)) local.push(draft)
+
+  const cloudById = new Map(cloudSaves.map(s => [s.companyId, s]))
+  const failed = []
+  let moved = 0
+
+  for (const save of local) {
+    if (!save?.companyId || !save.slots?.some(s => s?.type)) continue // nothing worth keeping
+    const cloud = cloudById.get(save.companyId)
+    if (cloud && cloud.savedAt >= (save.savedAt || 0)) continue      // cloud copy is newer
+    const { cloudSynced: _ignored, savedAt: _localTime, ...data } = save
+    try {
+      let result = await saveCompany(payloadFor(data))
+      if (result.status === 'forbidden') {
+        data.companyId = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`
+        result = await saveCompany(payloadFor(data))
+      }
+      if (result.status === 'ok') moved++
+    } catch {
+      failed.push(save)
+    }
+  }
+
+  try {
+    if (failed.length) localStorage.setItem(LEGACY_SAVES_KEY, JSON.stringify(failed))
+    else localStorage.removeItem(LEGACY_SAVES_KEY)
+    localStorage.removeItem(LEGACY_DRAFT_KEY)
+  } catch { /* storage unavailable */ }
+
+  // In-progress games (keyed by company name in the old format)
+  const gameKeys = []
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i)
+      if (key?.startsWith(LEGACY_GAME_PREFIX)) gameKeys.push(key)
+    }
+  } catch { /* storage unavailable */ }
+  for (const key of gameKeys) {
+    const game = readJSON(key, null)?.data
+    try {
+      if (game?.companyId && game.active) await saveGame(game.companyId, game)
+      localStorage.removeItem(key)
+    } catch { /* keep it for next time */ }
+  }
+
+  return moved
 }

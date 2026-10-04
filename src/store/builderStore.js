@@ -9,7 +9,7 @@ const randomUUID = () =>
 import { WARRIORS, MARKS, STAT_IMPROVEMENT, IP_OPTIONS } from '../data/warriors'
 import { WEAPON_NAMES, CLIMBING_ITEMS, CONSUMABLE_NAMES } from '../data/weapons'
 import { encodeCompany, decodeCompany } from './builderEncoding'
-import { getSaves, setSaves, syncSaveToCloud, syncDeleteFromCloud } from './builderPersistence'
+import { fetchCloudSaves, removeCloudCompany, createSaver, migrateLocalData, snapshotCompany } from './builderPersistence'
 import { useAuthStore } from './authStore'
 
 function getUser() { return useAuthStore.getState().user }
@@ -129,7 +129,7 @@ function defaultState() {
 // ── STORE ─────────────────────────────────────────────────────────────────────
 
 export const useBuilderStore = create((set, get) => {
-  // Load initial state from URL hash or draft
+  // Load initial state from a shared-link URL hash, if any
   const loadInitial = () => {
     const hash = window.location.hash.replace('#', '')
     if (hash) {
@@ -139,14 +139,6 @@ export const useBuilderStore = create((set, get) => {
         return { ...defaultState(), ...imported, _fromShare: true }
       }
     }
-    try {
-      const draft = localStorage.getItem('doom_draft')
-      if (draft) {
-        const parsed = JSON.parse(draft)
-        if (Array.isArray(parsed.slots)) parsed.slots = parsed.slots.slice(0, 3)
-        return { ...defaultState(), ...parsed }
-      }
-    } catch {}
     return defaultState()
   }
 
@@ -160,13 +152,39 @@ export const useBuilderStore = create((set, get) => {
   window.addEventListener('hashchange', () => {
     const hash = window.location.hash.replace('#', '')
     if (!hash) return
-    const imported = decodeCompany(hash)
-    if (imported) {
+    if (decodeCompany(hash)) {
       history.replaceState(null, '', window.location.pathname + window.location.search)
-      set({ ...imported, _savedSnapshot: JSON.stringify(imported) })
-      get()._toast('Company loaded from shared link!')
+      get().openSharedLink(hash)
     }
   })
+
+  // ── Cloud auto-save ─────────────────────────────────────────────────────────
+  const upsertSave = (save) => {
+    const saves = get().saves.filter(s => s.companyId !== save.companyId)
+    set({ saves: [save, ...saves] })
+  }
+  const saver = createSaver({
+    onStatus: saveStatus => set({ saveStatus }),
+    onSaved: (snapshot, savedAt) => {
+      if (get().saves.some(s => s.companyId === snapshot.companyId)) upsertSave({ ...snapshot, savedAt })
+    },
+    onConflict: (save) => {
+      upsertSave(save)
+      if (save.companyId === get().companyId) {
+        const { savedAt: _t, ...company } = save
+        set({ ...company, companyAvatar: company.companyAvatar ?? null })
+        get()._toast('Updated with changes from another device.')
+      }
+    },
+    onForbidden: (snapshot) => {
+      // Id already used by another account — keep the company under a new id
+      const moved = { ...snapshot, companyId: randomUUID() }
+      set({ saves: get().saves.map(s => s.companyId === snapshot.companyId ? { ...s, companyId: moved.companyId } : s) })
+      if (get().companyId === snapshot.companyId) set({ companyId: moved.companyId })
+      return moved
+    },
+  })
+  window.addEventListener('pagehide', () => saver.flushOnUnload())
 
   return {
     // ── STATE ──────────────────────────────────────────────────────────────────
@@ -176,7 +194,10 @@ export const useBuilderStore = create((set, get) => {
     validationMsg: null,
     shareCode: null,
     importOpen: false,
-    saves: getSaves(),
+    saves: [],             // cloud saves for the signed-in user
+    savesLoaded: false,
+    saveStatus: 'idle',    // 'idle' | 'saving' | 'saved' | 'offline'
+    viewingShare: !!initial._fromShare, // showing a shared link that isn't saved to the account
 
     // ── COMPUTED ───────────────────────────────────────────────────────────────
     getCompanyIP() {
@@ -479,73 +500,69 @@ export const useBuilderStore = create((set, get) => {
     },
 
     // ── SAVE / LOAD ────────────────────────────────────────────────────────────
-    saveCompany() {
-      const errors = get()._validate()
-      if (errors) { set({ validationMsg: errors }); return false }
-      const saves = getSaves()
-      const { mark, companyName, companyAvatar, ipLimit, slots, companyId, companyMode, campaignGame } = get()
-      const nameConflict = saves.find(s =>
-        s.companyId !== companyId &&
-        s.companyName?.trim().toLowerCase() === (companyName || '').trim().toLowerCase()
-      )
-      if (nameConflict) {
-        set({ validationMsg: `A company named "${nameConflict.companyName}" already exists. Rename your company before saving.` })
-        return false
+    // Companies auto-save to the cloud (see _autoDraft); these manage the list.
+    async loadSaves() {
+      try {
+        let saves = await fetchCloudSaves()
+        const moved = await migrateLocalData(saves)
+        if (moved) {
+          saves = await fetchCloudSaves()
+          get()._toast(`Moved ${moved} ${moved === 1 ? 'company' : 'companies'} from this browser to your account.`)
+        }
+        set({ saves, savesLoaded: true })
+      } catch (err) {
+        console.warn('[cloud] loading saves failed:', err)
+        set({ savesLoaded: true, saveStatus: 'offline' })
+        get()._toast("Couldn't load your companies. Check your connection.")
       }
-      const saveData = { mark, companyName, companyAvatar, ipLimit, slots, companyId, companyMode, campaignGame, savedAt: Date.now() }
-      const existingIndex = saves.findIndex(s => s.companyId === companyId)
-      if (existingIndex >= 0) {
-        saves[existingIndex] = saveData
-      } else {
-        saves.unshift(saveData)
-        if (saves.length > 10) saves.pop()
-      }
-      setSaves(saves)
-      set({ saves })
-      syncSaveToCloud({ ...saveData, id: saveData.companyId, name: saveData.companyName }, getUser)
-      get()._toast('Company saved.')
-      return true
     },
     loadCompany(index) {
-      const saves = getSaves()
-      const save = saves[index]
+      const save = get().saves[index]
       if (!save) return
-      // Sync the current company before switching away — captures any unsaved edits
-      const { mark, companyName, companyAvatar, ipLimit, slots, companyId, companyMode, campaignGame } = get()
-      if (mark) {
-        const saveData = { mark, companyName, companyAvatar, ipLimit, slots, companyId, companyMode, campaignGame, savedAt: Date.now() }
-        syncSaveToCloud({ ...saveData, id: companyId, name: companyName }, getUser)
-      }
       const { mark: m, companyName: n, companyAvatar: a = null, ipLimit: ip, slots: sl, companyId: cid, companyMode: cm = 'standard', campaignGame: cg = 0 } = save
-      set({ mark: m, companyName: n, companyAvatar: a, ipLimit: ip, slots: sl, companyId: cid || randomUUID(), companyMode: cm, campaignGame: cg })
+      set({ mark: m, companyName: n, companyAvatar: a, ipLimit: ip, slots: sl, companyId: cid || randomUUID(), companyMode: cm, campaignGame: cg, viewingShare: false })
       get()._toast('Company loaded!')
     },
-    deleteCompany(index) {
-      const saves = getSaves()
-      const removed = saves[index]
-      saves.splice(index, 1)
-      setSaves(saves)
-      set({ saves })
-      if (removed?.companyId) syncDeleteFromCloud(removed.companyId, getUser)
+    async deleteCompany(index) {
+      const removed = get().saves[index]
+      if (!removed) return
+      try {
+        await removeCloudCompany(removed.companyId)
+      } catch {
+        get()._toast("Couldn't delete — check your connection.")
+        return
+      }
+      set({ saves: get().saves.filter(s => s.companyId !== removed.companyId) })
+      // Don't let the open editor re-save a company that was just deleted
+      if (removed.companyId === get().companyId) get().clearBuilder()
     },
     clearBuilder() {
       const fresh = defaultState()
       const { companyId, ...snapshot } = fresh
-      set({ ...fresh, _savedSnapshot: JSON.stringify(snapshot) })
-      localStorage.removeItem('doom_draft')
+      set({ ...fresh, viewingShare: false, _savedSnapshot: JSON.stringify(snapshot) })
+    },
+    // Signed out: forget everything belonging to the previous account
+    resetForSignOut() {
+      saver.cancel()
+      get().clearBuilder()
+      set({ saves: [], savesLoaded: false, saveStatus: 'idle' })
+    },
+    // Keep a copy of the shared company currently on screen in the account
+    saveSharedCopy() {
+      set({ companyId: randomUUID(), viewingShare: false })
+      get()._autoDraft()
+      get()._toast('Saved to your companies.')
+    },
+    flushSaves() {
+      return saver.flush()
     },
 
     // ── SHARE / IMPORT ─────────────────────────────────────────────────────────
     openShare() {
-      const { mark, companyName, companyAvatar, ipLimit, slots, companyId, companyMode, campaignGame } = get()
+      const { mark, companyName, ipLimit, slots } = get()
       const code = encodeCompany({ mark, companyName, ipLimit, slots })
       const url = `${window.location.origin}${window.location.pathname}#${code}`
       set({ shareCode: url })
-      // Good moment to sync — user is actively sharing, company is in a meaningful state
-      if (mark) {
-        const saveData = { mark, companyName, companyAvatar, ipLimit, slots, companyId, companyMode, campaignGame, savedAt: Date.now() }
-        syncSaveToCloud({ ...saveData, id: companyId, name: companyName }, getUser)
-      }
     },
     closeShare() {
       set({ shareCode: null })
@@ -556,11 +573,21 @@ export const useBuilderStore = create((set, get) => {
     closeImport() {
       set({ importOpen: false })
     },
+    // Show a shared company read-only; saveSharedCopy() keeps it in the account
+    openSharedLink(code) {
+      const imported = decodeCompany(code)
+      if (!imported) return false
+      set({ ...defaultState(), ...imported, companyId: randomUUID(), viewingShare: true, _savedSnapshot: JSON.stringify(imported) })
+      get()._toast('Company loaded from shared link!')
+      return true
+    },
     doImport(raw) {
       const code = raw.trim().replace(/^.*#/, '')
       const imported = decodeCompany(code)
       if (!imported) { get()._toast('Invalid import code'); return false }
-      set({ ...imported, _savedSnapshot: JSON.stringify(imported) })
+      // New id: an import is a new company, never an overwrite of the one being edited
+      set({ ...imported, companyId: randomUUID(), viewingShare: false, _savedSnapshot: JSON.stringify(imported) })
+      get()._autoDraft()
       get()._toast('Company imported!')
       set({ importOpen: false })
       return true
@@ -749,25 +776,16 @@ export const useBuilderStore = create((set, get) => {
       const timer = setTimeout(() => set({ toast: null, _toastTimer: null }), 2500)
       set({ toast: msg, _toastTimer: timer })
     },
+    // Called after every edit: queue a cloud save (signed-in users only).
     _autoDraft() {
-      const { mark, companyName, companyAvatar, ipLimit, slots, companyId, companyMode, campaignGame } = get()
-      const data = { mark, companyName, companyAvatar, ipLimit, slots, companyId, companyMode, campaignGame }
-      try { localStorage.setItem('doom_draft', JSON.stringify(data)) } catch {}
-      // Auto-save to doom_saves silently (no validation, no toast)
-      const saves = getSaves()
-      const saveData = { ...data, savedAt: Date.now() }
-      const existingIndex = saves.findIndex(s => s.companyId === companyId)
-      if (existingIndex >= 0) {
-        // Preserve cloudSynced flag — auto-draft edits don't un-sync a company
-        saves[existingIndex] = { ...saveData, cloudSynced: saves[existingIndex].cloudSynced }
-      } else if (mark) {
-        // Only add to saves list if a company type (mark) has been chosen
-        saves.unshift(saveData) // cloudSynced left unset (falsy) until pushed to cloud
-        if (saves.length > 10) saves.pop()
-      }
-      try { setSaves(saves); set({ saves }) } catch {}
-      // Cloud sync intentionally removed from auto-draft — syncs happen at
-      // meaningful save points only (explicit save, share, load, page unload).
+      if (!getUser() || get().viewingShare) return
+      const snapshot = snapshotCompany(get())
+      if (!snapshot.slots.some(s => s.type)) return // don't save empty companies
+      const saves = get().saves
+      const existing = saves.findIndex(s => s.companyId === snapshot.companyId)
+      const entry = { ...snapshot, savedAt: Date.now() }
+      set({ saves: existing >= 0 ? saves.map((s, i) => i === existing ? entry : s) : [entry, ...saves] })
+      saver.schedule(snapshot)
     },
     _validate() {
       const { slots } = get()

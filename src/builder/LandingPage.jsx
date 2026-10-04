@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useBuilderStore } from '../store/builderStore'
-import { MARK_ID_MAP } from '../data/quizData'
 import SaveLoadPanel from './SaveLoadPanel'
 import QuickRef from '../shared/QuickRef'
 import QuizOverlay from './QuizOverlay'
@@ -9,22 +8,14 @@ export function RefContent({ onBack }) {
   return <QuickRef onBack={onBack} />
 }
 
-export default function LandingPage({ onLoad, onNew }) {
-  const { saves, setMark, clearBuilder } = useBuilderStore()
+export default function LandingPage({ onLoad, onNew, onQuizComplete }) {
+  const { saves } = useBuilderStore()
   const [showQuiz, setShowQuiz] = useState(false)
 
+  // Building from the quiz result needs an account; BuilderPage handles that
   const handleQuizComplete = (payload) => {
-    const { companyId, companyName, warriors } = payload
-    const mark = MARK_ID_MAP[companyId]
-    if (mark) {
-      clearBuilder()
-      setMark(mark)
-      if (useBuilderStore.getState().applyQuizCompany) {
-        useBuilderStore.getState().applyQuizCompany({ mark, companyName, warriors })
-      }
-      onLoad() // Jump to builder
-    }
     setShowQuiz(false)
+    onQuizComplete(payload)
   }
 
   return (

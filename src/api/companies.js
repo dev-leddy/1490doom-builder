@@ -11,21 +11,27 @@ export async function listCompanies() {
   return companies  // [{ id, name, mode, saved_at, data }]
 }
 
-export async function saveCompany({ id, name, mode, data }) {
+// Returns { status: 'ok', savedAt } | { status: 'conflict', company } | { status: 'forbidden' }.
+// Throws on network errors and unexpected responses (caller retries).
+// keepalive lets the request finish while the page is unloading.
+export async function saveCompany({ id, name, mode, data, baseSavedAt }, { keepalive = false } = {}) {
   const res = await fetch(BASE, {
     ...OPTS,
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id, name, mode, data }),
+    body: JSON.stringify({ id, name, mode, data, baseSavedAt }),
+    keepalive,
   })
+  if (res.status === 409) return { status: 'conflict', company: (await res.json()).company }
+  if (res.status === 403) return { status: 'forbidden' }
   if (!res.ok) throw new Error(`saveCompany: ${res.status}`)
-  return res.json()
+  const { savedAt } = await res.json()
+  return { status: 'ok', savedAt }
 }
 
 export async function deleteCompany(id) {
   const res = await fetch(`${BASE}/${id}`, { ...OPTS, method: 'DELETE' })
-  if (!res.ok) throw new Error(`deleteCompany: ${res.status}`)
-  return res.json()
+  if (!res.ok && res.status !== 404) throw new Error(`deleteCompany: ${res.status}`)
 }
 
 export async function createShortLink(encoded) {

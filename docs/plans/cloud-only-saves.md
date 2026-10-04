@@ -1,6 +1,6 @@
 # Plan: cloud-only saves, login required
 
-Status: **pinned** (agreed 2026-10-04, not started)
+Status: **implemented on branch `cloud-saves`** (2026-10-04) — needs migration 004 on production D1 before merging
 
 ## Why
 Local storage is the primary copy and the cloud is a side copy, which causes conflicts:

@@ -43,7 +43,7 @@ function SaveSection({ title, items, onLoad, onDelete, isCampaign }) {
 }
 
 export default function SaveLoadPanel({ onSelect }) {
-  const { saves, loadCompany, deleteCompany } = useBuilderStore()
+  const { saves, savesLoaded, loadCompany, deleteCompany } = useBuilderStore()
   const [deleteIndex, setDeleteIndex] = useState(null)
 
   function handleLoad(i) {
@@ -63,7 +63,7 @@ export default function SaveLoadPanel({ onSelect }) {
   const standard = indexed.filter(({ save }) => save.companyMode !== 'campaign')
 
   if (!saves.length) {
-    return <span className="no-saves">No companies saved yet.</span>
+    return <span className="no-saves">{savesLoaded ? 'No companies saved yet.' : 'Loading your companies…'}</span>
   }
 
   return (

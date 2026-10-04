@@ -3819,3 +3819,56 @@
 .sb-end-campaign-btn:hover, .sb-end-campaign-btn:active {
   background: rgba(190, 65, 39, 0.12) !important;
 }
+
+/* ── CLOUD SAVES ─────────────────────────────────────────── */
+
+/* Auto-save status, next to the account button */
+.save-status {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+  white-space: nowrap;
+}
+.save-status--offline { color: var(--blood); }
+
+/* Shared company shown read-only, with a save/sign-in action */
+.share-view-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  max-width: var(--header-max-width, 100%);
+  margin: 0 auto 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--gold);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.35);
+}
+.share-view-banner-text {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--parchment);
+}
+.share-view-banner-btn {
+  background: var(--gold);
+  border: 1px solid var(--gold);
+  color: #fff;
+  padding: 0.45rem 0.85rem;
+  border-radius: 6px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.share-view-banner-btn:active { opacity: 0.8; }
+
+/* Nothing inside a read-only company responds to taps (the page still scrolls) */
+.builder-readonly { pointer-events: none; }
+.builder-readonly .ch-quick-btn { pointer-events: auto; } /* share & print still work */

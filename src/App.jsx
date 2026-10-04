@@ -12,7 +12,7 @@ export default function App() {
   const returnToBuilder = useTrackerStore(s => s.returnToBuilder)
   const showRestorePrompt = useTrackerStore(s => s.showRestorePrompt)
   const toast = useBuilderStore(s => s.toast)
-  const { doImport } = useBuilderStore()
+  const { openSharedLink } = useBuilderStore()
   const [hashLoaded, setHashLoaded] = useState(false)
 
   useEffect(() => {
@@ -28,11 +28,7 @@ export default function App() {
     try { hash = decodeURIComponent(hash) } catch {}
 
     if (hash) {
-      const decoded = decodeCompany(hash)
-      if (decoded) {
-        doImport(hash)
-        setHashLoaded(true)
-      }
+      if (decodeCompany(hash) && openSharedLink(hash)) setHashLoaded(true)
     }
   }, [])
 

@@ -7,7 +7,7 @@ const DISCORD_COLOR = '#5865F2'
 const GOOGLE_COLOR = 'var(--dim)'
 
 // states: 'providers' | 'login' | 'register' | 'forgot' | 'reset-sent' | 'reset'
-export default function AuthSheet({ onClose, initialState = 'providers', resetToken = null }) {
+export default function AuthSheet({ onClose, initialState = 'providers', resetToken = null, reason = null }) {
   const [view, setView] = useState(initialState)
   const { fetchMe } = useAuthStore()
 
@@ -81,7 +81,7 @@ export default function AuthSheet({ onClose, initialState = 'providers', resetTo
     <BottomSheet title="Sign In" onClose={onClose}>
       <div className="auth-sheet-body">
         <p className="auth-sheet-desc">
-          Sign in to sync your doom companies across devices.
+          {reason || 'Sign in to save your doom companies and use them on any device.'}
         </p>
 
         <div className="auth-sheet-buttons">
@@ -113,7 +113,7 @@ export default function AuthSheet({ onClose, initialState = 'providers', resetTo
         </div>
 
         <p className="auth-sheet-note">
-          Your local saves are never affected.
+          Companies saved in this browser before are moved to your account when you sign in.
         </p>
       </div>
     </BottomSheet>

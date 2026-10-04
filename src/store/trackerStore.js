@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { WARRIORS, NO_RESTORE_OPG } from '../data/warriors'
 import { STATUS_DEFS, CACHE_ITEMS } from '../data/items'
 import { useBuilderStore } from './builderStore'
-import { saveTrackerSession, loadTrackerSession, clearTrackerSession } from '../utils/storage'
+import { saveGame, deleteGame } from '../api/games'
 
 // ── HELPERS ──────────────────────────────────────────────────────────────────
 
@@ -52,30 +52,47 @@ function buildWarriorTrackerState(slot, index, builderState) {
 
 // ── STORE ─────────────────────────────────────────────────────────────────────
 
+// In-progress games are saved to the cloud (/api/games/:companyId), debounced,
+// retrying while offline. Only the latest state matters, so a newer save simply
+// replaces one that's still waiting.
+const PERSIST_DEBOUNCE_MS = 800
+const RETRY_MS = 5000
 let _persistTimer = null
-const PERSIST_DEBOUNCE_MS = 500
 
-function persistState(get) {
+function gameSnapshot(state) {
+  return {
+    active: state.active,
+    round: state.round,
+    companyName: state.companyName,
+    companyAvatar: state.companyAvatar,
+    mark: state.mark,
+    warriors: state.warriors,
+    activeWarriorIdx: state.activeWarriorIdx,
+    sessionId: state.sessionId,
+    savedBuilderSlots: state.savedBuilderSlots,
+    companyId: state.companyId,
+    doomedChoirUsed: state.doomedChoirUsed,
+    gravebornUsed: state.gravebornUsed,
+  }
+}
+
+function persistState(get, delay = PERSIST_DEBOUNCE_MS) {
   clearTimeout(_persistTimer)
-  _persistTimer = setTimeout(() => {
+  _persistTimer = setTimeout(async () => {
     const state = get()
-    if (state.active && state.companyName) {
-      saveTrackerSession({
-        active: state.active,
-        round: state.round,
-        companyName: state.companyName,
-        companyAvatar: state.companyAvatar,
-        mark: state.mark,
-        warriors: state.warriors,
-        activeWarriorIdx: state.activeWarriorIdx,
-        sessionId: state.sessionId,
-        savedBuilderSlots: state.savedBuilderSlots,
-        companyId: state.companyId,
-        doomedChoirUsed: state.doomedChoirUsed,
-        gravebornUsed: state.gravebornUsed,
-      }, state.companyName)
+    if (!state.active || !state.companyId) return
+    try {
+      await saveGame(state.companyId, gameSnapshot(state))
+    } catch (err) {
+      console.warn('[cloud] game save failed, will retry:', err)
+      persistState(get, RETRY_MS)
     }
-  }, PERSIST_DEBOUNCE_MS)
+  }, delay)
+}
+
+function discardCloudGame(companyId) {
+  clearTimeout(_persistTimer)
+  if (companyId) deleteGame(companyId).catch(err => console.warn('[cloud] game delete failed:', err))
 }
 
 export const useTrackerStore = create((set, get) => ({
@@ -133,25 +150,11 @@ export const useTrackerStore = create((set, get) => ({
       // Ashbound: pop up a reminder as soon as the game starts
       markAbilityModal: newMark === 'Ashbound' ? { type: 'ashbound' } : null,
     })
-    const state = get()
-    saveTrackerSession({
-      active: state.active,
-      round: state.round,
-      companyName: state.companyName,
-      companyAvatar: state.companyAvatar,
-      mark: state.mark,
-      warriors: state.warriors,
-      activeWarriorIdx: state.activeWarriorIdx,
-      sessionId: state.sessionId,
-      savedBuilderSlots: state.savedBuilderSlots,
-      companyId: state.companyId,
-    }, state.companyName)
-    persistState(get)
+    persistState(get, 0)
     return true
   },
   closeTracker() {
-    const { companyName } = get()
-    if (companyName) clearTrackerSession(companyName)
+    discardCloudGame(get().companyId)
     set({ active: false, returnToBuilder: true, sessionId: null, savedBuilderSlots: null, restored: false })
   },
   checkMismatch(builderSlots) {
@@ -165,9 +168,8 @@ export const useTrackerStore = create((set, get) => ({
       savedSlots.some((s, i) => s !== currentSlots[i])
     return mismatch
   },
-  restoreSession(companyName) {
-    if (!companyName) return false
-    const stored = loadTrackerSession(companyName)
+  // stored: the game state from loadGame()
+  restoreSession(stored) {
     if (!stored) return false
 
     set({
@@ -189,8 +191,7 @@ export const useTrackerStore = create((set, get) => ({
     return true
   },
   discardSession() {
-    const { companyName } = get()
-    if (companyName) clearTrackerSession(companyName)
+    discardCloudGame(get().companyId)
     set({ active: false, sessionId: null, savedBuilderSlots: null, restored: false })
   },
   resetTracker() {
@@ -562,28 +563,17 @@ export const useTrackerStore = create((set, get) => ({
 
   // ── RESTORE PROMPT ─────────────────────────────────────────────────────────
   showRestorePrompt: false,
-  setShowRestorePrompt: (val) => set({ showRestorePrompt: val }),
+  pendingRestore: null,    // { savedAt, data } from loadGame(), shown in the prompt
+  promptRestore: (saved) => set({ pendingRestore: saved, showRestorePrompt: true }),
+  setShowRestorePrompt: (val) => set(val ? { showRestorePrompt: true } : { showRestorePrompt: false, pendingRestore: null }),
 }))
 
-// Save on page unload
+// Page closing: send the latest game state without waiting for the debounce
 if (typeof window !== 'undefined') {
-  window.addEventListener('beforeunload', () => {
+  window.addEventListener('pagehide', () => {
     const state = useTrackerStore.getState()
-    if (state.active && state.companyName) {
-      saveTrackerSession({
-        active: state.active,
-        round: state.round,
-        companyName: state.companyName,
-        companyAvatar: state.companyAvatar,
-        mark: state.mark,
-        warriors: state.warriors,
-        activeWarriorIdx: state.activeWarriorIdx,
-        sessionId: state.sessionId,
-        savedBuilderSlots: state.savedBuilderSlots,
-        companyId: state.companyId,
-        doomedChoirUsed: state.doomedChoirUsed,
-        gravebornUsed: state.gravebornUsed,
-      }, state.companyName)
-    }
+    if (!state.active || !state.companyId) return
+    clearTimeout(_persistTimer)
+    saveGame(state.companyId, gameSnapshot(state), { keepalive: true }).catch(() => {})
   })
 }

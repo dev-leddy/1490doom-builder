@@ -11,6 +11,7 @@ See README.md for stack, layout and deployment.
 - Only commit optimized `.webp` art that code references; no PSD/raw PNG source files.
 - `src/data/images.js` is ~3 MB of base64 — don't read it whole; grep for keys.
 - Schema changes: add a numbered file in `db/migrations/` and update `db/schema.sql`.
+- Companies and play-mode games are cloud-only (`/api/companies`, `/api/games`); never store them in localStorage. Building, saving and playing require sign-in; guests get landing, quiz and read-only shared links.
 
 ## Backups
 When asked for a backup (and always before deleting branches, worktrees or files), create one

@@ -4,7 +4,6 @@ import { useBuilderStore } from '../store/builderStore'
 import { getAvatarSrc } from '../data/avatars'
 import { useTrackerStore } from '../store/trackerStore'
 import { MARK_ID_MAP } from '../data/quizData'
-import { hasStoredSession } from '../utils/storage'
 import CompanyHeader from './CompanyHeader'
 import WarriorRoster from './WarriorRoster'
 import SaveLoadPanel from './SaveLoadPanel'
@@ -20,14 +19,19 @@ import LandingPage, { RefContent } from './LandingPage'
 import AuthSheet from './AuthSheet'
 import AvatarPicker from './AvatarPicker'
 import { useAuthStore } from '../store/authStore'
-import { mergeCloudSaves, pushLocalSavesToCloud } from '../store/builderPersistence'
+import { encodeCompany } from '../store/builderEncoding'
+import { loadGame } from '../api/games'
 import './styles/builder-layout.css'
 import './styles/builder-print.css'
 import './styles/builder-ui.css'
 import './styles/builder-modals.css'
 
+// sessionStorage key for an action a guest started before being asked to sign in.
+// Survives the Google/Discord redirect so it can be finished after login.
+const PENDING_KEY = '__pendingAfterLogin'
+
 export default function BuilderPage({ initialView = null }) {
-  const { validationMsg, dismissValidation, openShare, clearBuilder, setCompanyMode, companyMode, setMark } = useBuilderStore()
+  const { validationMsg, dismissValidation, openShare, clearBuilder, setCompanyMode, companyMode, setMark, viewingShare, saveSharedCopy, resetForSignOut, saveStatus } = useBuilderStore()
   const openTracker = useTrackerStore(s => s.openTracker)
   const builderState = useBuilderStore(s => s)
 
@@ -49,38 +53,63 @@ export default function BuilderPage({ initialView = null }) {
   const { user, status: authStatus, fetchMe, logout } = useAuthStore()
   const [authSheetOpen, setAuthSheetOpen] = useState(false)
   const [authSheetState, setAuthSheetState] = useState('providers')
+  const [authReason, setAuthReason] = useState(null)
   const [resetToken, setResetToken] = useState(null)
-  const [syncPromptCount, setSyncPromptCount] = useState(0)
-  useEffect(() => {
-    fetchMe().then(async () => {
-      const { user } = useAuthStore.getState()
-      if (!user) return
-      // Merge cloud saves first — this also stamps cloudSynced: true on known saves
-      const merged = await mergeCloudSaves(() => user)
-      if (merged.length) useBuilderStore.setState({ saves: merged })
-      // Find saves that pre-date login: no cloudSynced flag, not the active company
-      const { getSaves: getLocalSaves } = await import('../store/builderPersistence.js')
-      const activeId = useBuilderStore.getState().companyId
-      const localSaves = getLocalSaves()
-      const localOnly = localSaves.filter(s => s.companyId && !s.cloudSynced && s.companyId !== activeId)
-      if (localOnly.length > 0) setSyncPromptCount(localOnly.length)
-    })
-  }, []) // eslint-disable-line
+  useEffect(() => { fetchMe() }, []) // eslint-disable-line
 
-  // Sync current company to cloud when the user leaves the page
+  // Building, saving and playing need an account. Asks a guest to sign in and
+  // remembers `pending` so it can be finished afterwards. Returns true if signed in.
+  function requireLogin(reason, pending = null) {
+    if (useAuthStore.getState().user) return true
+    try {
+      if (pending) sessionStorage.setItem(PENDING_KEY, JSON.stringify(pending))
+      else sessionStorage.removeItem(PENDING_KEY)
+    } catch { /* storage unavailable */ }
+    setAuthReason(reason)
+    setAuthSheetState('providers')
+    setAuthSheetOpen(true)
+    return false
+  }
+
+  function takePending() {
+    try {
+      const pending = JSON.parse(sessionStorage.getItem(PENDING_KEY))
+      sessionStorage.removeItem(PENDING_KEY)
+      sessionStorage.removeItem('__pendingShare')
+      return pending
+    } catch { return null }
+  }
+
+  // Signed in: load the account's companies (moving any old browser saves over),
+  // then finish what the guest was doing when asked to sign in.
+  const userId = user?.id
   useEffect(() => {
-    function handleUnload() {
-      const { mark, companyName, companyAvatar, ipLimit, slots, companyId, companyMode, campaignGame } = useBuilderStore.getState()
-      const { user } = useAuthStore.getState()
-      if (!user || !mark) return
-      const saveData = { mark, companyName, companyAvatar, ipLimit, slots, companyId, companyMode, campaignGame, savedAt: Date.now() }
-      // Use sendBeacon so the request survives page unload
-      const payload = JSON.stringify({ id: companyId, name: companyName, mode: companyMode, data: saveData })
-      navigator.sendBeacon?.('/api/companies', new Blob([payload], { type: 'application/json' }))
+    if (!userId) return
+    useBuilderStore.getState().loadSaves()
+    const pending = takePending()
+    if (pending?.type === 'quiz') applyQuizPayload(pending.payload)
+    else if (pending?.type === 'share' && useBuilderStore.getState().viewingShare) saveSharedCopy()
+    else if (pending?.type === 'new') setView('new-company')
+  }, [userId]) // eslint-disable-line
+
+  // Quiz finished in the standalone /quiz page while signed out: ask to sign in
+  const quizFromUrl = useRef(false)
+  useEffect(() => {
+    if (authStatus === 'guest' && quizFromUrl.current) {
+      quizFromUrl.current = false
+      setAuthReason('Sign in to build and save your company.')
+      setAuthSheetState('providers')
+      setAuthSheetOpen(true)
     }
-    window.addEventListener('beforeunload', handleUnload)
-    return () => window.removeEventListener('beforeunload', handleUnload)
-  }, [])
+  }, [authStatus])
+
+  async function handleLogout() {
+    await logout()
+    resetForSignOut()
+    useTrackerStore.setState({ active: false, sessionId: null, savedBuilderSlots: null })
+    setSidebarOpen(false)
+    setView('landing')
+  }
 
   // global quick reference overlay — works from any view
   const [refOpen, setRefOpen] = useState(false)
@@ -114,25 +143,18 @@ export default function BuilderPage({ initialView = null }) {
     return () => ro.disconnect()
   }, [view])
 
-  // Auto-import quiz results from standalone quiz via ?quiz= URL param
+  // Quiz result from the standalone /quiz page arrives as ?quiz=<payload>. It's
+  // stashed as a pending action: applied right away once signed in, or after login.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const quizParam = params.get('quiz')
     if (quizParam) {
       try {
         const payload = JSON.parse(quizParam)
-        const mark = MARK_ID_MAP[payload.companyId]
-        if (mark) {
-          clearBuilder()
-          setMark(mark)
-          if (useBuilderStore.getState().applyQuizCompany) {
-            useBuilderStore.getState().applyQuizCompany({
-              mark,
-              companyName: payload.companyName,
-              warriors: payload.warriors,
-            })
-          }
-          setView('builder')
+        if (MARK_ID_MAP[payload.companyId]) {
+          sessionStorage.setItem(PENDING_KEY, JSON.stringify({ type: 'quiz', payload }))
+          quizFromUrl.current = true
+          if (useAuthStore.getState().user) applyQuizPayload(takePending().payload)
         }
       } catch (e) { /* ignore malformed param */ }
       // Clean up URL (remove ?quiz= param but keep hash for shared URLs)
@@ -141,6 +163,28 @@ export default function BuilderPage({ initialView = null }) {
       window.history.replaceState({}, '', newUrl)
     }
   }, []) // eslint-disable-line
+
+  function applyQuizPayload(payload) {
+    const mark = MARK_ID_MAP[payload?.companyId]
+    if (!mark) return
+    quizFromUrl.current = false
+    clearBuilder()
+    setMark(mark)
+    useBuilderStore.getState().applyQuizCompany({ mark, companyName: payload.companyName, warriors: payload.warriors })
+    setView('builder')
+  }
+
+  function handleQuizComplete(payload) {
+    if (requireLogin('Sign in to build and save your company.', { type: 'quiz', payload })) applyQuizPayload(payload)
+  }
+
+  function handleSaveShared() {
+    if (useAuthStore.getState().user) { saveSharedCopy(); return }
+    // Keep the shared company on screen across the Google/Discord redirect
+    const { mark, companyName, ipLimit, slots } = useBuilderStore.getState()
+    try { sessionStorage.setItem('__pendingShare', encodeCompany({ mark, companyName, ipLimit, slots })) } catch { /* storage unavailable */ }
+    requireLogin('Sign in to save this company to your account.', { type: 'share' })
+  }
 
   // Detect ?reset=TOKEN on mount — open password reset form
   useEffect(() => {
@@ -172,17 +216,19 @@ export default function BuilderPage({ initialView = null }) {
     }
   }
 
-  function handlePlay() {
+  async function handlePlay() {
     const hasSlots = builderState.slots?.some(s => s.type)
     if (!hasSlots) {
       useBuilderStore.getState()._toast('Add some warriors first!')
       return
     }
-    const companyName = builderState.companyName
-    if (companyName && hasStoredSession(companyName)) {
-      useTrackerStore.getState().setShowRestorePrompt(true)
-    } else {
-      openTracker(builderState)
+    if (!requireLogin('Sign in to play. Your game is saved so you can pick it up on any device.')) return
+    try {
+      const saved = await loadGame(builderState.companyId)
+      if (saved?.data?.active) useTrackerStore.getState().promptRestore(saved)
+      else openTracker(builderState)
+    } catch {
+      useBuilderStore.getState()._toast("Couldn't reach the server. Check your connection.")
     }
   }
 
@@ -195,6 +241,7 @@ export default function BuilderPage({ initialView = null }) {
 
   function handleNew() {
     setSidebarOpen(false)
+    if (!requireLogin('Sign in to create and save companies.', { type: 'new' })) return
     setView('new-company')
   }
 
@@ -253,15 +300,9 @@ export default function BuilderPage({ initialView = null }) {
         onHome={handleLogoClick}
         user={user}
         authStatus={authStatus}
-        onAuthClick={() => { setAuthSheetState('providers'); setAuthSheetOpen(true) }}
-        onLogout={logout}
-        syncCount={syncPromptCount}
-        onSyncLocal={async () => {
-          setSyncPromptCount(0)
-          await pushLocalSavesToCloud(() => user)
-          const merged = await mergeCloudSaves(() => user)
-          if (merged.length) useBuilderStore.setState({ saves: merged })
-        }}
+        onAuthClick={() => requireLogin(null)}
+        onLogout={handleLogout}
+        saveStatus={saveStatus}
       />
 
       {/* New company page — sibling of scroll area, fills remaining height */}
@@ -278,9 +319,18 @@ export default function BuilderPage({ initialView = null }) {
         {refOpen ? (
           <RefContent onBack={() => setRefOpen(false)} />
         ) : view === 'landing' ? (
-          <LandingPage onLoad={goBuilder} onNew={handleNew} />
+          <LandingPage onLoad={goBuilder} onNew={handleNew} onQuizComplete={handleQuizComplete} />
         ) : (
           <main className="builder-main" ref={builderMainRef}>
+            {viewingShare && (
+              <div className="share-view-banner">
+                <span className="share-view-banner-text">Shared company · view only</span>
+                <button className="share-view-banner-btn" onClick={handleSaveShared}>
+                  {user ? 'Save to my companies' : 'Sign in to save a copy'}
+                </button>
+              </div>
+            )}
+            <div className={viewingShare ? 'builder-readonly' : undefined}>
             <CompanyHeader
               onSettings={() => setSettingsOpen(true)}
               onEndOfGame={() => setEndOfGameOpen(true)}
@@ -288,10 +338,11 @@ export default function BuilderPage({ initialView = null }) {
               onPrint={() => setTimeout(() => window.print(), 100)}
             />
             <WarriorRoster />
+            </div>
           </main>
         )}
 
-        {view === 'builder' && !refOpen && (
+        {view === 'builder' && !refOpen && !viewingShare && (
           <button className="builder-play-pill" onClick={handlePlay}>
             ⚔ PLAY
           </button>
@@ -378,7 +429,13 @@ export default function BuilderPage({ initialView = null }) {
           }
         >
           <>
-            <SaveLoadPanel onSelect={handleLoadCompany} />
+            {user ? (
+              <SaveLoadPanel onSelect={handleLoadCompany} />
+            ) : (
+              <button className="auth-sync-btn" onClick={() => { setSidebarOpen(false); requireLogin(null) }}>
+                Sign in to see your companies
+              </button>
+            )}
             <div style={{ padding: '0 0 0.5rem' }}>
               <button
                 className="landing-new-company-btn"
@@ -407,25 +464,16 @@ export default function BuilderPage({ initialView = null }) {
       <ImportModal />
       {authSheetOpen && (
         <AuthSheet
-          onClose={() => { setAuthSheetOpen(false); setAuthSheetState('providers'); setResetToken(null) }}
+          onClose={() => {
+            // Dismissed without signing in: forget the action they were trying to do
+            if (!useAuthStore.getState().user) takePending()
+            setAuthSheetOpen(false); setAuthSheetState('providers'); setResetToken(null); setAuthReason(null)
+          }}
           initialState={authSheetState}
           resetToken={resetToken}
+          reason={authReason}
         />
       )}
-      {syncPromptCount > 0 && user && (
-        <ConfirmModal
-          title="Upload Local Companies?"
-          subtitle={`You have ${syncPromptCount} local ${syncPromptCount === 1 ? 'company' : 'companies'} not yet in the cloud. Upload ${syncPromptCount === 1 ? 'it' : 'them'} now?`}
-          onConfirm={async () => {
-            setSyncPromptCount(0)
-            await pushLocalSavesToCloud(() => user)
-            const merged = await mergeCloudSaves(() => user)
-            if (merged.length) useBuilderStore.setState({ saves: merged })
-          }}
-          onCancel={() => setSyncPromptCount(0)}
-        />
-      )}
-
       {modeSelectOpen && (
         <ModeSelectModal
           onSelect={handleModeSelect}
@@ -501,7 +549,9 @@ function CompanySettingsModal({ onClose }) {
 }
 
 /* ── TOPBAR ────────────────────────────────────────────── */
-function BuilderTopbar({ onMenuToggle, onHome, user, authStatus, onAuthClick, onLogout, syncCount, onSyncLocal }) {
+const SAVE_STATUS_LABEL = { saving: 'Saving…', saved: 'Saved', offline: 'Offline · retrying' }
+
+function BuilderTopbar({ onMenuToggle, onHome, user, authStatus, onAuthClick, onLogout, saveStatus }) {
   const [accountOpen, setAccountOpen] = useState(false)
 
   return (
@@ -518,6 +568,9 @@ function BuilderTopbar({ onMenuToggle, onHome, user, authStatus, onAuthClick, on
       </button>
 
       <div className="topbar-actions">
+        {authStatus === 'authed' && SAVE_STATUS_LABEL[saveStatus] && (
+          <span className={`save-status save-status--${saveStatus}`} aria-live="polite">{SAVE_STATUS_LABEL[saveStatus]}</span>
+        )}
         {authStatus === 'guest' && (
           <button className="auth-sign-in-btn" onClick={onAuthClick} title="Sign in to sync companies">
             Sign In
@@ -538,8 +591,6 @@ function BuilderTopbar({ onMenuToggle, onHome, user, authStatus, onAuthClick, on
                 user={user}
                 onClose={() => setAccountOpen(false)}
                 onLogout={() => { setAccountOpen(false); onLogout() }}
-                syncCount={syncCount}
-                onSyncLocal={() => { setAccountOpen(false); onSyncLocal() }}
               />
             )}
           </>
@@ -569,7 +620,7 @@ function GoogleIconColored() {
 }
 
 /* ── ACCOUNT SHEET (shown when avatar is tapped) ───────── */
-function AuthAccountSheet({ user, onClose, onLogout, syncCount, onSyncLocal }) {
+function AuthAccountSheet({ user, onClose, onLogout }) {
   const [pickingAvatar, setPickingAvatar] = useState(false)
   const { updateAvatar } = useAuthStore()
   const avatarSrc = getAvatarSrc(user.avatar_url)
@@ -615,79 +666,8 @@ function AuthAccountSheet({ user, onClose, onLogout, syncCount, onSyncLocal }) {
           </div>
         )}
 
-        {syncCount > 0 && (
-          <button className="auth-sync-btn" onClick={onSyncLocal}>
-            Upload {syncCount} local {syncCount === 1 ? 'company' : 'companies'} to cloud
-          </button>
-        )}
         <button className="auth-logout-btn" onClick={onLogout}>Sign Out</button>
       </div>
     </BottomSheet>
-  )
-}
-
-/* ── LANDING NAVBAR ────────────────────────────────────── */
-function LandingNavbar({ refOpen, onRef, onNew }) {
-  return (
-    <nav className="builder-navbar landing-navbar">
-      <div className="landing-navbar-inner">
-        {/* Mobile-only: Quick Reference button (hidden on desktop via CSS — topbar icon takes over) */}
-        <button
-          className={`landing-ref-btn${refOpen ? ' landing-ref-btn--active' : ''}`}
-          onClick={onRef}
-          aria-pressed={refOpen}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="14" height="14" aria-hidden="true">
-            <path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 14H7v-2h10v2zm0-4H7v-2h10v2zm0-4H7V6h10v2z"/>
-          </svg>
-          Quick Reference
-        </button>
-        {/* Primary CTA */}
-        <button className="landing-cta-btn" onClick={onNew}>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="14" height="14" aria-hidden="true">
-            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/>
-          </svg>
-          New Company
-        </button>
-      </div>
-    </nav>
-  )
-}
-
-/* ── BUILDER NAVBAR ────────────────────────────────────── */
-function BuilderNavbar({ onPlay }) {
-  const { saveCompany, isDirty } = useBuilderStore()
-  const dirty = isDirty()
-  const [confirmSave, setConfirmSave] = useState(false)
-
-  function handleSaveConfirm() {
-    setConfirmSave(false)
-    saveCompany()
-  }
-
-  return (
-    <nav className="builder-navbar">
-      <div className="navbar-inner">
-        <button
-          className={`navbar-btn-save${dirty ? ' navbar-btn-save--dirty' : ''}`}
-          onClick={() => setConfirmSave(true)}
-        >
-          {dirty && <span className="navbar-save-dot" />}
-          SAVE
-        </button>
-        <button className="navbar-btn-play" onClick={onPlay}>
-          ⚔ PLAY
-        </button>
-      </div>
-
-      {confirmSave && (
-        <ConfirmModal
-          title="Save Company"
-          subtitle="Save this company to your browser's local storage?"
-          onConfirm={handleSaveConfirm}
-          onCancel={() => setConfirmSave(false)}
-        />
-      )}
-    </nav>
   )
 }

@@ -26,5 +26,13 @@ CREATE TABLE IF NOT EXISTS companies (
   data     TEXT NOT NULL            -- full JSON blob, same shape as doom_saves entries
 );
 
+CREATE TABLE IF NOT EXISTS game_sessions (
+  company_id TEXT PRIMARY KEY,      -- one in-progress game per company
+  user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  saved_at   INTEGER NOT NULL,
+  data       TEXT NOT NULL          -- full tracker state JSON
+);
+
+CREATE INDEX IF NOT EXISTS idx_game_sessions_user ON game_sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_companies_user ON companies(user_id);
 CREATE INDEX IF NOT EXISTS idx_sessions_user  ON sessions(user_id);

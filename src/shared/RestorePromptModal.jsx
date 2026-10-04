@@ -1,7 +1,6 @@
 import BottomSheet from './BottomSheet'
 import { useTrackerStore } from '../store/trackerStore'
 import { useBuilderStore } from '../store/builderStore'
-import { getSessionAge, clearTrackerSession, getStoredCompanyName } from '../utils/storage'
 
 function formatAge(ms) {
   const minutes = Math.floor(ms / 60000)
@@ -14,22 +13,19 @@ function formatAge(ms) {
 }
 
 export default function RestorePromptModal() {
-  const { setShowRestorePrompt, restoreSession, openTracker } = useTrackerStore()
+  const { setShowRestorePrompt, restoreSession, openTracker, pendingRestore } = useTrackerStore()
   const builderState = useBuilderStore(s => s)
-  const storedName = getStoredCompanyName()
-  const companyName = storedName || builderState.companyName
-  const age = getSessionAge(companyName)
-  const ageStr = age ? formatAge(age) : null
+  const ageStr = pendingRestore?.savedAt ? formatAge(Date.now() - pendingRestore.savedAt) : null
 
   const handleRestore = () => {
+    const stored = pendingRestore?.data
     setShowRestorePrompt(false)
-    restoreSession(companyName)
+    restoreSession(stored)
   }
 
   const handleNewGame = () => {
     setShowRestorePrompt(false)
-    clearTrackerSession(companyName)
-    openTracker(builderState)
+    openTracker(builderState) // overwrites the saved game
   }
 
   return (
