@@ -4041,20 +4041,17 @@
 .landing-about-features { border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
 
 /* ── LANDING: THE WORLD OF 1490 DOOM ─────────────────────── */
-/* Story panel over the Ruined Tower art — a change of mood from the feature list */
+/* Story panel headed by the Battlefield art — a change of mood from the feature list */
 .landing-world {
   position: relative;
   margin: 2.5rem -1rem 0;
-  padding: 2.75rem 1.5rem 2.25rem;
+  padding: 12.5rem 1.5rem 2.25rem; /* top: room for the header art */
   text-align: center;
   color: var(--bone);
   border-radius: 12px;
   overflow: hidden;
   isolation: isolate;
-  background:
-    linear-gradient(180deg, rgba(8, 8, 8, 0.82) 0%, rgba(8, 8, 8, 0.72) 45%, rgba(8, 8, 8, 0.94) 100%),
-    url('/landing/ruined-tower.webp') center 30% / cover no-repeat,
-    var(--ash);
+  background: var(--ash);
   border: 1px solid rgba(190, 65, 39, 0.35);
 }
 @media (max-width: 560px) {
@@ -4133,26 +4130,23 @@
 }
 @media (hover: hover) { .landing-world-btn:hover { background: rgba(190, 65, 39, 0.25); } }
 .landing-world-btn:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
-/* The painting is light (white sky): invert it on its own layer so the tower and
-   warrior become pale silhouettes on a dark sky, then fade for legibility */
-.landing-world { background: var(--ash); }
-.landing-world::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -2;
-  background: url('/landing/ruined-tower.webp') 72% 35% / cover no-repeat;
-  filter: grayscale(1) invert(1);
-  opacity: 0.32;
-}
+/* Header art: the painting has a transparent sky, so it sits straight on the dark
+   panel; its lower edge fades into the panel behind the heading */
+.landing-world::before,
 .landing-world::after {
   content: '';
   position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: linear-gradient(180deg, rgba(8, 8, 8, 0.25) 0%, rgba(8, 8, 8, 0.35) 40%, rgba(8, 8, 8, 0.9) 100%);
+  inset: 0 0 auto 0;
+  height: 14rem;
 }
-@media (max-width: 420px) { .landing-world-title { font-size: 1.75rem; } }
+.landing-world::before {
+  z-index: -2;
+  background: url('/landing/battlefield.webp') center 40% / cover no-repeat;
+}
+.landing-world::after {
+  z-index: -1;
+  background: linear-gradient(180deg, rgba(8, 8, 8, 0) 55%, var(--ash) 100%);
+}
 /* Panel title matches the action card titles (Oswald, uppercase) */
 .landing-world-title {
   font-family: 'Oswald', sans-serif;
