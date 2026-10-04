@@ -59,6 +59,8 @@ function StatsRow({ slot, wdata }) {
 export default function WarriorCard({ slotIndex, slot }) {
   const { setNotes, getTotalIPSpent } = useBuilderStore()
   const allSlots = useBuilderStore(s => s.slots)
+  // If any warrior shows a class row, the others reserve the same space so side-by-side cards line up
+  const anyClassRow = allSlots.some(s => s.type && s.customName)
   const companyMode = useBuilderStore(s => s.companyMode)
 
   const [expandedNotes, setExpandedNotes] = useState(() => new Set())
@@ -127,7 +129,9 @@ export default function WarriorCard({ slotIndex, slot }) {
       ) : (
         <>
           {/* Class on its own row when a custom name replaces it in the header */}
-          {slot.customName && <div className="slot-class-sub">{slot.type}</div>}
+          {slot.customName
+            ? <div className="slot-class-sub">{slot.type}</div>
+            : anyClassRow && <div className="slot-class-sub slot-class-sub--spacer" aria-hidden="true">{slot.type}</div>}
 
           {/* Portrait + Stats */}
           <div className="warrior-header-row">

@@ -4596,3 +4596,6 @@
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.6);
 }
+/* Spacer keeps side-by-side cards aligned; cards stack at ≤1024px, so it's not needed there */
+.slot-class-sub--spacer { visibility: hidden; }
+@media (max-width: 1024px) { .slot-class-sub--spacer { display: none; } }
