@@ -4174,3 +4174,90 @@
 @media (max-width: 560px) {
   .landing-world { border-left: 0; border-right: 0; box-shadow: none; }
 }
+
+/* ── APP MENU (hamburger) ────────────────────────────────── */
+.app-menu { display: flex; flex-direction: column; gap: 1.25rem; padding-bottom: 0.5rem; }
+.app-menu-signin {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  background: var(--fog);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+}
+.app-menu-signin-text {
+  margin: 0;
+  font-family: 'Caslon Antique', serif;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  color: var(--bone);
+}
+.app-menu-signin-btn {
+  flex-shrink: 0;
+  min-height: 40px;
+  padding: 0 1rem;
+  border: 0;
+  border-radius: 6px;
+  background: var(--blood);
+  color: #fff;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.app-menu-heading {
+  margin: 0 0 0.35rem;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+.app-menu-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.app-menu-list li { border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+.app-menu-row {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  min-height: 52px;
+  padding: 0 0.25rem;
+  background: none;
+  border: 0;
+  color: var(--parchment);
+  text-decoration: none;
+  text-align: left;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.95rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s;
+}
+@media (hover: hover) { .app-menu-row:hover { background: rgba(255, 255, 255, 0.04); } }
+.app-menu-row:active { background: rgba(255, 255, 255, 0.07); }
+.app-menu-row:focus-visible { outline: 2px solid var(--blood); outline-offset: -2px; }
+.app-menu-icon { flex-shrink: 0; color: var(--blood); }
+.app-menu-icon--discord { color: #5865F2; }
+.app-menu-label { flex: 1; }
+.app-menu-detail {
+  min-width: 1.6rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--bone);
+  font-size: 0.75rem;
+  text-align: center;
+}
+.app-menu-trail { color: rgba(255, 255, 255, 0.4); font-size: 1.1rem; line-height: 1; }
