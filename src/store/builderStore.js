@@ -163,8 +163,14 @@ export const useBuilderStore = create((set, get) => {
     const saves = get().saves.filter(s => s.companyId !== save.companyId)
     set({ saves: [save, ...saves] })
   }
+  // "Saved" is a brief confirmation, then the indicator clears; "Offline" stays until resolved
+  let savedTimer = null
   const saver = createSaver({
-    onStatus: saveStatus => set({ saveStatus }),
+    onStatus: saveStatus => {
+      clearTimeout(savedTimer)
+      set({ saveStatus })
+      if (saveStatus === 'saved') savedTimer = setTimeout(() => set({ saveStatus: 'idle' }), 2000)
+    },
     onSaved: (snapshot, savedAt) => {
       if (get().saves.some(s => s.companyId === snapshot.companyId)) upsertSave({ ...snapshot, savedAt })
     },

@@ -4583,3 +4583,7 @@
 .slot-portrait-col:has(.slot-class-label) .warrior-portrait,
 .slot-portrait-col:has(.slot-class-label) .warrior-portrait-placeholder { bottom: 1.4rem; height: auto; }
 .slot-portrait-col .slot-class-label { position: absolute; left: 0; right: 0; bottom: 0; margin: 0; }
+/* The stats row's own bottom margin made the stats block 18px taller than the
+   visible boxes (so the portrait overshot). Move that space below the row instead. */
+.warrior-header-text .stats-row { margin-bottom: 0; }
+.warrior-header-row { margin-bottom: 1.75rem; }
