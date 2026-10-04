@@ -4,7 +4,7 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 
 export default [
-  { ignores: ['dist', 'node_modules', '.wrangler', 'public', 'src/data/images.js'] },
+  { ignores: ['dist', 'node_modules', '.wrangler', 'public', 'src/data/images.js', 'test-results', 'playwright-report'] },
 
   // Frontend (React)
   {

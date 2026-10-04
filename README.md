@@ -25,11 +25,18 @@ npm run build
 npx wrangler pages dev dist --port 8788
 ```
 
-## Checks
+## Checks and tests
 
 ```bash
-npm run check   # lint + frontend build + Cloudflare Functions build
+npm run check      # lint + unit tests + frontend build + Cloudflare Functions build
+npm test           # unit tests only (Vitest, tests/unit)
+npm run test:e2e   # browser tests (Playwright, tests/e2e) against the local servers
 ```
+
+The browser tests drive the real app in Edge against `localhost:5173` (and the backend on 8788),
+reusing the dev servers if they're running or starting them if not. Each test signs up its own
+throwaway account on the **local** database. They cover the landing page, quiz, New Company wizard,
+cloud saving/reloading, builder, share links, menu and play mode.
 
 The same check runs on GitHub (`.github/workflows/check.yml`) for every push and pull request, so problems surface before Cloudflare tries to deploy.
 

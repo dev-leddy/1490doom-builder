@@ -80,6 +80,8 @@ export function decodeCompany(code) {
     } catch {}
 
     const parts = raw.split('|')
+    // A real code is mark|name|ip|slot…; anything else (e.g. "#top") is not a company
+    if (parts.length < 4) return null
     const mark       = parts[0] === '_' ? '' : (ALL_MARKS[parseInt(parts[0], 36)] || ALL_MARKS[0])
     const companyName = decodeURIComponent(parts[1] || '')
     const ipLimit    = parseInt(parts[2], 36) || (isCampaign ? 0 : 3)
@@ -110,6 +112,7 @@ export function decodeCompany(code) {
       const customName = nameEnc && nameEnc !== '-' ? decodeURIComponent(nameEnc) : null
       return { type, weapon1, weapon2, consumable, climbing, ip, isCaptain: cap === '1', notes, customName, earnedIP, statImproves, statImprove }
     })
+    if (!slots.some(sl => sl.type)) return null
     return { mark, companyName, ipLimit, companyMode: isCampaign ? 'campaign' : 'standard', campaignGame, slots }
   } catch (e) {
     return null

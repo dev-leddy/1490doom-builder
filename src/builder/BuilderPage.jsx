@@ -19,7 +19,7 @@ import LandingPage, { RefContent } from './LandingPage'
 import AuthSheet from './AuthSheet'
 import AvatarPicker from './AvatarPicker'
 import { useAuthStore } from '../store/authStore'
-import { encodeCompany } from '../store/builderEncoding'
+import { encodeCompany, decodeCompany } from '../store/builderEncoding'
 import { loadGame } from '../api/games'
 import './styles/builder-layout.css'
 import './styles/builder-print.css'
@@ -47,7 +47,8 @@ export default function BuilderPage({ initialView = null }) {
   const [view, setView] = useState(() => {
     if (initialView) return initialView
     if (useBuilderStore.getState()._fromShare) return 'builder'
-    return window.location.hash ? 'builder' : 'landing'
+    // Only a real share code opens the builder; other #hashes (e.g. "#top") stay on the landing page
+    return decodeCompany(window.location.hash.slice(1)) ? 'builder' : 'landing'
   })
   // Auth
   const { user, status: authStatus, fetchMe, logout } = useAuthStore()

@@ -13,3 +13,7 @@ nul
 
 # Source art (keep originals outside the repo; commit optimized .webp only)
 *.psd
+
+# Test output
+test-results/
+playwright-report/
