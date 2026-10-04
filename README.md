@@ -1,55 +1,69 @@
 # 1490 DOOM — Company Builder
 
-A React web app for building and tracking Doom Companies in the 1490 DOOM tabletop game.
+A web app for building and tracking Doom Companies in the 1490 DOOM tabletop game, plus the "Which Doom Company Are You?" quiz.
+
+Live at **https://1490doomcompanybuilder.com**, hosted on **Cloudflare Pages**.
 
 ## Stack
 
-- **Vite** — build tool
-- **React 18** — UI
-- **Zustand** — state management (builderStore + trackerStore)
-- **Tailwind CSS** — layout utilities
-- **Custom CSS** — dark medieval theme
+- **Frontend:** React 18, Vite, Zustand, Tailwind + custom CSS, PWA (vite-plugin-pwa)
+- **Backend:** Cloudflare Pages Functions (`functions/`) — auth, saved companies, short share links
+- **Database:** Cloudflare D1 (`doom-builder`, binding `DB`)
 
-## Setup
+## Local development
 
 ```bash
 npm install
-npm run dev
+npm run dev            # frontend at http://localhost:5173
 ```
 
-Open http://localhost:5173/1490doom-builder/
-
-## Deploy to GitHub Pages
-
-1. Create a GitHub repo named `1490doom-builder`
-2. Push this project to it
-3. Run:
+The Vite dev server proxies `/api` and `/s/` to `http://localhost:8788`. To run the backend locally:
 
 ```bash
-npm run deploy
+cp .dev.vars.example .dev.vars   # fill in OAuth / Resend secrets
+npm run build
+npx wrangler pages dev dist --port 8788
 ```
 
-This builds and pushes to the `gh-pages` branch. Your app will be live at:
-`https://YOUR_USERNAME.github.io/1490doom-builder/`
+## Deploying
 
-## Project Structure
+Cloudflare Pages builds from git automatically:
+
+- push to `main` → production
+- push to any other branch → preview at `https://<branch>.1490doom-builder.pages.dev`
+
+Bump the patch `version` in `package.json` with every commit (shown in the app footer).
+
+## Database
+
+- `db/schema.sql` — full schema for a fresh database
+- `db/migrations/` — incremental changes, applied in order
+
+Apply a migration to production:
+
+```bash
+npx wrangler d1 execute doom-builder --remote --file=db/migrations/<file>.sql
+```
+
+## Project structure
 
 ```
 src/
-├── data/           # Pure game data (warriors, weapons, marks, items, images)
-├── store/          # Zustand stores (builderStore, trackerStore)
-├── builder/        # Builder mode components
-├── tracker/        # Play mode tracker components
-├── shared/         # Shared components (ConfirmModal, Toast)
-└── styles/         # Global CSS
+├── builder/     Builder mode (company/warrior editing, landing page, quiz overlay)
+├── tracker/     Play mode tracker
+├── quiz/        Company quiz (embedded via QuizOverlay and standalone at /quiz)
+├── data/        Game data (warriors, weapons, marks, quiz questions, base64 images)
+├── store/       Zustand stores
+├── shared/      Shared components (modals, toasts, quick reference)
+├── api/         Frontend API client
+└── utils/       Storage, share/export helpers (Discord, TTS)
+
+functions/       Cloudflare Pages Functions (API routes, auth, /s/:code short links)
+db/              D1 schema and migrations
+public/          Static assets (fonts, PWA icons, avatars, quiz art, /api-docs)
+quiz.html        Entry point for the standalone /quiz page
 ```
 
-## Features
+### Quiz assets
 
-- **Builder Mode**: Build a 3+ warrior Doom Company with mark, weapons, IP upgrades, consumables
-- **Save/Load**: Up to 10 saved companies in localStorage
-- **Share/Import**: URL-based company sharing via encoded hash
-- **Random Generator**: True random company generation
-- **Play Mode**: Full game tracker with vitality, abilities, statuses, cache items
-- **Quick Reference**: In-game action/status/falling reference panel
-- **Print Support**: Print-optimized roster view
+The quiz loads its art from `public/quiz/` (referenced in `src/data/quizData.js`, `src/quiz/*.jsx` and `src/quiz/quiz.css`). Only commit optimized `.webp` files that are actually referenced — keep original PNG/PSD source art outside the repo.

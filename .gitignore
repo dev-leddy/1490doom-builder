@@ -5,3 +5,11 @@ dist
 nul
 .dev.vars
 .wrangler
+.venv
+
+# Claude Code — per-user settings and session worktrees
+.claude/settings.local.json
+.claude/worktrees/
+
+# Source art (keep originals outside the repo; commit optimized .webp only)
+*.psd

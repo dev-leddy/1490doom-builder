@@ -196,6 +196,7 @@ export default function BuilderPage({ initialView = null }) {
 
   function handlePrint() {
     setSidebarOpen(false)
+    useBuilderStore.setState({ toast: null })
     setTimeout(() => window.print(), 100)
   }
 
