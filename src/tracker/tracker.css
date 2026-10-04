@@ -999,3 +999,9 @@
   color: rgba(255, 255, 255, 0.55);
   line-height: 1.2;
 }
+/* Same button width for every warrior (don't stretch to the length of the name above) */
+.tk-activated-btn { align-self: flex-start; }
+/* Long custom names shorten with "…" instead of pushing Cache/Status off the card */
+.tk-warrior-header-text { flex: 1 1 auto; min-width: 0; }
+.tk-name { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tk-hdr-btn-group { flex-shrink: 0; }
