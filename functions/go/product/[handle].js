@@ -1,10 +1,10 @@
 // GET /go/product/:handle — redirect to a buergames.com product page, or to the
-// 1490 DOOM store page if that product doesn't exist (yet).
+// 1490 DOOM physical products collection if that product doesn't exist (yet).
 // Lets the quiz link to companies before Buer Games lists them; links start
 // working on their own once the product is published.
 
 const STORE = 'https://buergames.com'
-const FALLBACK = `${STORE}/pages/1490doom`
+const FALLBACK = `${STORE}/collections/1490-doom-physical`
 const CACHE_SECONDS = 60 * 60 // re-check the store at most once an hour per product
 
 export async function onRequestGet(context) {
