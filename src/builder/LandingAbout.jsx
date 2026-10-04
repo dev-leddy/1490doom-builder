@@ -51,23 +51,19 @@ export default function LandingAbout() {
         ))}
       </ul>
 
-      <h2 className="landing-about-heading">What is 1490 DOOM?</h2>
-      <div className="landing-about-lore">
-        <p className="landing-about-opening">It is late in the year 1490. The ground has begun to rot.</p>
-        <p>With the thaw came the Creeping Death. Low at first, pooling in the hollows, it rose inch by inch, creeping ever higher. Whole cities went under. The forests stand black and skeletal.</p>
-        <p>Only the high places hold. Castles. Ruins. Towers. And there is not enough room in them for everyone.</p>
+      {/* The game itself: its own panel, so it reads as story rather than more features */}
+      <div className="landing-world">
+        <h2 className="landing-world-title">What is 1490 DOOM?</h2>
+        <p className="landing-world-opening">It is late in the year 1490. The ground has begun to rot.</p>
+        <span className="landing-world-ornament" aria-hidden="true">✦</span>
+        <p>With the thaw came the Creeping Death. It rose inch by inch, creeping ever higher. Whole cities went under. Only the high places hold: castles, ruins, towers. And there is not enough room in them for everyone.</p>
+        <p><strong>Two Doom Companies. One tower.</strong> In this tabletop skirmish game from Buer Games you take turns moving, fighting and climbing, scavenging for scarce resources and fighting for the high ground. Early turns are about position. Later turns are about survival.</p>
+        <ul className="landing-world-facts" aria-label="At a glance">
+          <li><span className="landing-world-fact-value">3 min</span><span className="landing-world-fact-label">setup</span></li>
+          <li><span className="landing-world-fact-value">30–45 min</span><span className="landing-world-fact-label">per game</span></li>
+        </ul>
+        <a className="landing-world-btn" href="https://1490doom.com" target="_blank" rel="noopener noreferrer">Learn the game ↗</a>
       </div>
-
-      <h2 className="landing-about-heading">Hold the tower</h2>
-      <div className="landing-about-lore">
-        <p><strong>1490 DOOM</strong> is a tabletop skirmish game from Buer Games. Two Doom Companies, one tower. You and your opponent take turns moving, fighting and climbing, scavenging for scarce resources and fighting for the high ground before the other does.</p>
-        <p>Early turns are about position. Later turns are about survival. The Creeping Death waits patiently to claim the fallen.</p>
-      </div>
-      <ul className="landing-about-facts" aria-label="At a glance">
-        <li><span className="landing-about-fact-value">3 min</span><span className="landing-about-fact-label">setup</span></li>
-        <li><span className="landing-about-fact-value">30–45 min</span><span className="landing-about-fact-label">per game</span></li>
-      </ul>
-      <a className="landing-about-link" href="https://1490doom.com" target="_blank" rel="noopener noreferrer">Learn the game at 1490doom.com ↗</a>
 
       <p className="landing-about-footnote">Free to use · An official 1490 DOOM production with Buer Games</p>
     </section>

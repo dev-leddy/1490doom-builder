@@ -299,7 +299,6 @@
   padding-right: env(safe-area-inset-right);
 }
 
-
 .builder-main {
   max-width: 1600px;
   margin: 0 auto;
@@ -307,9 +306,6 @@
   width: 100%;
   box-sizing: border-box;
 }
-
-
-
 
 .save-load-wrapper {
   max-width: 1200px;
@@ -320,10 +316,6 @@
 }
 
 /* sticky-name-bar removed — merged into topbar */
-
-
-
-
 
 .builder-navbar {
   flex-shrink: 0;
@@ -1217,7 +1209,6 @@
 .builder-name-input:focus { border-bottom-color: var(--gold); }
 .builder-name-input::placeholder { color: var(--mist); font-style: italic; }
 
-
 /* Normalize saved company chips inside the companies sheet */
 .co-sheet-body .saved-list { flex-direction: column; }
 .co-sheet-body .saved-chip { width: 100%; box-sizing: border-box; }
@@ -1279,7 +1270,6 @@
   text-transform: uppercase;
 }
 .btn-campaign-eog:hover { background: #a52020; }
-
 
 /* Mode select modal */
 .mode-select-modal {
@@ -2731,7 +2721,6 @@
   color: rgba(255,255,255,0.7);
 }
 
-
 /* ═══════════════════════════════════════════════════════════════
    COMPANY HEADER — GAME UI  (ch-* prefix, no collisions)
    ═══════════════════════════════════════════════════════════════ */
@@ -3546,8 +3535,6 @@
   .auth-form-link--back:hover { color: rgba(255,255,255,0.65); }
 }
 
-
-
 /* ── NEW COMPANY PAGE (ncp-*) ───────────────────────────── */
 /* ncp-page is a direct flex child of .builder-page, fills remaining height */
 .ncp-page { display: flex; flex-direction: column; flex: 1; min-height: 0; background: var(--ash); color: var(--bone); overflow: hidden; }
@@ -3905,28 +3892,7 @@
   color: var(--parchment);
   margin: 0 0 0.85rem;
 }
-.landing-about-lore {
-  font-family: 'Caslon Antique', serif;
-  font-size: 1rem;
-  line-height: 1.6;
-  color: var(--bone);
-  margin-bottom: 2rem;
-}
-.landing-about-lore p { margin: 0 0 0.75rem; }
-.landing-about-lore strong { color: var(--parchment); font-weight: normal; }
-.landing-about-link {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  font-family: 'Oswald', sans-serif;
-  font-size: 0.75rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--bone);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-@media (hover: hover) { .landing-about-link:hover { color: var(--parchment); } }
+
 .landing-about-features {
   list-style: none;
   margin: 0;
@@ -3971,41 +3937,7 @@
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.55);
 }
-.landing-about-lore + .landing-about-heading { margin-top: 0; }
-.landing-about-opening { font-size: 1.15rem; color: var(--parchment); }
-.landing-about-facts {
-  list-style: none;
-  margin: -0.75rem 0 1rem;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.5rem;
-}
-.landing-about-facts li {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.1rem;
-  padding: 0.65rem 0.4rem;
-  background: var(--fog);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
-  text-align: center;
-}
-.landing-about-fact-value {
-  font-family: 'Oswald', sans-serif;
-  font-size: 1.05rem;
-  letter-spacing: 0.06em;
-  color: var(--parchment);
-}
-.landing-about-fact-label {
-  font-family: 'Oswald', sans-serif;
-  font-size: 0.65rem;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.6);
-}
-.landing-about-facts + .landing-about-link { margin-bottom: 1.5rem; }
+
 .landing-about-features + .landing-about-heading { margin-top: 2rem; }
 
 /* "or" between the email form and Discord/Google */
@@ -4107,3 +4039,125 @@
 }
 .landing-about { border-top: 0; padding-top: 0; }
 .landing-about-features { border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+
+/* ── LANDING: THE WORLD OF 1490 DOOM ─────────────────────── */
+/* Story panel over the Ruined Tower art — a change of mood from the feature list */
+.landing-world {
+  position: relative;
+  margin: 2.5rem -1rem 0;
+  padding: 2.75rem 1.5rem 2.25rem;
+  text-align: center;
+  color: var(--bone);
+  border-radius: 12px;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    linear-gradient(180deg, rgba(8, 8, 8, 0.82) 0%, rgba(8, 8, 8, 0.72) 45%, rgba(8, 8, 8, 0.94) 100%),
+    url('/landing/ruined-tower.webp') center 30% / cover no-repeat,
+    var(--ash);
+  border: 1px solid rgba(190, 65, 39, 0.35);
+}
+@media (max-width: 560px) {
+  .landing-world { border-radius: 0; border-left: 0; border-right: 0; }
+}
+.landing-world-title {
+  font-family: 'Caslon Antique', serif;
+  font-weight: normal;
+  font-size: 2rem;
+  line-height: 1.1;
+  color: var(--parchment);
+  margin: 0 0 1rem;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.8);
+}
+.landing-world-opening {
+  font-family: 'Caslon Antique', serif;
+  font-style: italic;
+  font-size: 1.3rem;
+  line-height: 1.35;
+  color: var(--parchment);
+  margin: 0 auto;
+  max-width: 22ch;
+}
+.landing-world-ornament {
+  display: block;
+  margin: 1rem 0;
+  color: var(--blood);
+  font-size: 0.9rem;
+}
+.landing-world p:not(.landing-world-opening) {
+  font-family: 'Caslon Antique', serif;
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 0 auto 0.9rem;
+  max-width: 40ch;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
+}
+.landing-world strong { color: var(--parchment); font-weight: normal; }
+.landing-world-facts {
+  list-style: none;
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin: 1.4rem 0 1.5rem;
+  padding: 0;
+}
+.landing-world-facts li { display: flex; flex-direction: column; align-items: center; gap: 0.1rem; }
+.landing-world-fact-value {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.3rem;
+  letter-spacing: 0.05em;
+  color: var(--parchment);
+}
+.landing-world-fact-label {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.65);
+}
+.landing-world-btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 1.25rem;
+  border: 1px solid var(--blood);
+  border-radius: 4px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--parchment);
+  text-decoration: none;
+  background: rgba(8, 8, 8, 0.5);
+  transition: background 0.15s;
+}
+@media (hover: hover) { .landing-world-btn:hover { background: rgba(190, 65, 39, 0.25); } }
+.landing-world-btn:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
+/* The painting is light (white sky): invert it on its own layer so the tower and
+   warrior become pale silhouettes on a dark sky, then fade for legibility */
+.landing-world { background: var(--ash); }
+.landing-world::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background: url('/landing/ruined-tower.webp') 72% 35% / cover no-repeat;
+  filter: grayscale(1) invert(1);
+  opacity: 0.32;
+}
+.landing-world::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(180deg, rgba(8, 8, 8, 0.25) 0%, rgba(8, 8, 8, 0.35) 40%, rgba(8, 8, 8, 0.9) 100%);
+}
+@media (max-width: 420px) { .landing-world-title { font-size: 1.75rem; } }
+/* Panel title matches the action card titles (Oswald, uppercase) */
+.landing-world-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+@media (max-width: 420px) { .landing-world-title { font-size: 1.4rem; } }
