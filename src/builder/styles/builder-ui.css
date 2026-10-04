@@ -4161,3 +4161,13 @@
   text-transform: uppercase;
 }
 @media (max-width: 420px) { .landing-world-title { font-size: 1.4rem; } }
+/* Keep both card titles on one line: size to the card's width, capped at 1.15rem */
+.landing-start-card { container-type: inline-size; }
+.landing-start-title {
+  white-space: nowrap;
+  letter-spacing: 0.06em;
+  font-size: 0.9rem;                 /* fallback for browsers without container units */
+  font-size: min(1.15rem, 9.5cqi);
+}
+.landing-start-card { padding-left: 0.85rem; padding-right: 0.85rem; }
+.landing-start-title { letter-spacing: 0.04em; font-size: min(1.15rem, 10.6cqi); }
