@@ -4274,3 +4274,139 @@
   color: rgba(255, 255, 255, 0.6);
 }
 .ncp-btn--primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── NEW COMPANY: PARTY PORTRAITS ────────────────────────── */
+/* Fixed-size RPG-style portrait tiles instead of full-width rows */
+.ncp-party {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 104px);
+  gap: 0.75rem 0.6rem;
+  justify-content: start;
+}
+.ncp-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  width: 104px;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: inherit;
+}
+.ncp-tile-main {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  text-align: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.ncp-tile-portrait {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 104px;
+  height: 128px;
+  overflow: hidden;
+  border-radius: 8px 8px 0 0;
+  background: var(--fog);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 0;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.ncp-tile-portrait img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+.ncp-tile-socket {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.8rem;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.3);
+}
+.ncp-tile-name {
+  display: block;
+  padding: 0.35rem 0.3rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 0;
+  border-radius: 0 0 8px 8px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ncp-tile--filled .ncp-tile-name { color: var(--parchment); background: rgba(0, 0, 0, 0.6); }
+.ncp-tile--filled .ncp-tile-portrait { border-color: rgba(255, 255, 255, 0.18); }
+@media (hover: hover) {
+  .ncp-tile-main:hover .ncp-tile-portrait,
+  .ncp-tile--add:hover .ncp-tile-portrait { border-color: rgba(255, 255, 255, 0.35); }
+}
+.ncp-tile-main:focus-visible .ncp-tile-portrait,
+.ncp-tile--add:focus-visible .ncp-tile-portrait { outline: 2px solid var(--blood); outline-offset: 2px; }
+.ncp-tile-badge {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0.15rem 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.85) 100%);
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--parchment);
+}
+.ncp-tile:not(.ncp-tile--filled) .ncp-tile-badge { background: none; color: rgba(255, 255, 255, 0.45); }
+.ncp-tile-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.65);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+@media (hover: hover) { .ncp-tile-remove:hover { background: rgba(0, 0, 0, 0.85); color: #fff; } }
+.ncp-tile--add { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.ncp-tile--add .ncp-tile-portrait { background: transparent; border-style: dashed; border-bottom: 1px dashed rgba(255, 255, 255, 0.1); border-radius: 8px 8px 0 0; }
+.ncp-tile--add .ncp-tile-name { border-style: dashed; background: transparent; }
+.ncp-tile-gear { display: flex; justify-content: center; gap: 0.25rem; flex-wrap: wrap; }
+.ncp-tile-gear img { width: 20px; height: 20px; filter: brightness(0) invert(0.85); }
+.ncp-tile-gear span { font-size: 0.8rem; color: rgba(255, 255, 255, 0.7); }
+.ncp-tile-ip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  color: var(--parchment);
+}
+.ncp-tile-ip button {
+  width: 30px;
+  height: 30px;
+  background: none;
+  border: 0;
+  color: var(--parchment);
+  font-size: 1rem;
+  cursor: pointer;
+}
+.ncp-tile-ip button:disabled { color: rgba(255, 255, 255, 0.25); cursor: default; }

@@ -258,85 +258,61 @@ export default function NewCompanyPage({ onStart, onBack }) {
           <section className="ncp-section">
             <SectionLabel>Warriors</SectionLabel>
 
-            {/* Controls row — sits above the list */}
-            <div className="ncp-warriors-controls">
-              {slots.length < MAX_SLOTS
-                ? <button className="ncp-add-slot-btn" onClick={addSlot}>+ Add Warrior</button>
-                : <span className="ncp-add-slot-btn ncp-add-slot-btn--maxed">Max warriors</span>
-              }
-              {!isCampaign && (
+            {!isCampaign && (
+              <div className="ncp-warriors-controls">
                 <Stepper label="Company IP" value={ip} min={0} max={20} onChange={setIp} />
-              )}
-            </div>
+              </div>
+            )}
 
-            {/* Slot list */}
-            <div className="ncp-slot-list">
+            {/* Party: fixed-size portrait tiles, captain first */}
+            <div className="ncp-party">
               {slots.map((type, idx) => {
                 const chips = buildChips(randomPreview?.slots[idx])
                 return (
-                  <div key={idx} className="ncp-slot-box">
-                    {/* Top row: portrait + name + IP + remove */}
-                    <div className="ncp-slot-top-row">
-                      <button
-                        className="ncp-slot-main"
-                        onClick={() => { setTempSlotType(type); setEditingSlot(idx) }}
-                      >
-                        <div className="ncp-slot-portrait">
-                          {type && WARRIOR_IMAGES[type]
-                            ? <img src={WARRIOR_IMAGES[type]} alt={type} className="ncp-slot-portrait-img" />
-                            : <span className="ncp-slot-portrait-empty">{idx + 1}</span>
-                          }
-                        </div>
-                        <span className="ncp-slot-label">
-                          {type || <span className="ncp-slot-placeholder">Choose class…</span>}
-                        </span>
-                      </button>
+                  <div key={idx} className={`ncp-tile${type ? ' ncp-tile--filled' : ''}`}>
+                    <button
+                      className="ncp-tile-main"
+                      onClick={() => { setTempSlotType(type); setEditingSlot(idx) }}
+                      aria-label={type ? `Warrior ${idx + 1}: ${type}. Change` : `Warrior ${idx + 1}: choose a class`}
+                    >
+                      <div className="ncp-tile-portrait">
+                        {type && WARRIOR_IMAGES[type]
+                          ? <img src={WARRIOR_IMAGES[type]} alt="" />
+                          : <span className="ncp-tile-socket" aria-hidden="true">+</span>}
+                        {idx === 0 && <span className="ncp-tile-badge">Captain</span>}
+                      </div>
+                      <span className="ncp-tile-name">{type || 'Choose'}</span>
+                    </button>
 
-                      {isCampaign && (
-                        <div className="ncp-slot-ip">
-                          <span className="ncp-slot-ip-label">IP</span>
-                          <button className="ncp-slot-ip-btn" onClick={() => setSlotIp(idx, slotIps[idx] - 1)} disabled={slotIps[idx] <= 0}>−</button>
-                          <span className="ncp-slot-ip-val">{slotIps[idx]}</span>
-                          <button className="ncp-slot-ip-btn" onClick={() => setSlotIp(idx, slotIps[idx] + 1)} disabled={slotIps[idx] >= 20}>+</button>
-                        </div>
-                      )}
+                    {slots.length > 1 && (
+                      <button className="ncp-tile-remove" onClick={() => removeSlot(idx)} aria-label={`Remove warrior ${idx + 1}`}>×</button>
+                    )}
 
-                      {slots.length > 1 && (
-                        <button className="ncp-slot-remove" onClick={() => removeSlot(idx)} title="Remove warrior">×</button>
-                      )}
-                    </div>
-
-                    {/* Equipment chips — only when randomPreview has equipment for this slot */}
                     {chips.length > 0 && (
-                      <div className="ncp-slot-chips">
-                        {chips.map(c => (
-                          <div key={c.key} className="ncp-eq-chip">
-                            <div className="ncp-eq-chip-icon">
-                              {c.icon
-                                ? <img src={c.icon} alt="" style={{ width: 28, height: 28, filter: 'sepia(0.3) brightness(0.95)', opacity: 0.9 }} />
-                                : <span style={{ fontSize: '1.1rem', color: 'var(--mist)' }}>★</span>
-                              }
-                            </div>
-                            <div className="ncp-eq-chip-content">
-                              <span className="ncp-eq-chip-value">{c.label}</span>
-                            </div>
-                            {(c.dmg || c.info) && (
-                              <div className="ncp-eq-chip-stats">
-                                <div className="eq-stat-box">
-                                  {c.dmg && <span className="eq-chip-stat eq-chip-stat--dmg">{c.dmg}</span>}
-                                </div>
-                                <div className="eq-stat-box">
-                                  {c.info && <span className="eq-chip-stat">{c.info}</span>}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        ))}
+                      <div className="ncp-tile-gear">
+                        {chips.map(c => c.icon
+                          ? <img key={c.key} src={c.icon} alt={c.label} title={c.label} />
+                          : <span key={c.key} title={c.label}>★</span>)}
+                      </div>
+                    )}
+
+                    {isCampaign && (
+                      <div className="ncp-tile-ip" aria-label={`Starting IP for warrior ${idx + 1}`}>
+                        <button onClick={() => setSlotIp(idx, slotIps[idx] - 1)} disabled={slotIps[idx] <= 0} aria-label="Less IP">−</button>
+                        <span>{slotIps[idx]} IP</span>
+                        <button onClick={() => setSlotIp(idx, slotIps[idx] + 1)} disabled={slotIps[idx] >= 20} aria-label="More IP">+</button>
                       </div>
                     )}
                   </div>
                 )
               })}
+
+              {slots.length < MAX_SLOTS && (
+                <button className="ncp-tile ncp-tile--add" onClick={addSlot}>
+                  <span className="ncp-tile-portrait"><span className="ncp-tile-socket" aria-hidden="true">+</span></span>
+                  <span className="ncp-tile-name">Add warrior</span>
+                </button>
+              )}
             </div>
           </section>
 
