@@ -4072,14 +4072,8 @@
   font-size: 1.3rem;
   line-height: 1.35;
   color: var(--parchment);
-  margin: 0 auto;
+  margin: 0 auto 1.25rem;
   max-width: 22ch;
-}
-.landing-world-ornament {
-  display: block;
-  margin: 1rem 0;
-  color: var(--blood);
-  font-size: 0.9rem;
 }
 .landing-world p:not(.landing-world-opening) {
   font-family: 'Caslon Antique', serif;

@@ -55,7 +55,6 @@ export default function LandingAbout() {
       <div className="landing-world">
         <h2 className="landing-world-title">What is 1490 DOOM?</h2>
         <p className="landing-world-opening">It is late in the year 1490. The ground has begun to rot.</p>
-        <span className="landing-world-ornament" aria-hidden="true">✦</span>
         <p>With the thaw came the Creeping Death. It rose inch by inch, creeping ever higher. Whole cities went under. Only the high places hold: castles, ruins, towers. And there is not enough room in them for everyone.</p>
         <p><strong>Two Doom Companies. One tower.</strong> In this tabletop skirmish game from Buer Games you take turns moving, fighting and climbing, scavenging for scarce resources and fighting for the high ground. Early turns are about position. Later turns are about survival.</p>
         <ul className="landing-world-facts" aria-label="At a glance">
