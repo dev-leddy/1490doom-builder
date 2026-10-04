@@ -14,10 +14,11 @@ function randomAvatarKey() {
   return COMPANY_AVATARS[Math.floor(Math.random() * COMPANY_AVATARS.length)].key
 }
 
-function SectionLabel({ children }) {
+function SectionLabel({ children, meta }) {
   return (
     <div className="ncp-section-label">
       <span>{children}</span>
+      {meta && <span className="ncp-section-meta">{meta}</span>}
     </div>
   )
 }
@@ -175,7 +176,32 @@ export default function NewCompanyPage({ onStart, onBack }) {
       <div className="ncp-scroll">
         <div className="ncp-inner">
 
-          {/* 01 IDENTITY + MODE — combined */}
+          {/* MODE — decides what IP means, so it comes first */}
+          <section className="ncp-section">
+            <SectionLabel>Mode</SectionLabel>
+            <div className="ncp-mode-toggle" role="group" aria-label="Mode">
+              <button
+                className={`ncp-mode-pill${mode === 'standard' ? ' active' : ''}`}
+                aria-pressed={mode === 'standard'}
+                onClick={() => handleModeChange('standard')}
+              >Standard</button>
+              <button
+                className={`ncp-mode-pill${mode === 'campaign' ? ' active' : ''}`}
+                aria-pressed={mode === 'campaign'}
+                onClick={() => handleModeChange('campaign')}
+              >Campaign</button>
+            </div>
+            <div className="ncp-mode-explain">
+              <p className="ncp-mode-desc">
+                {isCampaign
+                  ? <>Campaign play. Warriors start with <strong>0 IP</strong> and earn it by surviving each scenario.</>
+                  : <>Skirmish play. Your company gets a pool of upgrade points (IP) to spend on gear and stat boosts.</>}
+              </p>
+              {!isCampaign && <Stepper label="IP" value={ip} min={0} max={20} onChange={setIp} />}
+            </div>
+          </section>
+
+          {/* IDENTITY */}
           <section className="ncp-section">
             <SectionLabel>Company</SectionLabel>
 
@@ -211,58 +237,19 @@ export default function NewCompanyPage({ onStart, onBack }) {
                   </button>
                 </div>
 
-                {/* Mode toggle — inline, compact */}
-                <div className="ncp-mode-toggle">
-                  <button
-                    className={`ncp-mode-pill${mode === 'standard' ? ' active' : ''}`}
-                    onClick={() => handleModeChange('standard')}
-                  >Standard</button>
-                  <button
-                    className={`ncp-mode-pill${mode === 'campaign' ? ' active' : ''}`}
-                    onClick={() => handleModeChange('campaign')}
-                  >Campaign</button>
-                </div>
               </div>
             </div>
 
-            {isCampaign && (
-              <div className="ncp-campaign-notice" style={{ marginTop: '0.6rem' }}>
-                <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
-                <span>Warriors start with <strong>0 IP</strong>. IP is earned after each scenario by survivors.</span>
-              </div>
-            )}
-          </section>
-
-          {/* 02 COMPANY MARK */}
-          <section className="ncp-section">
-            <SectionLabel>Company Mark</SectionLabel>
-            <button
-              className="ncp-mark-select-row ncp-mark-select-row--btn"
-              onClick={() => { setTempMark(mark); setShowMarkPicker(true) }}
-            >
-              {mark && MARK_IMAGES[mark] && (
-                <div className="ncp-mark-select-icon">
-                  <img src={MARK_IMAGES[mark]} alt="" />
-                </div>
-              )}
-              <span className="ncp-mark-select-label">
-                {selectedMark ? selectedMark.label || selectedMark.name : 'No Mark — tap to select'}
-              </span>
-            </button>
-            {selectedMark && (
-              <p className="ncp-mark-rule">{selectedMark.desc}</p>
-            )}
           </section>
 
           {/* 03 WARRIORS */}
           <section className="ncp-section">
-            <SectionLabel>Warriors</SectionLabel>
-
-            {!isCampaign && (
-              <div className="ncp-warriors-controls">
-                <Stepper label="Company IP" value={ip} min={0} max={20} onChange={setIp} />
-              </div>
-            )}
+            <SectionLabel meta={`${slots.length} / ${MAX_SLOTS}`}>Warriors</SectionLabel>
+            <div className="ncp-party-actions">
+              <button className="ncp-add-warrior-btn" onClick={addSlot} disabled={slots.length >= MAX_SLOTS}>
+                {slots.length >= MAX_SLOTS ? 'Company full' : '+ Add warrior'}
+              </button>
+            </div>
 
             {/* Party: fixed-size portrait tiles, captain first */}
             <div className="ncp-party">
@@ -307,13 +294,32 @@ export default function NewCompanyPage({ onStart, onBack }) {
                 )
               })}
 
-              {slots.length < MAX_SLOTS && (
-                <button className="ncp-tile ncp-tile--add" onClick={addSlot}>
-                  <span className="ncp-tile-portrait"><span className="ncp-tile-socket" aria-hidden="true">+</span></span>
-                  <span className="ncp-tile-name">Add warrior</span>
-                </button>
-              )}
             </div>
+          </section>
+
+          {/* MARK — one card: sigil, name, rule; chosen once the warriors are known */}
+          <section className="ncp-section">
+            <SectionLabel meta="Optional">Company Mark</SectionLabel>
+            <button
+              className={`ncp-markpick${selectedMark ? ' ncp-markpick--set' : ''}`}
+              onClick={() => { setTempMark(mark); setShowMarkPicker(true) }}
+            >
+              <span className={`ncp-tile${selectedMark ? ' ncp-tile--filled' : ''}`}>
+                <span className="ncp-tile-main">
+                  <span className="ncp-tile-portrait ncp-tile-portrait--mark">
+                    {selectedMark && MARK_IMAGES[mark]
+                      ? <img src={MARK_IMAGES[mark]} alt="" />
+                      : <span className="ncp-tile-socket" aria-hidden="true">+</span>}
+                  </span>
+                  <span className="ncp-tile-name">{selectedMark ? (selectedMark.label || selectedMark.name) : 'Choose'}</span>
+                </span>
+              </span>
+              <span className="ncp-markpick-text">
+                <span className="ncp-markpick-name">{selectedMark ? (selectedMark.label || selectedMark.name) : 'No mark'}</span>
+                <span className="ncp-markpick-rule">{selectedMark ? selectedMark.desc : 'A mark is one rule your whole company follows. Optional: skip it while you learn.'}</span>
+                <span className="ncp-markpick-change">{selectedMark ? 'Tap to change' : 'Tap to choose'} ›</span>
+              </span>
+            </button>
           </section>
 
         </div>
