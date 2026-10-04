@@ -4007,3 +4007,52 @@
 }
 .landing-about-facts + .landing-about-link { margin-bottom: 1.5rem; }
 .landing-about-features + .landing-about-heading { margin-top: 2rem; }
+
+/* "or" between the email form and Discord/Google */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+.auth-divider::before,
+.auth-divider::after { content: ''; flex: 1; height: 1px; background: rgba(255, 255, 255, 0.12); }
+
+/* Discord / Google: one row, secondary to the email Sign In button */
+.auth-oauth-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+.auth-oauth-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0 0.75rem;
+  border-radius: 8px;
+  background: var(--fog);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.15s, background 0.15s;
+}
+.auth-oauth-btn svg { flex-shrink: 0; }
+.auth-oauth-btn--discord svg { color: #5865F2; }
+@media (hover: hover) {
+  .auth-oauth-btn:hover { border-color: rgba(255, 255, 255, 0.35); background: rgba(255, 255, 255, 0.04); }
+}
+.auth-oauth-btn:active { background: rgba(255, 255, 255, 0.08); }
+.auth-oauth-btn:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
