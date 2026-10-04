@@ -974,3 +974,6 @@
   text-align: center;
   white-space: nowrap;
 }
+
+/* Every card reserves the captain tag's space, so switching warriors doesn't shift the page */
+.tk-card { margin-top: 0.75rem; }

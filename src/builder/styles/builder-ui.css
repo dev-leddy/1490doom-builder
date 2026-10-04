@@ -4564,3 +4564,8 @@
   border-radius: 0;
   color: rgba(255, 255, 255, 0.6);
 }
+/* Portrait matches the stats block's height (top and bottom line up) */
+.warrior-header-row { align-items: stretch; }
+.slot-portrait-col { align-self: stretch; }
+.warrior-portrait,
+.warrior-portrait-placeholder { flex: 1; height: auto; min-height: 100px; }
