@@ -4516,3 +4516,40 @@
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.55);
 }
+
+/* ── BUILDER: RPG-STYLE WARRIOR PORTRAIT ─────────────────── */
+/* Same tile language as the New Company party: tall portrait + name banner */
+.warrior-header-row { align-items: flex-start; }
+.slot-portrait-col { gap: 0; }
+.warrior-portrait,
+.warrior-portrait-placeholder {
+  width: 96px;
+  height: 118px;
+  border-radius: 8px 8px 0 0;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-bottom: 0;
+  box-shadow: none;
+  object-fit: cover;
+  object-position: top center;
+}
+.warrior-portrait { filter: none; }
+.is-captain .warrior-portrait,
+.is-captain .warrior-portrait-placeholder { border-color: rgba(255, 255, 255, 0.18); box-shadow: none; }
+@media (hover: hover) { .clickable-portrait:hover { border-color: rgba(255, 255, 255, 0.4); } }
+.slot-class-label {
+  width: 96px;
+  max-width: 96px;
+  min-height: 0;
+  padding: 0.3rem 0.25rem;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-top: 0;
+  border-radius: 0 0 8px 8px;
+  color: var(--parchment);
+  font-size: 0.68rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* builder-modals.css (loaded later) caps .slot-class-label at 64px — keep the banner portrait-wide */
+.slot-portrait-col .slot-class-label { width: 96px; max-width: 96px; box-sizing: border-box; }
