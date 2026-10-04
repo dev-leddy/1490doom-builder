@@ -150,7 +150,8 @@ export default function WarriorCard({ slotIndex, slot }) {
                   </svg>
                 </div>
               )}
-              <div className="slot-class-label">{slot.type}</div>
+              {/* Class only when a custom name hides it in the header */}
+              {slot.customName && <div className="slot-class-label">{slot.type}</div>}
             </div>
             <div className="warrior-header-text">
               <StatsRow slot={slot} wdata={wdata} />

@@ -4553,3 +4553,14 @@
 }
 /* builder-modals.css (loaded later) caps .slot-class-label at 64px — keep the banner portrait-wide */
 .slot-portrait-col .slot-class-label { width: 96px; max-width: 96px; box-sizing: border-box; }
+/* Builder portrait: fully rounded, no name banner (the name is in the card header) */
+.warrior-portrait,
+.warrior-portrait-placeholder { border-radius: 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.18); }
+.slot-portrait-col .slot-class-label {
+  margin-top: 0.35rem;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  color: rgba(255, 255, 255, 0.6);
+}
