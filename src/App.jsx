@@ -3,7 +3,6 @@ import { useTrackerStore } from './store/trackerStore'
 import BuilderPage from './builder/BuilderPage'
 import TrackerPage from './tracker/TrackerPage'
 import Toast from './shared/Toast'
-import BetaBanner from './shared/BetaBanner'
 import { useBuilderStore } from './store/builderStore'
 import { decodeCompany } from './store/builderEncoding'
 import RestorePromptModal from './shared/RestorePromptModal'
@@ -41,20 +40,15 @@ export default function App() {
     return (
       <div className="app">
         <BuilderPage key="shared" initialView="builder" />
-        <BetaBanner />
         {toast && <Toast message={toast} />}
         <span className="app-version">v{__APP_VERSION__}</span>
       </div>
     )
   }
 
-  // ?quiz=<payload> means user returned from standalone quiz at /quiz — force-show beta banner
-  const fromStandaloneQuiz = new URLSearchParams(window.location.search).has('quiz')
-
   return (
     <div className="app">
       {trackerActive ? <TrackerPage /> : <BuilderPage initialView={returnToBuilder ? 'builder' : undefined} />}
-      <BetaBanner forceShow={fromStandaloneQuiz} />
       {toast && <Toast message={toast} />}
       {showRestorePrompt && <RestorePromptModal />}
       <span className="app-version">v{__APP_VERSION__}</span>
