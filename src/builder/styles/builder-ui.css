@@ -4587,3 +4587,12 @@
    visible boxes (so the portrait overshot). Move that space below the row instead. */
 .warrior-header-text .stats-row { margin-bottom: 0; }
 .warrior-header-row { margin-bottom: 1.75rem; }
+/* Class name under a custom warrior name (above portrait + stats) */
+.slot-class-sub {
+  margin: -0.35rem 0 0.6rem;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+}

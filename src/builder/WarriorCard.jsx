@@ -126,6 +126,9 @@ export default function WarriorCard({ slotIndex, slot }) {
         <button className="slot-choose-btn" onClick={() => setShowSettings(true)}>Choose Warrior</button>
       ) : (
         <>
+          {/* Class on its own row when a custom name replaces it in the header */}
+          {slot.customName && <div className="slot-class-sub">{slot.type}</div>}
+
           {/* Portrait + Stats */}
           <div className="warrior-header-row">
             <div className="slot-portrait-col">
@@ -150,8 +153,6 @@ export default function WarriorCard({ slotIndex, slot }) {
                   </svg>
                 </div>
               )}
-              {/* Class only when a custom name hides it in the header */}
-              {slot.customName && <div className="slot-class-label">{slot.type}</div>}
             </div>
             <div className="warrior-header-text">
               <StatsRow slot={slot} wdata={wdata} />
