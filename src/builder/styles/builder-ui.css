@@ -4056,3 +4056,52 @@
 }
 .auth-oauth-btn:active { background: rgba(255, 255, 255, 0.08); }
 .auth-oauth-btn:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
+
+/* ── Landing: actions look tappable, features read as information ── */
+.landing-start-card {
+  position: relative;
+  min-height: 132px;
+  padding: 1.1rem 1rem 3rem;
+  background: linear-gradient(180deg, rgba(190, 65, 39, 0.14) 0%, rgba(190, 65, 39, 0.04) 100%);
+  border: 1px solid rgba(190, 65, 39, 0.55);
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+}
+@media (hover: hover) {
+  .landing-start-card:hover {
+    border-color: var(--blood);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
+  }
+}
+.landing-start-card:active { transform: translateY(0); }
+.landing-start-title { font-size: 1.15rem; }
+.landing-start-arrow {
+  position: absolute;
+  right: 0.85rem;
+  bottom: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin: 0;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--blood);
+  color: var(--parchment);
+  font-size: 1rem;
+}
+@media (hover: hover) {
+  .landing-start-card:hover .landing-start-arrow { background: var(--blood); transform: none; }
+}
+
+.landing-about-features { gap: 0; column-gap: 2rem; }
+.landing-about-feature {
+  padding: 0.9rem 0;
+  background: none;
+  border: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0;
+}
