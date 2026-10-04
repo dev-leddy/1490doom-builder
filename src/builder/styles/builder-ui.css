@@ -4162,3 +4162,15 @@
 }
 .landing-start-card { padding-left: 0.85rem; padding-right: 0.85rem; }
 .landing-start-title { letter-spacing: 0.04em; font-size: min(1.15rem, 10.6cqi); }
+/* Panel framed by tone, not a coloured outline: lifted charcoal surface, faint
+   neutral edge, soft shadow. The header art fades into the same surface. */
+.landing-world {
+  --world-surface: #0f0f0f;
+  background: var(--world-surface);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+}
+.landing-world::after { background: linear-gradient(180deg, rgba(15, 15, 15, 0) 60%, var(--world-surface) 100%); }
+@media (max-width: 560px) {
+  .landing-world { border-left: 0; border-right: 0; box-shadow: none; }
+}
