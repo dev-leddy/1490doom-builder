@@ -1,5 +1,4 @@
 // POST /api/auth/logout — Destroy session and clear cookie
-import { json } from '../../_middleware.js'
 
 export async function onRequestPost(context) {
   const { env } = context

@@ -371,7 +371,7 @@ export const useTrackerStore = create((set, get) => ({
   },
 
   // ── RELIQUARY ──────────────────────────────────────────────────────────────
-  useReliquary(wi) {
+  activateReliquary(wi) {
     // Opens selection modal; consumable source (cacheItemId = null)
     get().openReliquaryModal(wi, null)
   },
@@ -423,7 +423,7 @@ export const useTrackerStore = create((set, get) => ({
     })
     persistState(get)
   },
-  useCacheItem(wi, itemId) {
+  spendCacheItem(wi, itemId) {
     const w = get().warriors[wi]
     const item = w.cacheItems.find(c => c.id === itemId)
     if (!item) return

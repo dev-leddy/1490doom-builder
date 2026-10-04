@@ -82,7 +82,7 @@ function DetailModal({ title, desc, damage, range, onClose, onExpend, expended, 
 
 export default function EquipmentBlock({ wi, warrior: w }) {
   const [detail, setDetail] = useState(null)
-  const { toggleConsumable, useCacheItem, toggleCrossbowLoaded } = useTrackerStore()
+  const { toggleConsumable, spendCacheItem, toggleCrossbowLoaded } = useTrackerStore()
 
   const cards = []
 
@@ -177,7 +177,7 @@ export default function EquipmentBlock({ wi, warrior: w }) {
     const d = detail
     close()
     if (d.variant === 'consumable') toggleConsumable(wi)
-    else if (d.variant === 'cache') useCacheItem(wi, d.cacheId)
+    else if (d.variant === 'cache') spendCacheItem(wi, d.cacheId)
   }
 
   const handleCardClick = (c) => {

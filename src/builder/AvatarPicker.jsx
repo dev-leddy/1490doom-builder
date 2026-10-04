@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react'
-import { COMPANY_AVATARS, getAvatarSrc } from '../data/avatars'
+import { useRef } from 'react'
+import { COMPANY_AVATARS } from '../data/avatars'
 
 export default function AvatarPicker({ value, onChange }) {
   const fileRef = useRef(null)

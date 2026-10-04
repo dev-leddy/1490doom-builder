@@ -54,7 +54,7 @@ function IPUpgradeNote({ warrior: w }) {
 }
 
 function ConsumableBlock({ wi, warrior: w, wdata }) {
-  const { toggleConsumable, useReliquary } = useTrackerStore()
+  const { toggleConsumable, activateReliquary } = useTrackerStore()
   const hasReliquary = w.consumable === 'Reliquary'
   const desc = CONSUMABLES[w.consumable] || ''
   const ic = ITEM_ICONS[w.consumable] || ''
@@ -91,7 +91,7 @@ function ConsumableBlock({ wi, warrior: w, wdata }) {
       {reliquaryRestore && (
         <button
           className="tk-reliquary-btn"
-          onClick={e => { e.stopPropagation(); useReliquary(wi) }}
+          onClick={e => { e.stopPropagation(); activateReliquary(wi) }}
         >
           ⟳ Expend Reliquary — Restore Once Per Game Abilities
         </button>

@@ -5,7 +5,6 @@ import { getAvatarSrc } from '../data/avatars'
 import { useTrackerStore } from '../store/trackerStore'
 import { MARK_ID_MAP } from '../data/quizData'
 import { hasStoredSession } from '../utils/storage'
-import { getTheme, setTheme } from '../utils/theme'
 import CompanyHeader from './CompanyHeader'
 import WarriorRoster from './WarriorRoster'
 import SaveLoadPanel from './SaveLoadPanel'
@@ -28,7 +27,7 @@ import './styles/builder-ui.css'
 import './styles/builder-modals.css'
 
 export default function BuilderPage({ initialView = null }) {
-  const { validationMsg, dismissValidation, openShare, openImport, clearBuilder, setCompanyMode, companyMode, setMark } = useBuilderStore()
+  const { validationMsg, dismissValidation, openShare, clearBuilder, setCompanyMode, companyMode, setMark } = useBuilderStore()
   const openTracker = useTrackerStore(s => s.openTracker)
   const builderState = useBuilderStore(s => s)
 
@@ -81,7 +80,7 @@ export default function BuilderPage({ initialView = null }) {
     }
     window.addEventListener('beforeunload', handleUnload)
     return () => window.removeEventListener('beforeunload', handleUnload)
-  }, []) // eslint-disable-line
+  }, [])
 
   // global quick reference overlay — works from any view
   const [refOpen, setRefOpen] = useState(false)
@@ -90,13 +89,6 @@ export default function BuilderPage({ initialView = null }) {
   const [modeSelectOpen, setModeSelectOpen] = useState(false)
   const [endOfGameOpen, setEndOfGameOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
-  const [theme, setThemeState] = useState(getTheme)
-
-  function handleToggleTheme() {
-    const next = theme === 'dark' ? 'light' : 'dark'
-    setTheme(next)
-    setThemeState(next)
-  }
 
   // Sync company header width to match warrior card width when only 1 card per row
   const builderMainRef = useRef(null)
@@ -163,7 +155,7 @@ export default function BuilderPage({ initialView = null }) {
       const newUrl = hash ? `${window.location.pathname}${hash}` : window.location.pathname
       window.history.replaceState({}, '', newUrl)
     }
-  }, []) // eslint-disable-line
+  }, [])
 
   function goBuilder() { setView('builder') }
 

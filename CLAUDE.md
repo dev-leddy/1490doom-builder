@@ -5,6 +5,8 @@ See README.md for stack, layout and deployment.
 ## Conventions
 - The pre-commit hook bumps the patch version on every commit — do not bump it manually as well.
 - Deploys are Cloudflare Pages via git push (`main` = production). There is no GitHub Pages deploy.
+- Run `npm run check` (lint + frontend build + Functions build) before pushing; CI runs the same on GitHub.
+- Store actions must not start with `use` (ESLint treats those as React hooks).
 - The quiz lives in this app (`src/quiz`, `quiz.html`, art in `public/quiz/`). Don't split it out.
 - Only commit optimized `.webp` art that code references; no PSD/raw PNG source files.
 - `src/data/images.js` is ~3 MB of base64 — don't read it whole; grep for keys.

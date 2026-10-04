@@ -11,7 +11,7 @@ const IP_ROW_IDS = ['weapon2', 'climbing', 'consumable', 'stat']
 
 export default function WarriorLoadout({ slotIndex, slot, wdata, poolFull }) {
   const [modalCategory, setModalCategory] = useState(null)
-  const { toggleIP, setWarriorProp, getTotalIPSpent, ipLimit, companyMode, addStatImprove, removeStatImprove } = useBuilderStore()
+  const { toggleIP, setWarriorProp, companyMode, removeStatImprove } = useBuilderStore()
 
   const hasFixedShield    = wdata?.fixedShield || false
   const hasFixedDualWield = wdata?.fixedDualWield || false
@@ -56,7 +56,6 @@ export default function WarriorLoadout({ slotIndex, slot, wdata, poolFull }) {
   }
 
   const weapon2Label  = 'Off-hand'
-  const weapon2IsFree = hasFixedShield || hasFixedDualWield
 
   const wpnDisplayDesc = wname => {
     if (!wname) return null
@@ -84,9 +83,6 @@ export default function WarriorLoadout({ slotIndex, slot, wdata, poolFull }) {
   const isDualWield = slot.weapon1 === 'Light Weapon' && slot.weapon2 === 'Light Weapon'
 
   const climbVal = (slot.climbing && slot.climbing !== 'None') ? slot.climbing : null
-  const climbPills = climbVal
-    ? (() => { const cd = CLIMBING_ITEMS[climbVal]; return cd ? [`HT ${cd.height}`, `SKILL ${cd.skillCheck}`] : [] })()
-    : []
 
   const statVal = (slot.statImprove && slot.ip?.includes('stat')) ? STAT_IMPROVEMENT[slot.statImprove] : null
 

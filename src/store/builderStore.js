@@ -226,10 +226,8 @@ export const useBuilderStore = create((set, get) => {
       get()._autoDraft()
     },
     changeIPLimit(delta) {
-      const { ipLimit, slots, companyMode } = get()
+      const { ipLimit, slots } = get()
       const newLimit = Math.max(0, Math.min(20, ipLimit + delta))
-      // In standard mode, maintain captain reserve: non-captains max at newLimit - 1
-      const isStandard = companyMode === 'standard'
       // Remove IP from slots that exceed new pool
       let spent = 0
       const newSlots = slots.map(slot => {
@@ -237,8 +235,6 @@ export const useBuilderStore = create((set, get) => {
         for (const id of (slot.ip || [])) {
           spent++
           if (spent <= newLimit) slotIP.push(id)
-          // Stop early for non-captains in standard mode to preserve 1 for captain
-          else if (isStandard && !slot.isCaptain && spent <= newLimit) slotIP.push(id)
         }
         return { ...slot, ip: slotIP }
       })
@@ -277,7 +273,6 @@ export const useBuilderStore = create((set, get) => {
       const slots = get().slots.map((slot, i) => {
         const type = shuffled[i % shuffled.length]
         const wdata = WARRIORS[type]
-        const cantHave = wdata.cantHave || []
         const allowed = getAllowedWeapons(wdata) // already respects cantHave + fixedWeapon
         let ipPool = companyMode === 'campaign' ? (slot.earnedIP || 0) : sharedPool
 
@@ -441,7 +436,7 @@ export const useBuilderStore = create((set, get) => {
       return isCaptain ? ipLimit : Math.max(0, ipLimit - 1)
     },
     toggleIP(slotIndex, optId, checked) {
-      const { companyMode, slots: allSlots, ipLimit, getTotalIPSpent } = get()
+      const { companyMode, slots: allSlots, getTotalIPSpent } = get()
       const slots = [...allSlots]
       const slot = { ...slots[slotIndex] }
 
@@ -585,7 +580,6 @@ export const useBuilderStore = create((set, get) => {
         const type = picked[i] || null
         if (!type) return { type: null, weapon1: null, weapon2: null, consumable: null, climbing: null, ip: [], isCaptain: i === 0, notes: [] }
         const wdata = WARRIORS[type]
-        const cantHave = wdata.cantHave || []
         const allowed = getAllowedWeapons(wdata) // already respects cantHave + fixedWeapon
         const twoHanded = ['Heavy Weapon', 'Polearm (two-handed)', 'Bow', 'Crossbow']
 

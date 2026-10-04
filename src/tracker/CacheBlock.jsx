@@ -2,7 +2,7 @@ import { useTrackerStore } from '../store/trackerStore'
 import { ITEM_ICONS } from '../data/images'
 
 export default function CacheBlock({ wi, warrior: w }) {
-  const useCacheItem = useTrackerStore(s => s.useCacheItem)
+  const spendCacheItem = useTrackerStore(s => s.spendCacheItem)
 
   return (
     <div className="tk-abilities-block">
@@ -11,7 +11,7 @@ export default function CacheBlock({ wi, warrior: w }) {
           key={item.id}
           className="tk-ability"
           style={{ cursor: 'pointer', borderLeftColor: '#4a8a4a' }}
-          onClick={() => useCacheItem(wi, item.id)}
+          onClick={() => spendCacheItem(wi, item.id)}
         >
           <div className="tk-ability-header">
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>

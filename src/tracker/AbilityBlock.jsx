@@ -134,7 +134,7 @@ export default function AbilityBlock({ wi, warrior: w, wdata }) {
               <div className="tk-ability-desc">{shield.abilityDesc}</div>
             </div>
             <div
-              className={`tk-ability${!!w.oprUsed['SHIELD DEFENSE BONUS'] ? ' tk-ability-used' : ''}`}
+              className={`tk-ability${w.oprUsed['SHIELD DEFENSE BONUS'] ? ' tk-ability-used' : ''}`}
               onClick={!w.dead ? () => toggleOPR(wi, 'SHIELD DEFENSE BONUS') : undefined}
               style={!w.dead ? { cursor: 'pointer' } : {}}
             >
@@ -144,8 +144,8 @@ export default function AbilityBlock({ wi, warrior: w, wdata }) {
                   {shield.ability2Name}
                   <span style={{fontSize: '0.85em', opacity: 0.7, fontWeight: 'normal', marginLeft: '0.4rem'}}>(from Shield)</span>
                 </span>
-                <span className={`tk-opg-badge tk-opr-badge${!!w.oprUsed['SHIELD DEFENSE BONUS'] ? ' tk-opg-used' : ''}`}>
-                  {!!w.oprUsed['SHIELD DEFENSE BONUS'] ? '✓ USED' : 'ONCE PER ROUND'}
+                <span className={`tk-opg-badge tk-opr-badge${w.oprUsed['SHIELD DEFENSE BONUS'] ? ' tk-opg-used' : ''}`}>
+                  {w.oprUsed['SHIELD DEFENSE BONUS'] ? '✓ USED' : 'ONCE PER ROUND'}
                 </span>
               </div>
               <div className="tk-ability-desc">{shield.ability2Desc}</div>

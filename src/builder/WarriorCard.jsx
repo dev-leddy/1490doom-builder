@@ -57,7 +57,7 @@ function StatsRow({ slot, wdata }) {
 
 // ── Main Card ────────────────────────────────────────────────────────────────
 export default function WarriorCard({ slotIndex, slot }) {
-  const { setNotes, getTotalIPSpent, ipLimit } = useBuilderStore()
+  const { setNotes, getTotalIPSpent } = useBuilderStore()
   const allSlots = useBuilderStore(s => s.slots)
   const companyMode = useBuilderStore(s => s.companyMode)
 

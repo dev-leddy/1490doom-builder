@@ -2,7 +2,6 @@ import { useRef, useState, useEffect } from 'react'
 import html2canvas from 'html2canvas'
 import { useBuilderStore } from '../store/builderStore'
 import BottomSheet from '../shared/BottomSheet'
-import { generateDiscordExport } from '../utils/discordExport'
 import DiscordImageRoster from './DiscordImageRoster'
 import { createShortLink } from '../api/companies'
 

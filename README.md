@@ -25,6 +25,14 @@ npm run build
 npx wrangler pages dev dist --port 8788
 ```
 
+## Checks
+
+```bash
+npm run check   # lint + frontend build + Cloudflare Functions build
+```
+
+The same check runs on GitHub (`.github/workflows/check.yml`) for every push and pull request, so problems surface before Cloudflare tries to deploy.
+
 ## Deploying
 
 Cloudflare Pages builds from git automatically:
