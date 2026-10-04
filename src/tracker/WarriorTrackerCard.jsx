@@ -131,10 +131,11 @@ export default function WarriorTrackerCard({ warrior: w, wi }) {
               </div>
             </div>
           )}
-          {w.customName && <div className="tk-slot-class-label">{w.type}</div>}
         </div>
         <div className="tk-warrior-header-text">
           <span className="tk-name">{w.customName || w.type}</span>
+          {/* Class under a custom name (not under the portrait, so the header keeps the portrait's height) */}
+          {w.customName && <span className="tk-class-sub">{w.type}</span>}
           {!w.dead && (
             <button
               className={`tk-activated-btn${w.activated ? ' tk-activated-btn-active' : ''}`}

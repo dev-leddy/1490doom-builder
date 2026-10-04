@@ -991,3 +991,11 @@
 .tk-activated-label,
 .tk-activated-sizer { grid-area: 1 / 1; }
 .tk-activated-sizer { visibility: hidden; }
+.tk-class-sub {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.2;
+}
