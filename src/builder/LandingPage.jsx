@@ -66,7 +66,7 @@ export default function LandingPage({ onLoad, onNew, onQuizComplete }) {
             </button>
             <button type="button" className="landing-start-card" onClick={onNew}>
               <span className="landing-start-title">Build your company</span>
-              <span className="landing-start-desc">Pick your warriors, a mark and equipment, then climb</span>
+              <span className="landing-start-desc">Hand-pick your warriors, swear them to a mark and arm them for the climb</span>
               <span className="landing-start-arrow" aria-hidden="true">→</span>
             </button>
           </div>

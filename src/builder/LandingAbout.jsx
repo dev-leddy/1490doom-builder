@@ -53,9 +53,7 @@ export default function LandingAbout() {
       <ul className="landing-about-facts" aria-label="At a glance">
         <li><span className="landing-about-fact-value">3 min</span><span className="landing-about-fact-label">setup</span></li>
         <li><span className="landing-about-fact-value">30–45 min</span><span className="landing-about-fact-label">per game</span></li>
-        <li><span className="landing-about-fact-value">3</span><span className="landing-about-fact-label">warriors each</span></li>
       </ul>
-      <p className="landing-about-needs">To play: three miniatures per player, two six-sided dice, a measuring tool, a 24-inch circular area and terrain worth climbing.</p>
       <a className="landing-about-link" href="https://1490doom.com" target="_blank" rel="noopener noreferrer">Learn the game at 1490doom.com ↗</a>
 
       <h2 className="landing-about-heading">What you can do here</h2>

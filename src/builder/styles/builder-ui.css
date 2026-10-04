@@ -3978,7 +3978,7 @@
   margin: -0.75rem 0 1rem;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 0.5rem;
 }
 .landing-about-facts li {
@@ -4005,11 +4005,4 @@
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.6);
 }
-.landing-about-needs {
-  font-family: 'Caslon Antique', serif;
-  font-size: 0.92rem;
-  line-height: 1.5;
-  color: var(--bone);
-  margin: 0;
-}
-.landing-about-needs + .landing-about-link { margin-bottom: 1.5rem; }
+.landing-about-facts + .landing-about-link { margin-bottom: 1.5rem; }
