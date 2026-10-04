@@ -417,7 +417,7 @@ export default function BuilderPage({ initialView = null }) {
                 </a>
                 <a
                   className="sb-action-btn sb-action-btn--website sb-action-btn--lg"
-                  href="https://1490doom.com"
+                  href="https://buergames.com/collections/1490-doom-physical"
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => setSidebarOpen(false)}

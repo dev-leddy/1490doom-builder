@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { COMPANIES, QUESTIONS } from '../data/quizData'
+import { COMPANIES, QUESTIONS, RESULT_REDIRECTS } from '../data/quizData'
 
 function initScores() {
   return Object.fromEntries(COMPANIES.map(c => [c.id, 0]))
@@ -14,7 +14,9 @@ function computeWinner(scores) {
       winner = company
     }
   }
-  return winner
+  // Unreleased companies hand the result to their partner company
+  const redirect = winner && RESULT_REDIRECTS[winner.id]
+  return redirect ? COMPANIES.find(c => c.id === redirect) : winner
 }
 
 // Pure state hook — no DOM side-effects.

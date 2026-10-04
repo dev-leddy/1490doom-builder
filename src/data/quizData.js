@@ -2,6 +2,15 @@
 // Source of truth for the "Which Doom Company Are You?" quiz.
 // Image paths use /quiz/ prefix so they resolve in both dev and prod.
 
+// Companies not sold yet: a quiz result that lands on one of these shows its
+// partner company instead (agreed with the 1490 DOOM devs).
+export const RESULT_REDIRECTS = {
+  ashbound: 'graveborn',
+  doomed_choir: 'silent_pact',
+  tower_born: 'fog_walkers',
+  wretched_survivors: 'relic_bitten',
+}
+
 export const COMPANIES = [
   {
     id: 'graveborn',
