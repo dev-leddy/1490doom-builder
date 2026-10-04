@@ -4006,3 +4006,4 @@
   color: rgba(255, 255, 255, 0.6);
 }
 .landing-about-facts + .landing-about-link { margin-bottom: 1.5rem; }
+.landing-about-features + .landing-about-heading { margin-top: 2rem; }

@@ -38,7 +38,20 @@ const FEATURES = [
 export default function LandingAbout() {
   return (
     <section className="landing-about" aria-labelledby="landing-about-title">
-      <h2 id="landing-about-title" className="landing-about-heading">What is 1490 DOOM?</h2>
+      <h2 id="landing-about-title" className="landing-about-heading">What you can do here</h2>
+      <ul className="landing-about-features">
+        {FEATURES.map(f => (
+          <li key={f.title} className="landing-about-feature">
+            <h3 className="landing-about-feature-title">
+              <svg className="landing-about-icon" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true"><path d={f.icon} /></svg>
+              {f.title}
+            </h3>
+            <p className="landing-about-feature-desc">{f.desc}</p>
+          </li>
+        ))}
+      </ul>
+
+      <h2 className="landing-about-heading">What is 1490 DOOM?</h2>
       <div className="landing-about-lore">
         <p className="landing-about-opening">It is late in the year 1490. The ground has begun to rot.</p>
         <p>With the thaw came the Creeping Death. Low at first, pooling in the hollows, it rose inch by inch, creeping ever higher. Whole cities went under. The forests stand black and skeletal.</p>
@@ -55,19 +68,6 @@ export default function LandingAbout() {
         <li><span className="landing-about-fact-value">30–45 min</span><span className="landing-about-fact-label">per game</span></li>
       </ul>
       <a className="landing-about-link" href="https://1490doom.com" target="_blank" rel="noopener noreferrer">Learn the game at 1490doom.com ↗</a>
-
-      <h2 className="landing-about-heading">What you can do here</h2>
-      <ul className="landing-about-features">
-        {FEATURES.map(f => (
-          <li key={f.title} className="landing-about-feature">
-            <h3 className="landing-about-feature-title">
-              <svg className="landing-about-icon" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true"><path d={f.icon} /></svg>
-              {f.title}
-            </h3>
-            <p className="landing-about-feature-desc">{f.desc}</p>
-          </li>
-        ))}
-      </ul>
 
       <p className="landing-about-footnote">Free to use · An official 1490 DOOM production with Buer Games</p>
     </section>
