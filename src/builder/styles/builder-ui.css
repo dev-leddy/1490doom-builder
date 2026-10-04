@@ -4105,3 +4105,5 @@
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 0;
 }
+.landing-about { border-top: 0; padding-top: 0; }
+.landing-about-features { border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
