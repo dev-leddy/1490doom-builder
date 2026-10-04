@@ -61,7 +61,7 @@ export default function LandingPage({ onLoad, onNew, onQuizComplete }) {
           <div className="landing-start">
             <button type="button" className="landing-start-card" onClick={() => setShowQuiz(true)}>
               <span className="landing-start-title">Take the quiz</span>
-              <span className="landing-start-desc">Find your company</span>
+              <span className="landing-start-desc">Five questions to find the Doom Company that fits how you play</span>
               <span className="landing-start-arrow" aria-hidden="true">→</span>
             </button>
             <button type="button" className="landing-start-card" onClick={onNew}>
