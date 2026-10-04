@@ -25,10 +25,12 @@ function IPUpgradeNote({ warrior: w }) {
   if (w.statImprove && upgrades.some(ip => ip.startsWith('stat')))
     tags.push({ key: 'stat', label: STAT_IMPROVEMENT[w.statImprove], free: false })
 
+  // Built-in gear isn't an IP upgrade: Knight / Hedge Knight shield, Reaver's second Light Weapon
   if (w.weapon2) {
-    const isFree = wdata?.fixedShield === true && w.weapon2 === 'Shield'
-    if (isFree || upgrades.includes('weapon2'))
-      tags.push({ key: 'weapon2', label: w.weapon2, free: isFree })
+    const isBuiltIn = (wdata?.fixedShield && w.weapon2 === 'Shield') ||
+                      (wdata?.fixedDualWield && w.weapon2 === 'Light Weapon')
+    if (!isBuiltIn && upgrades.includes('weapon2'))
+      tags.push({ key: 'weapon2', label: w.weapon2, free: false })
   }
 
   if (w.climbing && w.climbing !== 'None' && upgrades.includes('climbing'))

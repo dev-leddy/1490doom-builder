@@ -44,6 +44,9 @@ export default function WarriorLoadout({ slotIndex, slot, wdata, poolFull }) {
     return false
   }
 
+  // No IP left to spend: don't show slots that can't be filled
+  const hideEmpty = id => poolFull && isRowLocked(id)
+
   const spendIP = id => { if (!slot.ip?.includes(id) && !poolFull) toggleIP(slotIndex, id, true) }
   const freeIP  = id => { if (slot.ip?.includes(id)) toggleIP(slotIndex, id, false) }
 
@@ -170,7 +173,7 @@ export default function WarriorLoadout({ slotIndex, slot, wdata, poolFull }) {
               </div>
             )}
           </div>
-        ) : (
+        ) : hideEmpty('weapon2') ? null : (
           <div className={`eq-chip eq-chip-empty ${isRowLocked('weapon2') ? 'eq-chip-locked' : ''}`} onClick={() => !isRowLocked('weapon2') && setModalCategory('weapon2')} title={isRowLocked('weapon2') ? "Locked" : `Empty Secondary`}>
             {getBadge('weapon2') && <span className={`eq-chip-badge eq-badge-${getBadge('weapon2').variant}`}>{getBadge('weapon2').text}</span>}
             <div className="eq-chip-icon" style={{ opacity: 0.3 }}><SvgOffhand /></div>
@@ -191,7 +194,7 @@ export default function WarriorLoadout({ slotIndex, slot, wdata, poolFull }) {
               <span className={`eq-chip-value ${(climbVal?.length > 18) ? 'eq-chip-value--small' : ''}`}>{climbVal}</span>
             </div>
           </div>
-        ) : (
+        ) : hideEmpty('climbing') ? null : (
           <div className={`eq-chip eq-chip-empty ${isRowLocked('climbing') ? 'eq-chip-locked' : ''}`} onClick={() => !isRowLocked('climbing') && setModalCategory('climbing')} title={isRowLocked('climbing') ? "Locked" : `Empty Gear`}>
             {getBadge('climbing') && <span className={`eq-chip-badge eq-badge-${getBadge('climbing').variant}`}>{getBadge('climbing').text}</span>}
             <div className="eq-chip-icon" style={{ opacity: 0.3 }}><SvgClimbing /></div>
@@ -212,7 +215,7 @@ export default function WarriorLoadout({ slotIndex, slot, wdata, poolFull }) {
               <span className={`eq-chip-value ${(slot.consumable?.length > 18) ? 'eq-chip-value--small' : ''}`}>{slot.consumable}</span>
             </div>
           </div>
-        ) : (
+        ) : hideEmpty('consumable') ? null : (
           <div className={`eq-chip eq-chip-empty ${isRowLocked('consumable') ? 'eq-chip-locked' : ''}`} onClick={() => !isRowLocked('consumable') && setModalCategory('consumable')} title={isRowLocked('consumable') ? "Locked" : `Empty Item`}>
             {getBadge('consumable') && <span className={`eq-chip-badge eq-badge-${getBadge('consumable').variant}`}>{getBadge('consumable').text}</span>}
             <div className="eq-chip-icon" style={{ opacity: 0.3 }}><SvgConsumable /></div>
