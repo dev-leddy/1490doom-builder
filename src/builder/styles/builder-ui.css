@@ -4261,3 +4261,16 @@
   text-align: center;
 }
 .app-menu-trail { color: rgba(255, 255, 255, 0.4); font-size: 1.1rem; line-height: 1; }
+
+/* New Company footer: why Begin is disabled */
+.ncp-footer-hint {
+  flex: 1;
+  padding: 0 0.75rem;
+  text-align: right;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+}
+.ncp-btn--primary:disabled { opacity: 0.4; cursor: not-allowed; }

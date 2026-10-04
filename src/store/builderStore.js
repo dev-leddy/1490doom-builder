@@ -92,7 +92,7 @@ const _SUFFIX = [
 
 function _rnd(arr) { return arr[Math.floor(Math.random() * arr.length)] }
 
-function generateCompanyName() {
+export function generateCompanyName() {
   const pattern = Math.floor(Math.random() * 6)
   switch (pattern) {
     case 0: return `The ${_rnd(_ADJ)} ${_rnd(_NOUN)}`

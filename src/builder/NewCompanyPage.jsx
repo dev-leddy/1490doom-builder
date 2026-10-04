@@ -1,7 +1,7 @@
 // ── New Company Page ───────────────────────────────────────────────────────────
 
 import { useState } from 'react'
-import { useBuilderStore } from '../store/builderStore'
+import { useBuilderStore, generateCompanyName } from '../store/builderStore'
 import { COMPANY_AVATARS, getAvatarSrc } from '../data/avatars'
 import { MARKS, WARRIORS } from '../data/warriors'
 import { WARRIOR_IMAGES, MARK_IMAGES, ITEM_ICONS } from '../data/images'
@@ -9,12 +9,6 @@ import { WEAPONS, CLIMBING_ITEMS } from '../data/weapons'
 import AvatarPicker from './AvatarPicker'
 import BottomSheet from '../shared/BottomSheet.jsx'
 import MarkPicker from './MarkPicker.jsx'
-
-const DOOM_NAMES = [
-  'THE BLOOD SCRIBE', 'IRON RECAPTOR', 'VOID STALKERS', 'GRIM COVENANT', 'BONE RIPPERS',
-  'ASHEN LEGION', 'DREAD HARVEST', 'WAR-BORN SOULS', 'THE HOLLOW HAND', 'PALE WATCHER',
-  'CRIMSON KEEP', 'SILENT REAPERS', 'GRAVE WARDENS', 'THE SUFFERING', 'ETERNAL PYRE'
-]
 
 function randomAvatarKey() {
   return COMPANY_AVATARS[Math.floor(Math.random() * COMPANY_AVATARS.length)].key
@@ -63,6 +57,7 @@ export default function NewCompanyPage({ onStart, onBack }) {
   const avatarSrc = getAvatarSrc(avatar)
   const selectedMark = MARKS.find(m => m.name === mark)
   const warriorCount = slots.length
+  const hasWarrior = slots.some(Boolean)
 
   function handleModeChange(m) {
     setMode(m)
@@ -149,6 +144,7 @@ export default function NewCompanyPage({ onStart, onBack }) {
   }
 
   function handleStart() {
+    if (!hasWarrior) return
     onStart(mode, name.trim() || null, avatar, warriorCount, ip, randomPreview, mark || null, slots, slotIps)
   }
 
@@ -207,7 +203,7 @@ export default function NewCompanyPage({ onStart, onBack }) {
                   <button
                     className="ncp-dice-btn"
                     title="Random name"
-                    onClick={() => setName(DOOM_NAMES[Math.floor(Math.random() * DOOM_NAMES.length)])}
+                    onClick={() => setName(generateCompanyName())}
                   >
                     <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
                       <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7 7c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm0 10c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm5-4c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm5 4c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm0-8c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z"/>
@@ -232,7 +228,7 @@ export default function NewCompanyPage({ onStart, onBack }) {
             {isCampaign && (
               <div className="ncp-campaign-notice" style={{ marginTop: '0.6rem' }}>
                 <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
-                Warriors start with <strong>0 IP</strong>. IP is earned after each scenario by survivors.
+                <span>Warriors start with <strong>0 IP</strong>. IP is earned after each scenario by survivors.</span>
               </div>
             )}
           </section>
@@ -269,7 +265,7 @@ export default function NewCompanyPage({ onStart, onBack }) {
                 : <span className="ncp-add-slot-btn ncp-add-slot-btn--maxed">Max warriors</span>
               }
               {!isCampaign && (
-                <Stepper label="Company IP" value={ip} min={0} max={100} onChange={setIp} />
+                <Stepper label="Company IP" value={ip} min={0} max={20} onChange={setIp} />
               )}
             </div>
 
@@ -353,19 +349,13 @@ export default function NewCompanyPage({ onStart, onBack }) {
           title={`WARRIOR ${editingSlot + 1} — CLASS`}
           onClose={() => setEditingSlot(null)}
           zIndex={900}
-          footer={
-            <>
-              <button className="co-sheet-randomize" onClick={() => setEditingSlot(null)}>Cancel</button>
-              <button className="co-sheet-done" onClick={() => { setSlotType(editingSlot, tempSlotType); setEditingSlot(null) }}>Done</button>
-            </>
-          }
         >
           <div className="wcp-grid">
-            {WARRIOR_NAMES.map(wt => (
+            {WARRIOR_NAMES.filter(wt => !slots.some((t, i) => t === wt && i !== editingSlot)).map(wt => (
               <button
                 key={wt}
                 className={`wcp-item${tempSlotType === wt ? ' selected' : ''}`}
-                onClick={() => setTempSlotType(wt)}
+                onClick={() => { setSlotType(editingSlot, wt); setEditingSlot(null) }}
               >
                 <div className="wcp-portrait">
                   {WARRIOR_IMAGES[wt] && <img src={WARRIOR_IMAGES[wt]} alt={wt} />}
@@ -420,8 +410,8 @@ export default function NewCompanyPage({ onStart, onBack }) {
             {randomPreview ? 'Roll Again' : 'Randomize'}
           </button>
         )}
-        <div style={{ flex: 1 }} />
-        <button className="ncp-btn ncp-btn--primary" onClick={handleStart}>
+        <div className="ncp-footer-hint" aria-live="polite">{hasWarrior ? '' : 'Choose at least one warrior'}</div>
+        <button className="ncp-btn ncp-btn--primary" onClick={handleStart} disabled={!hasWarrior}>
           {randomPreview ? 'Accept & Build →' : `Begin ${isCampaign ? 'Campaign' : 'Build'} →`}
         </button>
       </div>
