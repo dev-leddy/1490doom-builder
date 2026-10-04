@@ -4141,7 +4141,10 @@
 }
 .landing-world::before {
   z-index: -2;
-  background: url('/landing/battlefield.webp') center 42% / cover no-repeat; /* keeps the warriors on the ridge in frame */
+  /* charcoal sky behind near-black silhouettes; warriors on the ridge kept in frame */
+  background:
+    url('/landing/battlefield.webp') center 42% / cover no-repeat,
+    linear-gradient(180deg, #3a3a3a 0%, #2b2b2b 100%);
 }
 .landing-world::after {
   z-index: -1;
