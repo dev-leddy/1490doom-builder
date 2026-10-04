@@ -3872,3 +3872,144 @@
 /* Nothing inside a read-only company responds to taps (the page still scrolls) */
 .builder-readonly { pointer-events: none; }
 .builder-readonly .ch-quick-btn { pointer-events: auto; } /* share & print still work */
+
+/* ── LANDING START (two equal ways in) ───────────────────── */
+.landing-start { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+@media (max-width: 359px) { .landing-start { grid-template-columns: 1fr; } }
+.landing-start-card {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 0.3rem; text-align: left;
+  min-height: 120px; padding: 1rem; cursor: pointer;
+  background: var(--fog); border: 1px solid rgba(255, 255, 255, 0.08); border-top: 2px solid var(--blood); border-radius: 8px;
+  color: var(--bone); -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.2s;
+}
+@media (hover: hover) { .landing-start-card:hover { border-color: rgba(190, 65, 39, 0.6); } }
+.landing-start-card:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
+.landing-start-title { font-family: 'Oswald', sans-serif; font-size: 1.05rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--parchment); }
+.landing-start-desc { font-family: 'Caslon Antique', serif; font-size: 0.92rem; line-height: 1.4; }
+.landing-start-arrow { margin-top: auto; padding-top: 0.4rem; font-size: 1.1rem; line-height: 1; color: var(--blood); transition: transform 0.15s; }
+@media (hover: hover) { .landing-start-card:hover .landing-start-arrow { transform: translateX(3px); } }
+
+/* ── LANDING ABOUT (what is 1490 DOOM?) ──────────────────── */
+.landing-about {
+  margin-top: 2.5rem;
+  padding-top: 1.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.landing-about-heading {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--parchment);
+  margin: 0 0 0.85rem;
+}
+.landing-about-lore {
+  font-family: 'Caslon Antique', serif;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--bone);
+  margin-bottom: 2rem;
+}
+.landing-about-lore p { margin: 0 0 0.75rem; }
+.landing-about-lore strong { color: var(--parchment); font-weight: normal; }
+.landing-about-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--bone);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+@media (hover: hover) { .landing-about-link:hover { color: var(--parchment); } }
+.landing-about-features {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.6rem;
+}
+@media (min-width: 640px) { .landing-about-features { grid-template-columns: 1fr 1fr; } }
+.landing-about-feature {
+  padding: 0.85rem 0.9rem;
+  background: var(--fog);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+}
+.landing-about-icon { flex-shrink: 0; color: var(--blood); }
+.landing-about-feature-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--parchment);
+  margin: 0 0 0.4rem;
+}
+.landing-about-feature-desc {
+  font-family: 'Caslon Antique', serif;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: var(--bone);
+  margin: 0;
+}
+.landing-about-footnote {
+  margin: 1.5rem 0 4.5rem; /* clear the floating shop pill */
+  text-align: center;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+.landing-about-lore + .landing-about-heading { margin-top: 0; }
+.landing-about-opening { font-size: 1.15rem; color: var(--parchment); }
+.landing-about-facts {
+  list-style: none;
+  margin: -0.75rem 0 1rem;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+.landing-about-facts li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  padding: 0.65rem 0.4rem;
+  background: var(--fog);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  text-align: center;
+}
+.landing-about-fact-value {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.05rem;
+  letter-spacing: 0.06em;
+  color: var(--parchment);
+}
+.landing-about-fact-label {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+}
+.landing-about-needs {
+  font-family: 'Caslon Antique', serif;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--bone);
+  margin: 0;
+}
+.landing-about-needs + .landing-about-link { margin-bottom: 1.5rem; }

@@ -4,6 +4,7 @@ import { useAuthStore } from '../store/authStore'
 import SaveLoadPanel from './SaveLoadPanel'
 import QuickRef from '../shared/QuickRef'
 import QuizOverlay from './QuizOverlay'
+import LandingAbout from './LandingAbout'
 
 export function RefContent({ onBack }) {
   return <QuickRef onBack={onBack} />
@@ -56,22 +57,30 @@ export default function LandingPage({ onLoad, onNew, onQuizComplete }) {
               : <>Build, save and track your Doom Company for <strong>1490 DOOM</strong>, the tabletop skirmish game.</>}
           </p>
 
-          {/* Quiz invitation for new players */}
-          <div className="quiz-card quiz-card--hero" onClick={() => setShowQuiz(true)}>
-            <span className="quiz-card-eyebrow">New to 1490 DOOM?</span>
-            <h2 className="quiz-card-headline">Which Doom Company are you?</h2>
-            <p className="quiz-card-sub">Five questions. We'll pick a mark and three warriors to start you off.</p>
-            <button type="button" className="quiz-card-btn">Take the quiz →</button>
+          {/* Two equal ways in: guided (quiz) or from scratch */}
+          <div className="landing-start">
+            <button type="button" className="landing-start-card" onClick={() => setShowQuiz(true)}>
+              <span className="landing-start-title">Take the quiz</span>
+              <span className="landing-start-desc">Find your company</span>
+              <span className="landing-start-arrow" aria-hidden="true">→</span>
+            </button>
+            <button type="button" className="landing-start-card" onClick={onNew}>
+              <span className="landing-start-title">Build your company</span>
+              <span className="landing-start-desc">Pick your warriors, a mark and equipment, then climb</span>
+              <span className="landing-start-arrow" aria-hidden="true">→</span>
+            </button>
           </div>
         </>
       )}
 
-      <button className="landing-new-company-btn" onClick={onNew}>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="14" height="14" aria-hidden="true">
-          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/>
-        </svg>
-        New Company
-      </button>
+      {saves.length > 0 && (
+        <button className="landing-new-company-btn" onClick={onNew}>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="14" height="14" aria-hidden="true">
+            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/>
+          </svg>
+          New Company
+        </button>
+      )}
 
       {/* Returning players: a quiet row below their list and its New Company action */}
       {saves.length > 0 && (
@@ -80,6 +89,9 @@ export default function LandingPage({ onLoad, onNew, onQuizComplete }) {
           <button type="button" className="quiz-card-cta">Take the quiz →</button>
         </div>
       )}
+
+      {/* First-time visitors: what the game is and what the app does */}
+      {!user && <LandingAbout />}
 
     </div>
   )
