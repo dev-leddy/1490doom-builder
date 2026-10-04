@@ -15,7 +15,7 @@ export const WARRIORS = {
   Beekeeper: {
     stats: { MOV: 6, ATK: 1, VIT: 4, SKL: '4+', COM: '4+', DEF: '5+' },
     abilities: [
-      { name: 'BECKON THE SWARM', desc: 'Once per activation, the Beekeeper may spend an action to BECKON THE SWARM onto an enemy model within 3 inches and within light of sight. That model must roll a DEFENSE Check. If they pass, nothing happens. If they fail, that model becomes Hindered.' },
+      { name: 'BECKON THE SWARM', desc: 'Once per activation, the Beekeeper may spend an action to BECKON THE SWARM onto an enemy model within 3 inches and within line of sight. That model must roll a DEFENSE Check. If they pass, nothing happens. If they fail, that model becomes Hindered.' },
       { name: 'STINGING CLOUD', desc: 'Whenever an enemy model within 2 inches of the Beekeeper causes the Beekeeper to lose VITALITY, that enemy model must pass a SKILL Check or lose 1 VITALITY.' },
       { name: 'BUZZING MANTLE', desc: 'Enemy models within 1 inch of the Beekeeper suffer -1 to all COMBAT Checks.' },
     ],
