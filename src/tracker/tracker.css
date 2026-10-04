@@ -622,7 +622,7 @@
   line-height: 1;
   color: #ffffff;
 }
-.tk-tab.tk-tab-active .tk-tab-vit { color: #be4127; }
+.tk-tab.tk-tab-active .tk-tab-vit { color: #ffffff; } /* selected tab is marked by its top bar; vitality stays white */
 .tk-tab-name {
   font-family: 'Oswald', sans-serif; text-transform: uppercase;
   font-size: 0.5rem;
@@ -977,3 +977,17 @@
 
 /* Every card reserves the captain tag's space, so switching warriors doesn't shift the page */
 .tk-card { margin-top: 0.75rem; }
+
+/* Activated button: as wide as "UNACTIVATED", tall enough to reach the portrait's bottom */
+.tk-warrior-header-text { align-self: stretch; }
+.tk-activated-btn {
+  flex: 1;
+  width: auto;
+  display: grid;
+  place-items: center;
+  margin-top: 0.4rem;
+  padding: 0.3rem 0.9rem;
+}
+.tk-activated-label,
+.tk-activated-sizer { grid-area: 1 / 1; }
+.tk-activated-sizer { visibility: hidden; }

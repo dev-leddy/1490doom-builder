@@ -140,7 +140,9 @@ export default function WarriorTrackerCard({ warrior: w, wi }) {
               className={`tk-activated-btn${w.activated ? ' tk-activated-btn-active' : ''}`}
               onClick={() => toggleActivated(wi)}
             >
-              {w.activated ? '✓ ACTIVATED' : 'UNACTIVATED'}
+              <span className="tk-activated-label">{w.activated ? '✓ ACTIVATED' : 'UNACTIVATED'}</span>
+              {/* invisible copy of the longer label sets the width, so both states match */}
+              <span className="tk-activated-sizer" aria-hidden="true">UNACTIVATED</span>
             </button>
           )}
         </div>
