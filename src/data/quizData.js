@@ -19,7 +19,7 @@ export const COMPANIES = [
     markDescription: "Death is not the end. It's the last chance to take one of them with you.",
     strategy: 'Deploy aggressively, make final actions count when warriors fall, accept casualties to secure victory.',
     victoryPath: '<strong>Attrition</strong><br><span class="vp-desc">End the game with more warriors alive than your opponent. Simple. Hit hard, die last.</span><br><br><strong>High Ground</strong><br><span class="vp-desc">Have the most models at the highest elevation at game end.</span>',
-    url: 'https://buergames.com/products/the-graveborn-company',
+    url: '/go/product/the-graveborn-company',
   },
   {
     id: 'silent_pact',
@@ -37,7 +37,7 @@ export const COMPANIES = [
     markDescription: 'Perfect coordination. When the moment comes, you move as one.',
     strategy: 'Strike fast and disengage, use traps to control movement, save 3-action burst for critical moments.',
     victoryPath: '<strong>High Ground</strong><br><span class="vp-desc">Have the most models at the highest elevation at game end.</span><br><br><strong>Resourceful</strong><br><span class="vp-desc">Open more resource caches than any other company.</span>',
-    url: 'https://buergames.com/products/the-silent-pact-complete-doom-company',
+    url: '/go/product/the-silent-pact-complete-doom-company',
   },
   {
     id: 'tower_born',
@@ -55,7 +55,7 @@ export const COMPANIES = [
     markDescription: "The fall doesn't scare you. You were born in the heights.",
     strategy: 'Rush tallest structures, push enemies off aggressively, jump between structures fearlessly.',
     victoryPath: '<strong>High Ground</strong><br><span class="vp-desc">Have the most models at the highest point on the board at game end. Get up. Stay up.</span><br><br><strong>Attrition</strong><br><span class="vp-desc">End the game with more warriors alive than your opponent.</span>',
-    url: 'https://buergames.com/products/the-tower-born-company',
+    url: '/go/product/the-tower-born-company',
   },
   {
     id: 'ashbound',
@@ -73,7 +73,7 @@ export const COMPANIES = [
     markDescription: 'Place the Hearth where something was lost. Defend it to the death.',
     strategy: 'Force enemies to come to you, guard the Hearth strategically, fight on YOUR ground.',
     victoryPath: '<strong>Attrition</strong><br><span class="vp-desc">End the game with more warriors alive than your opponent.</span><br><br><strong>Resourceful</strong><br><span class="vp-desc">Open more resource caches than any other company.</span>',
-    url: 'https://buergames.com/products/the-ashbound-company',
+    url: '/go/product/the-ashbound-company',
   },
   {
     id: 'wretched_survivors',
@@ -91,7 +91,7 @@ export const COMPANIES = [
     markDescription: 'The more wounded you are, the harder you are to kill.',
     strategy: 'Accept damage early to activate bonuses, wounded Scavengers excel at caches, survive and outlast.',
     victoryPath: '<strong>Resourceful</strong><br><span class="vp-desc">Open more resource caches than any other company. Even at death\'s door, you find a way.</span><br><br><strong>Attrition</strong><br><span class="vp-desc">End the game with more warriors alive than your opponent.</span>',
-    url: 'https://buergames.com/products/the-wretched-survivors-company',
+    url: '/go/product/the-wretched-survivors-company',
   },
   {
     id: 'doomed_choir',
@@ -109,7 +109,7 @@ export const COMPANIES = [
     markDescription: 'Surround them. Chant. Watch them crumble under the weight of your hymn.',
     strategy: 'Use swarm tactics to surround targets, activate debuffs, break enemy morale.',
     victoryPath: '<strong>Attrition</strong><br><span class="vp-desc">End the game with more warriors alive than your opponent. Surround them. Swarm. Outlast.</span><br><br><strong>High Ground</strong><br><span class="vp-desc">Have the most models at the highest elevation at game end.</span>',
-    url: 'https://buergames.com/products/the-doomed-choir-company',
+    url: '/go/product/the-doomed-choir-company',
   },
   {
     id: 'fog_walkers',
@@ -127,7 +127,7 @@ export const COMPANIES = [
     markDescription: 'Others fear the ground. You own it.',
     strategy: 'Fight on ground level, trap low-elevation chokepoints, counter vertical meta.',
     victoryPath: '<strong>Attrition</strong><br><span class="vp-desc">End the game with more warriors alive than your opponent. Ground level is your domain — use it.</span><br><br><strong>Resourceful</strong><br><span class="vp-desc">Open more resource caches than any other company.</span>',
-    url: 'https://buergames.com/products/the-fog-walkers-company',
+    url: '/go/product/the-fog-walkers-company',
   },
   {
     id: 'relic_bitten',
@@ -145,7 +145,7 @@ export const COMPANIES = [
     markDescription: 'You never get bad loot. The relics call to you.',
     strategy: 'Open all 3 caches, guaranteed good loot with double rolls, modify equipment.',
     victoryPath: '<strong>Resourceful</strong><br><span class="vp-desc">Open more resource caches than any other company.</span><br><br><strong>Attrition</strong><br><span class="vp-desc">End the game with more warriors alive than your opponent.</span>',
-    url: 'https://buergames.com/products/the-relic-bitten-company',
+    url: '/go/product/the-relic-bitten-company',
   },
 ]
 
