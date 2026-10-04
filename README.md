@@ -32,7 +32,7 @@ Cloudflare Pages builds from git automatically:
 - push to `main` → production
 - push to any other branch → preview at `https://<branch>.1490doom-builder.pages.dev`
 
-Bump the patch `version` in `package.json` with every commit (shown in the app footer).
+The patch `version` in `package.json` (shown in the app footer) is bumped automatically by a local pre-commit hook (`.git/hooks/pre-commit`). Hooks are not cloned — on a fresh clone, bump it manually or recreate the hook.
 
 ## Database
 

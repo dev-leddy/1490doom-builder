@@ -3,7 +3,7 @@
 See README.md for stack, layout and deployment.
 
 ## Conventions
-- Bump the patch version in `package.json` on every commit unless told otherwise.
+- The pre-commit hook bumps the patch version on every commit — do not bump it manually as well.
 - Deploys are Cloudflare Pages via git push (`main` = production). There is no GitHub Pages deploy.
 - The quiz lives in this app (`src/quiz`, `quiz.html`, art in `public/quiz/`). Don't split it out.
 - Only commit optimized `.webp` art that code references; no PSD/raw PNG source files.
