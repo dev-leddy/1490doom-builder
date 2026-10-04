@@ -2492,115 +2492,115 @@
   }
 }
 
+/* ── LANDING INTRO ───────────────────────────────────────── */
+/* One line telling newcomers what the app is */
+.landing-intro {
+  margin: 0.75rem 0 1rem;
+  text-align: center;
+  font-family: 'Caslon Antique', serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--bone);
+}
+.landing-intro strong { color: var(--parchment); font-weight: normal; }
+
 /* ── QUIZ CARD ───────────────────────────────────────────── */
+/* An invitation, not a banner: neutral surface, one thin accent */
 .quiz-card {
   cursor: pointer;
-  border-radius: 6px;
-  border: 1px solid rgba(190,65,39,0.3);
-  background: rgba(190,65,39,0.05);
-  transition: border-color 0.2s, background 0.2s, transform 0.15s;
   -webkit-tap-highlight-color: transparent;
 }
-@media (hover: hover) {
-  .quiz-card:hover {
-    border-color: rgba(190,65,39,0.7);
-    background: rgba(190,65,39,0.1);
-    transform: translateY(-1px);
-  }
-}
-.quiz-card:active {
-  transform: translateY(0);
-}
 
-/* Hero variant — new users, front and centre */
+/* Hero variant — new players */
 .quiz-card--hero {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 2rem 1.5rem;
-  margin-top: 1rem;
-  gap: 0.6rem;
-  background: linear-gradient(160deg, rgba(139,0,0,0.18) 0%, rgba(190,65,39,0.06) 100%);
-  border-color: rgba(190,65,39,0.4);
+  align-items: flex-start;
+  text-align: left;
+  gap: 0.4rem;
+  padding: 1.25rem 1.25rem 1.1rem;
+  background: var(--fog);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 3px solid var(--blood);
+  border-radius: 8px;
+  transition: border-color 0.2s;
+}
+@media (hover: hover) {
+  .quiz-card--hero:hover { border-color: rgba(255, 255, 255, 0.16); border-left-color: var(--blood); }
 }
 .quiz-card--hero .quiz-card-eyebrow {
   font-family: 'Oswald', sans-serif;
-  font-size: 0.72rem;
-  letter-spacing: 0.22em;
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--bone);
+  opacity: 0.75;
 }
 .quiz-card--hero .quiz-card-headline {
   font-family: 'Caslon Antique', serif;
-  font-size: 1.9rem;
-  color: #fff;
+  font-size: 1.4rem;
+  color: var(--parchment);
   margin: 0;
   line-height: 1.2;
 }
 .quiz-card--hero .quiz-card-sub {
-  font-size: 0.95rem;
-  color: #fff;
-  line-height: 1.6;
-  margin: 0.25rem 0 0.75rem;
-  max-width: 320px;
+  font-size: 0.92rem;
+  color: var(--bone);
+  line-height: 1.5;
+  margin: 0 0 0.5rem;
 }
 .quiz-card--hero .quiz-card-btn {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 1.1rem;
   font-family: 'Oswald', sans-serif;
   font-size: 0.8rem;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: #fff;
-  background: var(--blood);
-  padding: 0.55rem 1.5rem;
+  background: transparent;
+  color: var(--parchment);
+  border: 1px solid var(--blood);
   border-radius: 4px;
+  cursor: pointer;
   transition: background 0.15s;
 }
 @media (hover: hover) {
-  .quiz-card--hero:hover .quiz-card-btn {
-    background: #a52020;
-  }
+  .quiz-card--hero:hover .quiz-card-btn { background: rgba(190, 65, 39, 0.15); }
 }
+.quiz-card--hero .quiz-card-btn:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
 
-/* Compact variant — returning users */
+/* Compact variant — returning players, below their list */
 .quiz-card--compact {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem 1rem;
-  margin-top: 1rem;
-}
-.quiz-card--compact .quiz-card-body {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-}
-.quiz-card--compact .quiz-card-eyebrow {
-  font-family: 'Oswald', sans-serif;
-  font-size: 0.62rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--blood);
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+  padding: 0.25rem 0.25rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 .quiz-card--compact .quiz-card-title {
   font-family: 'Caslon Antique', serif;
   font-size: 0.95rem;
-  color: #fff;
+  color: var(--bone);
 }
 .quiz-card--compact .quiz-card-cta {
-  font-family: 'Oswald', sans-serif;
-  font-size: 0.75rem;
-  letter-spacing: 0.1em;
-  color: var(--mist);
-  transition: color 0.2s;
+  min-height: 44px;
+  background: none;
+  border: 0;
+  cursor: pointer;
   white-space: nowrap;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--bone);
 }
 @media (hover: hover) {
-  .quiz-card--compact:hover .quiz-card-cta {
-    color: var(--gold);
-  }
+  .quiz-card--compact:hover .quiz-card-cta { color: var(--parchment); text-decoration: underline; }
 }
+.quiz-card--compact .quiz-card-cta:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
 
 /* ── LANDING NEW COMPANY BUTTON ─────────────────────────── */
 .landing-new-company-btn {

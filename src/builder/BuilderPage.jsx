@@ -283,7 +283,8 @@ export default function BuilderPage({ initialView = null }) {
         if (ipDiff !== 0) s.changeIPLimit(ipDiff)
       }
     }
-    if (mark) s.setMark(mark)
+    // The wizard's mark choice wins, including "no mark" (the store defaults to the first mark)
+    if (mark || !randomPreview) s.setMark(mark || '')
     setView('builder')
   }
 

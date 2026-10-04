@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useBuilderStore } from '../store/builderStore'
+import { useAuthStore } from '../store/authStore'
 import SaveLoadPanel from './SaveLoadPanel'
 import QuickRef from '../shared/QuickRef'
 import QuizOverlay from './QuizOverlay'
@@ -10,6 +11,7 @@ export function RefContent({ onBack }) {
 
 export default function LandingPage({ onLoad, onNew, onQuizComplete }) {
   const { saves } = useBuilderStore()
+  const user = useAuthStore(s => s.user)
   const [showQuiz, setShowQuiz] = useState(false)
 
   // Building from the quiz result needs an account; BuilderPage handles that
@@ -42,26 +44,26 @@ export default function LandingPage({ onLoad, onNew, onQuizComplete }) {
       </a>
 
       {saves.length > 0 ? (
+        <div className="landing-saves">
+          <SaveLoadPanel onSelect={onLoad} />
+        </div>
+      ) : (
         <>
-          <div className="landing-saves">
-            <SaveLoadPanel onSelect={onLoad} />
-          </div>
+          {/* Newcomers: say what this is before asking them to do anything */}
+          <p className="landing-intro">
+            {user
+              ? <>Welcome, {user.username}. Start your first company.</>
+              : <>Build, save and track your Doom Company for <strong>1490 DOOM</strong>, the tabletop skirmish game.</>}
+          </p>
 
-          {/* Compact quiz card for returning users */}
-          <div className="quiz-card quiz-card--compact" onClick={() => setShowQuiz(true)}>
-            <div className="quiz-card-body">
-              <span className="quiz-card-title">Take The Quiz, Find Your Company</span>
-            </div>
-            <span className="quiz-card-cta">Start →</span>
+          {/* Quiz invitation for new players */}
+          <div className="quiz-card quiz-card--hero" onClick={() => setShowQuiz(true)}>
+            <span className="quiz-card-eyebrow">New to 1490 DOOM?</span>
+            <h2 className="quiz-card-headline">Which Doom Company are you?</h2>
+            <p className="quiz-card-sub">Five questions. We'll pick a mark and three warriors to start you off.</p>
+            <button type="button" className="quiz-card-btn">Take the quiz →</button>
           </div>
         </>
-      ) : (
-        /* Hero quiz card for new users */
-        <div className="quiz-card quiz-card--hero" onClick={() => setShowQuiz(true)}>
-          <h2 className="quiz-card-headline">Take The Quiz,<br/>Find Your Company</h2>
-          <p className="quiz-card-sub">Answer five questions. We'll build your roster, assign your mark, and send you straight to battle.</p>
-          <span className="quiz-card-btn">Start</span>
-        </div>
       )}
 
       <button className="landing-new-company-btn" onClick={onNew}>
@@ -70,6 +72,14 @@ export default function LandingPage({ onLoad, onNew, onQuizComplete }) {
         </svg>
         New Company
       </button>
+
+      {/* Returning players: a quiet row below their list and its New Company action */}
+      {saves.length > 0 && (
+        <div className="quiz-card quiz-card--compact" onClick={() => setShowQuiz(true)}>
+          <span className="quiz-card-title">Not sure what to build next?</span>
+          <button type="button" className="quiz-card-cta">Take the quiz →</button>
+        </div>
+      )}
 
     </div>
   )

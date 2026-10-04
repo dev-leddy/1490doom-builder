@@ -34,7 +34,7 @@ export function encodeCompany(s) {
   const isCampaign = s.companyMode === 'campaign'
   const ipIds = isCampaign ? CAMP_IP_IDS : ALL_IP_IDS
   const parts = [
-    _idx(ALL_MARKS, s.mark).toString(36),
+    ALL_MARKS.includes(s.mark) ? ALL_MARKS.indexOf(s.mark).toString(36) : '_', // '_' = no mark
     encodeURIComponent(s.companyName || ''),
     s.ipLimit.toString(36),
   ]
@@ -80,7 +80,7 @@ export function decodeCompany(code) {
     } catch {}
 
     const parts = raw.split('|')
-    const mark       = ALL_MARKS[parseInt(parts[0], 36)] || ALL_MARKS[0]
+    const mark       = parts[0] === '_' ? '' : (ALL_MARKS[parseInt(parts[0], 36)] || ALL_MARKS[0])
     const companyName = decodeURIComponent(parts[1] || '')
     const ipLimit    = parseInt(parts[2], 36) || (isCampaign ? 0 : 3)
     const slots = Array.from({ length: 3 }, (_, i) => {

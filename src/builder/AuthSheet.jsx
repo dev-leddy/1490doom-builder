@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import BottomSheet from '../shared/BottomSheet.jsx'
 import { useAuthStore } from '../store/authStore.js'
+import { hasLegacyLocalData } from '../store/builderPersistence.js'
 
 // Provider brand colors
 const DISCORD_COLOR = '#5865F2'
@@ -78,7 +79,7 @@ export default function AuthSheet({ onClose, initialState = 'providers', resetTo
 
   // Default: providers view
   return (
-    <BottomSheet title="Sign In" onClose={onClose}>
+    <BottomSheet title="Sign in or create account" onClose={onClose}>
       <div className="auth-sheet-body">
         <p className="auth-sheet-desc">
           {reason || 'Sign in to save your doom companies and use them on any device.'}
@@ -91,7 +92,7 @@ export default function AuthSheet({ onClose, initialState = 'providers', resetTo
             style={{ '--provider-color': DISCORD_COLOR }}
           >
             <DiscordIcon />
-            Sign in with Discord
+            Continue with Discord
           </a>
 
           <a
@@ -100,7 +101,7 @@ export default function AuthSheet({ onClose, initialState = 'providers', resetTo
             style={{ '--provider-color': GOOGLE_COLOR }}
           >
             <GoogleIcon />
-            Sign in with Google
+            Continue with Google
           </a>
 
           <button
@@ -108,12 +109,14 @@ export default function AuthSheet({ onClose, initialState = 'providers', resetTo
             onClick={() => setView('login')}
           >
             <EmailIcon />
-            Sign in with Email
+            Continue with email
           </button>
         </div>
 
         <p className="auth-sheet-note">
-          Companies saved in this browser before are moved to your account when you sign in.
+          {hasLegacyLocalData()
+            ? 'Companies saved in this browser before are moved to your account when you sign in.'
+            : "It's free. Your account keeps your companies safe and on every device."}
         </p>
       </div>
     </BottomSheet>
@@ -179,8 +182,8 @@ function LoginForm({ onSuccess, onForgot, onRegister, onBack }) {
         </button>
       </form>
       <div className="auth-form-links">
+        <button className="auth-form-link" onClick={onRegister}>New here? Create an account</button>
         <button className="auth-form-link" onClick={onForgot}>Forgot password?</button>
-        <button className="auth-form-link" onClick={onRegister}>No account? Register</button>
         <button className="auth-form-link auth-form-link--back" onClick={onBack}>← Other sign-in options</button>
       </div>
     </div>

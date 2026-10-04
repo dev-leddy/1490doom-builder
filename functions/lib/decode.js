@@ -58,7 +58,7 @@ function decodeCompany(code) {
     } catch {}
 
     const parts = raw.split('|')
-    const mark = ALL_MARKS[parseInt(parts[0], 36)] || ALL_MARKS[0]
+    const mark = parts[0] === '_' ? '' : (ALL_MARKS[parseInt(parts[0], 36)] || ALL_MARKS[0]) // '_' = no mark
     const companyName = decodeURIComponent(parts[1] || '')
     const ipLimit = parseInt(parts[2], 36) || (isCampaign ? 0 : 3)
 
