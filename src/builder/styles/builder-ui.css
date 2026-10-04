@@ -4045,7 +4045,7 @@
 .landing-world {
   position: relative;
   margin: 2.5rem -1rem 0;
-  padding: 12.5rem 1.5rem 2.25rem; /* top: room for the header art */
+  padding: 6.75rem 1.5rem 2.25rem; /* top: room for the header art */
   text-align: center;
   color: var(--bone);
   border-radius: 12px;
@@ -4137,15 +4137,15 @@
   content: '';
   position: absolute;
   inset: 0 0 auto 0;
-  height: 14rem;
+  height: 7.5rem;
 }
 .landing-world::before {
   z-index: -2;
-  background: url('/landing/battlefield.webp') center 40% / cover no-repeat;
+  background: url('/landing/battlefield.webp') center 42% / cover no-repeat; /* keeps the warriors on the ridge in frame */
 }
 .landing-world::after {
   z-index: -1;
-  background: linear-gradient(180deg, rgba(8, 8, 8, 0) 55%, var(--ash) 100%);
+  background: linear-gradient(180deg, rgba(8, 8, 8, 0) 60%, var(--ash) 100%);
 }
 /* Panel title matches the action card titles (Oswald, uppercase) */
 .landing-world-title {
