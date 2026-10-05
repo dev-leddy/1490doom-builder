@@ -6,51 +6,20 @@ import { WARRIOR_IMAGES, ITEM_ICONS } from '../data/images'
 import { SvgGear } from './icons'
 import WarriorLoadout from './WarriorLoadout'
 import WarriorSettingsSheet from './WarriorSettingsSheet'
-
-function improveStatDisplay(base, stat) {
-  if (stat === 'SKL' || stat === 'DEF' || stat === 'COM') return (parseInt(base) - 1) + '+'
-  return parseInt(base) + 1
-}
-
-function debuffStatDisplay(base, stat) {
-  if (stat === 'SKL' || stat === 'DEF' || stat === 'COM') return (parseInt(base) + 1) + '+'
-  return Math.max(0, parseInt(base) - 1)
-}
+import { getEffectiveStats, statTone, STAT_KEYS } from '../utils/stats'
 
 // ── Stats Row ────────────────────────────────────────────────────────────────
-function StatsRow({ slot, wdata }) {
-  const isDualWielding = slot.weapon1 === 'Light Weapon' && slot.weapon2 === 'Light Weapon'
-  const dualWieldBonus = (isDualWielding && !wdata.fixedDualWield) ? 1 : 0
-
+function StatsRow({ slot }) {
+  const stats = getEffectiveStats(slot)
+  const toneClass = { improved: 'modified', debuffed: 'debuffed' }
   return (
     <div className="stats-row">
-      {['MOV', 'ATK', 'VIT', 'SKL', 'DEF', 'COM'].map(s => {
-        let base = wdata.stats[s]
-        const improved = (slot.ip?.includes('stat') && slot.statImprove === s) || (slot.statImproves?.includes(s))
-        const polearmDebuff = slot.weapon1 === 'Polearm (one-handed)' && s === 'COM'
-
-        if (s === 'ATK') {
-          base = parseInt(base) + dualWieldBonus
-        }
-
-        let displayVal = base
-        if (improved) displayVal = improveStatDisplay(displayVal, s)
-        if (polearmDebuff) displayVal = debuffStatDisplay(displayVal, s)
-
-        const bothModified = improved && polearmDebuff
-        let statClass = ''
-        if ((improved && !bothModified) || (s === 'ATK' && dualWieldBonus > 0)) statClass = 'modified'
-        else if (polearmDebuff && !bothModified) statClass = 'debuffed'
-
-        return (
-          <div key={s} className="stat-box">
-            <span className="stat-label">{s}</span>
-            <span className={`stat-val ${statClass}`}>
-              {displayVal}
-            </span>
-          </div>
-        )
-      })}
+      {STAT_KEYS.map(s => (
+        <div key={s} className="stat-box">
+          <span className="stat-label">{s}</span>
+          <span className={`stat-val ${toneClass[statTone(stats[s])] || ''}`}>{stats[s].display}</span>
+        </div>
+      ))}
     </div>
   )
 }
@@ -159,7 +128,7 @@ export default function WarriorCard({ slotIndex, slot }) {
               )}
             </div>
             <div className="warrior-header-text">
-              <StatsRow slot={slot} wdata={wdata} />
+              <StatsRow slot={slot} />
             </div>
           </div>
 

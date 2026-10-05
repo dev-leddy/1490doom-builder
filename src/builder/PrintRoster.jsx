@@ -4,19 +4,7 @@ import { WARRIORS, MARKS_MAP } from '../data/warriors'
 import { WEAPONS, CLIMBING_ITEMS, CLIMBING_DESCS, CONSUMABLES } from '../data/weapons'
 import { ACTION_DEFS, STATUS_DEFS, CACHE_ITEMS } from '../data/items'
 import { WARRIOR_IMAGES, MARK_IMAGES, ITEM_ICONS } from '../data/images'
-
-function improveStatDisplayPrint(base, stat) {
-  // MOV / ATK / VIT are flat +1, the rest are "easier checks" (lower target number).
-  if (stat === 'MOV' || stat === 'VIT' || stat === 'ATK') return parseInt(base) + 1
-  const num = parseInt(base)
-  return Math.max(2, num - 1) + '+'
-}
-
-function debuffStatDisplayPrint(base, stat) {
-  if (stat === 'MOV' || stat === 'VIT' || stat === 'ATK') return Math.max(0, parseInt(base) - 1)
-  const num = parseInt(base)
-  return (num + 1) + '+'
-}
+import { getEffectiveStats, improvedStats, statTone } from '../utils/stats'
 
 function isOPGDesc(desc) {
   return (desc || '').toLowerCase().includes('once per game')
@@ -85,9 +73,6 @@ export default function PrintRoster() {
           const statKeys = ['MOV', 'ATK', 'VIT', 'SKL', 'DEF', 'COM']
           const spent = slot.ip || []
 
-          const isDualWielding = slot.weapon1 === 'Light Weapon' && slot.weapon2 === 'Light Weapon'
-          const dualWieldBonus = (isDualWielding && !wdata.fixedDualWield) ? 1 : 0
-
           const wpn1 = slot.weapon1 ? WEAPONS[slot.weapon1] : null
           const wpn2 = slot.weapon2 ? WEAPONS[slot.weapon2] : null
 
@@ -134,14 +119,13 @@ export default function PrintRoster() {
           }
 
           const upgradeLines = []
-          if (spent.includes('stat') && slot.statImprove) upgradeLines.push(`+1 ${slot.statImprove}`)
+          for (const st of improvedStats(slot)) upgradeLines.push(`+1 ${st}`)
           if (spent.includes('weapon2') && slot.weapon2) upgradeLines.push(`2nd Weapon: ${slot.weapon2}`)
           if (spent.includes('climbing') && slot.climbing && slot.climbing !== 'None') upgradeLines.push(`Climbing: ${slot.climbing}`)
           if (spent.includes('consumable') && slot.consumable && slot.consumable !== 'None') upgradeLines.push(`Item: ${slot.consumable}`)
 
-          const baseVit = parseInt(wdata.stats.VIT)
-          const bonusVit = spent.includes('stat') && slot.statImprove === 'VIT' ? 1 : 0
-          const vit = baseVit + bonusVit
+          const stats = getEffectiveStats(slot)
+          const vit = stats.VIT.value
 
           return (
             <div key={`w-${i}-${orderIdx}`} className={`pr-card ${isCaptain ? 'is-captain' : ''}`}>
@@ -157,27 +141,8 @@ export default function PrintRoster() {
 
                 <div className="pr-stats">
                   {statKeys.map(s => {
-                    let base = wdata.stats[s]
-
-                    if (s === 'ATK') {
-                      base = parseInt(base) + dualWieldBonus
-                    }
-
-                    const improved = spent.includes('stat') && slot.statImprove === s
-                    const polearmDebuff = slot.weapon1 === 'Polearm (one-handed)' && s === 'COM'
-                    
-                    const isDualWieldImproved = s === 'ATK' && dualWieldBonus > 0
-                    const isStatImproved = improved || isDualWieldImproved
-                    
-                    let display = base
-                    if (isStatImproved) display = improveStatDisplayPrint(display, s)
-                    if (polearmDebuff) display = debuffStatDisplayPrint(display, s)
-
-                    const bothModified = isStatImproved && polearmDebuff
-                    let statClass = ''
-                    if (isStatImproved && !bothModified) statClass = 'improved'
-                    else if (polearmDebuff && !bothModified) statClass = 'debuffed'
-
+                    const display = stats[s].display
+                    const statClass = statTone(stats[s])
                     return (
                       <div key={s} className="pr-stat">
                         <span className="pr-stat-lbl">{s}</span>

@@ -22,9 +22,9 @@ export async function openWizard(page) {
 
 // One-tap pick of a warrior class for wizard slot `index`
 export async function pickWarrior(page, index, type) {
-  await page.locator('.ncp-tile-main').nth(index).click()
+  await page.locator('.ncp-party .ncp-tile-main').nth(index).click()
   await page.locator('.wcp-item').filter({ has: page.locator('.wcp-name', { hasText: new RegExp(`^${type}$`, 'i') }) }).click()
-  await expect(page.locator('.ncp-tile-name').nth(index)).toHaveText(new RegExp(type, 'i'))
+  await expect(page.locator('.ncp-party .ncp-tile-name').nth(index)).toHaveText(new RegExp(type, 'i'))
 }
 
 export async function setWizardIp(page, target) {
@@ -41,7 +41,7 @@ export async function createCompany(page, { name = 'E2E Company', warriors = ['F
   await openWizard(page)
   await page.getByPlaceholder('Name your company…').fill(name)
   for (const [i, w] of warriors.entries()) {
-    while (await page.locator('.ncp-tile').count() <= i) await page.locator('.ncp-add-warrior-btn').click()
+    while (await page.locator('.ncp-party .ncp-tile').count() <= i) await page.locator('.ncp-add-warrior-btn').click()
     await pickWarrior(page, i, w)
   }
   if (ip !== undefined) await setWizardIp(page, ip)
@@ -67,4 +67,33 @@ export function portraitAlignment(page) {
     const boxes = [...row.querySelectorAll('.stat-box')].map(b => b.getBoundingClientRect())
     return Math.abs(img.top - Math.min(...boxes.map(b => b.top))) < 1 && Math.abs(img.bottom - Math.max(...boxes.map(b => b.bottom))) < 1
   }))
+}
+
+// Save a company straight to the account (for set-ups the wizard can't make quickly),
+// then reload and open it
+export async function createCompanyViaApi(page, { name, mode = 'standard', ipLimit = 3, slots }) {
+  const id = `e2e-${Date.now()}-${Math.random().toString(36).slice(2)}`
+  const fill = (s, i) => ({ weapon2: null, consumable: null, climbing: null, ip: [], isCaptain: i === 0, notes: [], customName: null, earnedIP: 0, statImproves: [], ...s })
+  const status = await page.evaluate(async body => {
+    const res = await fetch('/api/companies', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+    return res.status
+  }, { id, name, mode, data: { companyId: id, companyName: name, companyMode: mode, mark: '', companyAvatar: null, ipLimit, campaignGame: 0, slots: slots.map(fill) } })
+  expect(status).toBe(200)
+  await page.reload()
+  await page.getByText(name, { exact: true }).first().click()
+  await expect(page.getByLabel('Company Settings')).toBeVisible()
+}
+
+// Open the share window and resolve its short link → { code, payload, tts }.
+// Match a full http(s)://…/s/<code> URL: the long share link is base64 and can contain "/s/".
+export async function shareLink(page) {
+  await page.locator('.ch-quick-btn[title="Share"]').click()
+  const SHORT = /https?:\/\/[^\s"'<>]+\/s\/([a-z0-9]{7})(?![a-z0-9])/i
+  await page.waitForFunction(re => new RegExp(re, 'i').test(document.body.innerHTML), SHORT.source, { timeout: 15_000 })
+  return page.evaluate(async re => {
+    const code = document.body.innerHTML.match(new RegExp(re, 'i'))[1]
+    const html = await (await fetch('/s/' + code)).text()
+    const tts = await (await fetch('/s/' + code + '?tts=1')).json()
+    return { code, payload: JSON.parse(html.match(/__pendingShare',("[^"]+")/)[1]), tts }
+  }, SHORT.source)
 }

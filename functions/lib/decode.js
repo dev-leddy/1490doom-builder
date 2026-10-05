@@ -63,7 +63,9 @@ function decodeCompany(code) {
     const ipLimit = parseInt(parts[2], 36) || (isCampaign ? 0 : 3)
 
     const warriors = []
-    for (let i = 0; i < 3; i++) {
+    // Every encoded warrior (companies can have up to 8)
+    const slotCount = Math.min(8, parts.length - 3)
+    for (let i = 0; i < slotCount; i++) {
       const slotRaw = parts[3 + i]
       if (!slotRaw || slotRaw === '_') continue
 

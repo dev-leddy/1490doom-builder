@@ -3,6 +3,7 @@ import { WARRIORS, NO_RESTORE_OPG } from '../data/warriors'
 import { STATUS_DEFS, CACHE_ITEMS } from '../data/items'
 import { useBuilderStore } from './builderStore'
 import { saveGame, deleteGame } from '../api/games'
+import { getEffectiveStats } from '../utils/stats'
 
 // ── HELPERS ──────────────────────────────────────────────────────────────────
 
@@ -18,12 +19,8 @@ export function canRestoreWithReliquary(abilityName) {
 
 function buildWarriorTrackerState(slot, index, builderState) {
   if (!slot.type) return null
-  const wdata = WARRIORS[slot.type]
-  const baseVit = parseInt(wdata.stats.VIT)
-  // Handle both campaign mode (statImproves array) and standard mode (statImprove single)
-  const statImprove = slot.statImproves?.[0] || slot.statImprove || null
-  const bonusVit = slot.ip.includes('stat') && statImprove === 'VIT' ? 1 : 0
-  const maxVit = baseVit + bonusVit
+  // Shared helper: counts standard and every campaign stat improvement (e.g. VIT +1 adds a box)
+  const maxVit = getEffectiveStats(slot).VIT.value
   return {
     index,
     type: slot.type,
@@ -33,7 +30,8 @@ function buildWarriorTrackerState(slot, index, builderState) {
     climbing: slot.climbing,
     consumable: slot.consumable || null,
     ip: slot.ip || [],
-    statImprove: statImprove,
+    statImprove: slot.statImprove || null,
+    statImproves: slot.statImproves || [],
     maxVit,
     currentVit: maxVit,
     dead: false,

@@ -4,50 +4,18 @@
 
 import { WARRIORS } from '../data/warriors.js'
 import { WEAPONS, CLIMBING_ITEMS } from '../data/weapons.js'
+import { getEffectiveStats } from './stats.js'
 
 const DIVIDER = '┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄'
 // Stat display order matching WarriorCard
 const STAT_ORDER = ['MOV', 'ATK', 'VIT', 'SKL', 'DEF', 'COM']
 
-// ── Stat helpers (mirrors WarriorCard.jsx) ────────────────────────────────────
-
-function improveStatDisplay(base, stat) {
-  if (stat === 'SKL' || stat === 'DEF' || stat === 'COM') return `${parseInt(base) - 1}+`
-  return parseInt(base) + 1
-}
-
-function debuffStatDisplay(base, stat) {
-  if (stat === 'SKL' || stat === 'DEF' || stat === 'COM') return `${parseInt(base) + 1}+`
-  return Math.max(0, parseInt(base) - 1)
-}
-
-function buildStats(slot, wdata) {
-  const isDualWielding = slot.weapon1 === 'Light Weapon' && slot.weapon2 === 'Light Weapon'
-  const dualWieldBonus = (isDualWielding && !wdata.fixedDualWield) ? 1 : 0
-  const polearmDebuff = slot.weapon1 === 'Polearm (one-handed)'
-
+// Improved stats are underlined (Discord __markdown__)
+function buildStats(slot) {
+  const stats = getEffectiveStats(slot)
   return STAT_ORDER.map(s => {
-    let base = wdata.stats[s]
-
-    // ATK dual-wield bonus
-    if (s === 'ATK') base = parseInt(base) + dualWieldBonus
-
-    // Stat improvements — standard mode uses statImprove (singular),
-    // campaign mode uses statImproves (array)
-    const improved =
-      (slot.statImproves?.includes(s)) ||
-      (slot.ip?.includes('stat') && slot.statImprove === s)
-
-    // Polearm (one-handed) COM debuff
-    const debuffed = polearmDebuff && s === 'COM'
-
-    let val = base
-    if (improved && !debuffed) val = improveStatDisplay(val, s)
-    else if (debuffed && !improved) val = debuffStatDisplay(val, s)
-    // if both cancel out, leave base
-
-    const label = `${s} ${val}`
-    return improved ? `__${label}__` : label
+    const label = `${s} ${stats[s].display}`
+    return stats[s].net > 0 ? `__${label}__` : label
   }).join(' | ')
 }
 
@@ -134,7 +102,7 @@ function formatWarrior(slot) {
 
   // Stats
   lines.push('Stats')
-  lines.push(`> ${buildStats(slot, wdata)}`)
+  lines.push(`> ${buildStats(slot)}`)
 
   // Equipment
   const equipItems = buildEquipmentLines(slot)

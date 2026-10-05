@@ -6,24 +6,15 @@ import VitalityTrack from './VitalityTrack'
 import EquipmentBlock from './EquipmentBlock'
 import AbilityBlock from './AbilityBlock'
 import StatusBlock from './StatusBlock'
-
-function improveStatDisplay(base, stat) {
-  if (stat === 'SKL' || stat === 'DEF' || stat === 'COM') return (parseInt(base) - 1) + '+'
-  return parseInt(base) + 1
-}
-
-function debuffStatDisplay(base, stat) {
-  if (stat === 'SKL' || stat === 'DEF' || stat === 'COM') return (parseInt(base) + 1) + '+'
-  return Math.max(0, parseInt(base) - 1)
-}
+import { getEffectiveStats, improvedStats, statTone, STAT_KEYS } from '../utils/stats'
 
 function IPUpgradeNote({ warrior: w }) {
   const wdata = WARRIORS[w.type]
   const upgrades = w.ip || []
   const tags = []
 
-  if (w.statImprove && upgrades.some(ip => ip.startsWith('stat')))
-    tags.push({ key: 'stat', label: STAT_IMPROVEMENT[w.statImprove], free: false })
+  // Every stat improvement (campaign companies can have several)
+  for (const s of improvedStats(w)) tags.push({ key: 'stat-' + s, label: STAT_IMPROVEMENT[s], free: false })
 
   // Built-in gear isn't an IP upgrade: Knight / Hedge Knight shield, Reaver's second Light Weapon
   if (w.weapon2) {
@@ -111,9 +102,7 @@ export default function WarriorTrackerCard({ warrior: w, wi }) {
   const { openCacheLoot, openStatusModal, toggleActivated } = useTrackerStore()
   const wdata = WARRIORS[w.type]
   const portrait = WARRIOR_IMAGES[w.type]
-  const improvedStat = (w.statImprove && w.ip?.some(ip => ip.startsWith('stat'))) ? w.statImprove : null
-
-  const statKeys = ['MOV', 'ATK', 'VIT', 'SKL', 'DEF', 'COM']
+  const stats = getEffectiveStats(w, { statuses: w.statuses })
 
   return (
     <div className={`tk-card${w.dead ? ' tk-dead' : ''}${w.isCaptain ? ' is-captain' : ''}`}>
@@ -155,39 +144,12 @@ export default function WarriorTrackerCard({ warrior: w, wi }) {
 
       {/* Stat Strip */}
       <div className="tk-stats-strip">
-        {statKeys.map(s => {
-          let base = wdata.stats[s]
-          
-          if (s === 'ATK') {
-            const isDualWielding = w.weapon1 === 'Light Weapon' && w.weapon2 === 'Light Weapon'
-            const dualWieldBonus = (isDualWielding && !wdata.fixedDualWield) ? 1 : 0
-            base = parseInt(base) + dualWieldBonus
-          }
-          
-          const isVit = s === 'VIT'
-          const isSwarmed = w.statuses.some(st => st.name === 'SWARMED')
-          const polearmDebuff = w.weapon1 === 'Polearm (one-handed)' && s === 'COM'
-          const statusDebuffCOM = s === 'COM' && w.statuses.some(st => st.name === 'SUNDERED')
-          const isDebuffed = (polearmDebuff || statusDebuffCOM || (isSwarmed && (s === 'MOV' || s === 'DEF'))) && !isVit
-
-          let val = base
-          if (improvedStat === s) val = improveStatDisplay(val, s)
-          if (isDebuffed) val = debuffStatDisplay(val, s)
-
-          const isDualWieldImproved = s === 'ATK' && w.weapon1 === 'Light Weapon' && w.weapon2 === 'Light Weapon' && !wdata.fixedDualWield
-          const isStatImproved = improvedStat === s || isDualWieldImproved
-
-          const bothModified = (improvedStat === s) && isDebuffed
-          let statClass = ''
-          if (isStatImproved && !bothModified) statClass = 'tk-stat-improved'
-          else if (isDebuffed && !bothModified) statClass = 'tk-stat-debuffed'
-          
+        {STAT_KEYS.map(s => {
+          const toneClass = { improved: 'tk-stat-improved', debuffed: 'tk-stat-debuffed' }[statTone(stats[s])] || ''
           return (
-            <div key={s} className={`tk-stat ${statClass}`}>
+            <div key={s} className={`tk-stat ${toneClass}`}>
               <span className="tk-stat-lbl">{s}</span>
-              <span className="tk-stat-val">
-                {isVit ? w.maxVit : val}
-              </span>
+              <span className="tk-stat-val">{s === 'VIT' ? w.maxVit : stats[s].display}</span>
             </div>
           )
         })}

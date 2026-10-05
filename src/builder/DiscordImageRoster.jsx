@@ -8,17 +8,7 @@ import { WEAPONS, CLIMBING_ITEMS } from '../data/weapons'
 
 // ── Stat helpers ──────────────────────────────────────────────────────────────
 
-function improveStatDisplay(base, stat) {
-  if (stat === 'SKL' || stat === 'DEF' || stat === 'COM') return `${parseInt(base) - 1}+`
-  return parseInt(base) + 1
-}
-
-function debuffStatDisplay(base, stat) {
-  if (stat === 'SKL' || stat === 'DEF' || stat === 'COM') return `${parseInt(base) + 1}+`
-  return Math.max(0, parseInt(base) - 1)
-}
-
-const STAT_KEYS = ['MOV', 'ATK', 'VIT', 'SKL', 'DEF', 'COM']
+import { getEffectiveStats, STAT_KEYS } from '../utils/stats'
 
 // ── Colors ────────────────────────────────────────────────────────────────────
 const C = {
@@ -287,22 +277,9 @@ const DiscordImageRoster = forwardRef(function DiscordImageRoster({ state }, ref
           const isCaptain = idx === 0 && filledSlots[captainIndex] === slot
           const spent = slot.ip || []
 
-          const isDualWielding = slot.weapon1 === 'Light Weapon' && slot.weapon2 === 'Light Weapon'
-          const dualWieldBonus = (isDualWielding && !wdata.fixedDualWield) ? 1 : 0
-
           // Build stat entries
-          const stats = STAT_KEYS.map(s => {
-            let base = wdata.stats[s]
-            if (s === 'ATK') base = parseInt(base) + dualWieldBonus
-            const improved = (slot.statImproves?.includes(s)) || (spent.includes('stat') && slot.statImprove === s)
-            const debuffed = slot.weapon1 === 'Polearm (one-handed)' && s === 'COM'
-            const both = improved && debuffed
-            let val = base
-            if (improved && !both) val = improveStatDisplay(val, s)
-            else if (debuffed && !both) val = debuffStatDisplay(val, s)
-            const isModified = (improved && !both) || (s === 'ATK' && dualWieldBonus > 0 && !both)
-            return { s, val, isModified, isDebuffed: debuffed && !both }
-          })
+          const effective = getEffectiveStats(slot)
+          const stats = STAT_KEYS.map(s => ({ s, val: effective[s].display, isModified: effective[s].net > 0, isDebuffed: effective[s].net < 0 }))
 
           // Build equipment pills
           const equipPills = []

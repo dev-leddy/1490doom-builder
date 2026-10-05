@@ -1,23 +1,12 @@
 import { test, expect } from '@playwright/test'
-import { signUp, createCompany, waitForSaved } from './helpers.js'
-
-// The share payload behind a short link (local short links redirect to the backend port)
-async function sharePayload(page) {
-  await page.locator('.ch-quick-btn[title="Share"]').click()
-  await page.waitForFunction(() => /\/s\/[a-z0-9]{7}/i.test(document.body.innerHTML), null, { timeout: 15_000 }) // short link is created async
-  return page.evaluate(async () => {
-    const code = document.body.innerHTML.match(/\/s\/([a-z0-9]{7})/i)[1]
-    const html = await (await fetch('/s/' + code)).text()
-    return JSON.parse(html.match(/__pendingShare',("[^"]+")/)[1])
-  })
-}
+import { signUp, createCompany, waitForSaved, shareLink } from './helpers.js'
 
 test('shared link: read-only for guests, saved to the account after signing in', async ({ browser }) => {
   const owner = await (await browser.newContext({ viewport: { width: 420, height: 900 } })).newPage()
   await signUp(owner, 'Owner')
   await createCompany(owner, { name: 'Shared Co', warriors: ['Fighter', 'Scout'] })
   await waitForSaved(owner)
-  const payload = await sharePayload(owner)
+  const { payload } = await shareLink(owner)
 
   const guest = await (await browser.newContext({ viewport: { width: 420, height: 900 } })).newPage()
   await guest.goto('/#' + payload)

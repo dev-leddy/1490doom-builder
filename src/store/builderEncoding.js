@@ -8,6 +8,7 @@ import { _ENC } from '../data/encoding'
 const _ENC_MAP = _ENC
 const _DEC_MAP = Object.fromEntries(Object.entries(_ENC_MAP).map(([k, v]) => [v, k]))
 const ALL_WARRIORS = Object.keys(WARRIORS)
+const MAX_SLOTS = 8 // matches the builder's company size limit
 const ALL_CONSUMABLES = CONSUMABLE_NAMES
 const ALL_MARKS = MARKS.map(m => m.name)
 const ALL_WEAPONS = WEAPON_NAMES
@@ -85,7 +86,9 @@ export function decodeCompany(code) {
     const mark       = parts[0] === '_' ? '' : (ALL_MARKS[parseInt(parts[0], 36)] || ALL_MARKS[0])
     const companyName = decodeURIComponent(parts[1] || '')
     const ipLimit    = parseInt(parts[2], 36) || (isCampaign ? 0 : 3)
-    const slots = Array.from({ length: 3 }, (_, i) => {
+    // Every encoded warrior (companies can have up to 8; at least 3 places as before)
+    const slotCount = Math.min(MAX_SLOTS, Math.max(3, parts.length - 3))
+    const slots = Array.from({ length: slotCount }, (_, i) => {
       const slotRaw = parts[3 + i]
       if (!slotRaw || slotRaw === '_') return emptySlot(i)
       const [wIdx, w1Idx, w2Idx, cIdx, clIdx, ipStr, cap, notesEnc, nameEnc, earnedEnc, statImpsEnc] = slotRaw.split(':')
