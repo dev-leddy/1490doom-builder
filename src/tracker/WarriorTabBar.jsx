@@ -23,12 +23,14 @@ export default function WarriorTabBar() {
             onClick={(e) => handleClick(e, i)}
             title="Double-click to toggle activated"
           >
-            {w.isCaptain && <span className="tk-tab-captain-dot">★</span>}
             <span className="tk-tab-vit-row">
               <span className="tk-tab-vit">{isDead ? '☠' : w.currentVit}</span>
-              {w.activated && <span className="tk-tab-check">✓</span>}
             </span>
-            <span className="tk-tab-name">{w.type}</span>
+            <span className="tk-tab-name">
+              {w.isCaptain && <span className="tk-tab-captain-dot">★</span>}
+              {w.type}
+            </span>
+            {w.activated && <span className="tk-tab-check">✓</span>}
           </button>
         )
       })}

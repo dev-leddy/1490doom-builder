@@ -61,7 +61,7 @@ export default function LandingAbout() {
           <li><span className="landing-world-fact-value">3 min</span><span className="landing-world-fact-label">setup</span></li>
           <li><span className="landing-world-fact-value">30–45 min</span><span className="landing-world-fact-label">per game</span></li>
         </ul>
-        <a className="landing-world-btn" href="https://1490doom.com" target="_blank" rel="noopener noreferrer">Learn the game ↗</a>
+        <a className="landing-world-btn" href="https://1490doom.com" target="_blank" rel="noopener noreferrer">Learn the game <svg className="ext-arrow" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" /></svg></a>
       </div>
 
       <p className="landing-about-footnote">Free to use · An official 1490 DOOM production with Buer Games</p>

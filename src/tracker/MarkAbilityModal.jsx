@@ -67,20 +67,22 @@ export default function MarkAbilityModal() {
         )}
 
         {/* Footer buttons */}
-        {type === 'ashbound' ? (
-          <button className="mark-popup-close" onClick={handleSkip}>Got It</button>
-        ) : isUsed ? (
-          <button className="mark-popup-close" onClick={handleSkip}>Close</button>
-        ) : (
-          <div className="mark-ability-btn-row">
-            <button className="mark-ability-skip-btn" onClick={handleSkip}>
-              {type === 'doomed-choir' ? 'Not This Round' : 'Skip'}
-            </button>
-            <button className="mark-ability-use-btn" onClick={handleUse}>
-              Use Ability
-            </button>
-          </div>
-        )}
+        <div className="mark-popup-actions">
+          {type === 'ashbound' ? (
+            <button className="mark-popup-close" onClick={handleSkip}>Got It</button>
+          ) : isUsed ? (
+            <button className="mark-popup-close" onClick={handleSkip}>Close</button>
+          ) : (
+            <div className="mark-ability-btn-row">
+              <button className="mark-ability-skip-btn" onClick={handleSkip}>
+                {type === 'doomed-choir' ? 'Not This Round' : 'Skip'}
+              </button>
+              <button className="mark-ability-use-btn" onClick={handleUse}>
+                Use Ability
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

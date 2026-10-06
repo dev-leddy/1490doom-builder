@@ -1,7 +1,6 @@
-import { useTrackerStore, canRestoreWithReliquary } from '../store/trackerStore'
+import { useTrackerStore } from '../store/trackerStore'
 import { WARRIORS, STAT_IMPROVEMENT } from '../data/warriors'
-import { WARRIOR_IMAGES, ITEM_ICONS } from '../data/images'
-import { CONSUMABLES, WEAPONS } from '../data/weapons'
+import { WARRIOR_IMAGES } from '../data/images'
 import VitalityTrack from './VitalityTrack'
 import EquipmentBlock from './EquipmentBlock'
 import AbilityBlock from './AbilityBlock'
@@ -46,58 +45,6 @@ function IPUpgradeNote({ warrior: w }) {
   )
 }
 
-function ConsumableBlock({ wi, warrior: w, wdata }) {
-  const { toggleConsumable, activateReliquary } = useTrackerStore()
-  const hasReliquary = w.consumable === 'Reliquary'
-  const desc = CONSUMABLES[w.consumable] || ''
-  const ic = ITEM_ICONS[w.consumable] || ''
-  const badgeLabel = 'CONSUMABLE · ' + (w.consumableUsed ? 'EXPENDED' : 'AVAILABLE')
-  const allAbilities = wdata.abilities || []
-  const reliquaryRestore = hasReliquary && !w.reliquaryUsed &&
-    allAbilities.some(ab => w.opgUsed[ab.name] && canRestoreWithReliquary(ab.name))
-
-  return (
-    <div
-      className={`tk-ability${w.consumableUsed ? ' tk-ability-used' : ''}`}
-      onClick={!w.dead ? () => toggleConsumable(wi) : undefined}
-      style={!w.dead ? { cursor: 'pointer' } : {}}
-    >
-      <div className="tk-ability-header">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-          {ic && (
-            <img
-              src={ic}
-              style={{
-                width: '18px', height: '18px', flexShrink: 0,
-                ...(w.consumableUsed
-                  ? { opacity: 0.2, filter: 'grayscale(1)' }
-                  : { filter: 'sepia(0.3) brightness(0.95)', opacity: 0.85 }),
-              }}
-              alt=""
-            />
-          )}
-          <span className="tk-ability-name">{w.consumable}</span>
-        </div>
-        <span className={`tk-opg-badge${w.consumableUsed ? ' tk-opg-used' : ''}`}>{badgeLabel}</span>
-      </div>
-      {desc && <div className="tk-ability-desc">{desc}</div>}
-      {reliquaryRestore && (
-        <button
-          className="tk-reliquary-btn"
-          onClick={e => { e.stopPropagation(); activateReliquary(wi) }}
-        >
-          ⟳ Expend Reliquary — Restore Once Per Game Abilities
-        </button>
-      )}
-      {hasReliquary && w.reliquaryUsed && (
-        <div style={{ fontFamily: "'Oswald', sans-serif", fontSize: '0.65rem', color: '#444', letterSpacing: '0.1em', marginTop: '0.3rem' }}>
-          RELIQUARY EXPENDED
-        </div>
-      )}
-    </div>
-  )
-}
-
 export default function WarriorTrackerCard({ warrior: w, wi }) {
   const { openCacheLoot, openStatusModal, toggleActivated } = useTrackerStore()
   const wdata = WARRIORS[w.type]
@@ -122,7 +69,10 @@ export default function WarriorTrackerCard({ warrior: w, wi }) {
           )}
         </div>
         <div className="tk-warrior-header-text">
-          <span className="tk-name">{w.customName || w.type}</span>
+          <span className="tk-name-line">
+            <span className="tk-name">{w.customName || w.type}</span>
+            {(w.dead || w.currentVit <= 0) && <span className="tk-slain-pill">SLAIN</span>}
+          </span>
           {/* Class under a custom name (not under the portrait, so the header keeps the portrait's height) */}
           {w.customName && <span className="tk-class-sub">{w.type}</span>}
           {!w.dead && (
@@ -141,6 +91,9 @@ export default function WarriorTrackerCard({ warrior: w, wi }) {
           <button className="tk-hdr-btn tk-hdr-btn-status" onClick={() => openStatusModal(wi)}>+ STATUS</button>
         </div>
       </div>
+
+      {/* Statuses up top, between the header and the stats they change */}
+      {w.statuses.length > 0 && <StatusBlock wi={wi} warrior={w} />}
 
       {/* Stat Strip */}
       <div className="tk-stats-strip">
@@ -165,14 +118,6 @@ export default function WarriorTrackerCard({ warrior: w, wi }) {
       {/* Equipment (weapons, climbing, consumable, cache items) */}
       <div className="tk-section-label" style={{ marginTop: '0.7rem' }}>Equipment</div>
       <EquipmentBlock wi={wi} warrior={w} />
-
-      {/* Active Statuses */}
-      {w.statuses.length > 0 && (
-        <>
-          <div className="tk-section-label" style={{ marginTop: '0.7rem', color: '#9a9add' }}>Active Statuses</div>
-          <StatusBlock wi={wi} warrior={w} />
-        </>
-      )}
 
       {/* Abilities */}
       <div className="tk-section-label" style={{ marginTop: '0.7rem' }}>Abilities</div>

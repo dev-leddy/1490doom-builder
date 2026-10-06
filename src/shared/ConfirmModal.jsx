@@ -1,10 +1,12 @@
 import BottomSheet from './BottomSheet'
 
-export default function ConfirmModal({ title, subtitle, onConfirm, onCancel }) {
+// className: optional theme for the sheet (play mode passes "tk-sheet tk-sheet--confirm")
+export default function ConfirmModal({ title, subtitle, onConfirm, onCancel, className }) {
   return (
     <BottomSheet
       title={title}
       onClose={onCancel}
+      className={className}
       footer={
         <>
           <button className="co-sheet-randomize" onClick={onCancel}>CANCEL</button>
@@ -12,7 +14,7 @@ export default function ConfirmModal({ title, subtitle, onConfirm, onCancel }) {
         </>
       }
     >
-      <p style={{ color: '#fff', lineHeight: 1.6, margin: 0, fontSize: '1rem' }}>{subtitle}</p>
+      <p className="confirm-modal-text" style={className ? undefined : { color: '#fff', lineHeight: 1.6, margin: 0, fontSize: '1rem' }}>{subtitle}</p>
     </BottomSheet>
   )
 }

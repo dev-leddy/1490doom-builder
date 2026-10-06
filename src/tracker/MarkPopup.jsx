@@ -26,7 +26,7 @@ export default function MarkPopup() {
 
   return (
     <div
-      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.82)', zIndex: 400, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}
+      className="mark-popup-backdrop"
       onClick={e => e.target === e.currentTarget && closeMarkPopup()}
     >
       <div className="mark-popup-box">
@@ -35,21 +35,25 @@ export default function MarkPopup() {
           <div>
             <div className="mark-popup-label">Company Mark</div>
             <div className="mark-popup-name">{mark}</div>
+            {hasToggle && (
+              <div className={`mark-popup-state${isUsed ? ' is-used' : ''}`}>{isUsed ? 'Used this game' : 'Available'}</div>
+            )}
           </div>
         </div>
 
         <div className="mark-popup-desc">{markData.desc}</div>
 
-        {hasToggle && (
-          <button
-            className={`mark-popup-toggle${isUsed ? ' mark-popup-toggle--used' : ''}`}
-            onClick={handleToggle}
-          >
-            {isUsed ? '↺  Mark as Available Again' : '✓  Mark as Used This Game'}
-          </button>
-        )}
-
-        <button className="mark-popup-close" onClick={closeMarkPopup}>Close</button>
+        <div className="mark-popup-actions">
+          {hasToggle && (
+            <button
+              className={`mark-popup-toggle${isUsed ? ' mark-popup-toggle--used' : ''}`}
+              onClick={handleToggle}
+            >
+              {isUsed ? '↺ Mark as Available Again' : '✓ Mark as Used This Game'}
+            </button>
+          )}
+          <button className="mark-popup-close" onClick={closeMarkPopup}>Close</button>
+        </div>
       </div>
     </div>
   )

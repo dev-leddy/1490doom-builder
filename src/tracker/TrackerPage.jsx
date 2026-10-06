@@ -47,6 +47,7 @@ export default function TrackerPage() {
             doConfirm()
           }}
           onCancel={closeConfirm}
+          className="tk-sheet tk-sheet--confirm"
         />
       )}
       {cacheLootTarget !== null && <CacheLootModal wi={cacheLootTarget} />}

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { getAvatarSrc } from '../data/avatars'
-import AvatarPicker from './AvatarPicker'
+import EmblemSheet from './EmblemSheet'
 
 const DOOM_NAMES = [
   'THE BLOOD SCRIBE', 'IRON RECAPTOR', 'VOID STALKERS', 'GRIM COVENANT', 'BONE RIPPERS',
@@ -28,42 +28,36 @@ export default function CompanyForm({
   const currentLogoSrc = getAvatarSrc(avatar)
 
   return (
-    <div className="company-form-shared">
+    <div className="company-form-shared cs-form">
       {showPicker && (
-        <div className="modal-backdrop" onClick={e => e.target === e.currentTarget && setShowPicker(false)} style={{ zIndex: 800 }}>
-          <div className="modal-box" style={{ maxWidth: 480, width: '92vw' }}>
-            <div className="co-settings-title" style={{ marginBottom: '1.5rem', textAlign: 'center' }}>SELECT EMBLEM</div>
-            <AvatarPicker value={avatar} onChange={(val) => { setAvatar(val); setShowPicker(false); }} />
-            <button className="btn btn-secondary co-settings-done" style={{ marginTop: '1rem' }} onClick={() => setShowPicker(false)}>Cancel</button>
-          </div>
-        </div>
+        <EmblemSheet
+          value={avatar}
+          onChange={(val) => { setAvatar(val); setShowPicker(false) }}
+          onClose={() => setShowPicker(false)}
+        />
       )}
 
-      {/* EMBLEM + NAME — side by side */}
-      <div className="cf-pair-row cf-identity-row">
-        {/* Emblem */}
-        <div className="cf-pair-item">
-          <label className="co-settings-label">Emblem</label>
-          <div className="cf-identity-content">
-            <button className="cf-emblem-trigger" onClick={() => setShowPicker(true)} aria-label="Choose emblem">
-              <div className="cf-emblem-ring">
-                <div className="cf-emblem-inner">
-                  {currentLogoSrc
-                    ? <img src={currentLogoSrc} alt="" className="cf-emblem-img" />
-                    : <span className="cf-emblem-empty" aria-hidden="true">?</span>
-                  }
-                </div>
-              </div>
-            </button>
-          </div>
-        </div>
+      {/* IDENTITY — emblem + name */}
+      <section className="cs-section">
+        <h3 className="cs-section-label">Identity</h3>
+        <div className="cs-identity">
+          <button className="cf-emblem-trigger" onClick={() => setShowPicker(true)} aria-label="Choose emblem">
+            <span className="cf-emblem-ring">
+              <span className="cf-emblem-inner">
+                {currentLogoSrc
+                  ? <img src={currentLogoSrc} alt="" className="cf-emblem-img" />
+                  : <span className="cf-emblem-empty" aria-hidden="true">?</span>
+                }
+              </span>
+            </span>
+            <span className="cf-emblem-hint" aria-hidden="true">Change</span>
+          </button>
 
-        {/* Name */}
-        <div className="cf-pair-item cf-name-item">
-          <label className="co-settings-label">Company Name</label>
-          <div className="cf-identity-content">
+          <div className="cs-name">
+            <label className="cs-field-label" htmlFor="cs-company-name">Company name</label>
             <div className="cf-name-input-wrap">
               <input
+                id="cs-company-name"
                 className="co-settings-input"
                 type="text"
                 maxLength={40}
@@ -78,6 +72,7 @@ export default function CompanyForm({
               <button
                 className="cf-dice-inline"
                 title="Random Name"
+                aria-label="Random name"
                 onClick={() => setName(DOOM_NAMES[Math.floor(Math.random() * DOOM_NAMES.length)])}
               >
                 <SvgDice />
@@ -85,54 +80,60 @@ export default function CompanyForm({
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* WARRIORS + IP — side by side */}
-      <div className="cf-pair-row">
-        <div className="cf-pair-item">
-          <label className="co-settings-label">Warriors</label>
-          <div className="co-settings-stepper">
-            <button className="co-settings-step-btn" onClick={() => setWarriors(Math.max(1, warriors - 1))}>−</button>
-            <span className="co-settings-step-val">{warriors}</span>
-            <button className="co-settings-step-btn" onClick={() => setWarriors(Math.min(8, warriors + 1))}>+</button>
-          </div>
-        </div>
-
-        {companyMode === 'standard' && (
-          <div className="cf-pair-item">
-            <label className="co-settings-label">Company IP</label>
+      {/* ROSTER — warriors + company IP */}
+      <section className="cs-section">
+        <h3 className="cs-section-label">Roster</h3>
+        <div className="cs-steppers">
+          <div className="cs-stepper-card">
+            <span className="cs-field-label">Warriors</span>
             <div className="co-settings-stepper">
-              <button className="co-settings-step-btn" onClick={() => setIp(Math.max(0, ip - 1))}>−</button>
-              <span className="co-settings-step-val">{ip}</span>
-              <button className="co-settings-step-btn" onClick={() => setIp(Math.min(100, ip + 1))}>+</button>
+              <button className="co-settings-step-btn" onClick={() => setWarriors(Math.max(1, warriors - 1))} disabled={warriors <= 1} aria-label="Fewer warriors">−</button>
+              <span className="co-settings-step-val">{warriors}</span>
+              <button className="co-settings-step-btn" onClick={() => setWarriors(Math.min(8, warriors + 1))} disabled={warriors >= 8} aria-label="More warriors">+</button>
             </div>
           </div>
-        )}
-      </div>
+
+          {companyMode === 'standard' && (
+            <div className="cs-stepper-card">
+              <span className="cs-field-label">Company IP</span>
+              <div className="co-settings-stepper">
+                <button className="co-settings-step-btn" onClick={() => setIp(Math.max(0, ip - 1))} disabled={ip <= 0} aria-label="Less IP">−</button>
+                <span className="co-settings-step-val">{ip}</span>
+                <button className="co-settings-step-btn" onClick={() => setIp(Math.min(100, ip + 1))} disabled={ip >= 100} aria-label="More IP">+</button>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
 
       {/* INDIVIDUAL WARRIOR IP (Campaign only) */}
       {companyMode === 'campaign' && activeSlots.length > 0 && (
-        <div className="co-settings-warrior-ip">
-          <div className="co-settings-label" style={{ marginBottom: '0.6rem' }}>Warrior IP</div>
-          {activeSlots.map(slot => {
-            const label = slot.customName || `Warrior ${slot.index + 1}`
-            const spent = slot.ip?.length || 0
-            const earned = slot.earnedIP || 0
-            return (
-              <div key={slot.index} className="co-settings-warrior-row">
-                <div className="co-settings-warrior-info">
-                  <span className="co-settings-warrior-name">{label}{slot.isCaptain ? ' ★' : ''}</span>
-                  <span className="co-settings-warrior-class">{slot.type}</span>
+        <section className="cs-section co-settings-warrior-ip">
+          <h3 className="cs-section-label">Warrior IP</h3>
+          <p className="cs-intro">IP each warrior has earned. It can't go below what they've spent.</p>
+          <div className="cs-warrior-list">
+            {activeSlots.map(slot => {
+              const label = slot.customName || `Warrior ${slot.index + 1}`
+              const spent = slot.ip?.length || 0
+              const earned = slot.earnedIP || 0
+              return (
+                <div key={slot.index} className="co-settings-warrior-row">
+                  <div className="co-settings-warrior-info">
+                    <span className="co-settings-warrior-name">{label}{slot.isCaptain ? ' ★' : ''}</span>
+                    <span className="co-settings-warrior-class">{slot.type}{spent > 0 ? ` · ${spent} spent` : ''}</span>
+                  </div>
+                  <div className="co-settings-stepper">
+                    <button className="co-settings-step-btn" onClick={() => slot.onEarnedChange(earned - 1)} disabled={earned <= spent} aria-label={`Less IP for ${label}`}>−</button>
+                    <span className="co-settings-step-val">{earned}</span>
+                    <button className="co-settings-step-btn" onClick={() => slot.onEarnedChange(earned + 1)} aria-label={`More IP for ${label}`}>+</button>
+                  </div>
                 </div>
-                <div className="co-settings-stepper">
-                  <button className="co-settings-step-btn" onClick={() => slot.onEarnedChange(earned - 1)} disabled={earned <= spent}>−</button>
-                  <span className="co-settings-step-val">{earned}</span>
-                  <button className="co-settings-step-btn" onClick={() => slot.onEarnedChange(earned + 1)}>+</button>
-                </div>
-              </div>
-            )
-          })}
-        </div>
+              )
+            })}
+          </div>
+        </section>
       )}
     </div>
   )

@@ -1,0 +1,221 @@
+/* ── PICKER SHEETS (weapon, off-hand, gear, item, stat) ──
+   Shared look for the Equipment & Upgrades bottom sheets (WarriorUpgradeModal):
+   a short intro line, then one card per option — round framed icon, serif name,
+   stat pills, status chip, rules text. Selected = blood border + "✓ Equipped". */
+
+.pk-intro {
+  margin: 0 0 0.8rem;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--bone);
+}
+.pk-intro-label {
+  margin-right: 0.4rem;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--blood);
+}
+
+.pk-list { display: flex; flex-direction: column; gap: 0.55rem; }
+
+.pk-card {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  align-items: start;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 64px;
+  padding: 0.7rem 0.8rem 0.75rem 0.7rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--mist);
+  border-radius: 8px;
+  color: var(--parchment);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.15s, background 0.15s;
+}
+@media (hover: hover) {
+  .pk-card:not(:disabled):not(.is-active):hover { border-color: #777; background: rgba(255, 255, 255, 0.07); }
+}
+.pk-card:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
+.pk-card:not(:disabled):active { transform: scale(0.99); }
+
+.pk-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #141414;
+  border: 2px solid var(--mist);
+  box-shadow: 0 0 0 1px var(--dim), inset 0 0 8px rgba(0, 0, 0, 0.5);
+}
+.pk-icon img { width: 28px; height: 28px; object-fit: contain; filter: sepia(0.3) brightness(0.95); }
+
+.pk-main { min-width: 0; display: flex; flex-direction: column; gap: 0.35rem; }
+.pk-head { display: flex; align-items: flex-start; gap: 0.5rem; min-height: 24px; }
+.pk-name {
+  flex: 1;
+  min-width: 0;
+  font-family: 'Caslon Antique', serif;
+  font-size: 1.22rem;
+  line-height: 1.15;
+  color: #fff;
+}
+.pk-name-sub {
+  display: block;
+  margin-top: 0.1rem;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--bone);
+  opacity: 0.75;
+}
+.pk-status {
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 3px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.pk-pills { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.pk-pill {
+  padding: 0.1rem 0.45rem;
+  border: 1px solid var(--mist);
+  border-radius: 10px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--bone);
+}
+.pk-pill--dmg { border-color: rgba(190, 65, 39, 0.55); color: #e0745c; }
+.pk-pill--cost { border-color: rgba(214, 170, 60, 0.5); color: #d6b45a; }
+
+.pk-desc { font-size: 0.9rem; line-height: 1.45; color: var(--parchment); white-space: pre-line; }
+.pk-ability {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.4rem 0.6rem;
+  background: var(--ash);
+  border-left: 3px solid var(--dim);
+}
+.pk-ability-name {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--bone);
+}
+.pk-ability-desc { font-size: 0.88rem; line-height: 1.45; color: var(--parchment); }
+.pk-note {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #d07070;
+}
+
+/* Selected */
+.pk-card.is-active {
+  background: rgba(190, 65, 39, 0.12);
+  border-color: var(--blood);
+  box-shadow: inset 3px 0 0 var(--blood);
+}
+.pk-card.is-active .pk-icon { border-color: var(--blood); }
+.pk-card.is-active .pk-ability { border-left-color: var(--blood); }
+.pk-card.is-active .pk-status { background: var(--blood); color: #fff; }
+
+/* Can't be chosen right now (reason in .pk-note) */
+.pk-card.is-locked {
+  background: transparent;
+  border-style: dashed;
+  cursor: not-allowed;
+}
+.pk-card.is-locked .pk-icon { border-style: dashed; box-shadow: none; }
+.pk-card.is-locked .pk-icon img { opacity: 0.45; }
+.pk-card.is-locked .pk-name { color: #8a8a8a; }
+.pk-card.is-locked .pk-pills,
+.pk-card.is-locked .pk-desc { opacity: 0.45; }
+.pk-status--locked { border: 1px dashed #8a4a4a; color: #d07070; }
+
+/* ── Stat improvement tiles ── */
+.pk-stat-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.45rem; }
+.pk-stat {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.3rem;
+  min-height: 84px;
+  padding: 0.7rem 0.2rem 0.6rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--mist);
+  border-radius: 8px;
+  color: var(--parchment);
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.15s, background 0.15s;
+}
+@media (hover: hover) {
+  .pk-stat:not(:disabled):not(.is-active):hover { border-color: #777; background: rgba(255, 255, 255, 0.07); }
+}
+.pk-stat:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
+.pk-stat-abbrev {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  color: #fff;
+}
+.pk-stat-label {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.68rem;
+  line-height: 1.25;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--bone);
+}
+.pk-stat-flag {
+  margin-top: auto;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.pk-stat.is-active {
+  background: rgba(190, 65, 39, 0.14);
+  border-color: var(--blood);
+  box-shadow: inset 0 3px 0 var(--blood);
+}
+.pk-stat.is-active .pk-stat-flag { color: #e0745c; }
+.pk-stat.is-taken {
+  background: transparent;
+  border-style: dashed;
+  border-color: #4a6a4a;
+  cursor: not-allowed;
+}
+.pk-stat.is-taken .pk-stat-abbrev { color: #8fbf8f; }
+.pk-stat.is-taken .pk-stat-label { opacity: 0.6; }
+.pk-stat.is-taken .pk-stat-flag { color: #6fbf6f; }
+
+@media (max-width: 360px) {
+  .pk-stat-grid { grid-template-columns: repeat(3, 1fr); }
+}

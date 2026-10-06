@@ -558,74 +558,23 @@
   filter: grayscale(0.5);
 }
 
-/* Shared pair row — emblem+name and warriors+IP both use this */
-.cf-pair-row {
-  display: flex;
-  gap: 1.5rem;
-  padding-bottom: 1.1rem;
-  border-bottom: 1px solid var(--dim);
-  margin-bottom: 1.1rem;
-}
-
-.cf-pair-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.cf-pair-item .co-settings-label {
-  font-size: 0.68rem;
-  letter-spacing: 0.18em;
-  color: rgba(190, 65, 39, 0.9);
-}
-
-/* Identity row: labels top-aligned, content vertically centered within shared height */
-.cf-identity-row {
-  align-items: stretch;
-}
-
-.cf-identity-row .cf-pair-item {
-  display: flex;
-  flex-direction: column;
-}
-
-.cf-identity-row .cf-pair-item:first-child {
-  flex: 0 0 auto;
-  align-items: center;
-}
-
-.cf-name-item {
-  flex: 1 !important;
-  align-items: stretch !important;
-}
-
-/* Shared content area — fills remaining height and centers child vertically */
-.cf-identity-content {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
+/* Name field with an inline dice button (Company Settings + Warrior Settings) */
 .cf-name-input-wrap {
   position: relative;
   width: 100%;
 }
-
 .cf-name-input-wrap .co-settings-input {
   width: 100%;
-  padding-right: 2.2rem;
+  min-height: 44px;
+  padding-right: 2.9rem;
   box-sizing: border-box;
 }
-
 .cf-dice-inline {
   position: absolute;
   right: 0;
   top: 0;
   bottom: 0;
-  width: 2rem;
+  width: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -867,3 +816,230 @@
   text-align: center;
   line-height: 1.2;
 }
+
+/* ── BOTTOM SHEET: shared fixes ─────────────────────────────────────────────
+   Only the body scrolls (header + footer stay put, no second scrollbar on the
+   sheet itself), the close button is a full 44px target, and a sheet without a
+   footer keeps its last row clear of the iOS home indicator. */
+.co-settings-sheet {
+  overflow: hidden;
+  max-height: 90vh;
+  max-height: 90dvh;
+}
+.co-sheet-title { min-width: 0; }
+.co-sheet-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  min-width: 44px;
+  min-height: 44px;
+  margin: -0.4rem -0.7rem -0.4rem 0.5rem;
+}
+.co-sheet-body { min-height: 0; }
+.co-sheet-footer > button { min-height: 48px; }
+@media (max-width: 600px) {
+  .co-settings-sheet { max-height: 85vh; max-height: 85dvh; }
+  .co-settings-sheet > .co-sheet-body:last-child { padding-bottom: max(1.25rem, calc(env(safe-area-inset-bottom) + 0.75rem)); }
+}
+
+/* ── COMPANY SETTINGS ───────────────────────────────────────────────────────
+   Same family as the builder pickers: red Oswald section labels, 8px cards,
+   44px controls. Identity (emblem + name), then Roster, then campaign Warrior IP. */
+.cs-form { display: flex; flex-direction: column; gap: 1.35rem; }
+.cs-section { display: flex; flex-direction: column; gap: 0.6rem; margin: 0; }
+.cs-section-label {
+  margin: 0;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--blood);
+}
+.cs-field-label {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--bone);
+}
+.cs-intro {
+  margin: 0;
+  font-family: 'Caslon Antique', serif;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--bone);
+}
+
+/* Identity card: emblem on the left, name on the right */
+.cs-identity {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.75rem 0.85rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--dim);
+  border-radius: 8px;
+}
+.cs-form .cf-emblem-trigger {
+  flex-shrink: 0;
+  gap: 0.3rem;
+  min-width: 44px;
+  border-radius: 8px;
+  -webkit-tap-highlight-color: transparent;
+}
+.cs-form .cf-emblem-trigger:focus-visible { outline: 2px solid var(--blood); outline-offset: 3px; }
+.cs-form .cf-emblem-ring { width: 72px; height: 72px; border-color: rgba(190, 65, 39, 0.55); }
+.cs-form .cf-emblem-inner { width: 62px; height: 62px; }
+.cs-form .cf-emblem-hint {
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  color: var(--bone);
+}
+@media (hover: hover) {
+  .cs-form .cf-emblem-trigger:hover .cf-emblem-hint { color: #fff; }
+}
+.cs-name { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.35rem; }
+.cs-form .co-settings-input { font-size: 1.05rem; border-radius: 4px 4px 0 0; }
+
+/* Steppers: two cards side by side */
+.cs-steppers { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.6rem; }
+.cs-stepper-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.7rem 0.5rem 0.75rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--dim);
+  border-radius: 8px;
+}
+.cs-form .co-settings-stepper { gap: 0.35rem; }
+.cs-form .co-settings-step-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  border-color: var(--mist);
+  background: rgba(0, 0, 0, 0.25);
+  font-size: 1.25rem;
+  -webkit-tap-highlight-color: transparent;
+}
+.cs-form .co-settings-step-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.cs-form .co-settings-step-btn:disabled:hover { border-color: var(--mist); color: var(--parchment); }
+.cs-form .co-settings-step-val { min-width: 2.4rem; font-size: 1.45rem; font-weight: 500; color: #fff; }
+
+/* Campaign: one row per warrior */
+.cs-form .co-settings-warrior-ip { margin-bottom: 0; }
+.cs-warrior-list { display: flex; flex-direction: column; gap: 0.45rem; }
+.cs-form .co-settings-warrior-row {
+  margin: 0;
+  min-height: 60px;
+  padding: 0.45rem 0.5rem 0.45rem 0.85rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--dim);
+  border-radius: 8px;
+}
+.cs-form .co-settings-warrior-info { flex: 1; gap: 0.1rem; }
+.cs-form .co-settings-warrior-name { font-size: 0.9rem; }
+.cs-form .co-settings-warrior-class { font-family: 'Caslon Antique', serif; font-size: 0.8rem; color: var(--bone); }
+.cs-form .co-settings-warrior-row .co-settings-step-val { font-size: 1.2rem; min-width: 2rem; }
+
+/* ── EMBLEM PICKER ──────────────────────────────────────────────────────────
+   Its own sheet (EmblemSheet). A grid of framed emblems with their names;
+   selected = blood border + red accent bar, like the builder pickers.
+   Also used inline in the account sheet. */
+.emblem-sheet.co-settings-sheet { max-width: 540px; }
+.emblem-sheet .co-sheet-footer > .emblem-sheet-cancel { flex: 1; }
+.avatar-picker { margin: 0; }
+.avatar-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+@media (min-width: 400px) {
+  .avatar-picker-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+.avatar-option {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.4rem;
+  aspect-ratio: auto;
+  min-height: 44px;
+  padding: 0.6rem 0.25rem 0.5rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--dim);
+  border-radius: 8px;
+  overflow: visible;
+  color: var(--parchment);
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.15s, background 0.15s;
+}
+.avatar-option:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
+@media (hover: hover) {
+  .avatar-option:not(.selected):hover { border-color: #777; background: rgba(255, 255, 255, 0.07); }
+}
+.avatar-option:active { transform: scale(0.98); }
+.avatar-option-frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 76px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #f0ebe0;
+  border: 2px solid var(--mist);
+  box-shadow: 0 0 0 1px var(--dim), inset 0 0 8px rgba(0, 0, 0, 0.4);
+  box-sizing: border-box;
+}
+.avatar-option-frame img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
+.avatar-option-label {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.64rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--bone);
+}
+/* None + Upload: empty dashed frames */
+.avatar-option--none .avatar-option-frame,
+.avatar-upload-btn:not(.selected) .avatar-option-frame {
+  background: #141414;
+  border-style: dashed;
+  box-shadow: none;
+  color: var(--bone);
+}
+.avatar-option-glyph { font-family: 'Oswald', sans-serif; font-size: 1.3rem; line-height: 1; }
+.avatar-upload-btn { color: var(--bone); }
+.avatar-upload-btn:hover { color: inherit; }
+/* Selected */
+.avatar-option.selected {
+  background: rgba(190, 65, 39, 0.12);
+  border-color: var(--blood);
+  box-shadow: inset 3px 0 0 var(--blood);
+}
+.avatar-option.selected .avatar-option-frame { border-color: var(--blood); border-style: solid; }
+.avatar-option.selected .avatar-option-label { color: #fff; }
+
+/* ── AUDIT FIXES (sizes / wrapping only) ─────────────────────────────────── */
+/* Every sheet title reads the same way ("Menu", "Account", sign-in were mixed case) */
+.co-sheet-title { text-transform: uppercase; line-height: 1.3; }
+/* Warrior Settings: captain toggle was 36px tall */
+.ws-captain-toggle { min-height: 44px; }
+/* End of game: IP steppers were 26px */
+.eog-stepper-btn { width: 44px; height: 44px; border-radius: 8px; font-size: 1.15rem; }
+/* Company Mark picker: long names ("Doomed Choir") were cut off with an ellipsis */
+.mark-option-label { white-space: normal; overflow-wrap: anywhere; line-height: 1.2; }
+/* Sign-in sheet: text links were 22px tall */
+.auth-form-links { gap: 0; }
+.auth-form-link { min-height: 44px; padding: 0 0.75rem; }

@@ -45,9 +45,30 @@ export default function LandingPage({ onLoad, onNew, onQuizComplete }) {
       </a>
 
       {saves.length > 0 ? (
-        <div className="landing-saves">
-          <SaveLoadPanel onSelect={onLoad} />
-        </div>
+        <>
+          {/* Returning players: their companies first, one clear way to add another */}
+          <div className="landing-saves-head">
+            <h2 className="landing-saves-title">
+              Your companies <span className="landing-saves-count">{saves.length}</span>
+            </h2>
+            <button type="button" className="landing-new-company-btn" onClick={onNew}>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+              New company
+            </button>
+          </div>
+
+          <div className="landing-saves">
+            <SaveLoadPanel onSelect={onLoad} />
+          </div>
+
+          {/* A quiet line below the list */}
+          <div className="quiz-card quiz-card--compact" onClick={() => setShowQuiz(true)}>
+            <span className="quiz-card-title">Not sure what to build next?</span>
+            <button type="button" className="quiz-card-cta">Take the quiz →</button>
+          </div>
+        </>
       ) : (
         <>
           {/* Newcomers: say what this is before asking them to do anything */}
@@ -71,23 +92,6 @@ export default function LandingPage({ onLoad, onNew, onQuizComplete }) {
             </button>
           </div>
         </>
-      )}
-
-      {saves.length > 0 && (
-        <button className="landing-new-company-btn" onClick={onNew}>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="14" height="14" aria-hidden="true">
-            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/>
-          </svg>
-          New Company
-        </button>
-      )}
-
-      {/* Returning players: a quiet row below their list and its New Company action */}
-      {saves.length > 0 && (
-        <div className="quiz-card quiz-card--compact" onClick={() => setShowQuiz(true)}>
-          <span className="quiz-card-title">Not sure what to build next?</span>
-          <button type="button" className="quiz-card-cta">Take the quiz →</button>
-        </div>
       )}
 
       {/* First-time visitors: what the game is and what the app does */}

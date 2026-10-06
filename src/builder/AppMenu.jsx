@@ -31,7 +31,8 @@ function Row({ icon, label, detail, onClick, href }) {
       {icon}
       <span className="app-menu-label">{label}</span>
       {detail && <span className="app-menu-detail">{detail}</span>}
-      <span className="app-menu-trail" aria-hidden="true">{href ? '↗' : '›'}</span>
+      {/* SVG, not the ↗ character: phones draw that as an emoji */}
+      <span className="app-menu-trail" aria-hidden="true">{href ? <svg className="ext-arrow" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" /></svg> : '›'}</span>
     </>
   )
   return (

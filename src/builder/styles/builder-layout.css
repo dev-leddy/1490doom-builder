@@ -173,10 +173,7 @@
 
 
 
-  /* SAVED COMPANIES */
-  .saved-section {
-    margin-bottom: 2.5rem;
-  }
+  /* SAVED COMPANIES: rows are styled with the landing page (builder-ui.css) */
   .section-header {
     display: flex;
     align-items: center;
@@ -195,55 +192,6 @@
     height: 1px;
     background: linear-gradient(90deg, var(--mist), transparent);
   }
-  .saved-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-  .saved-chip {
-    width: 100%;
-    background: var(--fog);
-    border: 1px solid var(--mist);
-    border-radius: 4px;
-    padding: 0.55rem 0.85rem;
-    min-height: calc(36px + 1.1rem); /* avatar height + vertical padding */
-    cursor: pointer;
-    font-family: 'Caslon Antique', serif;
-    font-size: 1.15rem;
-    color: var(--parchment);
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    box-sizing: border-box;
-  }
-  .saved-chip:hover { border-color: var(--gold); color: var(--parchment); }
-  .saved-chip--draft {
-    border-style: dashed;
-    border-color: rgba(190, 65, 39, 0.4);
-    background: rgba(190, 65, 39, 0.04);
-  }
-  .saved-chip--draft:hover { border-color: rgba(190, 65, 39, 0.8); }
-  .saved-chip-unsaved {
-    font-family: 'Oswald', sans-serif;
-    font-size: 0.58rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--gold);
-    border: 1px solid rgba(190, 65, 39, 0.4);
-    padding: 0.1rem 0.35rem;
-    border-radius: 2px;
-    white-space: nowrap;
-    margin-left: auto;
-  }
-  .saved-chip .chip-delete {
-    color: var(--blood);
-    font-size: 0.75rem;
-    opacity: 0.7;
-    cursor: pointer;
-    margin-left: auto;
-  }
-  .saved-chip .chip-delete:hover { opacity: 1; }
   .no-saves {
     color: var(--bone);
     font-style: italic;
@@ -756,10 +704,6 @@
 
     /* Captain */
     .captain-toggle { font-size: 1rem; }
-
-    /* Saved companies */
-    .saved-list { gap: 0.5rem; }
-    .saved-chip { font-size: 0.9rem; padding: 0.4rem 0.75rem; min-height: calc(36px + 0.8rem); }
   }
 
   /* ── Phone-specific (≤480px) ───────────────────────────── */
@@ -1555,64 +1499,6 @@
     font-size: 0.78rem;
     color: var(--bone);
     opacity: 0.75;
-  }
-  /* STAT PICK — card grid matching mark/warrior picker style */
-  .stat-pick-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 0.5rem;
-    padding-top: 0.5rem;
-  }
-  .stat-pick-btn {
-    background: rgba(255, 255, 255, 0.1);
-    border: 2px solid transparent;
-    border-radius: 6px;
-    padding: 0.65rem 0.25rem 0.55rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.3rem;
-    cursor: pointer;
-    transition: border-color 0.15s, background 0.15s;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .stat-pick-btn:hover:not(:disabled) { border-color: rgba(255, 255, 255, 0.3); background: rgba(255,255,255,0.15); }
-  .stat-pick-btn.active {
-    border-color: var(--blood);
-    background: rgba(190, 65, 39, 0.18);
-  }
-  .stat-pick-btn:disabled { opacity: 0.38; cursor: not-allowed; }
-  .stat-pick-abbrev {
-    font-family: 'Oswald', sans-serif;
-    font-size: 1.45rem;
-    font-weight: 700;
-    color: #fff;
-    letter-spacing: 0.04em;
-    line-height: 1;
-  }
-  .stat-pick-btn.active .stat-pick-abbrev { color: var(--blood); }
-  .stat-pick-label {
-    font-family: 'Oswald', sans-serif;
-    font-size: 0.58rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.6);
-    text-align: center;
-    line-height: 1.2;
-  }
-  .stat-pick-taken {
-    font-family: 'Oswald', sans-serif;
-    font-size: 0.55rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--blood);
-    margin-top: 0.1rem;
-  }
-
-  .polearm-ip-note {
-    font-size: 0.72rem;
-    color: var(--rust);
-    font-style: italic;
   }
   .upgrade-choice-note {
     font-size: 0.95rem;

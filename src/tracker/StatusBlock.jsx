@@ -33,6 +33,7 @@ function StatusDetailModal({ status, onClose, onClear, dead }) {
 }
 
 export default function StatusBlock({ wi, warrior: w }) {
+  const { statuses, dead } = w
   const [detail, setDetail] = useState(null)
   const removeStatus = useTrackerStore(s => s.removeStatus)
 
@@ -44,17 +45,18 @@ export default function StatusBlock({ wi, warrior: w }) {
 
   return (
     <>
-      <div className="tk-status-grid">
-        {w.statuses.map(status => (
+      {/* Compact pills right under the header: name + short effect; tap for the rule and Clear */}
+      <div className="tk-status-row" role="group" aria-label="Statuses">
+        {statuses.map(status => (
           <button
             key={status.id}
             className="tk-status-card"
-            onClick={() => !w.dead && setDetail(status)}
+            onClick={() => !dead && setDetail(status)}
+            disabled={dead}
+            aria-label={`${status.name}${STATUS_SHORT[status.name] ? ': ' + STATUS_SHORT[status.name] : ''}. Show rule`}
           >
+            {/* Name only; the effect is in the aria-label and the sheet a tap away */}
             <span className="tk-status-card-name">{status.name}</span>
-            {STATUS_SHORT[status.name] && (
-              <div className="tk-status-card-sub">{STATUS_SHORT[status.name]}</div>
-            )}
           </button>
         ))}
       </div>
@@ -64,7 +66,7 @@ export default function StatusBlock({ wi, warrior: w }) {
           status={detail}
           onClose={() => setDetail(null)}
           onClear={handleClear}
-          dead={w.dead}
+          dead={dead}
         />
       )}
     </>

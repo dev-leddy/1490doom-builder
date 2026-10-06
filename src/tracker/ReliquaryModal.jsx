@@ -29,7 +29,7 @@ export default function ReliquaryModal() {
     <BottomSheet
       title="EXPEND RELIQUARY"
       onClose={closeReliquaryModal}
-      className="tk-sheet"
+      className="tk-sheet tk-sheet--reliquary"
       footer={
         <button className="tk-detail-btn tk-detail-btn--ghost" style={{ flex: 1 }} onClick={closeReliquaryModal}>
           {options.length === 0 ? 'CLOSE' : 'CANCEL'}
@@ -37,21 +37,27 @@ export default function ReliquaryModal() {
       }
     >
       {options.length === 0 ? (
-        <div className="reliquary-empty-msg">
+        <div className="tk-sheet-intro reliquary-empty-msg">
           No Once Per Game abilities have been used — nothing to restore.
         </div>
       ) : (
         <>
-          <div className="reliquary-prompt">Select one ability to restore:</div>
-          <div className="reliquary-list">
+          <p className="tk-sheet-intro reliquary-prompt">
+            <span className="tk-sheet-intro-label">Restore one</span>
+            Pick a used Once Per Game ability for {w.customName || w.type} to use again.
+          </p>
+          <div className="reliquary-list tk-sheet-list">
             {options.map(opt => (
               <button
                 key={opt.key}
-                className="status-item-btn"
+                className="status-item-btn status-item-btn--restore"
                 onClick={() => confirmReliquary(wi, opt.key)}
               >
-                <strong className="status-item-name">{opt.label}</strong>
-                <div className="status-item-desc">{opt.desc}</div>
+                <strong className="status-item-name">
+                  <span className="status-item-title">{opt.label}</span>
+                  <span className="tk-sheet-chip">Used</span>
+                </strong>
+                <span className="status-item-desc">{opt.desc}</span>
               </button>
             ))}
           </div>

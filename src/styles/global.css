@@ -249,3 +249,6 @@ input:focus, select:focus, textarea:focus {
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: #333; }
+
+/* External-link arrow (SVG, so phones never swap in an emoji) */
+.ext-arrow { display: inline-block; vertical-align: -0.1em; flex-shrink: 0; }

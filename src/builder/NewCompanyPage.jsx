@@ -6,7 +6,7 @@ import { COMPANY_AVATARS, getAvatarSrc } from '../data/avatars'
 import { MARKS, WARRIORS } from '../data/warriors'
 import { WARRIOR_IMAGES, MARK_IMAGES, ITEM_ICONS } from '../data/images'
 import { WEAPONS, CLIMBING_ITEMS } from '../data/weapons'
-import AvatarPicker from './AvatarPicker'
+import EmblemSheet from './EmblemSheet'
 import BottomSheet from '../shared/BottomSheet.jsx'
 import MarkPicker from './MarkPicker.jsx'
 
@@ -152,15 +152,13 @@ export default function NewCompanyPage({ onStart, onBack }) {
   return (
     <div className="ncp-page">
 
-      {/* Avatar picker overlay */}
+      {/* Emblem picker */}
       {showAvatarPicker && (
-        <div className="modal-backdrop" onClick={e => e.target === e.currentTarget && setShowAvatarPicker(false)} style={{ zIndex: 800 }}>
-          <div className="modal-box" style={{ maxWidth: 480, width: '92vw' }}>
-            <div className="co-settings-title" style={{ marginBottom: '1.5rem', textAlign: 'center' }}>SELECT EMBLEM</div>
-            <AvatarPicker value={avatar} onChange={val => { setAvatar(val); setShowAvatarPicker(false) }} />
-            <button className="btn btn-secondary co-settings-done" style={{ marginTop: '1rem' }} onClick={() => setShowAvatarPicker(false)}>Cancel</button>
-          </div>
-        </div>
+        <EmblemSheet
+          value={avatar}
+          onChange={val => { setAvatar(val); setShowAvatarPicker(false) }}
+          onClose={() => setShowAvatarPicker(false)}
+        />
       )}
 
       {/* Top bar */}

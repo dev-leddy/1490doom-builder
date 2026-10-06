@@ -27,17 +27,20 @@ export default function AvatarPicker({ value, onChange }) {
     e.target.value = ''
   }
 
+  const isUpload = value?.startsWith('data:')
+
   return (
     <div className="avatar-picker">
       <div className="avatar-picker-grid">
         <button
           key="none"
-          className={`avatar-option${!value ? ' selected' : ''}`}
+          className={`avatar-option avatar-option--none${!value ? ' selected' : ''}`}
           onClick={() => onChange('')}
           title="None"
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', opacity: 0.5, letterSpacing: '0.05em' }}
+          aria-pressed={!value}
         >
-          NONE
+          <span className="avatar-option-frame" aria-hidden="true"><span className="avatar-option-glyph">—</span></span>
+          <span className="avatar-option-label">None</span>
         </button>
         {COMPANY_AVATARS.map(a => (
           <button
@@ -45,19 +48,25 @@ export default function AvatarPicker({ value, onChange }) {
             className={`avatar-option${value === a.key ? ' selected' : ''}`}
             onClick={() => onChange(a.key)}
             title={a.label}
+            aria-pressed={value === a.key}
           >
-            <img src={a.src} alt={a.label} />
+            <span className="avatar-option-frame"><img src={a.src} alt="" loading="lazy" /></span>
+            <span className="avatar-option-label">{a.label}</span>
           </button>
         ))}
         <button
-          className={`avatar-option avatar-upload-btn${value?.startsWith('data:') ? ' selected' : ''}`}
+          className={`avatar-option avatar-upload-btn${isUpload ? ' selected' : ''}`}
           onClick={() => fileRef.current?.click()}
           title="Upload custom image"
+          aria-pressed={!!isUpload}
         >
-          {value?.startsWith('data:')
-            ? <img src={value} alt="Custom" />
-            : <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/><path d="M13 9h-2V6H9v3H6v2h3v3h2v-3h3V9z" opacity=".6"/></svg>
-          }
+          <span className="avatar-option-frame">
+            {isUpload
+              ? <img src={value} alt="" />
+              : <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="22" height="22" aria-hidden="true"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/><path d="M13 9h-2V6H9v3H6v2h3v3h2v-3h3V9z" opacity=".6"/></svg>
+            }
+          </span>
+          <span className="avatar-option-label">{isUpload ? 'Your image' : 'Upload'}</span>
         </button>
       </div>
       <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleUpload} />

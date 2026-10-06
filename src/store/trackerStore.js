@@ -370,10 +370,6 @@ export const useTrackerStore = create((set, get) => ({
   },
 
   // ── RELIQUARY ──────────────────────────────────────────────────────────────
-  activateReliquary(wi) {
-    // Opens selection modal; consumable source (cacheItemId = null)
-    get().openReliquaryModal(wi, null)
-  },
   openReliquaryModal(wi, cacheItemId = null) {
     set({ reliquaryModal: { wi, cacheItemId } })
   },
@@ -496,20 +492,14 @@ export const useTrackerStore = create((set, get) => ({
     const w = get().warriors[wi]
     const status = w.statuses.find(s => s.id === statusId)
     if (!status) return
-    get().openConfirm(
-      `Remove ${status.name}?`,
-      'Mark this status as cleared.',
-      () => {
-        set(state => {
-          const warriors = [...state.warriors]
-          const w = { ...warriors[wi] }
-          w.statuses = w.statuses.filter(s => s.id !== statusId)
-          warriors[wi] = w
-          return { warriors }
-        })
-        persistState(get)
-      }
-    )
+    // No confirm: clearing is quick to redo; the toast makes it obvious it happened
+    set(state => {
+      const warriors = [...state.warriors]
+      warriors[wi] = { ...warriors[wi], statuses: warriors[wi].statuses.filter(s => s.id !== statusId) }
+      return { warriors }
+    })
+    persistState(get)
+    useBuilderStore.getState()._toast(`${status.name} cleared from ${w.customName || w.type}`)
   },
 
   // ── DEAD TOGGLE ────────────────────────────────────────────────────────────

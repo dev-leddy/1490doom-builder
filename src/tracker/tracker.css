@@ -10,109 +10,33 @@
   background: #0d0d0d;
 }
 
-/* ── TOPBAR ─────────────────────────────────────────────── */
 /* ── TOPBAR ──────────────────────────────────────────────── */
+/* Row 1: menu, company identity, campaign game. Row 2: the round plaque —
+   counter, who has activated this round, and a big Next button. Both rows
+   line up with the card column (640px) on wide screens. */
 .tk-topbar {
   display: flex;
   flex-direction: column;
   padding-top: env(safe-area-inset-top);
-  background: #111;
-  border-bottom: 1px solid #2a2a2a;
+  background: linear-gradient(180deg, #151515 0%, #0f0f0f 100%);
+  border-bottom: 1px solid #242424;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
   flex-shrink: 0;
   box-sizing: border-box;
+  position: relative;
+  z-index: 2;
 }
 
-/* Row 1: hamburger (left) | round control (centered) */
 .tk-topbar-row1 {
   display: flex;
   align-items: center;
-  justify-content: center;
-  position: relative;
-  padding-left: max(0.75rem, env(safe-area-inset-left));
-  padding-right: max(0.75rem, env(safe-area-inset-right));
-  min-height: 52px;
-  box-sizing: border-box;
-}
-.tk-topbar-row1 .tk-topbar-hamburger {
-  position: absolute;
-  left: max(0.5rem, env(safe-area-inset-left));
-}
-.tk-topbar-game-label {
-  font-family: 'Oswald', sans-serif;
-  font-size: 0.65rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  margin-left: auto;
-  padding-right: max(0.75rem, env(safe-area-inset-right));
-  color: rgba(190, 65, 39, 0.6);
-}
-.tk-topbar-eog-btn {
-  position: absolute;
-  right: max(0.5rem, env(safe-area-inset-right));
-  background: rgba(190, 65, 39, 0.15);
-  border: 1px solid rgba(190, 65, 39, 0.4);
-  border-radius: 4px;
-  color: rgba(190, 65, 39, 0.9);
-  font-family: 'Oswald', sans-serif;
-  font-size: 0.58rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  padding: 0.25rem 0.6rem;
-  cursor: pointer;
-  transition: background 0.15s;
-  -webkit-tap-highlight-color: transparent;
-}
-@media (hover: hover) {
-  .tk-topbar-eog-btn:hover { background: rgba(190, 65, 39, 0.3); }
-}
-.tk-topbar-identity {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 0.45rem;
-  min-width: 0;
-  flex: 1;
-}
-.tk-topbar-avatar-ring {
-  width: 2.6rem;
-  height: 2.6rem;
-  border-radius: 3px;
-  border: 2px solid rgba(255, 255, 255, 0.7);
-  background: transparent;
-  box-shadow:
-    inset 0 1px 4px rgba(0,0,0,0.9),
-    0 2px 8px rgba(0,0,0,0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-.tk-topbar-avatar-ring:hover {
-  border-color: rgba(255, 255, 255, 0.9);
-  box-shadow:
-    inset 0 1px 4px rgba(0,0,0,0.9),
-    0 2px 8px rgba(0,0,0,0.7);
-}
-.tk-topbar-avatar-inner {
-  width: 2.3rem;
-  height: 2.3rem;
-  border-radius: 2px;
-  background: #f0ebe0;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow:
-    inset 0 1px 2px rgba(0,0,0,0.2),
-    inset 0 0 0 1px rgba(0,0,0,0.15);
-}
-.tk-topbar-avatar {
+  gap: 0.5rem;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center top;
-  display: block;
+  max-width: calc(640px + 1.5rem);
+  margin: 0 auto;
+  padding: 0.25rem max(0.75rem, env(safe-area-inset-right)) 0.25rem max(0.35rem, env(safe-area-inset-left));
+  min-height: 54px;
+  box-sizing: border-box;
 }
 
 /* Hamburger */
@@ -124,25 +48,65 @@
   height: 44px;
   background: none;
   border: none;
+  border-radius: 8px;
   cursor: pointer;
   padding: 0;
   flex-shrink: 0;
-  color: #aaa;
+  color: #9a9a9a;
   -webkit-tap-highlight-color: transparent;
-  transition: color 0.15s;
+  transition: color 0.15s, background 0.15s;
 }
-.tk-topbar-hamburger:active { color: #fff; }
+.tk-topbar-hamburger:active { color: #fff; background: rgba(255, 255, 255, 0.06); }
+@media (hover: hover) { .tk-topbar-hamburger:hover { color: #fff; } }
 
-/* Company name + mark stack */
+.tk-topbar-identity {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+  flex: 1;
+}
+.tk-topbar-avatar-ring {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 6px;
+  border: 1.5px solid rgba(255, 255, 255, 0.55);
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.9), 0 2px 8px rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.tk-topbar-avatar-inner {
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 4px;
+  background: #f0ebe0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(0, 0, 0, 0.15);
+}
+.tk-topbar-avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+}
+
 .tk-topbar-name-stack {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   min-width: 0;
-  gap: 0.1rem;
+  gap: 0.05rem;
 }
 .tk-topbar-name {
+  max-width: 100%;
   font-family: 'Oswald', sans-serif;
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -150,12 +114,16 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  line-height: 1.1;
+  line-height: 1.15;
 }
+/* Mark: tappable line under the name (opens the mark popup) */
 .tk-topbar-mark-sub {
-  display: flex;
+  position: relative;
+  display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.35rem;
+  max-width: 100%;
+  min-height: 22px;
   background: none;
   border: none;
   cursor: pointer;
@@ -163,126 +131,361 @@
   font-family: 'Oswald', sans-serif;
   font-size: 0.7rem;
   font-weight: 500;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #be4127;
+  color: #d0573b;
   white-space: nowrap;
   -webkit-tap-highlight-color: transparent;
   transition: color 0.15s;
 }
-.tk-topbar-mark-sub:active { color: #d4a830; }
+.tk-topbar-mark-sub::before { content: ''; position: absolute; inset: -11px -8px; } /* 44px tap target */
+.tk-topbar-mark-sub::after {
+  content: '';
+  width: 5px;
+  height: 5px;
+  margin-left: 0.1rem;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg);
+  opacity: 0.7;
+}
+.tk-topbar-mark-text { overflow: hidden; text-overflow: ellipsis; }
+.tk-topbar-mark-sub:active { color: #ff8a6a; }
+@media (hover: hover) { .tk-topbar-mark-sub:hover { color: #ff8a6a; } }
 .tk-topbar-mark-sub-img {
   width: 1rem;
   height: 1rem;
   border-radius: 50%;
   object-fit: contain;
-  border: 1px solid rgba(190, 65, 39, 0.4);
+  border: 1px solid rgba(190, 65, 39, 0.5);
   flex-shrink: 0;
 }
 
-/* Row 2: avatar + name (left) */
-.tk-topbar-row2 {
+/* Campaign: game number over the End of Game button */
+.tk-topbar-campaign {
   display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.2rem;
+  flex-shrink: 0;
+}
+.tk-topbar-game-label {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #8a8a8a;
+  line-height: 1;
+}
+.tk-topbar-eog-btn {
+  position: relative;
+  min-height: 30px;
+  padding: 0 0.7rem;
+  background: rgba(190, 65, 39, 0.1);
+  border: 1px solid rgba(190, 65, 39, 0.55);
+  border-radius: 6px;
+  color: #ec7a5e;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.64rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.tk-topbar-eog-btn::before { content: ''; position: absolute; inset: -7px -4px; } /* 44px tap target */
+.tk-topbar-eog-btn:active { background: rgba(190, 65, 39, 0.28); color: #fff; }
+@media (hover: hover) { .tk-topbar-eog-btn:hover { background: rgba(190, 65, 39, 0.22); color: #fff; } }
+
+/* Round plaque: − | round (focal, centred) + quiet activation line | Next */
+.tk-round-bar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
-  border-top: 1px solid #1e1e1e;
-  padding: 0.3rem max(0rem, env(safe-area-inset-right)) 0.3rem max(0.75rem, env(safe-area-inset-left));
-  min-height: 38px;
+  gap: 0.75rem;
+  width: calc(100% - 1.5rem);
+  max-width: 640px;
+  margin: 0.15rem auto 0.65rem;
+  padding: 0.35rem 0.4rem;
+  background: #0a0a0a;
+  border: 1px solid #262626;
+  border-radius: 10px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.7);
   box-sizing: border-box;
 }
+.tk-round-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  height: 44px;
+  border-radius: 7px;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.2s;
+}
+.tk-round-btn--prev {
+  justify-self: start;
+  width: 44px;
+  background: #121212;
+  border: 1px solid #262626;
+  color: #8a8a8a;
+}
+.tk-round-btn--prev:active { background: #1a1a1a; color: #fff; }
+@media (hover: hover) { .tk-round-btn--prev:hover { color: #fff; border-color: #3a3a3a; } }
 
-/* Round control */
-.tk-round-ctrl { display: flex; align-items: center; gap: 1rem; }
+.tk-round-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.28rem;
+  min-width: 0;
+}
+.tk-round-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.12rem;
+  line-height: 1;
+}
+.tk-round-label {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.56rem;
+  letter-spacing: 0.3em;
+  text-indent: 0.3em; /* balances the trailing letter-spacing so it centres */
+  text-transform: uppercase;
+  color: #be4127;
+  line-height: 1;
+}
+.tk-round-num {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.85rem;
+  font-weight: 700;
+  line-height: 0.9;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
 
-/* Hamburger menu list */
+/* Who has activated: small pips + a muted count, secondary to the round */
+.tk-round-progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+.tk-round-pips { display: flex; align-items: center; gap: 4px; }
+.tk-round-pip {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  border: 1px solid #555;
+  box-sizing: border-box;
+  transition: background 0.2s, border-color 0.2s;
+}
+.tk-round-pip.is-done { background: #4a9a4a; border-color: #4a9a4a; }
+.tk-round-pip.is-dead { background: #4a1c1c; border-color: #4a1c1c; }
+.tk-round-count {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.56rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #6e6e6e;
+  white-space: nowrap;
+  line-height: 1;
+}
+.tk-round-bar--done .tk-round-count { color: #6fae6f; }
+
+/* Next round: the most-used control in a game */
+.tk-round-btn--next {
+  justify-self: end;
+  gap: 0.4rem;
+  min-width: 104px;
+  padding: 0 0.9rem 0 1rem;
+  /* neutral until everyone standing has activated (then red, below) */
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #d8d0c4;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.tk-round-btn--next:active { background: rgba(255, 255, 255, 0.12); color: #fff; transform: scale(0.98); }
+@media (hover: hover) { .tk-round-btn--next:hover { background: rgba(255, 255, 255, 0.09); border-color: rgba(255, 255, 255, 0.3); color: #fff; } }
+/* Everyone has activated: Next becomes the obvious move */
+.tk-round-bar--done .tk-round-btn--next {
+  background: #be4127;
+  border-color: #d4563a;
+  color: #fff;
+  box-shadow: 0 0 0 3px rgba(190, 65, 39, 0.18), 0 0 16px rgba(190, 65, 39, 0.35);
+}
+@media (max-width: 360px) {
+  .tk-round-btn--next { min-width: 0; padding: 0 0.75rem; }
+  .tk-round-next-text { display: none; }
+}
+
+/* ── GAME MENU ──────────────────────────────────────────── */
 .tk-menu-list {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.55rem;
 }
 .tk-menu-item {
   display: flex;
   align-items: center;
   gap: 0.85rem;
   width: 100%;
-  background: #1a1a1a;
-  border: 1px solid #2a2a2a;
-  color: #ccc;
-  font-family: 'Oswald', sans-serif;
-  font-size: 1rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 0.85rem 1rem;
-  cursor: pointer;
+  min-height: 64px;
+  padding: 0.65rem 0.9rem 0.65rem 0.7rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid #383838;
+  border-radius: 8px;
+  color: #fff;
+  font: inherit;
   text-align: left;
-  transition: border-color 0.15s, color 0.15s;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
   -webkit-tap-highlight-color: transparent;
 }
-.tk-menu-item:active { color: #fff; border-color: #555; }
-.tk-menu-icon { font-size: 1.2rem; flex-shrink: 0; width: 1.5rem; text-align: center; }
-.tk-menu-label { flex: 1; }
+.tk-menu-item:active { background: rgba(255, 255, 255, 0.08); border-color: #666; transform: scale(0.99); }
+@media (hover: hover) { .tk-menu-item:hover { border-color: #777; background: rgba(255, 255, 255, 0.07); } }
+.tk-menu-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #141414;
+  border: 1.5px solid #444;
+  box-shadow: 0 0 0 1px #1c1c1c, inset 0 0 8px rgba(0, 0, 0, 0.5);
+  color: #ddd;
+}
+.tk-menu-icon svg { width: 20px; height: 20px; }
+.tk-menu-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.15rem; }
+.tk-menu-label {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.95rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+.tk-menu-sub { font-family: 'Caslon Antique', serif; font-size: 0.88rem; line-height: 1.3; color: #a8a29a; }
 .tk-menu-badge {
-  font-size: 0.6rem;
+  flex-shrink: 0;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.62rem;
   letter-spacing: 0.15em;
   background: #be4127;
   color: #fff;
-  padding: 0.15rem 0.4rem;
-  border-radius: 2px;
+  padding: 0.15rem 0.5rem;
+  border-radius: 3px;
 }
-.tk-menu-item--danger { color: #e07060; border-color: #3a1a1a; }
-.tk-menu-item--danger:active { color: #ff9080; border-color: #be4127; }
-.tk-menu-item--exit { color: #fff; }
-.tk-menu-item--exit:active { color: #ccc; }
+.tk-menu-item--danger .tk-menu-label { color: #ec7a5e; }
+.tk-menu-item--danger .tk-menu-icon { border-color: rgba(190, 65, 39, 0.6); color: #ec7a5e; }
+@media (hover: hover) { .tk-menu-item--danger:hover { border-color: rgba(190, 65, 39, 0.7); } }
 .tk-menu-item--discord { color: #7289da; text-decoration: none; }
-.tk-menu-item--discord:hover { color: #8ea1e1; background: rgba(114,137,218,0.08); }
-.tk-menu-item--discord:active { color: #fff; }
 
-.tk-round-btn {
-  background: #1a1a1a;
+/* ── PLAY-MODE SHEETS ───────────────────────────────────── */
+/* One family for every play-mode sheet (menu, status, cache, reliquary, confirm,
+   equipment and status detail): intro line, 8px cards, Oswald labels, serif rules. */
+.co-settings-sheet.tk-sheet {
+  background: #101010;
   border: 1px solid #2a2a2a;
-  color: #ffffff;
-  width: 32px;
-  height: 32px;
-  cursor: pointer;
-  font-size: 1.1rem;
-  line-height: 1;
-  flex-shrink: 0;
+  border-top: 2px solid rgba(190, 65, 39, 0.7);
+  border-radius: 12px;
+  max-height: 92dvh;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
 }
-.tk-round-btn:active { background: #2a2a2a; }
-.tk-round-display { text-align: center; min-width: 48px; }
-.tk-round-label { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.55rem; letter-spacing: 0.2em; color: #555; display: block; line-height: 1; margin-bottom: 0.1rem; }
-.tk-round-num { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 1.6rem; font-weight: 700; display: block; line-height: 1; }
-
-/* ── TRACKER BOTTOM SHEET THEME ─────────────────────────── */
-/* Overrides the builder's red/parchment palette for play mode */
-.tk-sheet {
-  background: #111 !important;
-  border-color: #2a2a2a !important;
-  border-top-color: #2a2a2a !important;
-  max-height: 92dvh !important;
+@media (max-width: 600px) {
+  .co-settings-sheet.tk-sheet { border-radius: 16px 16px 0 0; border-left: none; border-right: none; border-bottom: none; }
 }
 .tk-sheet .co-sheet-handle { display: none !important; }
+.tk-sheet .co-sheet-header { align-items: center; padding-top: 1.1rem; }
 .tk-sheet .co-sheet-title {
-  color: #ccc;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+  font-size: 0.85rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  line-height: 1.3;
+  color: var(--parchment, #fff);
 }
+/* A small diamond in the sheet's colour before the title */
+.tk-sheet .co-sheet-title::before {
+  content: '';
+  flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  background: #be4127;
+  transform: rotate(45deg);
+}
+.tk-sheet--status .co-sheet-title::before { background: #9a9add; }
+.tk-sheet--cache .co-sheet-title::before { background: #4a9a4a; }
 .tk-sheet .co-sheet-close {
-  color: #555;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-right: -0.6rem;
+  padding: 0;
+  border-radius: 8px;
+  color: #777;
 }
-.tk-sheet .co-sheet-close:hover {
-  color: #ccc;
+.tk-sheet .co-sheet-close:hover { color: #fff; }
+.tk-sheet .co-sheet-body { background: transparent; }
+
+.tk-sheet-intro {
+  margin: 0 0 0.85rem;
+  font-family: 'Caslon Antique', serif;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: #d8d2c6;
 }
-.tk-sheet .co-sheet-body {
-  background: #111;
+.tk-sheet-intro-label {
+  margin-right: 0.45rem;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #be4127;
+}
+.tk-sheet-list { display: flex; flex-direction: column; gap: 0.55rem; }
+.tk-sheet-item-icon { width: 1.15rem; height: 1.15rem; flex-shrink: 0; filter: brightness(0) invert(1); opacity: 0.85; }
+.tk-sheet-chip {
+  flex-shrink: 0;
+  margin-left: auto;
+  padding: 0.12rem 0.5rem;
+  border-radius: 3px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
-/* Cache variant — green accent */
-.tk-sheet--cache .co-sheet-title {
-  color: #4a9a4a;
-}
-
-/* Status variant — purple accent */
-.tk-sheet--status .co-sheet-title {
-  color: #9a9add;
+/* Footer buttons in play-mode sheets (shared ConfirmModal + detail sheets) */
+.tk-sheet .co-sheet-randomize,
+.tk-sheet .co-sheet-done,
+.tk-sheet .tk-detail-btn { min-height: 48px; border-radius: 8px; }
+.tk-sheet .co-sheet-randomize { background: transparent; border: 1px solid #3a3a3a; color: #ddd; font-size: 0.8rem; }
+.tk-sheet .co-sheet-done { background: #be4127; border: 1px solid #d4563a; }
+.tk-sheet .co-sheet-done:hover { background: #a8391f; }
+.tk-sheet .confirm-modal-text {
+  margin: 0;
+  font-family: 'Caslon Antique', serif;
+  font-size: 1.02rem;
+  line-height: 1.55;
+  color: #e2dccf;
 }
 
 /* ── CARD AREA ───────────────────────────────────────────── */
@@ -552,28 +755,17 @@
 /* ── RESTRICTIONS ───────────────────────────────────────── */
 .tk-restrictions { font-size: 1rem; color: #a09070; font-style: italic; margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px solid #1e1e1e; line-height: 1.6; }
 
-/* ── RELIQUARY BUTTON ───────────────────────────────────── */
-.tk-reliquary-btn {
-  border: 1px solid #be4127;
-  background: #1a1510;
-  color: #be4127;
-  padding: 0.3rem 0.8rem;
-  cursor: pointer;
-  font-family: 'Oswald', sans-serif; text-transform: uppercase;
-  font-size: 0.7rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  display: block;
-  width: 100%;
-  margin-top: 0.5rem;
-}
-.tk-reliquary-btn:active { background: #2a2010; }
 
 /* ── BOTTOM TAB BAR ─────────────────────────────────────── */
+/* One tab per warrior: vitality (☠ when slain), type,
+   and a green ✓ badge once activated. Activated warriors' numbers
+   dim so the ones still to act stand out. Selected = lifted with a blood top bar. */
 .tk-tab-bar {
   display: flex;
+  justify-content: center;
   background: #0a0a0a;
   border-top: 1px solid #222;
+  box-shadow: 0 -6px 18px rgba(0, 0, 0, 0.45);
   flex-shrink: 0;
   width: 100%;
   padding-bottom: max(0.4rem, env(safe-area-inset-bottom));
@@ -581,68 +773,114 @@
   padding-right: env(safe-area-inset-right);
   overflow-x: auto;
   scrollbar-width: none; /* Hide scrollbar in Firefox */
+  position: relative;
+  z-index: 2;
 }
 .tk-tab-bar::-webkit-scrollbar {
   display: none; /* Hide scrollbar in Chrome/Safari/Webkit */
 }
 .tk-tab {
-  flex: 1;
+  flex: 1 1 0;
+  max-width: 168px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0.6rem 0.1rem 0.2rem;
+  gap: 4px;
+  padding: 0.6rem 0.15rem;
   cursor: pointer;
-  border-right: 1px solid #1a1a1a;
   border: none;
-  border-right: 1px solid #1a1a1a;
   border-top: 2px solid transparent;
-  transition: background 0.12s;
+  transition: background 0.12s, border-color 0.15s;
   position: relative;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
   min-width: 0;
-  min-height: 52px;
+  min-height: 58px;
   background: none;
 }
-.tk-tab:last-child { border-right: none; }
-.tk-tab:active { background: #1a1a1a; }
-.tk-tab.tk-tab-active { background: #1a1a1a; border-top-color: #be4127; }
-.tk-tab.tk-tab-dead { opacity: 0.35; }
+/* hairline separators between tabs */
+.tk-tab + .tk-tab::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 22%;
+  bottom: 22%;
+  width: 1px;
+  background: #1c1c1c;
+}
+.tk-tab:active { background: #151515; }
+@media (hover: hover) { .tk-tab:not(.tk-tab-active):hover { background: #121212; } }
+.tk-tab.tk-tab-active {
+  background: linear-gradient(180deg, #1c1c1c 0%, #141414 100%);
+  border-top-color: #be4127;
+}
+.tk-tab.tk-tab-active::before, .tk-tab-active + .tk-tab::before { display: none; }
+
 .tk-tab-vit-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px;
+  line-height: 1;
+}
+.tk-tab-vit {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1;
+  color: #ffffff;
+  font-variant-numeric: tabular-nums;
+  transition: color 0.15s;
+}
+/* Activated (and not selected): number steps back; the ✓ badge says why */
+.tk-tab.tk-tab-activated .tk-tab-vit { color: #8a8a8a; }
+.tk-tab.tk-tab-active .tk-tab-vit { color: #ffffff; } /* selected tab: vitality stays white */
+.tk-tab-name {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 3px;
-}
-.tk-tab-vit {
-  font-family: 'Oswald', sans-serif; text-transform: uppercase;
-  font-size: 1rem;
-  font-weight: 700;
-  line-height: 1;
-  color: #ffffff;
-}
-.tk-tab.tk-tab-active .tk-tab-vit { color: #ffffff; } /* selected tab is marked by its top bar; vitality stays white */
-.tk-tab-name {
-  font-family: 'Oswald', sans-serif; text-transform: uppercase;
-  font-size: 0.5rem;
-  letter-spacing: 0.06em;
+  font-family: 'Oswald', sans-serif;
   text-transform: uppercase;
-  color: #555;
-  margin-top: 2px;
+  font-size: 0.56rem;
+  letter-spacing: 0.1em;
+  line-height: 1.1;
+  color: #6e6e6e;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   width: 100%;
-  text-align: center;
-  padding: 0 2px;
+  padding: 0 3px;
   box-sizing: border-box;
 }
-.tk-tab.tk-tab-active .tk-tab-name { color: #888; }
+.tk-tab.tk-tab-active .tk-tab-name { color: #c8c8c8; }
+.tk-tab-captain-dot { flex-shrink: 0; font-size: 0.6rem; color: #be4127; }
+
+/* Activated: green ✓ badge in the corner */
+.tk-tab-check {
+  position: absolute;
+  top: 5px;
+  right: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #12301a;
+  border: 1px solid #4a9a4a;
+  color: #8fd88f;
+  font-size: 0.55rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Slain */
+.tk-tab.tk-tab-dead .tk-tab-vit { color: #a05a5a; font-size: 1.15rem; }
+.tk-tab.tk-tab-dead .tk-tab-name { text-decoration: line-through; text-decoration-color: rgba(160, 90, 90, 0.6); }
+.tk-tab.tk-tab-dead:not(.tk-tab-active) { opacity: 0.55; }
 .tk-tab-dead-icon { position: absolute; top: 3px; right: 3px; font-size: 0.55rem; color: #5a0000; }
-.tk-tab-captain-dot { position: absolute; top: 3px; left: 3px; font-size: 0.5rem; color: #be4127; }
-.tk-tab-check { color: #4a9a4a; font-size: 0.75rem; }
-.tk-tab.tk-tab-activated { border-top-color: #4a9a4a; }
 
 /* ── ACTIVATED BUTTON ────────────────────────────────────── */
 .tk-activated-btn {
@@ -693,147 +931,143 @@
 }
 
 /* ── MARK POPUP ──────────────────────────────────────────── */
+/* Centered dialog, same family as the play-mode sheets */
+.mark-popup-backdrop,
+.mark-ability-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  background: rgba(0, 0, 0, 0.82);
+}
+.mark-ability-backdrop { z-index: 500; background: rgba(0, 0, 0, 0.85); }
 .mark-popup-box {
-  background: #111;
-  border: 1px solid #3a2e00;
-  max-width: 340px;
   width: 100%;
-  padding: 1.4rem;
-  font-family: 'Caslon Antique', serif;
-  color: #ffffff;
-  max-height: calc(100dvh - 3rem);
+  max-width: 380px;
+  max-height: calc(100dvh - 2.5rem);
   overflow-y: auto;
   overscroll-behavior: contain;
+  padding: 1.35rem 1.3rem 1.2rem;
+  background: #101010;
+  border: 1px solid #2e2e2e;
+  border-top: 2px solid rgba(190, 65, 39, 0.7);
+  border-radius: 12px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+  font-family: 'Caslon Antique', serif;
+  color: #fff;
+  box-sizing: border-box;
 }
 .mark-popup-header {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.9rem;
   margin-bottom: 1rem;
 }
 .mark-popup-img {
-  width: 3.5rem;
-  height: 3.5rem;
+  width: 3.6rem;
+  height: 3.6rem;
   border-radius: 50%;
   object-fit: cover;
   object-position: top;
   border: 2px solid #be4127;
+  box-shadow: 0 0 0 1px #1c1c1c, 0 4px 14px rgba(0, 0, 0, 0.6);
   flex-shrink: 0;
 }
 .mark-popup-label {
-  font-family: 'Oswald', sans-serif; text-transform: uppercase;
-  font-size: 0.6rem;
-  letter-spacing: 0.18em;
-  color: #be4127;
+  font-family: 'Oswald', sans-serif;
   text-transform: uppercase;
-  margin-bottom: 2px;
+  font-size: 0.64rem;
+  letter-spacing: 0.2em;
+  color: #be4127;
+  margin-bottom: 3px;
 }
 .mark-popup-name {
-  font-family: 'Oswald', sans-serif; text-transform: uppercase;
-  font-size: 1.2rem;
+  font-family: 'Oswald', sans-serif;
+  text-transform: uppercase;
+  font-size: 1.3rem;
   font-weight: 700;
   letter-spacing: 0.08em;
-  text-transform: uppercase;
+  line-height: 1.15;
 }
+.mark-popup-state {
+  display: inline-block;
+  margin-top: 0.35rem;
+  padding: 0.1rem 0.5rem;
+  border: 1px solid #2a5a2a;
+  border-radius: 3px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #7fc07f;
+}
+.mark-popup-state.is-used { border-color: #3a3a3a; color: #8a8a8a; }
 .mark-popup-desc {
   font-size: 1rem;
   line-height: 1.55;
-  color: #c8b890;
-  border-left: 2px solid #3a2e00;
-  padding-left: 0.75rem;
+  color: #e2dccf;
+  border-left: 2px solid rgba(190, 65, 39, 0.45);
+  padding-left: 0.85rem;
 }
-.mark-popup-close {
-  margin-top: 1.1rem;
+.mark-popup-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1.2rem;
+}
+.mark-popup-close,
+.mark-popup-toggle,
+.mark-ability-skip-btn,
+.mark-ability-use-btn {
   width: 100%;
-  background: none;
-  border: 1px solid #333;
-  color: #666;
-  padding: 0.45rem;
+  min-height: 46px;
+  padding: 0 0.75rem;
+  border-radius: 8px;
   cursor: pointer;
-  font-family: 'Oswald', sans-serif; text-transform: uppercase;
-  font-size: 0.75rem;
-  letter-spacing: 0.1em;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  -webkit-tap-highlight-color: transparent;
 }
+.mark-popup-close { background: transparent; border: 1px solid #3a3a3a; color: #ccc; }
+@media (hover: hover) { .mark-popup-close:hover { border-color: #666; color: #fff; } }
+.mark-popup-toggle { background: rgba(190, 65, 39, 0.1); border: 1px solid rgba(190, 65, 39, 0.7); color: #f08a70; }
+@media (hover: hover) { .mark-popup-toggle:hover { background: rgba(190, 65, 39, 0.22); color: #fff; } }
+.mark-popup-toggle--used { background: transparent; border-color: #3a3a3a; color: #9a9a9a; }
 
 /* ── MARK ABILITY MODAL ──────────────────────────────────── */
-.mark-ability-backdrop {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.85);
-  z-index: 500;
-  display: flex; align-items: center; justify-content: center;
-  padding: 1.5rem;
-}
 .mark-ability-notice {
-  background: #1a1200;
-  border: 1px solid #3a2e00;
-  border-radius: 2px;
-  padding: 0.5rem 0.75rem;
-  margin-bottom: 0.85rem;
-  font-size: 0.88rem;
-  color: #ccc;
-  line-height: 1.4;
+  background: rgba(190, 65, 39, 0.08);
+  border: 1px solid rgba(190, 65, 39, 0.35);
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  margin-bottom: 0.9rem;
+  font-size: 0.95rem;
+  color: #e2dccf;
+  line-height: 1.45;
 }
+.mark-ability-notice strong { font-family: 'Oswald', sans-serif; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #fff; }
 .mark-ability-used-label {
-  font-size: 0.78rem;
-  color: #555;
+  font-size: 0.85rem;
+  color: #8a8a8a;
   text-align: center;
-  margin-top: 0.6rem;
+  margin-top: 0.7rem;
   font-style: italic;
 }
-.mark-ability-btn-row {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 1.1rem;
-}
-.mark-ability-skip-btn {
-  flex: 1;
-  background: none;
-  border: 1px solid #333;
-  color: #666;
-  padding: 0.5rem 0.25rem;
-  cursor: pointer;
-  font-family: 'Oswald', sans-serif;
-  font-size: 0.75rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-.mark-ability-use-btn {
-  flex: 2;
-  background: #be4127;
-  border: none;
-  color: #fff;
-  padding: 0.5rem 0.25rem;
-  cursor: pointer;
-  font-family: 'Oswald', sans-serif;
-  font-size: 0.75rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-.mark-ability-use-btn:hover { background: #d44830; }
-/* Toggle button in regular MarkPopup (Doomed Choir / Graveborn) */
-.mark-popup-toggle {
-  margin-top: 0.75rem;
-  width: 100%;
-  background: none;
-  border: 1px solid #be4127;
-  color: #be4127;
-  padding: 0.45rem;
-  cursor: pointer;
-  font-family: 'Oswald', sans-serif;
-  font-size: 0.75rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  transition: opacity 0.15s;
-}
-.mark-popup-toggle:hover { opacity: 0.75; }
-.mark-popup-toggle--used {
-  border-color: #444;
-  color: #555;
-}
+.mark-ability-btn-row { display: flex; gap: 0.5rem; }
+.mark-ability-skip-btn { flex: 1; background: transparent; border: 1px solid #3a3a3a; color: #ccc; }
+@media (hover: hover) { .mark-ability-skip-btn:hover { border-color: #666; color: #fff; } }
+.mark-ability-use-btn { flex: 1.6; background: #be4127; border: 1px solid #d4563a; color: #fff; }
+@media (hover: hover) { .mark-ability-use-btn:hover { background: #a8391f; } }
 
-/* ── TRACKER MODALS (Cache / Status) ─────────────────────── */
+/* ── TRACKER MODALS (Cache / Status / Reliquary pick lists) ── */
 .tracker-modal-title {
-  font-family: 'Oswald', sans-serif; text-transform: uppercase;
+  font-family: 'Oswald', sans-serif;
   font-size: 0.65rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -843,98 +1077,120 @@
   margin-bottom: 0.6rem;
 }
 
-/* Cache item buttons — equipment-row style */
-.cache-item-btn {
-  display: block;
-  width: 100%;
-  text-align: left;
-  background: #1a1a1a;
-  border: 1px solid #2a2a2a;
-  border-left: 2px solid #2a5a2a;
-  padding: 0.6rem 0.75rem;
-  margin-bottom: 0.35rem;
-  cursor: pointer;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-  transition: border-color 0.12s, background 0.12s;
-}
-.cache-item-btn:active, .cache-item-btn:hover { background: #222; border-left-color: #4a9a4a; }
-.cache-item-header {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  margin-bottom: 0.3rem;
-}
-.cache-item-roll {
-  font-family: 'Oswald', sans-serif; text-transform: uppercase;
-  font-size: 0.8rem;
-  font-weight: 700;
-  background: #0d1a0d;
-  border: 1px solid #1a3a1a;
-  color: #4a9a4a;
-  padding: 1px 6px;
-  min-width: 22px;
-  text-align: center;
-  flex-shrink: 0;
-}
-.cache-item-name {
-  font-family: 'Oswald', sans-serif; text-transform: uppercase;
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: #ffffff;
-}
-.cache-item-desc {
-  font-size: 0.95rem;
-  color: #b0a080;
-  line-height: 1.5;
-}
-
-/* Status compact grid (Active Statuses section on tracker card) */
-.tk-status-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.35rem; }
-.tk-status-card { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.2rem; background: #12122a; border: 1px solid #2a2a5a; border-radius: 3px; padding: 0.55rem 0.3rem 0.5rem; text-align: center; cursor: pointer; transition: border-color 0.15s, background 0.15s; min-width: 0; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
-.tk-status-card:hover { background: #1a1a3a; border-color: #9a9add; }
-.tk-status-card:active { background: rgba(154,154,221,0.1); }
-.tk-status-card-icon { width: 24px; height: 24px; filter: brightness(0) invert(1); opacity: 0.85; flex-shrink: 0; margin-bottom: 0.15rem; }
-.tk-status-card-name { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.63rem; font-weight: 700; letter-spacing: 0.02em; color: #9a9add; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; width: 100%; }
-.tk-status-card-sub { font-family: 'Oswald', sans-serif; font-size: 0.58rem; letter-spacing: 0.06em; color: #6a6a9a; text-transform: uppercase; margin-top: 0.1rem; }
-.tk-detail-btn--clear { background: #1e1e4a; color: #9a9add; border: 1px solid #4a4a9a; flex: 1; }
-.tk-detail-btn--clear:hover { background: #2a2a6a; }
-
-/* Status item buttons — ability-row style (used in StatusModal pick list) */
+/* Shared card for the pick lists */
+.cache-item-btn,
 .status-item-btn {
   display: block;
   width: 100%;
   text-align: left;
-  background: #12122a;
-  border: 1px solid #2a2a5a;
-  border-left: 2px solid #2a2a5a;
-  padding: 0.6rem 0.75rem;
-  margin-bottom: 0.35rem;
+  margin: 0;
+  padding: 0.75rem 0.85rem 0.8rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid #383838;
+  border-radius: 8px;
+  color: #fff;
+  font: inherit;
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
-  transition: border-color 0.12s, background 0.12s;
+  transition: border-color 0.15s, background 0.15s;
 }
-.status-item-btn:active, .status-item-btn:hover { background: #1a1a3a; border-left-color: #9a9add; }
-.status-item-name {
-  font-family: 'Oswald', sans-serif; text-transform: uppercase;
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: #9a9add;
+.cache-item-btn:active,
+.status-item-btn:active { transform: scale(0.99); background: rgba(255, 255, 255, 0.08); }
+@media (hover: hover) {
+  .cache-item-btn:hover,
+  .status-item-btn:hover { border-color: #777; background: rgba(255, 255, 255, 0.07); }
+}
+.cache-item-btn:focus-visible,
+.status-item-btn:focus-visible { outline: 2px solid #be4127; outline-offset: 2px; }
+
+/* Cache: a die-face roll badge, then the item */
+.cache-item-btn {
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  align-items: start;
+  gap: 0.8rem;
+  padding-left: 0.7rem;
+}
+.cache-item-roll {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  background: #0d170d;
+  border: 1px solid #2a5a2a;
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.6);
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1;
+  color: #8fd08f;
+}
+@media (hover: hover) { .cache-item-btn:hover .cache-item-roll { border-color: #4a9a4a; } }
+.cache-item-main { display: flex; flex-direction: column; gap: 0.3rem; min-width: 0; }
+.cache-item-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 1.5rem;
+  margin: 0;
+}
+.cache-item-name {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.98rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #ffffff;
+}
+.cache-item-desc {
+  font-family: 'Caslon Antique', serif;
+  font-size: 0.92rem;
+  color: #e2dccf;
+  line-height: 1.45;
+}
+
+/* Status compact grid (Active Statuses section on tracker card) */
+/* Statuses: compact pills under the header, styles at the end of the file */
+.tk-detail-btn--clear { background: #1e1e4a; color: #9a9add; border: 1px solid #4a4a9a; flex: 1; }
+.tk-detail-btn--clear:hover { background: #2a2a6a; }
+
+/* Status pick list (StatusModal) and Reliquary restore list: shares the card above */
+.status-item-name {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   margin-bottom: 0.3rem;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.98rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #c4c4ff;
 }
+.status-item-title { min-width: 0; }
 .status-item-desc {
-  font-size: 0.95rem;
-  color: #b0a080;
-  line-height: 1.5;
+  display: block;
+  font-family: 'Caslon Antique', serif;
+  font-size: 0.92rem;
+  color: #e2dccf;
+  line-height: 1.45;
 }
+/* Already on the target: violet accent + chip (tapping it again changes nothing) */
+.status-item-btn.is-active {
+  background: rgba(154, 154, 221, 0.1);
+  border-color: #5a5aa0;
+  box-shadow: inset 3px 0 0 #9a9add;
+}
+.status-item-btn.is-active .tk-sheet-chip { background: #9a9add; color: #0d0d1a; }
+/* Reliquary: restore a used ability */
+.status-item-btn--restore .status-item-name { color: #fff; }
+.status-item-btn--restore { box-shadow: inset 3px 0 0 rgba(190, 65, 39, 0.8); }
+.status-item-btn--restore .tk-sheet-chip { border: 1px solid #4a4a4a; color: #9a9a9a; }
+@media (hover: hover) { .status-item-btn--restore:hover { border-color: #be4127; } }
+.reliquary-empty-msg { margin-bottom: 0; }
 
 /* Modal cancel button */
 .btn-ghost.btn-full {
@@ -1005,3 +1261,41 @@
 .tk-warrior-header-text { flex: 1 1 auto; min-width: 0; }
 .tk-name { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tk-hdr-btn-group { flex-shrink: 0; }
+
+/* App toast while in play mode: floats just above the tab bar */
+.tracker-shell ~ .toast {
+  bottom: calc(4.9rem + env(safe-area-inset-bottom, 0px));
+  padding: 0.75rem 1.1rem;
+  background: #161616;
+  border: 1px solid #3a3a3a;
+  border-radius: 10px;
+  box-shadow: inset 3px 0 0 #4a9a4a, 0 10px 28px rgba(0, 0, 0, 0.7);
+  color: #e6dcc8;
+  font-size: 0.74rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  line-height: 1.3;
+}
+
+.tk-hdr-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+/* SLAIN marker beside a fallen warrior's name */
+.tk-name-line { display: flex; align-items: center; gap: 0.5rem; min-width: 0; }
+.tk-name-line .tk-name { min-width: 0; }
+.tk-slain-pill { flex-shrink: 0; font-family: 'Oswald', sans-serif; font-size: 0.62rem; letter-spacing: 0.12em; padding: 1px 6px; background: #5a0000; color: #ff8888; }
+
+/* Active statuses: a row of pills right under the header, above the stats they change.
+   Same family as the SLAIN pill, in the status blue-violet. Each opens the rule + Clear. */
+.tk-status-row { display: flex; flex-wrap: wrap; gap: 0.5rem 0.4rem; margin: -0.3rem 0 0.7rem; }
+.tk-status-card {
+  position: relative; display: inline-flex; align-items: baseline; gap: 0.45rem; min-height: 32px; min-width: 0;
+  padding: 0.3rem 0.6rem; background: #14143a; border: 1px solid #3a3a7a; border-left: 3px solid #9a9add; border-radius: 2px;
+  font-family: 'Oswald', sans-serif; text-transform: uppercase; text-align: left; line-height: 1.2; cursor: pointer;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent; transition: border-color 0.15s, background 0.15s;
+}
+/* 44px tap target without a 44px-tall pill */
+.tk-status-card::after { content: ''; position: absolute; inset: -6px -2px; }
+.tk-status-card:hover { background: #1c1c4a; border-color: #6a6ab0; border-left-color: #c4c4ff; }
+.tk-status-card:active { background: #22225a; }
+.tk-status-card:disabled { cursor: default; opacity: 0.55; }
+.tk-status-card-name { font-size: 0.74rem; font-weight: 700; letter-spacing: 0.12em; color: #c4c4ff; white-space: nowrap; }
+.tk-status-card-sub { font-size: 0.66rem; letter-spacing: 0.06em; color: #8a8ac0; white-space: nowrap; }
