@@ -99,11 +99,9 @@ function OAuthOptions() {
           Google
         </a>
       </div>
-      <p className="auth-sheet-note">
-        {hasLegacyLocalData()
-          ? 'Companies saved in this browser before are moved to your account when you sign in.'
-          : "It's free. Your account keeps your companies safe and on every device."}
-      </p>
+      {hasLegacyLocalData() && (
+        <p className="auth-sheet-note">Companies saved in this browser before are moved to your account when you sign in.</p>
+      )}
     </>
   )
 }
