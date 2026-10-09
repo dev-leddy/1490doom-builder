@@ -29,6 +29,24 @@ export const useAuthStore = create((set) => ({
     set({ user: null, status: 'guest' })
   },
 
+  // Resolves to null on success, or an error message to show
+  updateDisplayName: async (displayName) => {
+    try {
+      const res = await fetch('/api/auth/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ displayName }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) return data.error || 'Could not save the name'
+      set(state => ({ user: state.user ? { ...state.user, username: data.username } : state.user }))
+      return null
+    } catch {
+      return 'Could not save the name (offline?)'
+    }
+  },
+
   updateAvatar: async (avatarKey) => {
     try {
       const res = await fetch('/api/auth/profile', {

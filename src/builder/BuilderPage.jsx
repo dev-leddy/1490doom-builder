@@ -539,6 +539,55 @@ function GoogleIconColored() {
   )
 }
 
+/* ── DISPLAY NAME (any account; tap to rename) ──────────── */
+function DisplayNameField({ user }) {
+  const { updateDisplayName } = useAuthStore()
+  const [editing, setEditing] = useState(false)
+  const [value, setValue] = useState(user.username || '')
+  const [error, setError] = useState(null)
+  const [saving, setSaving] = useState(false)
+
+  function start() { setValue(user.username || ''); setError(null); setEditing(true) }
+
+  async function save(e) {
+    e.preventDefault()
+    if (value.trim() === (user.username || '')) { setEditing(false); return }
+    setSaving(true)
+    const err = await updateDisplayName(value)
+    setSaving(false)
+    if (err) setError(err)
+    else setEditing(false)
+  }
+
+  if (!editing) {
+    return (
+      <button type="button" className="auth-account-name auth-account-name-btn" onClick={start} title="Change display name">
+        <span className="auth-account-name-text">{user.username}</span>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+      </button>
+    )
+  }
+
+  return (
+    <form className="auth-account-name-form" onSubmit={save}>
+      <input
+        className="auth-account-name-input"
+        value={value}
+        onChange={e => { setValue(e.target.value); setError(null) }}
+        maxLength={32}
+        aria-label="Display name"
+        autoFocus
+        onKeyDown={e => { if (e.key === 'Escape') { e.stopPropagation(); setEditing(false) } }}
+      />
+      <div className="auth-account-name-actions">
+        <button type="button" className="auth-account-name-cancel" onClick={() => setEditing(false)}>Cancel</button>
+        <button type="submit" className="auth-account-name-save" disabled={saving || !value.trim()}>{saving ? 'Saving…' : 'Save'}</button>
+      </div>
+      {error && <p className="auth-account-name-error" role="alert">{error}</p>}
+    </form>
+  )
+}
+
 /* ── ACCOUNT SHEET (shown when avatar is tapped) ───────── */
 function AuthAccountSheet({ user, onClose, onLogout }) {
   const [pickingAvatar, setPickingAvatar] = useState(false)
@@ -576,7 +625,7 @@ function AuthAccountSheet({ user, onClose, onLogout }) {
               {user.provider === 'google'  && <GoogleIconColored />}
             </span>
           )}
-          <div className="auth-account-name">{user.username}</div>
+          <DisplayNameField user={user} />
         </div>
 
         {pickingAvatar && user.provider === 'email' && (

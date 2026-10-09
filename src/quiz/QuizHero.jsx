@@ -4,7 +4,7 @@ export default function QuizHero({ onStart, audioState, onAudioToggle }) {
       {/* Audio widget */}
       <AudioWidget audioState={audioState} onToggle={onAudioToggle} />
 
-      <section className="qz-section active">
+      <section className="qz-section qz-section--hero active">
         <div className="qz-hero-content">
           <img
             src="/quiz/Art/Logos/DOOMlogoOrange.webp"

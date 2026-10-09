@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS users (
   provider_id TEXT NOT NULL,        -- OAuth subject ID from provider
   username    TEXT,
   avatar_url  TEXT,
+  display_name TEXT,                -- chosen by the user; overrides username (005)
   created_at  INTEGER NOT NULL,
   UNIQUE(provider, provider_id)
 );

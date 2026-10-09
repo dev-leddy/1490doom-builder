@@ -627,7 +627,7 @@
 
 /* ── IP UPGRADES ─────────────────────────────────────────
    "N IP ›" under + CACHE / + STATUS (their effects already show in the stats and gear);
-   tapping opens the list. A quieter "view" button: no fill, no "+", a chevron.
+   tapping opens the list. A "view" button: stat-tile colours, no "+", an info icon.
    Sized so the three buttons end level with the 104px portrait (104 - 2 x 36 - 2 gaps),
    so a warrior with upgrades has the same header height as one without; the tap area
    reaches down into the header's bottom margin (nothing else to hit there). */
@@ -637,14 +637,15 @@
   height: calc(104px - 72px - 0.5rem);
   padding: 0 0.6rem;
   display: inline-flex; align-items: center; justify-content: center; gap: 0.3rem;
-  background: transparent; border-color: #333; color: #9a9a9a;
+  background: #1a1a1a; border-color: #2a2a2a; color: #9a9a9a;
   transition: border-color 0.15s, color 0.15s;
 }
 .tk-hdr-btn-ip::after { content: ''; position: absolute; left: 0; right: 0; top: 0; bottom: -12px; }
-.tk-hdr-btn-ip:hover, .tk-hdr-btn-ip:active { border-color: var(--green); color: #ddd; }
+.tk-hdr-btn-ip:hover, .tk-hdr-btn-ip:active { background: #222; border-color: #444; color: #e2dccf; }
 .tk-hdr-btn-ip:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
 .tk-ip-count { font-weight: 700; color: #fff; }
-.tk-ip-chev { font-size: 0.95rem; line-height: 1; color: var(--green); }
+.tk-ip-info { display: block; flex-shrink: 0; margin-left: 0.15rem; width: 11px; height: 11px; color: #555; }
+.tk-hdr-btn-ip:hover .tk-ip-info, .tk-hdr-btn-ip:active .tk-ip-info { color: #8a8a8a; }
 .tk-ip-list { display: flex; flex-direction: column; gap: 0.5rem; }
 .tk-ip-item { display: flex; flex-direction: column; gap: 0.2rem; padding: 0.6rem 0.75rem; background: #141414; border: 1px solid #2a2a2a; border-left: 3px solid var(--green); }
 .tk-ip-kind { font-family: 'Oswald', sans-serif; font-size: 0.66rem; letter-spacing: 0.14em; text-transform: uppercase; color: #8f8f8f; }

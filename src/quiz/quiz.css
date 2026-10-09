@@ -1201,3 +1201,24 @@
   .quiz-root .qz-lightbox-name { font-size: 1.8em; }
   .quiz-root .qz-lightbox-desc { font-size: 0.95em; }
 }
+
+/* ─── Intro fit ──────────────────────────────────────────────────────── */
+/* Intro: keep clear of the credits/logo footer pinned to the bottom. On a short screen the
+   content scrolls instead of sliding under it (auto margins centre it without clipping the top) */
+.quiz-root .qz-section--hero { align-items: flex-start; padding-bottom: calc(var(--qz-footer-h, 7em) + 1em); }
+.quiz-root .qz-section--hero .qz-hero-content { margin-block: auto; }
+@media (max-width: 680px) { .quiz-root .qz-section--hero { --qz-footer-h: 5em; } }
+/* Short screens: the logo scales with the height and the spacing tightens, so the button clears the footer */
+@media (max-height: 760px) {
+  .quiz-root .qz-hero-logo { width: auto; max-width: clamp(200px, 55vw, 400px); max-height: 20vh; }
+  .quiz-root .qz-hero-content { gap: 0.75em; }
+  .quiz-root .qz-hero-description { line-height: 1.55; }
+}
+@media (max-height: 520px) {
+  .quiz-root .qz-hero-content { gap: 0.5em; }
+  .quiz-root .qz-hero-description { font-size: 0.95em; line-height: 1.45; }
+  .quiz-root .qz-hero-tagline { display: none; }
+  .quiz-root .qz-footer-buer-logo { height: 30px; }
+  .quiz-root .qz-doom-logo-corner img { height: 24px; }
+  .quiz-root .qz-section--hero { --qz-footer-h: 4em; }
+}

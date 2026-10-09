@@ -24,7 +24,7 @@ export async function onRequest(context) {
   if (sessionId && env.DB) {
     const now = Date.now()
     const row = await env.DB.prepare(
-      `SELECT s.id, s.user_id, s.expires_at, u.username, u.avatar_url, u.provider
+      `SELECT s.id, s.user_id, s.expires_at, COALESCE(u.display_name, u.username) AS username, u.avatar_url, u.provider
        FROM sessions s JOIN users u ON u.id = s.user_id
        WHERE s.id = ? AND s.expires_at > ?`
     ).bind(sessionId, now).first()

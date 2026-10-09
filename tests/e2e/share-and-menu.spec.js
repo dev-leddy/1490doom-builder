@@ -56,4 +56,18 @@ test.describe('signed-in menu and company list', () => {
     await page.reload()
     await expect(page.getByText('Doomed Co', { exact: true })).toHaveCount(0)
   })
+
+  test('the display name can be changed and survives a reload', async ({ page }) => {
+    await page.locator('.auth-avatar-btn').click()
+    await page.locator('.auth-account-name-btn').click()
+    await page.getByLabel('Display name').fill('  Lord   of Ash ')
+    await page.locator('.auth-account-name-save').click()
+    await expect(page.locator('.auth-account-name-btn')).toHaveText('Lord of Ash')
+    await page.reload()
+    await page.locator('.auth-avatar-btn').click()
+    await expect(page.locator('.auth-account-name-btn')).toHaveText('Lord of Ash')
+    // An empty name is refused by the server
+    const status = await page.evaluate(async () => (await fetch('/api/auth/profile', { method: 'PATCH', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ displayName: '   ' }) })).status)
+    expect(status).toBe(400)
+  })
 })

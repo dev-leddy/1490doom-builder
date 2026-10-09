@@ -3320,6 +3320,21 @@
   font-size: 1rem;
   letter-spacing: 0.05em;
 }
+/* Display name: tap to rename (any account) */
+.auth-account-name-btn { display: inline-flex; align-items: center; gap: 0.45rem; min-height: 44px; min-width: 0; max-width: 100%; padding: 0 0.25rem; background: none; border: 0; cursor: pointer; text-align: left; }
+.auth-account-name-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.auth-account-name-btn svg { flex-shrink: 0; color: var(--dim, #777); }
+@media (hover: hover) { .auth-account-name-btn:hover svg { color: var(--parchment); } }
+.auth-account-name-btn:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
+.auth-account-name-form { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+.auth-account-name-input { width: 100%; box-sizing: border-box; min-height: 44px; padding: 0 0.75rem; background: #111; border: 1px solid #444; border-radius: 6px; color: var(--parchment); font-family: 'Oswald', sans-serif; font-size: 1rem; letter-spacing: 0.05em; }
+.auth-account-name-input:focus { outline: none; border-color: var(--blood); }
+.auth-account-name-actions { display: flex; gap: 0.5rem; }
+.auth-account-name-actions button { flex: 1; min-height: 40px; border-radius: 6px; font-family: 'Oswald', sans-serif; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; }
+.auth-account-name-cancel { background: none; border: 1px solid #444; color: var(--parchment); }
+.auth-account-name-save { background: var(--blood); border: 1px solid var(--blood); color: #fff; }
+.auth-account-name-save:disabled { opacity: 0.5; cursor: default; }
+.auth-account-name-error { margin: 0; font-size: 0.8rem; color: #e07060; }
 .auth-account-provider {
   color: var(--fog);
   font-size: 0.75rem;

@@ -51,7 +51,7 @@ function IPUpgrades({ warrior: w }) {
         aria-haspopup="dialog"
         aria-label={`Show ${list.length} IP upgrade${list.length === 1 ? '' : 's'}`}
       >
-        <span className="tk-ip-count">{list.length}</span> IP <span className="tk-ip-chev" aria-hidden="true">›</span>
+        <span className="tk-ip-count">{list.length}</span> IP<svg className="tk-ip-info" viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" strokeWidth="1.4" /><rect x="7.25" y="7" width="1.5" height="4.5" fill="currentColor" /><rect x="7.25" y="4.2" width="1.5" height="1.5" fill="currentColor" /></svg>
       </button>
       {open && (
         <BottomSheet
@@ -60,10 +60,6 @@ function IPUpgrades({ warrior: w }) {
           className="tk-sheet"
           footer={<button className="tk-detail-btn tk-detail-btn--ghost" style={{ flex: 1 }} onClick={() => setOpen(false)}>Close</button>}
         >
-          <p className="tk-sheet-intro">
-            <span className="tk-sheet-intro-label">{w.customName || w.type}</span>
-            Already counted in the stats and equipment.
-          </p>
           <div className="tk-ip-list">
             {list.map(u => (
               <div key={u.key} className="tk-ip-item">
