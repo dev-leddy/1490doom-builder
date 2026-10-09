@@ -18,7 +18,7 @@ test.describe('play mode', () => {
     const tabs = page.locator('.tk-tab:not(.tk-tab-ref)')
     for (let i = 0; i < 3; i++) {
       await tabs.nth(i).click()
-      await expect(page.locator('.tk-ip-tag')).toHaveCount(0)
+      await expect(page.locator('.tk-hdr-btn-ip')).toHaveCount(0)
     }
   })
 
@@ -70,5 +70,33 @@ test.describe('play mode', () => {
     await page.getByRole('button', { name: 'RESTORE GAME' }).click()
     await dismissMarkPopup(page)
     await expect(page.locator('.tk-vit-count')).toHaveText(after)
+  })
+
+  test('an expended item can be undone: tap it, confirm, it is back', async ({ page }) => {
+    await createCompany(page, { warriors: ['Fighter'] })
+    await startPlay(page)
+    const confirm = () => page.locator('.co-sheet-done', { hasText: 'CONFIRM' }).click()
+    const herbs = page.locator('.tk-equip-card', { hasText: 'Herbs & Tonic' })
+    const count = page.locator('.tk-vit-count')
+    const max = Number((await count.innerText()).split('/')[1])
+
+    // Take 2 hits, then heal with Herbs & Tonic
+    const vit = n => `${n}/${max}`
+    await page.locator('.tk-vit-box').nth(max - 2).click()
+    await expect(count).toHaveText(vit(max - 2))
+    await page.locator('.tk-hdr-btn-cache').click()
+    await page.locator('.cache-item-btn', { hasText: 'Herbs & Tonic' }).click()
+    await herbs.click()
+    await page.locator('.tk-detail-btn--expend').click()
+    await confirm()
+    await expect(count).toHaveText(vit(max))
+    await expect(herbs).toContainText('EXPENDED')
+
+    // Undo: the item is usable again and the healing is taken back
+    await herbs.click()
+    await expect(page.getByText('Undo Herbs & Tonic?')).toBeVisible()
+    await confirm()
+    await expect(herbs).toContainText('HEAL 3 VIT')
+    await expect(count).toHaveText(vit(max - 2))
   })
 })

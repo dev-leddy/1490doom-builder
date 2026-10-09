@@ -35,7 +35,7 @@ function EquipCard({ icon, name, sub, damage, range, badge, onClick, isCache, fa
   )
 }
 
-function DetailModal({ title, desc, damage, range, onClose, onExpend, expended, dead }) {
+function DetailModal({ title, desc, damage, range, onClose, onExpend, dead }) {
   const hasStats = (damage > 0) || (range && range !== '—')
   return (
     <BottomSheet
@@ -49,9 +49,9 @@ function DetailModal({ title, desc, damage, range, onClose, onExpend, expended, 
             <button
               className="tk-detail-btn tk-detail-btn--expend"
               onClick={onExpend}
-              disabled={expended || dead}
+              disabled={dead}
             >
-              {expended ? 'Expended' : 'Expend'}
+              Expend
             </button>
           </>
         ) : (
@@ -82,7 +82,7 @@ function DetailModal({ title, desc, damage, range, onClose, onExpend, expended, 
 
 export default function EquipmentBlock({ wi, warrior: w }) {
   const [detail, setDetail] = useState(null)
-  const { toggleConsumable, spendCacheItem, toggleCrossbowLoaded } = useTrackerStore()
+  const { toggleConsumable, undoConsumable, spendCacheItem, undoCacheItem, toggleCrossbowLoaded } = useTrackerStore()
 
   const cards = []
 
@@ -150,10 +150,11 @@ export default function EquipmentBlock({ wi, warrior: w }) {
       key: 'cons',
       icon: ITEM_ICONS[w.consumable],
       name: w.consumable,
-      sub: w.consumableUsed ? 'EXPENDED' : 'AVAILABLE',
+      sub: w.consumableUsed ? 'EXPENDED · UNDO' : 'AVAILABLE',
       desc: CONSUMABLES[w.consumable] || '',
       variant: 'consumable',
       faded: w.consumableUsed,
+      spent: w.consumableUsed,
     })
   }
 
@@ -162,11 +163,13 @@ export default function EquipmentBlock({ wi, warrior: w }) {
       key: `cache-${item.id}`,
       icon: ITEM_ICONS[item.name],
       name: item.name,
-      sub: CACHE_SHORT[item.name] || null,
+      sub: item.used ? 'EXPENDED · UNDO' : CACHE_SHORT[item.name] || null,
       desc: item.desc,
       variant: 'cache',
       cacheId: item.id,
       isCache: true,
+      faded: item.used,
+      spent: item.used,
     })
   }
 
@@ -183,11 +186,13 @@ export default function EquipmentBlock({ wi, warrior: w }) {
   const handleCardClick = (c) => {
     if (w.dead) return
     if (c.variant === 'crossbow') toggleCrossbowLoaded(wi)
+    // An expended item: tapping it offers to undo (for an accidental use)
+    else if (c.spent && c.variant === 'consumable') undoConsumable(wi)
+    else if (c.spent && c.variant === 'cache') undoCacheItem(wi, c.cacheId)
     else open(c)
   }
 
   const hasExpend = detail?.variant === 'consumable' || detail?.variant === 'cache'
-  const isExpended = detail?.variant === 'consumable' && w.consumableUsed
 
   return (
     <>
@@ -218,7 +223,6 @@ export default function EquipmentBlock({ wi, warrior: w }) {
           range={detail.range}
           onClose={close}
           onExpend={hasExpend ? handleExpend : null}
-          expended={isExpended}
           dead={w.dead}
         />
       )}

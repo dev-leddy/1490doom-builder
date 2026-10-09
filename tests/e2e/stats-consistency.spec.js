@@ -30,7 +30,8 @@ test.describe('stats agree everywhere', () => {
     await expect(page.locator('.tk-vit-count')).toHaveText(`${vit}/${vit}`)   // used to miss the extra box
     await expect(page.locator('.tk-stat', { hasText: 'MOV' })).toHaveClass(/tk-stat-improved/) // only the first used to show
     await expect(page.locator('.tk-stat', { hasText: 'VIT' })).toHaveClass(/tk-stat-improved/)
-    await expect(page.locator('.tk-ip-tag')).toHaveCount(2)
+    await page.locator('.tk-hdr-btn-ip').click()
+    await expect(page.locator('.tk-ip-item')).toHaveCount(2)
   })
 
   test('a 4-warrior company survives its share link (only 3 used to)', async ({ page, browser }) => {

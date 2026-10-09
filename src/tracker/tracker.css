@@ -625,26 +625,32 @@
 .tk-hdr-btn-cache { background: #0d1a0d; border-color: #1a3a1a; color: #4a9a4a; }
 .tk-hdr-btn-status { background: #0d0d1f; border-color: #1a1a4a; color: #6a6aaa; }
 
-/* ── IP UPGRADE NOTE ────────────────────────────────────── */
-.tk-ip-note {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-  margin-bottom: 0.6rem;
+/* ── IP UPGRADES ─────────────────────────────────────────
+   "N IP ›" under + CACHE / + STATUS (their effects already show in the stats and gear);
+   tapping opens the list. A quieter "view" button: no fill, no "+", a chevron.
+   Sized so the three buttons end level with the 104px portrait (104 - 2 x 36 - 2 gaps),
+   so a warrior with upgrades has the same header height as one without; the tap area
+   reaches down into the header's bottom margin (nothing else to hit there). */
+.tk-hdr-btn.tk-hdr-btn-ip {
+  position: relative;
+  min-height: 0;
+  height: calc(104px - 72px - 0.5rem);
+  padding: 0 0.6rem;
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.3rem;
+  background: transparent; border-color: #333; color: #9a9a9a;
+  transition: border-color 0.15s, color 0.15s;
 }
-.tk-ip-tag {
-  font-family: 'Oswald', sans-serif; text-transform: uppercase;
-  font-size: 0.75rem;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: #888;
-  background: #1a1a1a;
-  border: 1px solid #2a2a2a;
-  border-radius: 3px;
-  padding: 4px 10px;
-  white-space: nowrap;
-}
-.tk-ip-tag-free { color: #505050; }
+.tk-hdr-btn-ip::after { content: ''; position: absolute; left: 0; right: 0; top: 0; bottom: -12px; }
+.tk-hdr-btn-ip:hover, .tk-hdr-btn-ip:active { border-color: var(--green); color: #ddd; }
+.tk-hdr-btn-ip:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+.tk-ip-count { font-weight: 700; color: #fff; }
+.tk-ip-chev { font-size: 0.95rem; line-height: 1; color: var(--green); }
+.tk-ip-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.tk-ip-item { display: flex; flex-direction: column; gap: 0.2rem; padding: 0.6rem 0.75rem; background: #141414; border: 1px solid #2a2a2a; border-left: 3px solid var(--green); }
+.tk-ip-kind { font-family: 'Oswald', sans-serif; font-size: 0.66rem; letter-spacing: 0.14em; text-transform: uppercase; color: #8f8f8f; }
+.tk-ip-name { font-family: 'Oswald', sans-serif; font-size: 0.95rem; letter-spacing: 0.08em; text-transform: uppercase; color: #fff; }
+/* Rule text keeps its line breaks, like the equipment detail sheet */
+.tk-ip-desc { font-size: 0.9rem; line-height: 1.45; color: #e2dccf; white-space: pre-line; }
 
 /* ── STAT STRIP ─────────────────────────────────────────── */
 .tk-stats-strip { display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px; margin-bottom: 0.85rem; }
@@ -691,7 +697,12 @@
 .tk-equip-card:active { background: rgba(190,65,39,0.08); }
 .tk-equip-card--cache { border-color: #2a5a2a; background: rgba(74,154,74,0.05); }
 .tk-equip-card--cache:hover { background: rgba(74,154,74,0.1); border-color: #4a9a4a; }
-.tk-equip-card--faded { opacity: 0.4; }
+/* Expended item: stays in place, readable, tap to undo */
+.tk-equip-card--faded { background: transparent; border: 1px dashed #3a3a3a; }
+.tk-equip-card--faded .tk-equip-card-icon { opacity: 0.3; }
+.tk-equip-card--faded .tk-equip-card-name { color: #8a8a8a; text-decoration: line-through; text-decoration-color: #555; }
+.tk-equip-card--faded .tk-equip-card-sub,
+.tk-equip-card--cache.tk-equip-card--faded .tk-equip-card-sub { color: #8a8a8a; }
 .tk-equip-card--loaded { border-color: #333; }
 .tk-equip-card--unloaded { border-color: rgba(190,65,39,0.35); }
 .tk-equip-card-icon { width: 24px; height: 24px; filter: sepia(0.3) brightness(0.95); opacity: 0.85; flex-shrink: 0; margin-bottom: 0.15rem; }

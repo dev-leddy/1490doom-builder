@@ -1,46 +1,80 @@
+import { useState } from 'react'
 import { useTrackerStore } from '../store/trackerStore'
 import { WARRIORS, STAT_IMPROVEMENT } from '../data/warriors'
 import { WARRIOR_IMAGES } from '../data/images'
+import { WEAPONS, CLIMBING_DESCS, CONSUMABLES } from '../data/weapons'
+import BottomSheet from '../shared/BottomSheet'
 import VitalityTrack from './VitalityTrack'
 import EquipmentBlock from './EquipmentBlock'
 import AbilityBlock from './AbilityBlock'
 import StatusBlock from './StatusBlock'
 import { getEffectiveStats, improvedStats, statTone, STAT_KEYS } from '../utils/stats'
 
-function IPUpgradeNote({ warrior: w }) {
+// IP upgrades in play: their effects already show (stats, gear), so the header only says how
+// many there are (under + CACHE / + STATUS); tapping lists them with what each does.
+function ipUpgrades(w) {
   const wdata = WARRIORS[w.type]
   const upgrades = w.ip || []
-  const tags = []
+  const list = []
 
   // Every stat improvement (campaign companies can have several)
-  for (const s of improvedStats(w)) tags.push({ key: 'stat-' + s, label: STAT_IMPROVEMENT[s], free: false })
+  for (const s of improvedStats(w)) list.push({ key: 'stat-' + s, kind: 'Stat improvement', name: STAT_IMPROVEMENT[s], desc: null })
 
   // Built-in gear isn't an IP upgrade: Knight / Hedge Knight shield, Reaver's second Light Weapon
   if (w.weapon2) {
     const isBuiltIn = (wdata?.fixedShield && w.weapon2 === 'Shield') ||
                       (wdata?.fixedDualWield && w.weapon2 === 'Light Weapon')
+    const wd = WEAPONS[w.weapon2]
     if (!isBuiltIn && upgrades.includes('weapon2'))
-      tags.push({ key: 'weapon2', label: w.weapon2, free: false })
+      list.push({ key: 'weapon2', kind: 'Second weapon', name: w.weapon2, desc: wd?.offhandNote || wd?.note || null })
   }
 
   if (w.climbing && w.climbing !== 'None' && upgrades.includes('climbing'))
-    tags.push({ key: 'climbing', label: w.climbing, free: false })
+    list.push({ key: 'climbing', kind: 'Climbing', name: w.climbing, desc: CLIMBING_DESCS[w.climbing] || null })
 
   if (w.consumable && upgrades.includes('consumable'))
-    tags.push({ key: 'consumable', label: w.consumable, free: false })
+    list.push({ key: 'consumable', kind: 'Consumable', name: w.consumable, desc: CONSUMABLES[w.consumable] || null })
 
-  if (tags.length === 0) return null
+  return list
+}
 
+function IPUpgrades({ warrior: w }) {
+  const [open, setOpen] = useState(false)
+  const list = ipUpgrades(w)
+  if (list.length === 0) return null
   return (
     <>
-      <div className="tk-section-label" style={{ marginTop: '0.7rem' }}>IP Upgrades</div>
-      <div className="tk-ip-note">
-        {tags.map(t => (
-          <span key={t.key} className={`tk-ip-tag${t.free ? ' tk-ip-tag-free' : ''}`}>
-            {t.label}
-          </span>
-        ))}
-      </div>
+      <button
+        type="button"
+        className="tk-hdr-btn tk-hdr-btn-ip"
+        onClick={() => setOpen(true)}
+        aria-haspopup="dialog"
+        aria-label={`Show ${list.length} IP upgrade${list.length === 1 ? '' : 's'}`}
+      >
+        <span className="tk-ip-count">{list.length}</span> IP <span className="tk-ip-chev" aria-hidden="true">›</span>
+      </button>
+      {open && (
+        <BottomSheet
+          title="IP UPGRADES"
+          onClose={() => setOpen(false)}
+          className="tk-sheet"
+          footer={<button className="tk-detail-btn tk-detail-btn--ghost" style={{ flex: 1 }} onClick={() => setOpen(false)}>Close</button>}
+        >
+          <p className="tk-sheet-intro">
+            <span className="tk-sheet-intro-label">{w.customName || w.type}</span>
+            Already counted in the stats and equipment.
+          </p>
+          <div className="tk-ip-list">
+            {list.map(u => (
+              <div key={u.key} className="tk-ip-item">
+                <span className="tk-ip-kind">{u.kind}</span>
+                <span className="tk-ip-name">{u.name}</span>
+                {u.desc && <span className="tk-ip-desc">{u.desc}</span>}
+              </div>
+            ))}
+          </div>
+        </BottomSheet>
+      )}
     </>
   )
 }
@@ -89,6 +123,7 @@ export default function WarriorTrackerCard({ warrior: w, wi }) {
         <div className="tk-hdr-btn-group">
           <button className="tk-hdr-btn tk-hdr-btn-cache" onClick={() => openCacheLoot(wi)}>+ CACHE</button>
           <button className="tk-hdr-btn tk-hdr-btn-status" onClick={() => openStatusModal(wi)}>+ STATUS</button>
+          <IPUpgrades warrior={w} />
         </div>
       </div>
 
@@ -111,9 +146,6 @@ export default function WarriorTrackerCard({ warrior: w, wi }) {
       {/* Vitality Track */}
       <div className="tk-section-label">Vitality Track</div>
       <VitalityTrack wi={wi} warrior={w} />
-
-      {/* IP Upgrades — self-labelling, renders null when empty */}
-      <IPUpgradeNote warrior={w} />
 
       {/* Equipment (weapons, climbing, consumable, cache items) */}
       <div className="tk-section-label" style={{ marginTop: '0.7rem' }}>Equipment</div>

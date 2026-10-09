@@ -4,6 +4,7 @@ import { STATUS_DEFS, CACHE_ITEMS } from '../data/items'
 import { useBuilderStore } from './builderStore'
 import { saveGame, deleteGame } from '../api/games'
 import { getEffectiveStats } from '../utils/stats'
+import { expendHerbs, expendReliquary, expendCacheItem, undoCacheItem, undoCacheItemNote } from './trackerItems'
 
 // ── HELPERS ──────────────────────────────────────────────────────────────────
 
@@ -357,6 +358,7 @@ export const useTrackerStore = create((set, get) => ({
   },
 
   // ── CONSUMABLE ─────────────────────────────────────────────────────────────
+  // Expend straight from its sheet; undoing (tap the expended card) asks first
   toggleConsumable(wi) {
     set(state => {
       const warriors = [...state.warriors]
@@ -367,6 +369,15 @@ export const useTrackerStore = create((set, get) => ({
       return { warriors }
     })
     persistState(get)
+  },
+  undoConsumable(wi) {
+    const w = get().warriors[wi]
+    if (!w || w.dead || !w.consumableUsed) return
+    get().openConfirm(
+      `Undo ${w.consumable}?`,
+      `${w.consumable} comes back, unused.`,
+      () => get().toggleConsumable(wi)
+    )
   },
 
   // ── RELIQUARY ──────────────────────────────────────────────────────────────
@@ -382,14 +393,12 @@ export const useTrackerStore = create((set, get) => ({
     const { cacheItemId } = reliquaryModal
     set(state => {
       const warriors = [...state.warriors]
-      const w = { ...warriors[wi], opgUsed: { ...warriors[wi].opgUsed } }
-      if (abilityName) w.opgUsed[abilityName] = false
       if (cacheItemId !== null) {
-        w.cacheItems = w.cacheItems.filter(c => c.id !== cacheItemId)
+        // Kept on the warrior as used, remembering the ability, so it can be undone
+        warriors[wi] = expendReliquary(warriors[wi], cacheItemId, abilityName)
       } else {
-        w.reliquaryUsed = true
+        warriors[wi] = { ...warriors[wi], opgUsed: { ...warriors[wi].opgUsed, [abilityName]: false }, reliquaryUsed: true }
       }
-      warriors[wi] = w
       return { warriors, reliquaryModal: null }
     })
     persistState(get)
@@ -421,7 +430,7 @@ export const useTrackerStore = create((set, get) => ({
   spendCacheItem(wi, itemId) {
     const w = get().warriors[wi]
     const item = w.cacheItems.find(c => c.id === itemId)
-    if (!item) return
+    if (!item || item.used || w.dead) return
 
     // ── Herbs & Tonic: restore up to +3 VIT ──
     if (item.name === 'Herbs & Tonic') {
@@ -432,14 +441,12 @@ export const useTrackerStore = create((set, get) => ({
         () => {
           set(state => {
             const warriors = [...state.warriors]
-            const w = { ...warriors[wi] }
-            w.cacheItems = w.cacheItems.filter(c => c.id !== itemId)
-            w.currentVit = Math.min(w.maxVit, w.currentVit + 3)
-            warriors[wi] = w
+            warriors[wi] = expendHerbs(warriors[wi], itemId)
             return { warriors }
           })
           persistState(get)
-          useBuilderStore.getState()._toast('🌿 Herbs & Tonic — Vitality +3')
+          const healed = get().warriors[wi].cacheItems.find(c => c.id === itemId)?.effect?.healed ?? 0
+          useBuilderStore.getState()._toast(`🌿 Herbs & Tonic — Vitality +${healed}`)
         }
       )
       return
@@ -451,21 +458,39 @@ export const useTrackerStore = create((set, get) => ({
       return
     }
 
-    // ── Default: simple confirm + remove ──
+    // ── Default: confirm, then mark used (it stays on the card and can be undone) ──
     get().openConfirm(
       `Expend ${item.name}?`,
-      'This item will be removed permanently.',
+      'Tap it again later to undo.',
       () => {
         set(state => {
           const warriors = [...state.warriors]
-          const w = { ...warriors[wi] }
-          w.cacheItems = w.cacheItems.filter(c => c.id !== itemId)
-          warriors[wi] = w
+          warriors[wi] = expendCacheItem(warriors[wi], itemId)
           return { warriors }
         })
         persistState(get)
       }
     )
+  },
+  // An accidental use: put the item back and reverse what it did (asks first)
+  undoCacheItem(wi, itemId) {
+    const w = get().warriors[wi]
+    const item = w?.cacheItems.find(c => c.id === itemId)
+    if (!item?.used || w.dead) return
+    get().openConfirm(`Undo ${item.name}?`, undoCacheItemNote(item), () => {
+      const result = undoCacheItem(get().warriors[wi], itemId)
+      if (result.error) {
+        useBuilderStore.getState()._toast(result.error)
+        return
+      }
+      set(state => {
+        const warriors = [...state.warriors]
+        warriors[wi] = result.warrior
+        return { warriors }
+      })
+      persistState(get)
+      useBuilderStore.getState()._toast(`${item.name} restored`)
+    })
   },
 
   // ── STATUSES ───────────────────────────────────────────────────────────────

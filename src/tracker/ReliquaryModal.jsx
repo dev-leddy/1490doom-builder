@@ -1,5 +1,4 @@
-import { useTrackerStore, canRestoreWithReliquary } from '../store/trackerStore'
-import { WARRIORS } from '../data/warriors'
+import { useTrackerStore, canRestoreWithReliquary, getOPGAbilities } from '../store/trackerStore'
 import BottomSheet from '../shared/BottomSheet'
 
 export default function ReliquaryModal() {
@@ -8,7 +7,6 @@ export default function ReliquaryModal() {
 
   const { wi } = reliquaryModal
   const w = warriors[wi]
-  const wdata = WARRIORS[w.type]
 
   // Build list of used OPG abilities that can be restored
   const options = []
@@ -18,8 +16,8 @@ export default function ReliquaryModal() {
     options.push({ key: '__captain__', label: 'Captain Re-Roll', desc: 'The Captain may re-roll a single die.' })
   }
 
-  // Warrior's own OPG abilities
-  wdata.abilities.forEach(ab => {
+  // Warrior's own Once Per Game abilities (a Reliquary never restores Twice Per Game ones)
+  getOPGAbilities(w.type).forEach(ab => {
     if (w.opgUsed[ab.name] && canRestoreWithReliquary(ab.name)) {
       options.push({ key: ab.name, label: ab.name, desc: ab.desc })
     }
