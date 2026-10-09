@@ -879,7 +879,7 @@
   text-align: center;
   margin: 0;
   line-height: 1.7;
-  padding-top: 0.2em;
+  padding-top: 2.5em; /* breathing room below the result cards */
 }
 /* Main footer row (logos + CTA) */
 .quiz-root .qz-footer-main {
