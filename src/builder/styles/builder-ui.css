@@ -4538,6 +4538,10 @@
 /* The stats row's own bottom margin made the stats block 18px taller than the
    visible boxes (so the portrait overshot). Move that space below the row instead. */
 .warrior-header-text .stats-row { margin-bottom: 0; }
+/* Stats as a 3x2 grid at every width, with a minimum height, so the portrait (which fills
+   the stats block) stays tall on wide screens too, not just when the boxes wrap on phones */
+.warrior-header-text .stats-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: 1fr; min-height: 128px; }
+.warrior-header-text .stats-row .stat-box { min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .warrior-header-row { margin-bottom: 1.75rem; }
 /* Class name under a custom warrior name (above portrait + stats) */
 .slot-class-sub {
