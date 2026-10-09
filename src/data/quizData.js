@@ -135,7 +135,7 @@ export const COMPANIES = [
     markName: '+1 DEFENSE first check each round on Ground Level',
     markDescription: 'Others fear the ground. You own it.',
     strategy: 'Fight on ground level, trap low-elevation chokepoints, counter vertical meta.',
-    victoryPath: '<strong>Attrition</strong><br><span class="vp-desc">End the game with more warriors alive than your opponent. Ground level is your domain — use it.</span><br><br><strong>Resourceful</strong><br><span class="vp-desc">Open more resource caches than any other company.</span>',
+    victoryPath: '<strong>Attrition</strong><br><span class="vp-desc">End the game with more warriors alive than your opponent. Ground level is your domain. Use it.</span><br><br><strong>Resourceful</strong><br><span class="vp-desc">Open more resource caches than any other company.</span>',
     url: '/go/product/the-fog-walkers-company',
   },
   {
@@ -183,10 +183,10 @@ export const QUESTIONS = [
     text: 'You find an ancient chest hidden in the tower. What do you do with it?',
     art: '/quiz/Art/Bonus Art/Throne_Room No Fog.webp',
     answers: [
-      { text: "Crack it open immediately — you need what's inside",       scores: { relic_bitten: 3, wretched_survivors: 2 } },
+      { text: "Crack it open immediately. You need what's inside",       scores: { relic_bitten: 3, wretched_survivors: 2 } },
       { text: "Guard it and open it when you're safe",                    scores: { ashbound: 3, graveborn: 2 } },
       { text: 'Use it as bait to lure enemies into a trap',               scores: { silent_pact: 3, fog_walkers: 2 } },
-      { text: 'Ignore it — survival matters more than treasure',          scores: { tower_born: 3, doomed_choir: 2 } },
+      { text: 'Ignore it. Survival matters more than treasure',          scores: { tower_born: 3, doomed_choir: 2 } },
     ],
   },
   {
@@ -196,7 +196,7 @@ export const QUESTIONS = [
       { text: 'Form a circle and fight until the end',                    scores: { doomed_choir: 3, graveborn: 2 } },
       { text: 'Break through and escape to regroup',                      scores: { silent_pact: 3, tower_born: 2 } },
       { text: 'Climb up and attack from above',                           scores: { tower_born: 3, silent_pact: 1 } },
-      { text: 'Stand your ground — make them pay for every step',         scores: { ashbound: 3, wretched_survivors: 2 } },
+      { text: 'Stand your ground. Make them pay for every step',         scores: { ashbound: 3, wretched_survivors: 2 } },
     ],
   },
   {
