@@ -341,7 +341,9 @@ export default function BuilderPage({ initialView = null }) {
 
         {view === 'builder' && !refOpen && !viewingShare && (
           <button className="builder-play-pill" onClick={handlePlay}>
-            ⚔ PLAY
+            {/* A sword as an SVG: the ⚔ character draws as an emoji on some phones */}
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><g transform="rotate(45 12 12)"><path d="M12 1.5l1.8 2.7V15h-3.6V4.2z" /><rect x="7.5" y="15" width="9" height="1.8" rx="0.6" /><rect x="11.1" y="16.8" width="1.8" height="3.6" /><circle cx="12" cy="21.4" r="1.2" /></g></svg>
+            Play
           </button>
         )}
 
