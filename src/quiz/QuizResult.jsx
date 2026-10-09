@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { MINI_BASE_CENTRE } from '../data/quizData'
 
 // onComplete: present in embedded mode (builder), null in standalone mode
 export default function QuizResult({ winner, onComplete, onRestart, audioState, onAudioToggle, onLightboxToggle }) {
@@ -15,6 +16,7 @@ export default function QuizResult({ winner, onComplete, onRestart, audioState, 
       src,
       name: match ? match[1] : raw,
       desc: match ? match[2] : '',
+      baseCentre: MINI_BASE_CENTRE[src.split('/').pop()] ?? 50,
     }
   })
 
@@ -101,12 +103,18 @@ export default function QuizResult({ winner, onComplete, onRestart, audioState, 
                   <div className="qz-warrior-list">
                     {warriors.map((w, i) => (
                       <div key={i} className="qz-warrior-card">
-                        <div
+                        <button
+                          type="button"
                           className="qz-warrior-mini-card zoomable"
                           onClick={() => handleWarriorClick(w)}
+                          aria-label={`View the ${w.name} up close`}
                         >
-                          <img src={w.src} alt={w.name} />
-                        </div>
+                          <img
+                            src={w.src}
+                            alt=""
+                            style={{ '--qz-fig-base': `${w.baseCentre}%` }}
+                          />
+                        </button>
                         <div className="qz-warrior-card-text">
                           <span className="qz-warrior-row-title">{w.name}</span>
                           <span className="qz-warrior-row-desc">{w.desc}</span>

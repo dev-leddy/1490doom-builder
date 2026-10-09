@@ -158,6 +158,25 @@ export const COMPANIES = [
   },
 ]
 
+// Where each mini's base sits across its image, as % of the image width. The art is padded
+// evenly, but weapons, capes and packs stick out to one side, so the box centre is not the
+// figure's centre. The result screen lines this point up with the warrior's label.
+// Measured from the alpha channel: centre of the bottom edge of the base disc.
+export const MINI_BASE_CENTRE = {
+  'Assassin.webp':      55.5,
+  'Beekeeper.webp':     44.9,
+  'Blacksmith.webp':    47.6,
+  'Brute.webp':         40.0,
+  'DoomHunter.webp':    47.1,
+  'Executioner.webp':   32.4,
+  'Fighter.webp':       53.7,
+  'Knight.webp':        57.5,
+  'Sabotuer.webp':      47.5,
+  'Scavenger.webp':     58.0,
+  'Scout.webp':         47.6,
+  'WarriorPriest.webp': 46.4,
+}
+
 export const QUESTIONS = [
   {
     text: "You enter a ruined castle. The fog is rising. Other warriors are closing in. What's your first move?",
