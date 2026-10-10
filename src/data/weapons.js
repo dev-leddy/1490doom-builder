@@ -1,7 +1,7 @@
 // ── WEAPON & EQUIPMENT DATA ──────────────────────────────────────────────────
 
 export const WEAPONS = {
-  'Light Weapon': { range: 'Base', damage: 1, note: 'One-handed. Can be paired with a second light weapon or shield.', offhandNote: 'One-handed. Adds +1 Attack.', special: null },
+  'Light Weapon': { range: 'Base', damage: 1, note: 'One-handed. Can be paired with a second light weapon or shield.', offhandNote: 'Off-hand. Wielding a second Light Weapon in the off-hand gives +1 Attack. A Light Weapon in the main hand alone gives no bonus.', special: null },
   'Heavy Weapon': { range: 'Base', damage: 2, note: 'Two-handed. Cannot equip a second weapon.', special: null },
   'Polearm (two-handed)': { range: '2"', damage: 1, note: 'Two-handed. Cannot equip a second weapon.', special: null },
   'Polearm (one-handed)': { range: '2"', damage: 1, note: 'Must be paired with a Shield.\n-1 to all Combat Checks.', special: null },
