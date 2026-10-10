@@ -125,137 +125,138 @@ export default function WarriorLoadout({ slotIndex, slot, wdata, poolFull }) {
 
       <div className="eq-chips-list">
         {/* Weapon 1 (Always showing) */}
-        <div className="eq-chip eq-chip-main" onClick={() => setModalCategory('weapon1')} title={wpnDisplayDesc(slot.weapon1) ? `${w1.value}: ${wpnDisplayDesc(slot.weapon1)}` : w1.value}>
-          <div className="eq-chip-icon">
+        <button type="button" className="eq-chip eq-chip-main" onClick={() => setModalCategory('weapon1')} title={wpnDisplayDesc(slot.weapon1) ? `${w1.value}: ${wpnDisplayDesc(slot.weapon1)}` : w1.value}>
+          <span className="eq-chip-icon">
             {ITEM_ICONS[slot.weapon1] ? <img src={slot.type === 'Beekeeper' ? `${import.meta.env.BASE_URL}assets/icons/scythe.svg` : slot.type === 'Brute' && slot.weapon1 === 'Heavy Weapon' ? `${import.meta.env.BASE_URL}assets/icons/wood-club.svg` : (slot.type === 'Saboteur' || slot.type === 'Warrior Priest' || slot.type === 'Knight') && slot.weapon1 === 'Light Weapon' ? `${import.meta.env.BASE_URL}assets/icons/flanged-mace.svg` : ITEM_ICONS[slot.weapon1]} alt="" style={{ width: 28, height: 28, filter: 'sepia(0.3) brightness(0.95)', opacity: 0.9, ...(slot.weapon1 !== 'Heavy Weapon' && { transform: 'scaleX(-1)' }) }} /> : <span style={{ display: 'flex', transform: 'scaleX(-1)' }}><SvgWeapon1 /></span>}
-          </div>
-          <div className="eq-chip-content">
+          </span>
+          <span className="eq-chip-content">
             <span className={`eq-chip-value ${(w1.value?.length > 18) ? 'eq-chip-value--small' : ''}`}>
               {w1.value === 'Polearm (two-handed)' ? <>POLEARM<br/>2-HANDED</> :
                w1.value === 'Polearm (one-handed)' ? <>POLEARM<br/>1-HANDED</> :
                (w1.value || 'None')}
             </span>
-          </div>
+          </span>
           {slot.weapon1 && (
-            <div className="eq-chip-stats">
-              <div className="eq-stat-box">
+            <span className="eq-chip-stats">
+              <span className="eq-stat-box">
                 {w1d && w1d.damage > 0 && <span className="eq-chip-stat eq-chip-stat--dmg">{w1d.damage} DMG</span>}
-              </div>
-              <div className="eq-stat-box">
+              </span>
+              <span className="eq-stat-box">
                 {w1d && w1d.range && w1d.range !== '—' && <span className="eq-chip-stat">{w1d.range}</span>}
-              </div>
-            </div>
+              </span>
+            </span>
           )}
-        </div>
+        </button>
 
         {/* Weapon 2 Chip */}
         {isRowSelected('weapon2') ? (
-          <div className="eq-chip" onClick={() => setModalCategory('weapon2')} title={slot.weapon2 === 'Light Weapon' && slot.weapon1 === 'Light Weapon' ? `${w2.value}: One-handed. Adds +1 Attack.` : wpnDisplayDesc(slot.weapon2) ? `${w2.value}: ${wpnDisplayDesc(slot.weapon2)}` : w2.value}>
+          <button type="button" className="eq-chip" onClick={() => setModalCategory('weapon2')} title={slot.weapon2 === 'Light Weapon' && slot.weapon1 === 'Light Weapon' ? `${w2.value}: One-handed. Adds +1 Attack.` : wpnDisplayDesc(slot.weapon2) ? `${w2.value}: ${wpnDisplayDesc(slot.weapon2)}` : w2.value}>
             {getBadge('weapon2') && <span className={`eq-chip-badge eq-badge-${getBadge('weapon2').variant}`}>{getBadge('weapon2').text}</span>}
-            <div className="eq-chip-icon">
+            <span className="eq-chip-icon">
               {ITEM_ICONS[slot.weapon2] ? <img src={slot.type === 'Knight' && slot.weapon2 === 'Shield' ? `${import.meta.env.BASE_URL}assets/icons/checked-shield.svg` : ITEM_ICONS[slot.weapon2]} alt="" style={{ width: 28, height: 28, filter: 'sepia(0.3) brightness(0.95)', opacity: 0.9 }} /> : <SvgOffhand />}
-            </div>
-            <div className="eq-chip-content">
+            </span>
+            <span className="eq-chip-content">
               <span className={`eq-chip-value ${(w2.value?.length > 18) ? 'eq-chip-value--small' : ''}`}>
                 {w2.value === 'Polearm (two-handed)' ? <>POLEARM<br/>2-HANDED</> :
                  w2.value === 'Polearm (one-handed)' ? <>POLEARM<br/>1-HANDED</> :
                  w2.value}
               </span>
-            </div>
+            </span>
             {slot.weapon2 && slot.weapon2 !== 'Shield' && (
-              <div className="eq-chip-stats">
-                <div className="eq-stat-box">
+              <span className="eq-chip-stats">
+                <span className="eq-stat-box">
                   {w2d && w2d.damage > 0 && <span className="eq-chip-stat eq-chip-stat--dmg">{w2d.damage} DMG</span>}
-                </div>
-                <div className="eq-stat-box">
+                </span>
+                <span className="eq-stat-box">
                   {w2d && w2d.range && w2d.range !== '—' && <span className="eq-chip-stat">{w2d.range}</span>}
-                </div>
-              </div>
+                </span>
+              </span>
             )}
-          </div>
+          </button>
         ) : hideEmpty('weapon2') ? null : (
-          <div className={`eq-chip eq-chip-empty ${isRowLocked('weapon2') ? 'eq-chip-locked' : ''}`} onClick={() => !isRowLocked('weapon2') && setModalCategory('weapon2')} title={isRowLocked('weapon2') ? "Locked" : `Empty Secondary`}>
+          <button type="button" className={`eq-chip eq-chip-empty ${isRowLocked('weapon2') ? 'eq-chip-locked' : ''}`} onClick={() => !isRowLocked('weapon2') && setModalCategory('weapon2')} aria-disabled={isRowLocked('weapon2') || undefined} title={isRowLocked('weapon2') ? "Locked" : `Empty Secondary`}>
             {getBadge('weapon2') && <span className={`eq-chip-badge eq-badge-${getBadge('weapon2').variant}`}>{getBadge('weapon2').text}</span>}
-            <div className="eq-chip-icon" style={{ opacity: 0.3 }}><SvgOffhand /></div>
-            <div className="eq-chip-content">
-              <span className="eq-chip-value" style={{ color: 'var(--mist)' }}>Empty</span>
-            </div>
-          </div>
+            <span className="eq-chip-icon"><SvgOffhand /></span>
+            <span className="eq-chip-content">
+              <span className="eq-chip-value eq-chip-value--empty">Off-hand</span>
+            </span>
+          </button>
         )}
 
         {/* Gear Chip */}
         {isRowSelected('climbing') ? (
-          <div className="eq-chip" onClick={() => setModalCategory('climbing')} title={CLIMBING_DESCS[slot.climbing] ? `${climbVal}: ${CLIMBING_DESCS[slot.climbing]}` : climbVal}>
+          <button type="button" className="eq-chip" onClick={() => setModalCategory('climbing')} title={CLIMBING_DESCS[slot.climbing] ? `${climbVal}: ${CLIMBING_DESCS[slot.climbing]}` : climbVal}>
              {getBadge('climbing') && <span className={`eq-chip-badge eq-badge-${getBadge('climbing').variant}`}>{getBadge('climbing').text}</span>}
-            <div className="eq-chip-icon">
+            <span className="eq-chip-icon">
               {ITEM_ICONS[slot.climbing] ? <img src={ITEM_ICONS[slot.climbing]} alt="" style={{ width: 28, height: 28, filter: 'sepia(0.3) brightness(0.95)', opacity: 0.9 }} /> : <SvgClimbing />}
-            </div>
-            <div className="eq-chip-content">
+            </span>
+            <span className="eq-chip-content">
               <span className={`eq-chip-value ${(climbVal?.length > 18) ? 'eq-chip-value--small' : ''}`}>{climbVal}</span>
-            </div>
-          </div>
+            </span>
+          </button>
         ) : hideEmpty('climbing') ? null : (
-          <div className={`eq-chip eq-chip-empty ${isRowLocked('climbing') ? 'eq-chip-locked' : ''}`} onClick={() => !isRowLocked('climbing') && setModalCategory('climbing')} title={isRowLocked('climbing') ? "Locked" : `Empty Gear`}>
+          <button type="button" className={`eq-chip eq-chip-empty ${isRowLocked('climbing') ? 'eq-chip-locked' : ''}`} onClick={() => !isRowLocked('climbing') && setModalCategory('climbing')} aria-disabled={isRowLocked('climbing') || undefined} title={isRowLocked('climbing') ? "Locked" : `Empty Gear`}>
             {getBadge('climbing') && <span className={`eq-chip-badge eq-badge-${getBadge('climbing').variant}`}>{getBadge('climbing').text}</span>}
-            <div className="eq-chip-icon" style={{ opacity: 0.3 }}><SvgClimbing /></div>
-            <div className="eq-chip-content">
-              <span className="eq-chip-value" style={{ color: 'var(--mist)' }}>Empty</span>
-            </div>
-          </div>
+            <span className="eq-chip-icon"><SvgClimbing /></span>
+            <span className="eq-chip-content">
+              <span className="eq-chip-value eq-chip-value--empty">Gear</span>
+            </span>
+          </button>
         )}
 
         {/* Supply Chip */}
         {isRowSelected('consumable') ? (
-          <div className="eq-chip" onClick={() => setModalCategory('consumable')} title={CONSUMABLES[slot.consumable] ? `${slot.consumable}: ${CONSUMABLES[slot.consumable]}` : slot.consumable}>
+          <button type="button" className="eq-chip" onClick={() => setModalCategory('consumable')} title={CONSUMABLES[slot.consumable] ? `${slot.consumable}: ${CONSUMABLES[slot.consumable]}` : slot.consumable}>
              {getBadge('consumable') && <span className={`eq-chip-badge eq-badge-${getBadge('consumable').variant}`}>{getBadge('consumable').text}</span>}
-            <div className="eq-chip-icon">
+            <span className="eq-chip-icon">
               {ITEM_ICONS[slot.consumable] ? <img src={ITEM_ICONS[slot.consumable]} alt="" style={{ width: 28, height: 28, filter: 'sepia(0.3) brightness(0.95)', opacity: 0.9 }} /> : <SvgConsumable />}
-            </div>
-            <div className="eq-chip-content">
+            </span>
+            <span className="eq-chip-content">
               <span className={`eq-chip-value ${(slot.consumable?.length > 18) ? 'eq-chip-value--small' : ''}`}>{slot.consumable}</span>
-            </div>
-          </div>
+            </span>
+          </button>
         ) : hideEmpty('consumable') ? null : (
-          <div className={`eq-chip eq-chip-empty ${isRowLocked('consumable') ? 'eq-chip-locked' : ''}`} onClick={() => !isRowLocked('consumable') && setModalCategory('consumable')} title={isRowLocked('consumable') ? "Locked" : `Empty Item`}>
+          <button type="button" className={`eq-chip eq-chip-empty ${isRowLocked('consumable') ? 'eq-chip-locked' : ''}`} onClick={() => !isRowLocked('consumable') && setModalCategory('consumable')} aria-disabled={isRowLocked('consumable') || undefined} title={isRowLocked('consumable') ? "Locked" : `Empty Item`}>
             {getBadge('consumable') && <span className={`eq-chip-badge eq-badge-${getBadge('consumable').variant}`}>{getBadge('consumable').text}</span>}
-            <div className="eq-chip-icon" style={{ opacity: 0.3 }}><SvgConsumable /></div>
-            <div className="eq-chip-content">
-              <span className="eq-chip-value" style={{ color: 'var(--mist)' }}>Empty</span>
-            </div>
-          </div>
+            <span className="eq-chip-icon"><SvgConsumable /></span>
+            <span className="eq-chip-content">
+              <span className="eq-chip-value eq-chip-value--empty">Item</span>
+            </span>
+          </button>
         )}
 
         {/* Stat Chip(s) */}
         {isCampaign ? (
           statImproves.map((stat, i) => (
-            <div key={i} className="eq-chip" onClick={(e) => { e.stopPropagation(); removeStatImprove(slotIndex, stat) }} title={`STAT IMPROVEMENT: ${STAT_IMPROVEMENT[stat]} (Click to Remove)`}>
-              <div className="eq-chip-icon"><SvgStat /></div>
-              <div className="eq-chip-content">
+            <button type="button" key={i} className="eq-chip" onClick={(e) => { e.stopPropagation(); removeStatImprove(slotIndex, stat) }} title={`STAT IMPROVEMENT: ${STAT_IMPROVEMENT[stat]} (Click to Remove)`}>
+              <span className="eq-chip-icon"><SvgStat /></span>
+              <span className="eq-chip-content">
                 <span className={`eq-chip-value ${(STAT_IMPROVEMENT[stat]?.length > 18) ? 'eq-chip-value--small' : ''}`}>{STAT_IMPROVEMENT[stat]}</span>
-              </div>
-            </div>
+              </span>
+            </button>
           ))
         ) : (
           isRowSelected('stat') && (
-            <div className="eq-chip" onClick={() => setModalCategory('stat')} title={`STAT IMPROVEMENT: ${statVal}`}>
+            <button type="button" className="eq-chip" onClick={() => setModalCategory('stat')} title={`STAT IMPROVEMENT: ${statVal}`}>
                {getBadge('stat') && <span className={`eq-chip-badge eq-badge-${getBadge('stat').variant}`}>{getBadge('stat').text}</span>}
-              <div className="eq-chip-icon"><SvgStat /></div>
-              <div className="eq-chip-content">
+              <span className="eq-chip-icon"><SvgStat /></span>
+              <span className="eq-chip-content">
                 <span className={`eq-chip-value ${(statVal?.length > 18) ? 'eq-chip-value--small' : ''}`}>{statVal}</span>
-              </div>
-            </div>
+              </span>
+            </button>
           )
         )}
-      </div>
 
-      {(isCampaign ? (!poolFull && !campaignStatFull) : (!isRowSelected('stat') && !isRowLocked('stat'))) && (
-        <div className="eq-add-row">
-          <button className="eq-add-btn" onClick={() => setModalCategory('stat')}>
-            <span className="lr-icon"><SvgStat /></span>
-            <span>Stat</span>
+        {/* Add a stat improvement: the last slot in the same row */}
+        {(isCampaign ? (!poolFull && !campaignStatFull) : (!isRowSelected('stat') && !isRowLocked('stat'))) && (
+          <button type="button" className="eq-chip eq-chip-empty eq-add-btn" onClick={() => setModalCategory('stat')} title="Add a stat improvement">
+            <span className="eq-chip-icon"><SvgStat /></span>
+            <span className="eq-chip-content">
+              <span className="eq-chip-value eq-chip-value--empty">Stat</span>
+            </span>
           </button>
-        </div>
-      )}
+        )}
+      </div>
 
       <WarriorUpgradeModal
         isOpen={!!modalCategory}

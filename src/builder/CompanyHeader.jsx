@@ -27,13 +27,21 @@ export default function CompanyHeader({ onSettings, onEndOfGame, onShare, onPrin
               aria-label="Company Settings"
               title="Change Profile"
             >
-              {avatarSrc && (
-                <div className="ch-avatar-ring">
-                  <div className="ch-avatar-inner">
-                    <img src={avatarSrc} className="ch-avatar-img" alt="Company avatar" />
+              {avatarSrc
+                ? (
+                  <div className="ch-avatar-ring">
+                    <div className="ch-avatar-inner">
+                      <img src={avatarSrc} className="ch-avatar-img" alt="Company avatar" />
+                    </div>
                   </div>
-                </div>
-              )}
+                )
+                : (
+                  /* Empty emblem frame: keeps the name lined up with the Mark text below it */
+                  <span className="ch-avatar-empty" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M12 2c2 2 7 5 10 5v7c0 6-5 8-10 10C7 22 2 20 2 14V7c3 0 8-3 10-5z"/></svg>
+                  </span>
+                )
+              }
               <div className="ch-identity-text">
                 <span className="ch-name-text">
                   {companyName || 'UNNAMED WARBAND'}
@@ -41,7 +49,7 @@ export default function CompanyHeader({ onSettings, onEndOfGame, onShare, onPrin
                 <div className="ch-company-stats">
                   <div className="ch-cstat">
                     <span className="ch-cstat-val">{slots.length}</span>
-                    <span className="ch-cstat-lbl">WARRIORS</span>
+                    <span className="ch-cstat-lbl">{slots.length === 1 ? 'WARRIOR' : 'WARRIORS'}</span>
                   </div>
                   {companyMode !== 'campaign' && (
                     <div className="ch-cstat">
@@ -75,9 +83,9 @@ export default function CompanyHeader({ onSettings, onEndOfGame, onShare, onPrin
               <span className="ch-sigil-label">
                 {markData ? markData.label : 'NO MARK'}
               </span>
-              {markData && (
-                <p className="ch-sigil-desc">{markData.desc}</p>
-              )}
+              {markData
+                ? <p className="ch-sigil-desc">{markData.desc}</p>
+                : <p className="ch-sigil-desc ch-sigil-desc--empty">Tap to choose a Mark.</p>}
             </div>
           </button>
 
@@ -96,18 +104,16 @@ export default function CompanyHeader({ onSettings, onEndOfGame, onShare, onPrin
 
         {/* Campaign badge */}
         {companyMode === 'campaign' && (
-          <>
+          <div className="ch-campaign-row">
             <div className="ch-campaign-badge">
               <span className="ch-campaign-text">CAMPAIGN</span>
               <span className="ch-campaign-dot" aria-hidden="true" />
               <span className="ch-campaign-text">GAME {campaignGame + 1}</span>
             </div>
-            <div className="ch-campaign-eog-row">
-              <button className="ch-campaign-eog-btn" onClick={onEndOfGame}>
-                End of Game
-              </button>
-            </div>
-          </>
+            <button className="ch-campaign-eog-btn" onClick={onEndOfGame}>
+              End of Game
+            </button>
+          </div>
         )}
 
       </div>

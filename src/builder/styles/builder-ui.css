@@ -171,13 +171,17 @@
   /* Phones: the PLAY button sits bottom right, so toasts float above it */
   @media (max-width: 600px) { .toast { bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px)); } }
 
-  /* RESTRICTIONS NOTE */
+  /* RESTRICTIONS NOTE: compact rule line above EQUIPMENT & UPGRADES.
+     Accent rule on the left; bone text (accent-coloured small text fails contrast) */
   .restriction-note {
-    font-size: 1rem;
-    color: var(--blood);
+    font-size: 0.9rem;
+    color: var(--bone);
     font-style: italic;
-    margin-top: 0.4rem;
-    line-height: 1.4;
+    line-height: 1.35;
+    margin: 0 0 0.6rem;
+    padding: 0.3rem 0.6rem;
+    border-left: 3px solid var(--blood);
+    background: rgba(190, 65, 39, 0.08);
   }
 
   .empty-slot-msg {
@@ -304,7 +308,7 @@
 .builder-main {
   max-width: 1600px;
   margin: 0 auto;
-  padding: 2rem 1.5rem 2rem;
+  padding: 1.25rem 1.5rem 2rem;
   width: 100%;
   box-sizing: border-box;
 }
@@ -602,13 +606,14 @@
   .eq-chips-list {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 0.65rem;
+    gap: 0.4rem;
     justify-items: center;
     align-items: stretch;
-    margin-top: 0.65rem;
-    margin-bottom: 1rem;
-    max-width: 600px; /* Keep them from getting TOO giant on ultra-wide cards */
+    margin-top: 0.5rem;
+    margin-bottom: 0.25rem;
   }
+  /* Five slots (weapon, off-hand, gear, item, stat) in one row */
+  .warrior-slot .eq-chips-list { grid-template-columns: repeat(5, minmax(0, 1fr)); }
   .eq-chip {
     display: flex;
     flex-direction: column;
@@ -619,15 +624,42 @@
     transition: border-color 0.15s;
     position: relative;
     width: 100%;
-    min-width: 64px;
-    height: 110px;
+    min-width: 0;
+    height: 92px;
     box-sizing: border-box;
     text-align: center;
+    /* chips are <button>s: reset native button chrome */
+    padding: 0;
+    font: inherit;
+    color: inherit;
+    border-radius: 0;
+    overflow: visible;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
   }
-@media (hover: hover) { .eq-chip:hover { border-color: var(--gold); background: rgba(184, 151, 42, 0.05); } }
+  .eq-chip:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
+  .eq-chip[aria-disabled] { cursor: default; }
+  /* Empty slot: dashed frame, faded category icon with a small +, category name */
+  .eq-chip.eq-chip-empty { border-style: dashed; border-color: rgba(255, 255, 255, 0.22); background: transparent; }
+  .eq-chip-empty .eq-chip-icon { background: rgba(255, 255, 255, 0.04); border-bottom: 1px dashed rgba(255, 255, 255, 0.12); color: rgba(255, 255, 255, 0.45); position: relative; }
+  .eq-chip-empty:not(.eq-chip-locked) .eq-chip-icon::after {
+    content: '+';
+    position: absolute;
+    top: 2px;
+    right: 5px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.85rem;
+    line-height: 1;
+    color: var(--blood);
+  }
+  .eq-chip-value.eq-chip-value--empty { color: rgba(255, 255, 255, 0.7); }
+  .eq-chip-locked { opacity: 0.6; }
+  .eq-chip-locked .eq-chip-icon { color: rgba(255, 255, 255, 0.3); }
+  .eq-chip-locked .eq-chip-value--empty { color: rgba(255, 255, 255, 0.45); }
+@media (hover: hover) { .eq-chip:not([aria-disabled]):hover { border-color: var(--gold); background: rgba(184, 151, 42, 0.05); } }
 .eq-chip-icon {
     width: 100%;
-    height: 50%;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -687,7 +719,7 @@
 }
 .mmo-stat-dmg { left: 0; right: auto; border-top-left-radius: 0; border-top-right-radius: 4px; color: var(--gold); }
 /* Force specific sizes safely for React inline SVGs/Imgs if present */
-.eq-chip-icon img, .eq-chip-icon svg { width: 30px !important; height: 30px !important; }
+.eq-chip-icon img, .eq-chip-icon svg { width: 26px !important; height: 26px !important; }
 .eq-chip-content {
     width: 100%;
     flex: 1;
@@ -695,19 +727,20 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 0 0.15rem;
+    padding: 0.15rem 0.15rem;
     min-width: 0;
   }
 .eq-chip-label { display: none; } /* Hide category labels */
-.eq-chip-value { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.05em; color: var(--bone); line-height: 1.15; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; white-space: normal; }
-.eq-chip-value--small { font-size: 0.55rem; line-height: 1.1; }
+.eq-chip-value { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.66rem; letter-spacing: 0.04em; color: var(--bone); line-height: 1.15; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; white-space: normal; }
+.eq-chip-value--small { font-size: 0.58rem; line-height: 1.1; }
 .eq-chip-pills, .eq-chip-desc { display: none; } /* Hide details; native title handles hover now */
 .eq-chip-remove { position: absolute; right: -0.4rem; top: -0.4rem; width: 18px; height: 18px; background: var(--fog); border: 1px solid var(--mist); display: flex; align-items: center; justify-content: center; color: var(--mist); font-size: 1rem; line-height: 1; cursor: pointer; border-radius: 50%; transition: background 0.15s, color 0.15s, border-color 0.15s; z-index: 2; }
 @media (hover: hover) { .eq-chip-remove:hover { background: var(--blood); border-color: var(--blood); color: #fff; } }
 .eq-chip-badge { position: absolute; left: 50%; bottom: -0.4rem; transform: translateX(-50%); font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.55rem; padding: 0.1rem 0.2rem; border-radius: 2px; letter-spacing: 0.05em; background: var(--fog); border: 1px solid var(--gold); color: var(--gold); pointer-events: none; white-space: nowrap; z-index: 2; }
 .eq-badge-spent { color: var(--gold); border-color: var(--gold); background: var(--ash); }
 .eq-badge-free { color: #8a8580; border-style: dashed; border-color: var(--mist); background: var(--ash); }
-.eq-badge-full { top: 50%; bottom: auto; transform: translate(-50%, -50%); font-size: 0.65rem; background: var(--ash); color: var(--mist); border-color: var(--dim); padding: 0.15rem 0.35rem; }
+.eq-badge-full { top: 20px; bottom: auto; transform: translate(-50%, -50%); font-size: 0.6rem; background: var(--ash); color: rgba(255, 255, 255, 0.75); border-color: rgba(255, 255, 255, 0.25); padding: 0.1rem 0.3rem; }
+.eq-chips-list .eq-add-btn { flex: none; display: flex; justify-content: flex-start; gap: 0; padding: 0; opacity: 1; letter-spacing: normal; font-size: inherit; line-height: normal; }
 .eq-add-row { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.75rem; }
 .eq-add-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.3rem; background: transparent; border: 1px dashed var(--dim); color: var(--parchment); font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.05em; text-transform: uppercase; padding: 0.5rem 0.2rem; cursor: pointer; transition: all 0.15s; text-align: center; white-space: normal; line-height: 1.2; min-width: 0; opacity: 0.85; }
 @media (hover: hover) {
@@ -2672,7 +2705,7 @@
   max-width: var(--header-max-width, 100%);
   margin-left: auto;
   margin-right: auto;
-  margin-bottom: 1.25rem;
+  margin-bottom: 0.85rem;
 }
 
 .ch-frame {
@@ -2745,39 +2778,43 @@
   align-items: flex-start;
 }
 
-/* ── Avatar Ring ───────────────────────────────────────────── */
-.ch-avatar-ring {
+/* ── Portrait family ───────────────────────────────────────────
+   Company emblem, Mark and warrior portraits share one frame: a rounded
+   (8px) panel with a 1px hairline border, art filling edge to edge.
+   - Warrior: tall 96px portrait, neutral border (a person).
+   - Emblem:  64px square, neutral border (the company itself).
+   - Mark:    64px square, accent border (a rule the company carries).
+   Empty slots use the same frame, dashed. */
+.ch-avatar-ring,
+.ch-sigil-ring,
+.ch-avatar-empty,
+.ch-sigil-no-mark {
   width: 64px;
   height: 64px;
-  border-radius: 4px;
-  border: 2px solid rgba(255, 255, 255, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   flex-shrink: 0;
-  background: transparent;
-  box-shadow:
-    inset 0 1px 4px rgba(0,0,0,0.9),
-    0 2px 8px rgba(0,0,0,0.7);
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-.ch-identity-btn:hover .ch-avatar-ring {
-  border-color: rgba(255, 255, 255, 0.9);
-  box-shadow:
-    inset 0 1px 4px rgba(0,0,0,0.9),
-    0 2px 8px rgba(0,0,0,0.7);
-}
-
-.ch-avatar-inner {
-  width: 58px;
-  height: 58px;
-  border-radius: 3px;
-  background: #f0ebe0;
+  box-sizing: border-box;
+  border-radius: 8px;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: inset 0 1px 2px rgba(0,0,0,0.2), inset 0 0 0 1px rgba(0,0,0,0.15);
+  transition: border-color 0.2s;
+}
+
+/* ── Emblem (avatar) ───────────────────────────────────────── */
+.ch-avatar-ring {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: #f0ebe0;
+}
+.ch-identity-btn:hover .ch-avatar-ring { border-color: rgba(255, 255, 255, 0.4); }
+
+.ch-avatar-inner {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .ch-avatar-img {
@@ -2786,19 +2823,28 @@
   object-fit: cover;
   object-position: center top;
   display: block;
-  border-radius: 3px;
   transition: transform 0.3s;
 }
+
+.ch-avatar-empty {
+  border: 1px dashed rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.35);
+}
+.ch-identity-btn:hover .ch-avatar-empty { border-color: rgba(255, 255, 255, 0.55); color: rgba(255, 255, 255, 0.6); }
+.builder-readonly .ch-avatar-empty { display: none; }
 .ch-identity-btn:hover .ch-avatar-img {
   transform: scale(1.03);
 }
 
 /* ── Identity text column ──────────────────────────────────── */
+/* Name + chips sit centred against the 64px emblem; a long name grows downward */
 .ch-identity-text {
   display: flex;
   flex-direction: column;
-  gap: 0.1rem;
+  justify-content: center;
+  gap: 0.35rem;
   min-width: 0;
+  min-height: 64px;
 }
 
 /* ── Company Name — mirrors .ch-sigil-label exactly ─────────── */
@@ -2822,23 +2868,27 @@
 /* ── Company Stats Strip — HUD badge chips ───────────────────── */
 .ch-company-stats {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.4rem;
   pointer-events: none;
-  margin-top: 0.15rem;
+  margin: 0;
 }
+/* Value and label share a baseline inside a fixed-height pill */
 .ch-cstat {
-  display: flex;
-  align-items: center;
-  gap: 0.28rem;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  height: 22px;
+  box-sizing: border-box;
+  padding: 3px 0.5rem 0;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 3px;
-  padding: 0.1rem 0.4rem 0.12rem;
 }
 .ch-cstat-val {
   font-family: 'Oswald', sans-serif;
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   font-weight: 700;
   line-height: 1;
   color: #fff;
@@ -2846,35 +2896,24 @@
 }
 .ch-cstat-lbl {
   font-family: 'Oswald', sans-serif;
-  font-size: 0.58rem;
+  font-size: 0.64rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.72);
   line-height: 1;
 }
 
 /* ── Sigil (Mark) Ring ─────────────────────────────────────── */
 .ch-sigil-ring {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  border: 2px solid rgba(190, 65, 39, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: border-color 0.2s, transform 0.2s;
-  flex-shrink: 0;
+  border: 1px solid rgba(190, 65, 39, 0.75);
+  background: #f0ebe0;
+  box-shadow: 0 0 0 1px rgba(190, 65, 39, 0.18);
 }
-.ch-sigil-btn:hover .ch-sigil-ring {
-  border-color: rgba(190, 65, 39, 0.9);
-  transform: scale(1.05);
-}
+.ch-sigil-btn:hover .ch-sigil-ring { border-color: var(--blood); }
 
 .ch-sigil-inner {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: #f0ebe0;
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2903,29 +2942,22 @@
 
 .ch-sigil-no-mark {
   font-family: 'Oswald', sans-serif;
-  font-size: 1.1rem;
-  color: rgba(190, 65, 39, 0.4);
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  border: 2px dashed rgba(190, 65, 39, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: border-color 0.2s, color 0.2s;
+  font-size: 1.4rem;
+  color: rgba(190, 65, 39, 0.85);
+  border: 1px dashed rgba(190, 65, 39, 0.6);
 }
 .ch-sigil-btn:hover .ch-sigil-no-mark {
-  border-color: rgba(190, 65, 39, 0.7);
-  color: rgba(190, 65, 39, 0.8);
+  border-color: var(--blood);
+  color: var(--blood);
 }
 
 /* ── Sigil text column ─────────────────────────────────────── */
 .ch-sigil-text {
   display: flex;
   flex-direction: column;
-  gap: 0.1rem;
+  gap: 0.15rem;
   min-width: 0;
+  min-height: 64px;
   justify-content: center;
 }
 
@@ -2948,11 +2980,13 @@
   font-family: 'Caslon Antique', serif;
   font-size: 0.9rem;
   color: var(--parchment);
-  line-height: 1.5;
+  line-height: 1.4;
   text-align: left;
   font-style: italic;
   margin: 0;
 }
+.ch-sigil-desc--empty { color: rgba(255, 255, 255, 0.7); }
+.builder-readonly .ch-sigil-desc--empty { display: none; }
 
 .ch-edit-hint { display: none; }
 
@@ -2960,58 +2994,63 @@
 .ch-divider { display: none; }
 .ch-divider-line, .ch-divider-diamond { display: none; }
 
-/* ── Campaign Badge ────────────────────────────────────────── */
+/* ── Campaign row: CAMPAIGN · GAME N on the left, End of Game on the right ── */
+.ch-campaign-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-top: 1px solid rgba(190, 65, 39, 0.2);
+  padding: 0.4rem 0.7rem 0.1rem;
+}
 .ch-campaign-badge {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.6rem;
-  border-top: 1px solid rgba(190, 65, 39, 0.2);
-  padding: 0.25rem 0.9rem;
-}
-.ch-campaign-eog-row {
-  display: flex;
-  justify-content: center;
-  padding: 0.3rem 0.9rem 0.4rem;
+  gap: 0.5rem;
+  min-width: 0;
 }
 .ch-campaign-eog-btn {
-  margin-left: 0;
+  flex-shrink: 0;
+  min-height: 36px;
   background: rgba(190, 65, 39, 0.15);
-  border: 1px solid rgba(190, 65, 39, 0.4);
-  border-radius: 3px;
-  color: rgba(190, 65, 39, 0.9);
+  border: 1px solid rgba(190, 65, 39, 0.6);
+  border-radius: 4px;
+  color: var(--parchment);
   font-family: 'Oswald', sans-serif;
-  font-size: 0.58rem;
-  letter-spacing: 0.12em;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  padding: 0.2rem 0.55rem;
+  padding: 0 0.9rem;
   cursor: pointer;
-  transition: background 0.15s;
+  touch-action: manipulation;
+  transition: background 0.15s, border-color 0.15s;
   -webkit-tap-highlight-color: transparent;
 }
 @media (hover: hover) {
   .ch-campaign-eog-btn:hover {
     background: rgba(190, 65, 39, 0.3);
+    border-color: var(--blood);
   }
 }
+.ch-campaign-eog-btn:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
 .ch-campaign-text {
   font-family: 'Oswald', sans-serif;
-  font-size: 0.58rem;
+  font-size: 0.72rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: rgba(190, 65, 39, 0.75);
+  color: var(--bone);
 }
 .ch-campaign-dot {
-  width: 3px;
-  height: 3px;
+  width: 4px;
+  height: 4px;
   border-radius: 50%;
-  background: rgba(190, 65, 39, 0.5);
+  background: var(--blood);
   flex-shrink: 0;
 }
 
-/* ── Mobile — stacked layout + compact rings (≤650px) ────────── */
+/* ── Stacked layout (≤1024px): identity, Mark, Share/Print rows ── */
 @media (max-width: 1024px) {
-  .ch-frame { padding: 0.2rem 0.4rem 0.6rem; }
+  .ch-frame { padding: 0.15rem 0.25rem 0.5rem; }
   .ch-panels { flex-direction: column; align-items: stretch; }
   .ch-identity-wrap {
     width: 100%;
@@ -3020,28 +3059,20 @@
     width: 100%;
   }
   .ch-identity-btn::after { display: none; }
+  .ch-identity-btn,
+  .ch-sigil-btn { padding: 0.5rem 0.6rem; }
   .ch-sigil-btn {
     width: 100%; max-width: 100%;
     border-top: 1px solid rgba(255, 255, 255, 0.14);
   }
-  .ch-avatar-ring { width: 64px; height: 64px; }
-  .ch-avatar-inner { width: 58px; height: 58px; }
-  .ch-sigil-ring  { width: 64px; height: 64px; }
-  .ch-sigil-inner { width: 56px; height: 56px; }
-  .ch-sigil-no-mark { width: 56px; height: 56px; font-size: 0.9rem; }
   .ch-name-text { font-size: 1.1rem; }
   .ch-sigil-label { font-size: 1.0rem; }
   .ch-sigil-desc { font-size: 0.85rem; }
+  .ch-campaign-row { border-top-color: rgba(255, 255, 255, 0.14); padding: 0.5rem 0.6rem 0; margin-top: 0.5rem; }
+  .ch-campaign-eog-btn { min-height: 44px; }
 }
-
-/* ── Desktop — slightly larger rings ──────────────────────── */
-@media (min-width: 560px) {
-  .ch-frame { padding: 0.3rem 0.75rem; }
-  .ch-avatar-ring { width: 64px; height: 64px; }
-  .ch-avatar-inner { width: 58px; height: 58px; }
-  .ch-sigil-ring  { width: 64px; height: 64px; }
-  .ch-sigil-inner { width: 56px; height: 56px; }
-  .ch-sigil-no-mark { width: 56px; height: 56px; }
+@media (pointer: coarse) {
+  .ch-campaign-eog-btn { min-height: 44px; }
 }
 
 /* ── Company Header Quick Actions (Share / Print) ─────────── */
@@ -3092,7 +3123,7 @@
 @media (max-width: 1024px) {
   .ch-quick-actions {
     width: 100%;
-    padding: 0.55rem 0.7rem 0;
+    padding: 0.5rem 0.6rem 0;
     border-left: none;
     border-top: 1px solid rgba(255, 255, 255, 0.14);
   }
@@ -4576,10 +4607,10 @@
    the stats block) stays tall on wide screens too, not just when the boxes wrap on phones */
 .warrior-header-text .stats-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: 1fr; min-height: 128px; }
 .warrior-header-text .stats-row .stat-box { min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.warrior-header-row { margin-bottom: 1.75rem; }
+.warrior-header-row { margin-bottom: 0.85rem; }
 /* Class name under a custom warrior name (above portrait + stats) */
 .slot-class-sub {
-  margin: -0.35rem 0 0.6rem;
+  margin: -0.25rem 0 0.5rem;
   font-family: 'Oswald', sans-serif;
   font-size: 0.72rem;
   letter-spacing: 0.12em;

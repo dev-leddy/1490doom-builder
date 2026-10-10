@@ -132,12 +132,17 @@ export default function WarriorCard({ slotIndex, slot }) {
             </div>
           </div>
 
+          {/* Class restriction: a rule about what can be equipped, so it sits right above the loadout */}
+          {wdata.restrictions && (
+            <div className="restriction-note">{wdata.restrictions}</div>
+          )}
+
           {/* Loadout — upgrades + equipment combined */}
           <WarriorLoadout slotIndex={slotIndex} slot={slot} wdata={wdata} poolFull={poolFull} />
 
           {/* Abilities */}
           {allAbilities.length > 0 && (
-            <div className="lr-section-header" style={{ marginTop: '1rem', marginBottom: '0.4rem' }}>
+            <div className="lr-section-header" style={{ marginTop: '0.85rem', marginBottom: '0.4rem' }}>
               <span className="lr-section-title">ABILITIES</span>
             </div>
           )}
@@ -164,10 +169,6 @@ export default function WarriorCard({ slotIndex, slot }) {
                 )
               })}
             </div>
-          )}
-
-          {wdata.restrictions && (
-            <div className="restriction-note">{wdata.restrictions}</div>
           )}
 
           {/* Notes */}
