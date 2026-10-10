@@ -8,6 +8,7 @@ import MarkPicker from './MarkPicker'
 
 export default function CompanyHeader({ onSettings, onEndOfGame, onShare, onPrint }) {
   const { mark, setMark, companyName, companyAvatar, companyMode, campaignGame, slots, ipLimit } = useBuilderStore()
+  const ipSpent = useBuilderStore(s => s.getTotalIPSpent())
   const [showMarkPicker, setShowMarkPicker] = useState(false)
   const [tempMark, setTempMark] = useState('')
   const markData = MARKS.find(m => m.name === mark)
@@ -53,8 +54,9 @@ export default function CompanyHeader({ onSettings, onEndOfGame, onShare, onPrin
                   </div>
                   {companyMode !== 'campaign' && (
                     <div className="ch-cstat">
-                      <span className="ch-cstat-val">{ipLimit}</span>
-                      <span className="ch-cstat-lbl">IP</span>
+                      {/* The company IP pool: what is left of the limit */}
+                      <span className="ch-cstat-val">{Math.max(0, ipLimit - ipSpent)}/{ipLimit}</span>
+                      <span className="ch-cstat-lbl">IP left</span>
                     </div>
                   )}
                 </div>

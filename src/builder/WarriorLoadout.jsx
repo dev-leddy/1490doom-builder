@@ -194,9 +194,10 @@ export default function WarriorLoadout({ slotIndex, slot, wdata, poolFull }) {
     <div className="lr-section">
       <div className="lr-section-header">
         <span className="lr-section-title">EQUIPMENT & UPGRADES</span>
-        <span className="lr-pips lr-ip-summary" title={isCampaign ? `${earnedIP} IP earned by this warrior` : `${ipLeft} IP left in the company budget`}>
+        <span className="lr-pips lr-ip-summary" title={isCampaign ? `${earnedIP} IP earned by this warrior` : `${ipSpent} IP spent on this warrior`}>
           <span>
-            {isCampaign ? `${ipSpent} of ${earnedIP} IP spent · ${ipLeft} left` : `${ipSpent} IP spent · ${ipLeft} left`}
+            {/* Standard: IP is one company pool (left is in the header), so a warrior shows only its own spend */}
+            {isCampaign ? `${ipSpent} of ${earnedIP} IP spent · ${ipLeft} left` : ipSpent > 0 ? `${ipSpent} IP` : ''}
           </span>
         </span>
       </div>
