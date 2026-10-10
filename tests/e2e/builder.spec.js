@@ -62,7 +62,7 @@ test.describe('builder', () => {
     await expect(page.locator('.pk-stat-detail[data-stat="COM"]')).toContainText('4+ to 3+')
     await page.locator('.pk-stat-apply').click()
     const tile = page.getByRole('button', { name: /^Stat Improve/ })
-    await expect(tile).toContainText('COM')
+    await expect(tile).toContainText('Combat')
     await expect(tile).not.toContainText('+1')
   })
 
@@ -73,7 +73,7 @@ test.describe('builder', () => {
     await expect(page.locator('.pk-stat-confirm')).toContainText('rest of the campaign')
     await page.locator('.pk-stat-apply').click()
     const tile = page.getByRole('button', { name: /^Stat Improve/ })
-    await expect(tile).toContainText('SKL')
+    await expect(tile).toContainText('Skill')
     // Taken stats can't be removed from the picker
     await tile.click()
     await expect(page.locator('.pk-stat.is-taken', { hasText: 'SKL' })).toBeVisible()

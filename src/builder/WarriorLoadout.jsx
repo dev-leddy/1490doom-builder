@@ -174,7 +174,7 @@ export default function WarriorLoadout({ slotIndex, slot, wdata, poolFull }) {
     ? {
         name: 'Stat Improve',
         full: chosenStats.map(k => STAT_IMPROVEMENT[k].replace(/ \+1$/, '')).join(', '),
-        meta: chosenStats.map(k => ({ text: k })),
+        meta: chosenStats.map(k => ({ text: STAT_IMPROVEMENT[k].replace(/ \+1$/, '') })),  // full stat name: COMBAT, not COM
       }
     : null
 
