@@ -15,12 +15,11 @@ test.describe('builder', () => {
 
   test('empty slots hide once all IP is spent, and come back when IP is freed', async ({ page }) => {
     await createCompany(page, { warriors: ['Fighter', 'Scout', 'Brute'], ip: 0 })
-    await expect(page.locator('.eq-chip-empty')).toHaveCount(0)
-    await expect(page.locator('.eq-add-btn')).toHaveCount(0)
+    await expect(page.locator('.eq-add')).toHaveCount(0)
     await page.getByLabel('Company Settings').click()
     await page.locator('.co-settings-step-btn').filter({ hasText: '+' }).last().click()
     await page.locator('.co-sheet-done').click()
-    await expect(page.locator('.eq-chip-empty').first()).toBeVisible()
+    await expect(page.locator('.eq-add').first()).toBeVisible()
   })
 
   test('custom names: class row under the name, cards stay aligned on desktop', async ({ page }) => {

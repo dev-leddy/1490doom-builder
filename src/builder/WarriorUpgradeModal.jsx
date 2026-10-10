@@ -116,7 +116,7 @@ export default function WarriorUpgradeModal({
   removeUpgrade, spendIP, freeIP,
   hasFixedShield, hasFixedDualWield, primaryIsPolearmOne, isDualWield
 }) {
-  const { setWarriorProp, addStatImprove } = useBuilderStore()
+  const { setWarriorProp, addStatImprove, removeStatImprove } = useBuilderStore()
   const companyMode = useBuilderStore(s => s.companyMode)
 
   if (!isOpen) return null
@@ -234,21 +234,38 @@ export default function WarriorUpgradeModal({
 
       {category === 'stat' && companyMode === 'campaign' && (
         <>
-          <PickIntro label="Stat improvement">+1 to a stat. Costs 1 IP each; each stat only once.</PickIntro>
+          <PickIntro label="Stat improvement">+1 to a stat. Costs 1 IP each; each stat only once. Remove one to get its IP back.</PickIntro>
           <div className="pk-stat-grid">
             {Object.entries(STAT_IMPROVEMENT).map(([k, v]) => {
               const taken = slot.statImproves?.includes(k)
+              const label = v.replace(/ \+1$/, '')
+              // Taken: a tile with an explicit Remove button (no accidental removal from the card)
+              if (taken) return (
+                <div key={k} className="pk-stat is-taken">
+                  <span className="pk-stat-abbrev">{k}</span>
+                  <span className="pk-stat-label">{label}</span>
+                  <span className="pk-stat-flag">✓ Taken</span>
+                  <button
+                    type="button"
+                    className="pk-stat-remove"
+                    onClick={() => removeStatImprove(slotIndex, k)}
+                    aria-label={`Remove ${v}`}
+                  >
+                    Remove
+                  </button>
+                </div>
+              )
               return (
                 <button
                   key={k}
                   type="button"
-                  className={`pk-stat${taken ? ' is-taken' : ''}`}
-                  disabled={taken}
-                  onClick={() => { if (!taken) { addStatImprove(slotIndex, k); onClose() } }}
+                  className="pk-stat"
+                  disabled={poolFull}
+                  onClick={() => { if (!poolFull) { addStatImprove(slotIndex, k); onClose() } }}
                 >
                   <span className="pk-stat-abbrev">{k}</span>
-                  <span className="pk-stat-label">{v.replace(/ \+1$/, '')}</span>
-                  {taken && <span className="pk-stat-flag">✓ Taken</span>}
+                  <span className="pk-stat-label">{label}</span>
+                  {poolFull && <span className="pk-stat-flag">No IP</span>}
                 </button>
               )
             })}

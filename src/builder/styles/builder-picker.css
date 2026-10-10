@@ -215,6 +215,26 @@
 .pk-stat.is-taken .pk-stat-abbrev { color: #8fbf8f; }
 .pk-stat.is-taken .pk-stat-label { opacity: 0.6; }
 .pk-stat.is-taken .pk-stat-flag { color: #6fbf6f; }
+/* Campaign: a taken stat is a tile with its own Remove button */
+div.pk-stat.is-taken { cursor: default; }
+.pk-stat-remove {
+  align-self: stretch;
+  min-height: 44px;
+  margin: 0.2rem 0.1rem 0;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  color: var(--bone);
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.pk-stat-remove:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
+@media (hover: hover) { .pk-stat-remove:hover { border-color: var(--blood); color: #fff; } }
+.pk-stat:disabled:not(.is-taken) { opacity: 0.45; cursor: not-allowed; }
 
 @media (max-width: 360px) {
   .pk-stat-grid { grid-template-columns: repeat(3, 1fr); }

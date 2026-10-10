@@ -9,6 +9,7 @@
     --gold: #be4127;
     --mist: #444444;
     --dim: #222222;
+    --blood-text: #e0573a; /* accent for small text on dark grounds (5:1 on --fog); --blood is 3.6:1 */
   }
 
   [data-theme="light"] {
@@ -1028,6 +1029,17 @@
     display: flex;
     align-items: center;
     gap: 3px;
+  }
+  /* Section header: "N IP spent · M left" */
+  .lr-ip-summary {
+    margin-left: auto;
+    gap: 0.4rem;
+    font-family: 'Oswald', sans-serif;
+    font-size: 0.68rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.7);
+    white-space: nowrap;
   }
   .lr-ip-pip {
     width: 8px;

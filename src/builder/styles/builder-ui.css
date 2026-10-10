@@ -171,14 +171,14 @@
   /* Phones: the PLAY button sits bottom right, so toasts float above it */
   @media (max-width: 600px) { .toast { bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px)); } }
 
-  /* RESTRICTIONS NOTE: compact rule line above EQUIPMENT & UPGRADES.
+  /* RESTRICTIONS NOTE: compact rule line under the equipment tiles (what can't be added).
      Accent rule on the left; bone text (accent-coloured small text fails contrast) */
   .restriction-note {
     font-size: 0.9rem;
     color: var(--bone);
     font-style: italic;
     line-height: 1.35;
-    margin: 0 0 0.6rem;
+    margin: 0.45rem 0 0;
     padding: 0.3rem 0.6rem;
     border-left: 3px solid var(--blood);
     background: rgba(190, 65, 39, 0.08);
@@ -602,150 +602,63 @@
 .mark-popup-name { font-family:'Oswald', sans-serif;font-size:1.1rem;letter-spacing:0.08em;color:var(--gold); }
 .mark-popup-desc { font-size:1rem;color:#ccc;line-height:1.6; }
 .notes-section { margin-top: auto; }
-/* -- NEW CHIP UI FOR UPGRADES (MMO Style) -- */
-  .eq-chips-list {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0.4rem;
-    justify-items: center;
-    align-items: stretch;
-    margin-top: 0.5rem;
-    margin-bottom: 0.25rem;
-  }
-  /* Five slots (weapon, off-hand, gear, item, stat) in one row */
-  .warrior-slot .eq-chips-list { grid-template-columns: repeat(5, minmax(0, 1fr)); }
-  .eq-chip {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background: var(--ash);
-    border: 1px solid var(--dim);
-    cursor: pointer;
-    transition: border-color 0.15s;
-    position: relative;
-    width: 100%;
-    min-width: 0;
-    height: 92px;
-    box-sizing: border-box;
-    text-align: center;
-    /* chips are <button>s: reset native button chrome */
-    padding: 0;
-    font: inherit;
-    color: inherit;
-    border-radius: 0;
-    overflow: visible;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .eq-chip:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
-  .eq-chip[aria-disabled] { cursor: default; }
-  /* Empty slot: dashed frame, faded category icon with a small +, category name */
-  .eq-chip.eq-chip-empty { border-style: dashed; border-color: rgba(255, 255, 255, 0.22); background: transparent; }
-  .eq-chip-empty .eq-chip-icon { background: rgba(255, 255, 255, 0.04); border-bottom: 1px dashed rgba(255, 255, 255, 0.12); color: rgba(255, 255, 255, 0.45); position: relative; }
-  .eq-chip-empty:not(.eq-chip-locked) .eq-chip-icon::after {
-    content: '+';
-    position: absolute;
-    top: 2px;
-    right: 5px;
-    font-family: 'Oswald', sans-serif;
-    font-size: 0.85rem;
-    line-height: 1;
-    color: var(--blood);
-  }
-  .eq-chip-value.eq-chip-value--empty { color: rgba(255, 255, 255, 0.7); }
-  .eq-chip-locked { opacity: 0.6; }
-  .eq-chip-locked .eq-chip-icon { color: rgba(255, 255, 255, 0.3); }
-  .eq-chip-locked .eq-chip-value--empty { color: rgba(255, 255, 255, 0.45); }
-@media (hover: hover) { .eq-chip:not([aria-disabled]):hover { border-color: var(--gold); background: rgba(184, 151, 42, 0.05); } }
-.eq-chip-icon {
-    width: 100%;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--dim);
-    color: var(--bone);
-    border-bottom: 1px solid var(--dim);
-    font-size: 1.5rem;
-    flex-shrink: 0;
-  }
-  .eq-chip-stats {
-    width: 100%;
-    height: 1.25rem;
-    display: flex;
-    align-items: stretch;
-    background: #0a0a0a; /* Darker grey footer */
-    border-top: 1px solid var(--dim);
-    flex-shrink: 0;
-  }
-  .eq-stat-box {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 0;
-    padding: 0 4px;
-    height: 100%;
-  }
-  .eq-stat-box:not(:last-child) {
-    border-right: 1px solid var(--dim);
-  }
-  .eq-chip-stat {
-    font-family: 'Oswald', sans-serif;
-    font-size: 0.6rem;
-    color: var(--bone);
-    text-transform: uppercase;
-    white-space: nowrap;
-    line-height: 1;
-  }
-  .eq-chip-stat--dmg { color: var(--gold); }
-/* Overlay stats for MMO-style readability */
-/* Overlays are now integrated rows; remove absolute positioning */
-.mmo-stat-overlay { display: none; }
-
-.mmo-stat-overlay {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  background: rgba(10,10,10,0.85);
-  color: var(--bone);
-  font-family: 'Oswald', sans-serif;
-  font-size: 0.6rem;
-  padding: 1px 3px;
-  border-top-left-radius: 4px;
-  line-height: 1;
-  pointer-events: none;
-  z-index: 2;
+/* -- EQUIPMENT & UPGRADES: filled slots are tiles, empty slots are "+ NAME" pills --
+   Tiles: 2 columns, 3 when the card is wide (container query on the card, since card
+   width doesn't follow the viewport). Names wrap and are never truncated. */
+.warrior-slot { container: card / inline-size; }
+.eq-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.3rem; margin-top: 0.4rem; }
+/* an odd last tile fills its row, so the grid never has a hole */
+.eq-tiles > .eq-tile:last-child:nth-child(odd) { grid-column: 1 / -1; }
+@container card (min-width: 440px) {
+  .eq-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .eq-tiles > .eq-tile:last-child:nth-child(odd) { grid-column: auto; }
+  .eq-tiles > .eq-tile:first-child:last-child { grid-column: 1 / -1; }
 }
-.mmo-stat-dmg { left: 0; right: auto; border-top-left-radius: 0; border-top-right-radius: 4px; color: var(--gold); }
-/* Force specific sizes safely for React inline SVGs/Imgs if present */
-.eq-chip-icon img, .eq-chip-icon svg { width: 26px !important; height: 26px !important; }
-.eq-chip-content {
-    width: 100%;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 0.15rem 0.15rem;
-    min-width: 0;
-  }
-.eq-chip-label { display: none; } /* Hide category labels */
-.eq-chip-value { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.66rem; letter-spacing: 0.04em; color: var(--bone); line-height: 1.15; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; white-space: normal; }
-.eq-chip-value--small { font-size: 0.58rem; line-height: 1.1; }
-.eq-chip-pills, .eq-chip-desc { display: none; } /* Hide details; native title handles hover now */
-.eq-chip-remove { position: absolute; right: -0.4rem; top: -0.4rem; width: 18px; height: 18px; background: var(--fog); border: 1px solid var(--mist); display: flex; align-items: center; justify-content: center; color: var(--mist); font-size: 1rem; line-height: 1; cursor: pointer; border-radius: 50%; transition: background 0.15s, color 0.15s, border-color 0.15s; z-index: 2; }
-@media (hover: hover) { .eq-chip-remove:hover { background: var(--blood); border-color: var(--blood); color: #fff; } }
-.eq-chip-badge { position: absolute; left: 50%; bottom: -0.4rem; transform: translateX(-50%); font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.55rem; padding: 0.1rem 0.2rem; border-radius: 2px; letter-spacing: 0.05em; background: var(--fog); border: 1px solid var(--gold); color: var(--gold); pointer-events: none; white-space: nowrap; z-index: 2; }
-.eq-badge-spent { color: var(--gold); border-color: var(--gold); background: var(--ash); }
-.eq-badge-free { color: #8a8580; border-style: dashed; border-color: var(--mist); background: var(--ash); }
-.eq-badge-full { top: 20px; bottom: auto; transform: translate(-50%, -50%); font-size: 0.6rem; background: var(--ash); color: rgba(255, 255, 255, 0.75); border-color: rgba(255, 255, 255, 0.25); padding: 0.1rem 0.3rem; }
-.eq-chips-list .eq-add-btn { flex: none; display: flex; justify-content: flex-start; gap: 0; padding: 0; opacity: 1; letter-spacing: normal; font-size: inherit; line-height: normal; }
-.eq-add-row { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.75rem; }
-.eq-add-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.3rem; background: transparent; border: 1px dashed var(--dim); color: var(--parchment); font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.05em; text-transform: uppercase; padding: 0.5rem 0.2rem; cursor: pointer; transition: all 0.15s; text-align: center; white-space: normal; line-height: 1.2; min-width: 0; opacity: 0.85; }
+.eq-tile {
+  display: flex; align-items: center; gap: 0.5rem;
+  min-height: 44px; min-width: 0; box-sizing: border-box;
+  padding: 0.25rem 0.5rem 0.25rem 0.35rem;
+  background: var(--fog); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 0;
+  color: inherit; font: inherit; text-align: left; cursor: pointer;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.15s;
+}
+.eq-tile-icon { flex: 0 0 30px; height: 30px; display: flex; align-items: center; justify-content: center; background: var(--dim); color: var(--bone); }
+.eq-tile-icon img, .eq-tile-icon svg { width: 22px !important; height: 22px !important; }
+.eq-tile-text { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; flex: 1; }
+.eq-tile-name {
+  font-family: 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 0.04em;
+  font-size: 0.75rem; line-height: 1.12; color: var(--parchment); overflow-wrap: anywhere;
+}
+.eq-tile-meta {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0 0.3rem;
+  font-family: 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 0.08em;
+  font-size: 0.6rem; line-height: 1.2; color: rgba(255, 255, 255, 0.62);
+}
+.eq-tile-meta > span + span::before { content: '·'; margin-right: 0.3rem; opacity: 0.6; }
+/* the hand tag reads as its own word: no separator, so a wrapped line never starts with a dot */
+.eq-tile-meta > span + .eq-tile-tag::before { content: none; }
+.eq-tile-meta > span + .eq-tile-tag { margin-left: 0.15rem; }
+.eq-tile-dmg { color: var(--blood-text); }
+.eq-tile-tag { color: var(--bone); }
+
+.eq-adds { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.3rem; margin-top: 0.3rem; }
+.eq-add {
+  min-width: 0; min-height: 36px; box-sizing: border-box;
+  display: flex; align-items: center; justify-content: center; gap: 0.3rem;
+  background: transparent; border: 1px dashed rgba(255, 255, 255, 0.3); border-radius: 0;
+  color: var(--bone); padding: 0 0.3rem;
+  font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.68rem; letter-spacing: 0.08em;
+  white-space: nowrap; cursor: pointer;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.15s, color 0.15s;
+}
+.eq-add-plus { color: var(--blood-text); font-size: 0.95rem; line-height: 1; }
+@media (pointer: coarse) { .eq-add { min-height: 44px; } }
+.eq-tile:focus-visible, .eq-add:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
 @media (hover: hover) {
-  .eq-add-btn:hover:not(:disabled) { border-color: var(--gold); color: var(--gold); background: rgba(184, 151, 42, 0.05); opacity: 1; }
-  .eq-add-btn:hover:not(:disabled) .lr-icon { color: var(--gold); }
+  .eq-tile:hover { border-color: var(--gold); }
+  .eq-add:hover { border-color: var(--gold); color: var(--parchment); }
 }
 
 /* -- UPGRADE MODAL -- */

@@ -8,10 +8,40 @@ import WarriorUpgradeModal from './WarriorUpgradeModal'
 
 const TWO_HANDED = new Set(['Heavy Weapon', 'Polearm (two-handed)', 'Crossbow', 'Bow'])
 const IP_ROW_IDS = ['weapon2', 'climbing', 'consumable', 'stat']
+const HAND = { 'Polearm (one-handed)': '1-handed', 'Polearm (two-handed)': '2-handed' }
+// Polearms show as "Polearm" with the hand count as a tag, so the name never breaks inside brackets
+const shortName = n => (HAND[n] ? 'Polearm' : n)
+
+// A filled loadout slot: icon, full name (wraps, never truncated) and a small meta line
+function Tile({ icon, name, fullName, meta = [], onClick, title }) {
+  return (
+    <button type="button" className="eq-tile" onClick={onClick} title={title}
+      aria-label={[fullName, ...meta.map(m => m.text)].join(', ')}>
+      <span className="eq-tile-icon" aria-hidden="true">{icon}</span>
+      <span className="eq-tile-text" aria-hidden="true">
+        <span className="eq-tile-name">{name}</span>
+        {meta.length > 0 && (
+          <span className="eq-tile-meta">
+            {meta.map((m, i) => <span key={i} className={m.cls}>{m.text}</span>)}
+          </span>
+        )}
+      </span>
+    </button>
+  )
+}
+
+// An empty slot that can still be filled
+function AddPill({ label, onClick }) {
+  return (
+    <button type="button" className="eq-add" onClick={onClick} aria-label={`Add ${label.toLowerCase()}`}>
+      <span className="eq-add-plus" aria-hidden="true">+</span>{label}
+    </button>
+  )
+}
 
 export default function WarriorLoadout({ slotIndex, slot, wdata, poolFull }) {
   const [modalCategory, setModalCategory] = useState(null)
-  const { toggleIP, setWarriorProp, companyMode, removeStatImprove } = useBuilderStore()
+  const { toggleIP, setWarriorProp, companyMode, getMaxIPForSlot, getTotalIPSpent } = useBuilderStore()
 
   const hasFixedShield    = wdata?.fixedShield || false
   const hasFixedDualWield = wdata?.fixedDualWield || false
@@ -43,9 +73,6 @@ export default function WarriorLoadout({ slotIndex, slot, wdata, poolFull }) {
     if (IP_ROW_IDS.includes(id)) return !isRowSelected(id) && poolFull
     return false
   }
-
-  // No IP left to spend: don't show slots that can't be filled
-  const hideEmpty = id => poolFull && isRowLocked(id)
 
   const spendIP = id => { if (!slot.ip?.includes(id) && !poolFull) toggleIP(slotIndex, id, true) }
   const freeIP  = id => { if (slot.ip?.includes(id)) toggleIP(slotIndex, id, false) }
@@ -89,174 +116,130 @@ export default function WarriorLoadout({ slotIndex, slot, wdata, poolFull }) {
 
   const statVal = (slot.statImprove && slot.ip?.includes('stat')) ? STAT_IMPROVEMENT[slot.statImprove] : null
 
-  const getBadge = id => {
-    if (id === 'weapon1') return null
-    if (isFixed(id)) return null
-    if (id === 'weapon2' && primaryIsTwoHanded) return { text: '2-HANDED', variant: 'full' }
-    if (isRowLocked(id)) return { text: 'IP FULL', variant: 'full' }
-    return null
-  }
-
   const ipSpent = slot.ip?.length || 0
+  const earnedIP = slot.earnedIP || 0
+  // Standard: what is left of the company budget this warrior can still draw on (same rule as poolFull)
+  const ipLeft = isCampaign
+    ? Math.max(0, earnedIP - ipSpent)
+    : Math.max(0, getMaxIPForSlot(slotIndex) - getTotalIPSpent())
+
+  // Weapon meta line: damage, range, and how many hands it takes
+  const weaponMeta = (name, d, cat) => [
+    cat && { text: cat },
+    d?.damage > 0 && { text: `${d.damage} DMG`, cls: 'eq-tile-dmg' },
+    d?.range && d.range !== '—' && { text: d.range },
+    (HAND[name] || TWO_HANDED.has(name)) && { text: HAND[name] || '2-handed', cls: 'eq-tile-tag' },
+  ].filter(Boolean)
+
+  const iconImg = (src, flip) => (
+    <img src={src} alt="" style={{ filter: 'sepia(0.3) brightness(0.95)', opacity: 0.9, ...(flip && { transform: 'scaleX(-1)' }) }} />
+  )
+  const base = import.meta.env.BASE_URL
+  const w1Icon = ITEM_ICONS[slot.weapon1]
+    ? iconImg(
+        slot.type === 'Beekeeper' ? `${base}assets/icons/scythe.svg`
+          : slot.type === 'Brute' && slot.weapon1 === 'Heavy Weapon' ? `${base}assets/icons/wood-club.svg`
+          : (slot.type === 'Saboteur' || slot.type === 'Warrior Priest' || slot.type === 'Knight') && slot.weapon1 === 'Light Weapon' ? `${base}assets/icons/flanged-mace.svg`
+          : ITEM_ICONS[slot.weapon1],
+        slot.weapon1 !== 'Heavy Weapon')
+    : <span style={{ display: 'flex', transform: 'scaleX(-1)' }}><SvgWeapon1 /></span>
+  const w2Icon = ITEM_ICONS[slot.weapon2]
+    ? iconImg(slot.type === 'Knight' && slot.weapon2 === 'Shield' ? `${base}assets/icons/checked-shield.svg` : ITEM_ICONS[slot.weapon2])
+    : <SvgOffhand />
+
+  // Campaign: all stat improvements share one tile; standard: the single chosen stat
+  const statTile = isCampaign
+    ? (statImproves.length === 1
+        ? { name: STAT_IMPROVEMENT[statImproves[0]], meta: [{ text: 'Stat' }] }
+        : statImproves.length > 1
+          ? { name: statImproves.join(' · '), full: statImproves.map(k => STAT_IMPROVEMENT[k]).join(', '), meta: [{ text: 'Stats +1' }] }
+          : null)
+    : (statVal ? { name: statVal, meta: [{ text: 'Stat' }] } : null)
+
+  const canAdd = id => id === 'stat'
+    ? (isCampaign ? (!poolFull && !campaignStatFull) : (!isRowSelected('stat') && !isRowLocked('stat')))
+    : (!isRowSelected(id) && !isRowLocked(id))
+  const ADD_LABELS = { weapon2: 'Off-hand', climbing: 'Gear', consumable: 'Item', stat: 'Stat' }
+  const adds = IP_ROW_IDS.filter(canAdd)
 
   return (
     <div className="lr-section">
       <div className="lr-section-header">
         <span className="lr-section-title">EQUIPMENT & UPGRADES</span>
-        <span className="lr-pips" style={{marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.4rem'}}>
-          {isCampaign ? (
-            <span style={{ fontSize: '0.65rem', color: '#fff', opacity: 0.6, fontFamily: "'Oswald', sans-serif", letterSpacing: '0.04em' }}>
-              {slot.earnedIP || 0} earned · {ipSpent} spent · {Math.max(0, (slot.earnedIP || 0) - ipSpent)} free
-            </span>
-          ) : (
-            <>
-              {ipSpent > 0 && (
-                <div style={{display: 'flex', gap: '3px'}}>
-                  {Array.from({ length: ipSpent }).map((_, i) => (
-                    <span key={i} className="lr-ip-pip lr-pip-filled" />
-                  ))}
-                </div>
-              )}
-              <span style={{ fontSize: '0.75rem', color: '#fff', opacity: 0.6, fontFamily: "'Oswald', sans-serif" }}>({ipSpent} IP)</span>
-            </>
-          )}
+        <span className="lr-pips lr-ip-summary" title={isCampaign ? `${earnedIP} IP earned by this warrior` : `${ipLeft} IP left in the company budget`}>
+          <span>
+            {isCampaign ? `${ipSpent} of ${earnedIP} IP spent · ${ipLeft} left` : `${ipSpent} IP spent · ${ipLeft} left`}
+          </span>
         </span>
       </div>
 
-      <div className="eq-chips-list">
-        {/* Weapon 1 (Always showing) */}
-        <button type="button" className="eq-chip eq-chip-main" onClick={() => setModalCategory('weapon1')} title={wpnDisplayDesc(slot.weapon1) ? `${w1.value}: ${wpnDisplayDesc(slot.weapon1)}` : w1.value}>
-          <span className="eq-chip-icon">
-            {ITEM_ICONS[slot.weapon1] ? <img src={slot.type === 'Beekeeper' ? `${import.meta.env.BASE_URL}assets/icons/scythe.svg` : slot.type === 'Brute' && slot.weapon1 === 'Heavy Weapon' ? `${import.meta.env.BASE_URL}assets/icons/wood-club.svg` : (slot.type === 'Saboteur' || slot.type === 'Warrior Priest' || slot.type === 'Knight') && slot.weapon1 === 'Light Weapon' ? `${import.meta.env.BASE_URL}assets/icons/flanged-mace.svg` : ITEM_ICONS[slot.weapon1]} alt="" style={{ width: 28, height: 28, filter: 'sepia(0.3) brightness(0.95)', opacity: 0.9, ...(slot.weapon1 !== 'Heavy Weapon' && { transform: 'scaleX(-1)' }) }} /> : <span style={{ display: 'flex', transform: 'scaleX(-1)' }}><SvgWeapon1 /></span>}
-          </span>
-          <span className="eq-chip-content">
-            <span className={`eq-chip-value ${(w1.value?.length > 18) ? 'eq-chip-value--small' : ''}`}>
-              {w1.value === 'Polearm (two-handed)' ? <>POLEARM<br/>2-HANDED</> :
-               w1.value === 'Polearm (one-handed)' ? <>POLEARM<br/>1-HANDED</> :
-               (w1.value || 'None')}
-            </span>
-          </span>
-          {slot.weapon1 && (
-            <span className="eq-chip-stats">
-              <span className="eq-stat-box">
-                {w1d && w1d.damage > 0 && <span className="eq-chip-stat eq-chip-stat--dmg">{w1d.damage} DMG</span>}
-              </span>
-              <span className="eq-stat-box">
-                {w1d && w1d.range && w1d.range !== '—' && <span className="eq-chip-stat">{w1d.range}</span>}
-              </span>
-            </span>
-          )}
-        </button>
+      <div className="eq-tiles">
+        <Tile
+          icon={w1Icon}
+          name={shortName(slot.weapon1) || 'None'}
+          fullName={`Main weapon: ${slot.weapon1 || 'None'}`}
+          meta={slot.weapon1 ? weaponMeta(slot.weapon1, w1d) : []}
+          onClick={() => setModalCategory('weapon1')}
+          title={wpnDisplayDesc(slot.weapon1) ? `${w1.value}: ${wpnDisplayDesc(slot.weapon1)}` : w1.value}
+        />
 
-        {/* Weapon 2 Chip */}
-        {isRowSelected('weapon2') ? (
-          <button type="button" className="eq-chip" onClick={() => setModalCategory('weapon2')} title={slot.weapon2 === 'Light Weapon' && slot.weapon1 === 'Light Weapon' ? `${w2.value}: One-handed. Adds +1 Attack.` : wpnDisplayDesc(slot.weapon2) ? `${w2.value}: ${wpnDisplayDesc(slot.weapon2)}` : w2.value}>
-            {getBadge('weapon2') && <span className={`eq-chip-badge eq-badge-${getBadge('weapon2').variant}`}>{getBadge('weapon2').text}</span>}
-            <span className="eq-chip-icon">
-              {ITEM_ICONS[slot.weapon2] ? <img src={slot.type === 'Knight' && slot.weapon2 === 'Shield' ? `${import.meta.env.BASE_URL}assets/icons/checked-shield.svg` : ITEM_ICONS[slot.weapon2]} alt="" style={{ width: 28, height: 28, filter: 'sepia(0.3) brightness(0.95)', opacity: 0.9 }} /> : <SvgOffhand />}
-            </span>
-            <span className="eq-chip-content">
-              <span className={`eq-chip-value ${(w2.value?.length > 18) ? 'eq-chip-value--small' : ''}`}>
-                {w2.value === 'Polearm (two-handed)' ? <>POLEARM<br/>2-HANDED</> :
-                 w2.value === 'Polearm (one-handed)' ? <>POLEARM<br/>1-HANDED</> :
-                 w2.value}
-              </span>
-            </span>
-            {slot.weapon2 && slot.weapon2 !== 'Shield' && (
-              <span className="eq-chip-stats">
-                <span className="eq-stat-box">
-                  {w2d && w2d.damage > 0 && <span className="eq-chip-stat eq-chip-stat--dmg">{w2d.damage} DMG</span>}
-                </span>
-                <span className="eq-stat-box">
-                  {w2d && w2d.range && w2d.range !== '—' && <span className="eq-chip-stat">{w2d.range}</span>}
-                </span>
-              </span>
-            )}
-          </button>
-        ) : hideEmpty('weapon2') ? null : (
-          <button type="button" className={`eq-chip eq-chip-empty ${isRowLocked('weapon2') ? 'eq-chip-locked' : ''}`} onClick={() => !isRowLocked('weapon2') && setModalCategory('weapon2')} aria-disabled={isRowLocked('weapon2') || undefined} title={isRowLocked('weapon2') ? "Locked" : `Empty Secondary`}>
-            {getBadge('weapon2') && <span className={`eq-chip-badge eq-badge-${getBadge('weapon2').variant}`}>{getBadge('weapon2').text}</span>}
-            <span className="eq-chip-icon"><SvgOffhand /></span>
-            <span className="eq-chip-content">
-              <span className="eq-chip-value eq-chip-value--empty">Off-hand</span>
-            </span>
-          </button>
+        {isRowSelected('weapon2') && (
+          <Tile
+            icon={w2Icon}
+            name={shortName(slot.weapon2)}
+            fullName={`Off-hand: ${slot.weapon2}`}
+            meta={weaponMeta(slot.weapon2, w2d, 'Off-hand')}
+            onClick={() => setModalCategory('weapon2')}
+            title={slot.weapon2 === 'Light Weapon' && slot.weapon1 === 'Light Weapon' ? `${w2.value}: One-handed. Adds +1 Attack.` : wpnDisplayDesc(slot.weapon2) ? `${w2.value}: ${wpnDisplayDesc(slot.weapon2)}` : w2.value}
+          />
         )}
 
-        {/* Gear Chip */}
-        {isRowSelected('climbing') ? (
-          <button type="button" className="eq-chip" onClick={() => setModalCategory('climbing')} title={CLIMBING_DESCS[slot.climbing] ? `${climbVal}: ${CLIMBING_DESCS[slot.climbing]}` : climbVal}>
-             {getBadge('climbing') && <span className={`eq-chip-badge eq-badge-${getBadge('climbing').variant}`}>{getBadge('climbing').text}</span>}
-            <span className="eq-chip-icon">
-              {ITEM_ICONS[slot.climbing] ? <img src={ITEM_ICONS[slot.climbing]} alt="" style={{ width: 28, height: 28, filter: 'sepia(0.3) brightness(0.95)', opacity: 0.9 }} /> : <SvgClimbing />}
-            </span>
-            <span className="eq-chip-content">
-              <span className={`eq-chip-value ${(climbVal?.length > 18) ? 'eq-chip-value--small' : ''}`}>{climbVal}</span>
-            </span>
-          </button>
-        ) : hideEmpty('climbing') ? null : (
-          <button type="button" className={`eq-chip eq-chip-empty ${isRowLocked('climbing') ? 'eq-chip-locked' : ''}`} onClick={() => !isRowLocked('climbing') && setModalCategory('climbing')} aria-disabled={isRowLocked('climbing') || undefined} title={isRowLocked('climbing') ? "Locked" : `Empty Gear`}>
-            {getBadge('climbing') && <span className={`eq-chip-badge eq-badge-${getBadge('climbing').variant}`}>{getBadge('climbing').text}</span>}
-            <span className="eq-chip-icon"><SvgClimbing /></span>
-            <span className="eq-chip-content">
-              <span className="eq-chip-value eq-chip-value--empty">Gear</span>
-            </span>
-          </button>
+        {isRowSelected('climbing') && (
+          <Tile
+            icon={ITEM_ICONS[slot.climbing] ? iconImg(ITEM_ICONS[slot.climbing]) : <SvgClimbing />}
+            name={climbVal}
+            fullName={`Gear: ${climbVal}`}
+            meta={[{ text: 'Gear' }]}
+            onClick={() => setModalCategory('climbing')}
+            title={CLIMBING_DESCS[slot.climbing] ? `${climbVal}: ${CLIMBING_DESCS[slot.climbing]}` : climbVal}
+          />
         )}
 
-        {/* Supply Chip */}
-        {isRowSelected('consumable') ? (
-          <button type="button" className="eq-chip" onClick={() => setModalCategory('consumable')} title={CONSUMABLES[slot.consumable] ? `${slot.consumable}: ${CONSUMABLES[slot.consumable]}` : slot.consumable}>
-             {getBadge('consumable') && <span className={`eq-chip-badge eq-badge-${getBadge('consumable').variant}`}>{getBadge('consumable').text}</span>}
-            <span className="eq-chip-icon">
-              {ITEM_ICONS[slot.consumable] ? <img src={ITEM_ICONS[slot.consumable]} alt="" style={{ width: 28, height: 28, filter: 'sepia(0.3) brightness(0.95)', opacity: 0.9 }} /> : <SvgConsumable />}
-            </span>
-            <span className="eq-chip-content">
-              <span className={`eq-chip-value ${(slot.consumable?.length > 18) ? 'eq-chip-value--small' : ''}`}>{slot.consumable}</span>
-            </span>
-          </button>
-        ) : hideEmpty('consumable') ? null : (
-          <button type="button" className={`eq-chip eq-chip-empty ${isRowLocked('consumable') ? 'eq-chip-locked' : ''}`} onClick={() => !isRowLocked('consumable') && setModalCategory('consumable')} aria-disabled={isRowLocked('consumable') || undefined} title={isRowLocked('consumable') ? "Locked" : `Empty Item`}>
-            {getBadge('consumable') && <span className={`eq-chip-badge eq-badge-${getBadge('consumable').variant}`}>{getBadge('consumable').text}</span>}
-            <span className="eq-chip-icon"><SvgConsumable /></span>
-            <span className="eq-chip-content">
-              <span className="eq-chip-value eq-chip-value--empty">Item</span>
-            </span>
-          </button>
+        {isRowSelected('consumable') && (
+          <Tile
+            icon={ITEM_ICONS[slot.consumable] ? iconImg(ITEM_ICONS[slot.consumable]) : <SvgConsumable />}
+            name={slot.consumable}
+            fullName={`Item: ${slot.consumable}`}
+            meta={[{ text: 'Item' }]}
+            onClick={() => setModalCategory('consumable')}
+            title={CONSUMABLES[slot.consumable] ? `${slot.consumable}: ${CONSUMABLES[slot.consumable]}` : slot.consumable}
+          />
         )}
 
-        {/* Stat Chip(s) */}
-        {isCampaign ? (
-          statImproves.map((stat, i) => (
-            <button type="button" key={i} className="eq-chip" onClick={(e) => { e.stopPropagation(); removeStatImprove(slotIndex, stat) }} title={`STAT IMPROVEMENT: ${STAT_IMPROVEMENT[stat]} (Click to Remove)`}>
-              <span className="eq-chip-icon"><SvgStat /></span>
-              <span className="eq-chip-content">
-                <span className={`eq-chip-value ${(STAT_IMPROVEMENT[stat]?.length > 18) ? 'eq-chip-value--small' : ''}`}>{STAT_IMPROVEMENT[stat]}</span>
-              </span>
-            </button>
-          ))
-        ) : (
-          isRowSelected('stat') && (
-            <button type="button" className="eq-chip" onClick={() => setModalCategory('stat')} title={`STAT IMPROVEMENT: ${statVal}`}>
-               {getBadge('stat') && <span className={`eq-chip-badge eq-badge-${getBadge('stat').variant}`}>{getBadge('stat').text}</span>}
-              <span className="eq-chip-icon"><SvgStat /></span>
-              <span className="eq-chip-content">
-                <span className={`eq-chip-value ${(statVal?.length > 18) ? 'eq-chip-value--small' : ''}`}>{statVal}</span>
-              </span>
-            </button>
-          )
-        )}
-
-        {/* Add a stat improvement: the last slot in the same row */}
-        {(isCampaign ? (!poolFull && !campaignStatFull) : (!isRowSelected('stat') && !isRowLocked('stat'))) && (
-          <button type="button" className="eq-chip eq-chip-empty eq-add-btn" onClick={() => setModalCategory('stat')} title="Add a stat improvement">
-            <span className="eq-chip-icon"><SvgStat /></span>
-            <span className="eq-chip-content">
-              <span className="eq-chip-value eq-chip-value--empty">Stat</span>
-            </span>
-          </button>
+        {statTile && (
+          <Tile
+            icon={<SvgStat />}
+            name={statTile.name}
+            fullName={`Stat improvement: ${statTile.full || statTile.name}`}
+            meta={statTile.meta}
+            onClick={() => setModalCategory('stat')}
+            title={`Stat improvement: ${statTile.full || statTile.name}`}
+          />
         )}
       </div>
+
+      {adds.length > 0 && (
+        <div className="eq-adds">
+          {adds.map(id => (
+            <AddPill key={id} label={ADD_LABELS[id]} onClick={() => setModalCategory(id)} />
+          ))}
+        </div>
+      )}
+
+      {/* Class restriction: explains what can't be added, so it sits right under the loadout */}
+      {wdata?.restrictions && (
+        <div className="restriction-note">{wdata.restrictions}</div>
+      )}
 
       <WarriorUpgradeModal
         isOpen={!!modalCategory}

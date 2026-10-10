@@ -132,12 +132,7 @@ export default function WarriorCard({ slotIndex, slot }) {
             </div>
           </div>
 
-          {/* Class restriction: a rule about what can be equipped, so it sits right above the loadout */}
-          {wdata.restrictions && (
-            <div className="restriction-note">{wdata.restrictions}</div>
-          )}
-
-          {/* Loadout — upgrades + equipment combined */}
+          {/* Loadout: equipment, upgrades and the class restriction note */}
           <WarriorLoadout slotIndex={slotIndex} slot={slot} wdata={wdata} poolFull={poolFull} />
 
           {/* Abilities */}
