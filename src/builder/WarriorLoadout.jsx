@@ -20,7 +20,7 @@ const LONG_NAME = 18 // longer names get a smaller font so they still fit the bo
 function Tile({ icon, name, fullName, meta = [], onClick, title }) {
   return (
     <button type="button" className={`eq-slot eq-tile${name.length > LONG_NAME ? ' eq-tile--long' : ''}`} onClick={onClick} title={title}
-      aria-label={[fullName, ...meta.map(m => m.text)].join(', ')}>
+      aria-label={[fullName, ...meta.map(m => m.aria || m.text)].join(', ')}>
       <span className="eq-slot-icon" aria-hidden="true">{icon}</span>
       <span className="eq-slot-text" aria-hidden="true">
         <span className="eq-tile-name">{name}</span>
@@ -147,7 +147,8 @@ export default function WarriorLoadout({ slotIndex, slot, wdata, poolFull }) {
   const weaponMeta = (name, d) => [
     d?.damage > 0 && { text: `${d.damage} DMG`, cls: 'eq-tile-dmg' },
     d?.range && d.range !== '—' && { text: d.range },
-    (HAND[name] || TWO_HANDED.has(name)) && { text: HAND[name] || '2-handed', cls: 'eq-tile-tag' },
+    // hands as a short cell (2H / 1H) on the same row; read out in full
+    (HAND[name] || TWO_HANDED.has(name)) && { text: (HAND[name] || '2-handed') === '1-handed' ? '1H' : '2H', aria: HAND[name] || '2-handed', cls: 'eq-tile-tag' },
   ].filter(Boolean)
 
   const iconImg = (src, flip) => (

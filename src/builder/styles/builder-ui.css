@@ -630,17 +630,17 @@ button.eq-slot { cursor: pointer; }
   font-size: 0.75rem; line-height: 1.12; color: var(--parchment); overflow-wrap: anywhere;
 }
 .eq-tile--long .eq-tile-name { font-size: 0.64rem; line-height: 1.1; letter-spacing: 0.03em; }
-/* Stats as small cells split by thin rules: 2 DMG | BASE | 2-HANDED */
+/* Stats as small cells split by thin rules: 2 DMG | BASE | 2H */
 .eq-tile-meta {
   display: flex; flex-wrap: wrap; align-items: center; row-gap: 0.1rem;
-  font-family: 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 0.06em;
+  font-family: 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 0.04em;
   font-size: 0.6rem; line-height: 1.15; color: rgba(255, 255, 255, 0.62);
 }
-.eq-tile-meta > span { padding: 0 0.35rem; border-left: 1px solid rgba(255, 255, 255, 0.22); }
+.eq-tile-meta > span { padding: 0 0.28rem; border-left: 1px solid rgba(255, 255, 255, 0.22); white-space: nowrap; }
 .eq-tile-meta > span:first-child { padding-left: 0; border-left: 0; }
 .eq-tile-dmg { color: var(--blood-text); }
-/* the hand tag always sits on its own line, so no line ever starts with a divider */
-.eq-tile-meta > .eq-tile-tag { flex-basis: 100%; padding-left: 0; border-left: 0; color: var(--bone); }
+/* hands: a short 2H / 1H cell at the end of the same row */
+.eq-tile-meta > .eq-tile-tag { color: var(--bone); }
 
 /* Open and addable: same box, dashed, faded slot icon, "+ GEAR" */
 .eq-slot.eq-add, .eq-slot.eq-slot-off { background: transparent; border-style: dashed; }
