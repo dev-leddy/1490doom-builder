@@ -12,13 +12,17 @@ const HAND = { 'Polearm (one-handed)': '1-handed', 'Polearm (two-handed)': '2-ha
 // Polearms show as "Polearm" with the hand count as a tag, so the name never breaks inside brackets
 const shortName = n => (HAND[n] ? 'Polearm' : n)
 
-// A filled loadout slot: icon, full name (wraps, never truncated) and a small meta line
+// Every loadout slot is the same fixed-size box in a fixed order, so choosing an item
+// only changes the box's content; nothing moves or resizes.
+const LONG_NAME = 18 // longer names get a smaller font so they still fit the box
+
+// A filled slot: icon, full name (wraps, never truncated) and stat cells
 function Tile({ icon, name, fullName, meta = [], onClick, title }) {
   return (
-    <button type="button" className="eq-tile" onClick={onClick} title={title}
+    <button type="button" className={`eq-slot eq-tile${name.length > LONG_NAME ? ' eq-tile--long' : ''}`} onClick={onClick} title={title}
       aria-label={[fullName, ...meta.map(m => m.text)].join(', ')}>
-      <span className="eq-tile-icon" aria-hidden="true">{icon}</span>
-      <span className="eq-tile-text" aria-hidden="true">
+      <span className="eq-slot-icon" aria-hidden="true">{icon}</span>
+      <span className="eq-slot-text" aria-hidden="true">
         <span className="eq-tile-name">{name}</span>
         {meta.length > 0 && (
           <span className="eq-tile-meta">
@@ -30,12 +34,28 @@ function Tile({ icon, name, fullName, meta = [], onClick, title }) {
   )
 }
 
-// An empty slot that can still be filled
-function AddPill({ label, onClick }) {
+// An open slot that can be filled: same box, dashed, faded slot icon, "+ GEAR"
+function AddSlot({ icon, label, onClick }) {
   return (
-    <button type="button" className="eq-add" onClick={onClick} aria-label={`Add ${label.toLowerCase()}`}>
-      <span className="eq-add-plus" aria-hidden="true">+</span>{label}
+    <button type="button" className="eq-slot eq-add" onClick={onClick} aria-label={`Add ${label.toLowerCase()}`}>
+      <span className="eq-slot-icon" aria-hidden="true">{icon}</span>
+      <span className="eq-slot-text" aria-hidden="true">
+        <span className="eq-add-label"><span className="eq-add-plus">+</span>{label}</span>
+      </span>
     </button>
+  )
+}
+
+// The off-hand blocked by a two-handed weapon (while IP is left): same box, disabled
+function OffSlot({ icon, label, note, reason }) {
+  return (
+    <div className="eq-slot eq-slot-off" role="img" aria-label={`${label}: ${reason}`}>
+      <span className="eq-slot-icon" aria-hidden="true">{icon}</span>
+      <span className="eq-slot-text" aria-hidden="true">
+        <span className="eq-add-label">{label}</span>
+        <span className="eq-slot-note">{note}</span>
+      </span>
+    </div>
   )
 }
 
@@ -124,8 +144,7 @@ export default function WarriorLoadout({ slotIndex, slot, wdata, poolFull }) {
     : Math.max(0, getMaxIPForSlot(slotIndex) - getTotalIPSpent())
 
   // Weapon meta line: damage, range, and how many hands it takes
-  const weaponMeta = (name, d, cat) => [
-    cat && { text: cat },
+  const weaponMeta = (name, d) => [
     d?.damage > 0 && { text: `${d.damage} DMG`, cls: 'eq-tile-dmg' },
     d?.range && d.range !== '—' && { text: d.range },
     (HAND[name] || TWO_HANDED.has(name)) && { text: HAND[name] || '2-handed', cls: 'eq-tile-tag' },
@@ -152,15 +171,22 @@ export default function WarriorLoadout({ slotIndex, slot, wdata, poolFull }) {
     ? (statImproves.length === 1
         ? { name: STAT_IMPROVEMENT[statImproves[0]], meta: [{ text: 'Stat' }] }
         : statImproves.length > 1
-          ? { name: statImproves.join(' · '), full: statImproves.map(k => STAT_IMPROVEMENT[k]).join(', '), meta: [{ text: 'Stats +1' }] }
+          ? { name: statImproves.join(', '), full: statImproves.map(k => STAT_IMPROVEMENT[k]).join(', '), meta: [{ text: 'Stats +1' }] }
           : null)
     : (statVal ? { name: statVal, meta: [{ text: 'Stat' }] } : null)
 
   const canAdd = id => id === 'stat'
     ? (isCampaign ? (!poolFull && !campaignStatFull) : (!isRowSelected('stat') && !isRowLocked('stat')))
     : (!isRowSelected(id) && !isRowLocked(id))
-  const ADD_LABELS = { weapon2: 'Off-hand', climbing: 'Gear', consumable: 'Item', stat: 'Stat' }
-  const adds = IP_ROW_IDS.filter(canAdd)
+  const SLOT_LABELS = { weapon2: 'Off-hand', climbing: 'Gear', consumable: 'Item', stat: 'Stat' }
+  const SLOT_ICONS = { weapon2: <SvgOffhand />, climbing: <SvgClimbing />, consumable: <SvgConsumable />, stat: <SvgStat /> }
+  // An open slot: addable, or a disabled box that keeps its place while IP is left.
+  // Once all IP is used, open boxes go and only the filled tiles remain.
+  const openSlot = id => canAdd(id)
+    ? <AddSlot key={id} icon={SLOT_ICONS[id]} label={SLOT_LABELS[id]} onClick={() => setModalCategory(id)} />
+    : !poolFull && id === 'weapon2' && primaryIsTwoHanded
+      ? <OffSlot key={id} icon={SLOT_ICONS[id]} label={SLOT_LABELS[id]} note="2-handed" reason="not available, the main weapon is two-handed" />
+      : null
 
   return (
     <div className="lr-section">
@@ -183,18 +209,18 @@ export default function WarriorLoadout({ slotIndex, slot, wdata, poolFull }) {
           title={wpnDisplayDesc(slot.weapon1) ? `${w1.value}: ${wpnDisplayDesc(slot.weapon1)}` : w1.value}
         />
 
-        {isRowSelected('weapon2') && (
+        {isRowSelected('weapon2') ? (
           <Tile
             icon={w2Icon}
             name={shortName(slot.weapon2)}
             fullName={`Off-hand: ${slot.weapon2}`}
-            meta={weaponMeta(slot.weapon2, w2d, 'Off-hand')}
+            meta={slot.weapon2 === 'Shield' ? [{ text: 'Off-hand' }] : weaponMeta(slot.weapon2, w2d)}
             onClick={() => setModalCategory('weapon2')}
             title={slot.weapon2 === 'Light Weapon' && slot.weapon1 === 'Light Weapon' ? `${w2.value}: One-handed. Adds +1 Attack.` : wpnDisplayDesc(slot.weapon2) ? `${w2.value}: ${wpnDisplayDesc(slot.weapon2)}` : w2.value}
           />
-        )}
+        ) : openSlot('weapon2')}
 
-        {isRowSelected('climbing') && (
+        {isRowSelected('climbing') ? (
           <Tile
             icon={ITEM_ICONS[slot.climbing] ? iconImg(ITEM_ICONS[slot.climbing]) : <SvgClimbing />}
             name={climbVal}
@@ -203,9 +229,9 @@ export default function WarriorLoadout({ slotIndex, slot, wdata, poolFull }) {
             onClick={() => setModalCategory('climbing')}
             title={CLIMBING_DESCS[slot.climbing] ? `${climbVal}: ${CLIMBING_DESCS[slot.climbing]}` : climbVal}
           />
-        )}
+        ) : openSlot('climbing')}
 
-        {isRowSelected('consumable') && (
+        {isRowSelected('consumable') ? (
           <Tile
             icon={ITEM_ICONS[slot.consumable] ? iconImg(ITEM_ICONS[slot.consumable]) : <SvgConsumable />}
             name={slot.consumable}
@@ -214,9 +240,9 @@ export default function WarriorLoadout({ slotIndex, slot, wdata, poolFull }) {
             onClick={() => setModalCategory('consumable')}
             title={CONSUMABLES[slot.consumable] ? `${slot.consumable}: ${CONSUMABLES[slot.consumable]}` : slot.consumable}
           />
-        )}
+        ) : openSlot('consumable')}
 
-        {statTile && (
+        {statTile ? (
           <Tile
             icon={<SvgStat />}
             name={statTile.name}
@@ -225,16 +251,8 @@ export default function WarriorLoadout({ slotIndex, slot, wdata, poolFull }) {
             onClick={() => setModalCategory('stat')}
             title={`Stat improvement: ${statTile.full || statTile.name}`}
           />
-        )}
+        ) : openSlot('stat')}
       </div>
-
-      {adds.length > 0 && (
-        <div className="eq-adds">
-          {adds.map(id => (
-            <AddPill key={id} label={ADD_LABELS[id]} onClick={() => setModalCategory(id)} />
-          ))}
-        </div>
-      )}
 
       {/* Class restriction: explains what can't be added, so it sits right under the loadout */}
       {wdata?.restrictions && (

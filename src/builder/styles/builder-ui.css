@@ -602,63 +602,69 @@
 .mark-popup-name { font-family:'Oswald', sans-serif;font-size:1.1rem;letter-spacing:0.08em;color:var(--gold); }
 .mark-popup-desc { font-size:1rem;color:#ccc;line-height:1.6; }
 .notes-section { margin-top: auto; }
-/* -- EQUIPMENT & UPGRADES: filled slots are tiles, empty slots are "+ NAME" pills --
-   Tiles: 2 columns, 3 when the card is wide (container query on the card, since card
-   width doesn't follow the viewport). Names wrap and are never truncated. */
+/* -- EQUIPMENT & UPGRADES: fixed slot boxes --
+   Main weapon, Off-hand, Gear, Item, Stat, always in that order and always the same size,
+   so choosing an item only changes a box's content. 2 columns, 3 when the card is wide
+   (container query on the card, since card width doesn't follow the viewport). */
 .warrior-slot { container: card / inline-size; }
-.eq-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.3rem; margin-top: 0.4rem; }
-/* an odd last tile fills its row, so the grid never has a hole */
-.eq-tiles > .eq-tile:last-child:nth-child(odd) { grid-column: 1 / -1; }
-@container card (min-width: 440px) {
-  .eq-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .eq-tiles > .eq-tile:last-child:nth-child(odd) { grid-column: auto; }
-  .eq-tiles > .eq-tile:first-child:last-child { grid-column: 1 / -1; }
-}
-.eq-tile {
+.eq-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 60px; gap: 0.3rem; margin-top: 0.4rem; }
+@container card (min-width: 440px) { .eq-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+.eq-slot {
   display: flex; align-items: center; gap: 0.5rem;
-  min-height: 44px; min-width: 0; box-sizing: border-box;
-  padding: 0.25rem 0.5rem 0.25rem 0.35rem;
-  background: var(--fog); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 0;
-  color: inherit; font: inherit; text-align: left; cursor: pointer;
+  height: 100%; min-width: 0; box-sizing: border-box; overflow: hidden;
+  padding: 0.25rem 0.45rem 0.25rem 0.35rem;
+  border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 0; background: var(--fog);
+  color: inherit; font: inherit; text-align: left;
   touch-action: manipulation; -webkit-tap-highlight-color: transparent;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, background 0.15s;
 }
-.eq-tile-icon { flex: 0 0 30px; height: 30px; display: flex; align-items: center; justify-content: center; background: var(--dim); color: var(--bone); }
-.eq-tile-icon img, .eq-tile-icon svg { width: 22px !important; height: 22px !important; }
-.eq-tile-text { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; flex: 1; }
+button.eq-slot { cursor: pointer; }
+.eq-slot-icon { flex: 0 0 30px; height: 30px; display: flex; align-items: center; justify-content: center; background: var(--dim); color: var(--bone); }
+.eq-slot-icon img, .eq-slot-icon svg { width: 22px !important; height: 22px !important; }
+.eq-slot-text { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; flex: 1; }
+
+/* Filled */
 .eq-tile-name {
   font-family: 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 0.04em;
   font-size: 0.75rem; line-height: 1.12; color: var(--parchment); overflow-wrap: anywhere;
 }
+.eq-tile--long .eq-tile-name { font-size: 0.64rem; line-height: 1.1; letter-spacing: 0.03em; }
+/* Stats as small cells split by thin rules: 2 DMG | BASE | 2-HANDED */
 .eq-tile-meta {
-  display: flex; flex-wrap: wrap; align-items: center; gap: 0 0.3rem;
-  font-family: 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 0.08em;
-  font-size: 0.6rem; line-height: 1.2; color: rgba(255, 255, 255, 0.62);
+  display: flex; flex-wrap: wrap; align-items: center; row-gap: 0.1rem;
+  font-family: 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 0.06em;
+  font-size: 0.6rem; line-height: 1.15; color: rgba(255, 255, 255, 0.62);
 }
-.eq-tile-meta > span + span::before { content: '·'; margin-right: 0.3rem; opacity: 0.6; }
-/* the hand tag reads as its own word: no separator, so a wrapped line never starts with a dot */
-.eq-tile-meta > span + .eq-tile-tag::before { content: none; }
-.eq-tile-meta > span + .eq-tile-tag { margin-left: 0.15rem; }
+.eq-tile-meta > span { padding: 0 0.35rem; border-left: 1px solid rgba(255, 255, 255, 0.22); }
+.eq-tile-meta > span:first-child { padding-left: 0; border-left: 0; }
 .eq-tile-dmg { color: var(--blood-text); }
-.eq-tile-tag { color: var(--bone); }
+/* the hand tag always sits on its own line, so no line ever starts with a divider */
+.eq-tile-meta > .eq-tile-tag { flex-basis: 100%; padding-left: 0; border-left: 0; color: var(--bone); }
 
-.eq-adds { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.3rem; margin-top: 0.3rem; }
-.eq-add {
-  min-width: 0; min-height: 36px; box-sizing: border-box;
-  display: flex; align-items: center; justify-content: center; gap: 0.3rem;
-  background: transparent; border: 1px dashed rgba(255, 255, 255, 0.3); border-radius: 0;
-  color: var(--bone); padding: 0 0.3rem;
-  font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.68rem; letter-spacing: 0.08em;
-  white-space: nowrap; cursor: pointer;
-  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
-  transition: border-color 0.15s, color 0.15s;
+/* Open and addable: same box, dashed, faded slot icon, "+ GEAR" */
+.eq-slot.eq-add, .eq-slot.eq-slot-off { background: transparent; border-style: dashed; }
+.eq-slot.eq-add { border-color: rgba(255, 255, 255, 0.3); }
+.eq-add .eq-slot-icon, .eq-slot-off .eq-slot-icon { background: rgba(255, 255, 255, 0.04); color: rgba(255, 255, 255, 0.45); }
+.eq-add-label {
+  display: flex; align-items: center; gap: 0.3rem;
+  font-family: 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 0.08em;
+  font-size: 0.7rem; line-height: 1.1; color: var(--bone); white-space: nowrap;
 }
 .eq-add-plus { color: var(--blood-text); font-size: 0.95rem; line-height: 1; }
-@media (pointer: coarse) { .eq-add { min-height: 44px; } }
-.eq-tile:focus-visible, .eq-add:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
+/* Open but not fillable (two-handed weapon, no IP): same box, disabled */
+.eq-slot.eq-slot-off { border-color: rgba(255, 255, 255, 0.14); }
+.eq-slot-off .eq-slot-icon { color: rgba(255, 255, 255, 0.25); }
+.eq-slot-off .eq-add-label { color: rgba(255, 255, 255, 0.5); }
+.eq-slot-note {
+  font-family: 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 0.06em;
+  font-size: 0.6rem; line-height: 1.15; color: rgba(255, 255, 255, 0.6);
+}
+
+button.eq-slot:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
 @media (hover: hover) {
-  .eq-tile:hover { border-color: var(--gold); }
-  .eq-add:hover { border-color: var(--gold); color: var(--parchment); }
+  .eq-tile:hover, .eq-add:hover { border-color: var(--gold); }
+  .eq-add:hover .eq-add-label { color: var(--parchment); }
 }
 
 /* -- UPGRADE MODAL -- */
