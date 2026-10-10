@@ -215,7 +215,7 @@ export default function WarriorLoadout({ slotIndex, slot, wdata, poolFull }) {
             icon={w2Icon}
             name={shortName(slot.weapon2)}
             fullName={`Off-hand: ${slot.weapon2}`}
-            meta={slot.weapon2 === 'Shield' ? [{ text: 'Off-hand' }] : weaponMeta(slot.weapon2, w2d)}
+            meta={slot.weapon2 === 'Shield' ? [{ text: 'Guard' }, { text: '+1 DEF' }] : weaponMeta(slot.weapon2, w2d)}
             onClick={() => setModalCategory('weapon2')}
             title={slot.weapon2 === 'Light Weapon' && slot.weapon1 === 'Light Weapon' ? `${w2.value} (off-hand): the second Light Weapon gives +1 Attack.` : wpnDisplayDesc(slot.weapon2) ? `${w2.value}: ${wpnDisplayDesc(slot.weapon2)}` : w2.value}
           />

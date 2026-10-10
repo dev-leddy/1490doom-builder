@@ -178,7 +178,8 @@ export default function EquipmentBlock({ wi, warrior: w }) {
   if (w.climbing && w.climbing !== 'None') {
     const cdata = CLIMBING_ITEMS[w.climbing]
     const meta = cdata
-      ? [cdata.skillCheck === 'YES' && { text: 'SKILL' }, { text: cdata.height }].filter(Boolean)
+      // Spelled out: how high it climbs, and whether it needs a Skill Check
+      ? [{ text: `${cdata.height} climb, ${cdata.skillCheck === 'YES' ? 'skill check' : 'no check'}` }]
       : []
     cards.push({ key: 'climb', icon: ITEM_ICONS[w.climbing], name: w.climbing, meta, desc: CLIMBING_DESCS[w.climbing] || '' })
   }
