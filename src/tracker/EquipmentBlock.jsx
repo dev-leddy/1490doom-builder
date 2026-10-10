@@ -1,17 +1,16 @@
 import { useState } from 'react'
 import { useTrackerStore } from '../store/trackerStore'
 import { WEAPONS, CLIMBING_ITEMS, CLIMBING_DESCS, CONSUMABLES } from '../data/weapons'
+import { ITEM_SHEETS } from '../data/itemSheets'
 import { ITEM_ICONS } from '../data/images'
 import BottomSheet from '../shared/BottomSheet'
 
-const CACHE_SHORT = {
-  'Herbs & Tonic':    'HEAL 3 VIT',
-  'Food':             '+1 ACTION',
-  'Scholarly Scroll': 'PASS SKILL',
-  'Map':              'MOVE ALL',
-  'Cloak':            'UNTARGETABLE',
-  'Reliquary':        'RESTORE OPG',
-}
+// Weapon key cells: damage and range from the weapon data, then the sheet's own (hands)
+const weaponKeys = (wd, sheet) => [
+  wd?.damage > 0 && { label: 'DMG', value: wd.damage, dmg: true },
+  wd?.range && wd.range !== '—' && { label: 'RANGE', value: wd.range },
+  ...(sheet?.keys || []),
+].filter(Boolean)
 
 const LONG_NAME = 18 // longer names get a smaller font so they still fit the fixed-size tile
 
@@ -55,13 +54,14 @@ const SHIELD_OPR = [
   { key: 'SHIELD DEFENSE BONUS', short: '+1 DEF' },
 ]
 
-function DetailModal({ title, desc, damage, range, onClose, onExpend, dead, opr, oprUsed, onToggleOpr }) {
-  const hasStats = (damage > 0) || (range && range !== '—')
+// Item sheet: header (icon, type, state) > key numbers > labelled rule rows > ability toggles
+function DetailModal({ card, onClose, onExpend, dead, oprUsed, onToggleOpr }) {
+  const { name: title, desc, sheet, keys = [], opr, chip } = card
   return (
     <BottomSheet
       title={title}
       onClose={onClose}
-      className="tk-sheet"
+      className={`tk-sheet${card.isCache ? ' tk-sheet--cache' : ''}`}
       footer={
         onExpend ? (
           <>
@@ -71,7 +71,7 @@ function DetailModal({ title, desc, damage, range, onClose, onExpend, dead, opr,
               onClick={onExpend}
               disabled={dead}
             >
-              Expend
+              {sheet?.action || 'Expend'}
             </button>
           </>
         ) : (
@@ -79,23 +79,36 @@ function DetailModal({ title, desc, damage, range, onClose, onExpend, dead, opr,
         )
       }
     >
-      {hasStats && (
-        <div className="tk-detail-stats">
-          {damage > 0 && (
-            <div className="tk-detail-stat-wrap">
-              <span className="tk-detail-stat-label">Damage</span>
-              <span className="tk-detail-stat-val tk-detail-stat-val--dmg">{damage}</span>
+      <div className={`tk-item-hero${card.isCache ? ' tk-item-hero--cache' : ''}`}>
+        <span className="tk-item-hero-icon" aria-hidden="true">
+          {card.icon && <img src={card.icon} alt="" style={card.mirror ? { transform: 'scaleX(-1)' } : undefined} />}
+        </span>
+        {sheet?.tag && <span className="tk-item-hero-tag">{sheet.tag}</span>}
+        {chip && <span className={`tk-item-chip${chip.tone ? ` tk-item-chip--${chip.tone}` : ''}`}>{chip.text}</span>}
+      </div>
+      {keys.length > 0 && (
+        <div className="tk-item-keys">
+          {keys.map(k => (
+            <div key={k.label} className={`tk-item-key${k.now ? ' is-now' : ''}`}>
+              <span className="tk-item-key-lbl">{k.label}</span>
+              <span className={`tk-item-key-val${k.dmg ? ' tk-item-key-val--dmg' : ''}`}>{k.value}</span>
             </div>
-          )}
-          {range && range !== '—' && (
-            <div className="tk-detail-stat-wrap">
-              <span className="tk-detail-stat-label">Range</span>
-              <span className="tk-detail-stat-val">{range}</span>
-            </div>
-          )}
+          ))}
         </div>
       )}
-      {desc ? <div className="tk-equip-detail-desc">{desc}</div> : null}
+      {sheet?.rules?.length ? (
+        <dl className="tk-rule-list">
+          {sheet.rules.map(r => (
+            <div key={r.label} className={`tk-rule-row${r.limit ? ' tk-rule-row--limit' : ''}`}>
+              <dt className="tk-rule-lbl">{r.label}</dt>
+              <dd className="tk-rule-text">
+                {r.text}
+                {r.note && <span className="tk-rule-note">{r.note}</span>}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      ) : !sheet && desc ? <div className="tk-equip-detail-desc">{desc}</div> : null}
       {opr && (
         <div className="tk-opr-list">
           {opr.map(a => {
@@ -119,6 +132,7 @@ function DetailModal({ title, desc, damage, range, onClose, onExpend, dead, opr,
 export default function EquipmentBlock({ wi, warrior: w }) {
   const [detail, setDetail] = useState(null)
   const { toggleConsumable, undoConsumable, spendCacheItem, undoCacheItem, toggleCrossbowLoaded, toggleOPR } = useTrackerStore()
+  const aliveCount = useTrackerStore(s => s.warriors.filter(x => !x.dead).length)
 
   const cards = []
 
@@ -129,6 +143,7 @@ export default function EquipmentBlock({ wi, warrior: w }) {
       wd?.range && wd.range !== '—' && { text: wd.range },
     ].filter(Boolean)
     const desc = [wd?.note, wd?.special].filter(Boolean).join(' ')
+    const sheet = ITEM_SHEETS[w.weapon1]
     const isCrossbow = w.weapon1 === 'Crossbow'
     const loaded = isCrossbow ? w.crossbowLoaded !== false : undefined
     cards.push({
@@ -140,8 +155,10 @@ export default function EquipmentBlock({ wi, warrior: w }) {
       name: w.weapon1,
       meta,
       desc,
-      damage: wd?.damage,
-      range: wd?.range,
+      sheet,
+      keys: weaponKeys(wd, sheet),
+      // Bow: OVERDRAW toggles from its sheet (same state as the Abilities list)
+      ...(w.weapon1 === 'Bow' && { opr: [{ key: 'OVERDRAW', name: wd.abilityName, desc: wd.abilityDesc }] }),
       ...(isCrossbow && { variant: 'crossbow', state: loaded ? 'Loaded' : 'Reload', loaded }),
       mirror: w.weapon1 !== 'Heavy Weapon',
     })
@@ -159,6 +176,8 @@ export default function EquipmentBlock({ wi, warrior: w }) {
       ].filter(Boolean)
     // Shield: its sheet is just the ability toggles (the rules text is in the Abilities list)
     const desc = isShield ? '' : [wd?.offhandNote || wd?.note, wd?.special].filter(Boolean).join(' ')
+    const base = ITEM_SHEETS[w.weapon2]
+    const sheet = base && { ...base, ...base.offhand }
     cards.push({
       key: 'w2',
       icon: w.type === 'Knight' && w.weapon2 === 'Shield' ? `${import.meta.env.BASE_URL}assets/icons/checked-shield.svg`
@@ -166,8 +185,9 @@ export default function EquipmentBlock({ wi, warrior: w }) {
       name: w.weapon2,
       meta,
       desc,
-      damage: isShield ? null : wd?.damage,
-      range: isShield ? null : wd?.range,
+      sheet,
+      // Shield: no key strip; its sheet is the two ability toggles
+      keys: isShield ? [] : weaponKeys(wd, sheet),
       ...(isShield && { opr: [
         { key: 'GUARDED', name: wd.abilityName, desc: wd.abilityDesc },
         { key: 'SHIELD DEFENSE BONUS', name: wd.ability2Name, desc: wd.ability2Desc },
@@ -181,7 +201,10 @@ export default function EquipmentBlock({ wi, warrior: w }) {
       // Spelled out: how high it climbs, and whether it needs a Skill Check
       ? [{ text: `${cdata.height} height, ${cdata.skillCheck === 'YES' ? 'skill check' : 'no check'}` }]
       : []
-    cards.push({ key: 'climb', icon: ITEM_ICONS[w.climbing], name: w.climbing, meta, desc: CLIMBING_DESCS[w.climbing] || '' })
+    const keys = cdata
+      ? [{ label: 'HEIGHT', value: cdata.height }, { label: 'CHECK', value: cdata.skillCheck === 'YES' ? 'Skill' : 'None' }]
+      : []
+    cards.push({ key: 'climb', icon: ITEM_ICONS[w.climbing], name: w.climbing, meta, desc: CLIMBING_DESCS[w.climbing] || '', sheet: ITEM_SHEETS[w.climbing], keys })
   }
 
   if (w.consumable) {
@@ -191,6 +214,9 @@ export default function EquipmentBlock({ wi, warrior: w }) {
       name: w.consumable,
       meta: [{ text: w.consumableUsed ? 'EXPENDED' : 'AVAILABLE' }],
       desc: CONSUMABLES[w.consumable] || '',
+      sheet: ITEM_SHEETS[w.consumable],
+      keys: ITEM_SHEETS[w.consumable]?.keys,
+      chip: { text: 'Available' },
       variant: 'consumable',
       faded: w.consumableUsed,
       spent: w.consumableUsed,
@@ -198,12 +224,23 @@ export default function EquipmentBlock({ wi, warrior: w }) {
   }
 
   for (const item of w.cacheItems) {
+    const sheet = ITEM_SHEETS[item.name]
+    const isHerbs = item.name === 'Herbs & Tonic'
+    const fullVit = isHerbs && w.currentVit >= w.maxVit
+    const keys = [
+      // Map: the cell for the current number alive (the rule only covers 1 to 3)
+      ...(sheet?.keys || []).map(k => (k.alive ? { ...k, now: k.alive === aliveCount } : k)),
+      ...(isHerbs ? [{ label: 'NOW', value: `${w.currentVit}/${w.maxVit}` }] : []),
+    ]
     cards.push({
       key: `cache-${item.id}`,
       icon: ITEM_ICONS[item.name],
       name: item.name,
-      meta: item.used ? [{ text: 'EXPENDED' }] : CACHE_SHORT[item.name] ? [{ text: CACHE_SHORT[item.name] }] : [],
+      meta: item.used ? [{ text: 'EXPENDED' }] : sheet?.short ? [{ text: sheet.short }] : [],
       desc: item.desc,
+      sheet,
+      keys,
+      chip: fullVit ? { text: 'Full VIT', tone: 'warn' } : { text: 'Available' },
       variant: 'cache',
       cacheId: item.id,
       isCache: true,
@@ -257,14 +294,10 @@ export default function EquipmentBlock({ wi, warrior: w }) {
 
       {detail && (
         <DetailModal
-          title={detail.name}
-          desc={detail.desc}
-          damage={detail.damage}
-          range={detail.range}
+          card={cards.find(c => c.key === detail.key) || detail}
           onClose={close}
           onExpend={hasExpend ? handleExpend : null}
           dead={w.dead}
-          opr={detail.opr}
           oprUsed={w.oprUsed || {}}
           onToggleOpr={key => toggleOPR(wi, key)}
         />
