@@ -133,6 +133,10 @@ export default function CompanyHeader({ onSettings, onEndOfGame, onShare, onPrin
             </>
           }
         >
+          <div className="mark-grid-scroll">
+            <MarkPicker value={tempMark} onChange={setTempMark} />
+          </div>
+          {/* The chosen mark's ability, at the bottom just above Cancel / Done */}
           <div className="mark-sheet-desc">
             {(() => {
               const preview = MARKS.find(m => m.name === tempMark)
@@ -145,9 +149,6 @@ export default function CompanyHeader({ onSettings, onEndOfGame, onShare, onPrin
                 <div className="mark-sheet-desc-placeholder">Select a mark to see its battlefield ability.</div>
               )
             })()}
-          </div>
-          <div className="mark-grid-scroll">
-            <MarkPicker value={tempMark} onChange={setTempMark} />
           </div>
         </BottomSheet>
       )}

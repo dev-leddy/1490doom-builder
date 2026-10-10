@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { useBuilderStore, getAllowedWeapons, getSecondWeaponOptions } from '../store/builderStore'
 import { STAT_IMPROVEMENT, WARRIORS } from '../data/warriors'
 import { WEAPONS, CLIMBING_ITEMS, CLIMBING_DESCS, CONSUMABLES, CONSUMABLE_NAMES } from '../data/weapons'
 import { ITEM_ICONS } from '../data/images'
+import { getEffectiveStats } from '../utils/stats'
 import BottomSheet from '../shared/BottomSheet'
 import './styles/builder-picker.css'
 
@@ -109,25 +111,197 @@ function WeaponSelector({ slotIndex, slot, options, propKey, poolFull, onSelect 
   )
 }
 
+// ── Stat Improve sheet ────────────────────────────────────────────────────────
+// Five stats (ATK can't be improved), tiles reading "MOV / Movement" (no "+1": SKL/DEF/COM
+// improve by going down). Tapping a stat selects it and shows what changes at the bottom,
+// above the buttons (value, and for check stats the chance per roll). Nothing is applied
+// until the footer button: "Choose Combat" (standard, 1 IP) or "Take ..." (campaign,
+// several at once, permanent). Campaign taken stats are settled boxes, not buttons.
+const STAT_INFO = {
+  MOV: { name: 'Movement', role: 'Inches moved with each MOVE action.' },
+  VIT: { name: 'Vitality', role: 'Total hits before the warrior dies.' },
+  SKL: { name: 'Skill', role: 'Roll needed to climb, jump, open doors and search caches.' },
+  DEF: { name: 'Defense', role: 'Roll needed to block damage.' },
+  COM: { name: 'Combat', role: 'Roll needed to hit when attacking.' },
+}
+const listJoin = a => a.length < 3 ? a.join(' and ') : `${a.slice(0, -1).join(', ')} and ${a[a.length - 1]}`
+// Chance to roll the target or better on a d6 ("4+" is 50%)
+const odds = target => `${Math.round(((7 - Math.max(2, target)) / 6) * 100)}%`
+
+function StatDetail({ k, from, to }) {
+  const info = STAT_INFO[k]
+  const check = String(from.display).endsWith('+')
+  return (
+    <div className="pk-stat-detail" data-stat={k}>
+      <div className="pk-stat-detail-head">
+        <span className="pk-stat-detail-name">{info.name}</span>
+        <span className="pk-stat-detail-change">
+          <span className="pk-stat-detail-from">{from.display}</span> to <span className="pk-stat-detail-to">{to.display}</span>
+        </span>
+      </div>
+      {check && (
+        <div className="pk-stat-detail-odds">
+          Chance per roll: <span className="pk-stat-detail-from">{odds(from.value)}</span> to <span className="pk-stat-detail-to">{odds(to.value)}</span>
+        </div>
+      )}
+      <div className="pk-stat-detail-role">{info.role}</div>
+    </div>
+  )
+}
+
+function StatImproveSheet({ slotIndex, slot, poolFull, ipLeft, removeUpgrade, spendIP, onClose }) {
+  const setWarriorProp = useBuilderStore(s => s.setWarriorProp)
+  const addStatImprove = useBuilderStore(s => s.addStatImprove)
+  const campaign = useBuilderStore(s => s.companyMode) === 'campaign'
+  const allSlots = useBuilderStore(s => s.slots)
+  const chosen = !campaign && slot.ip?.includes('stat') ? slot.statImprove : null
+  // Standard: the one selected stat (starts on the chosen one). Campaign: the stats to take.
+  const [selected, setSelected] = useState(() => chosen ? [chosen] : [])
+
+  const taken = campaign ? (slot.statImproves || []) : []
+  const pending = campaign ? selected : []
+  const left = Math.max(0, ipLeft - pending.length)
+  const now = getEffectiveStats(slot)
+  if (!now) return null
+
+  // The stat's value without and with +1 on it
+  const preview = k => {
+    const without = campaign ? { ...slot, statImproves: taken.filter(s => s !== k) }
+      : chosen === k ? { ...slot, statImprove: null } : slot
+    const withIt = campaign ? { ...slot, statImproves: [...taken.filter(s => s !== k), k] }
+      : { ...slot, statImprove: k, ip: [...new Set([...(slot.ip || []), 'stat'])] }
+    return [getEffectiveStats(without)[k], getEffectiveStats(withIt)[k]]
+  }
+
+  const pick = k => setSelected(sel => campaign
+    ? (sel.includes(k) ? sel.filter(s => s !== k) : [...sel, k])
+    : (sel[0] === k && k !== chosen ? (chosen ? [chosen] : []) : [k]))
+  const apply = () => {
+    if (campaign) selected.forEach(k => addStatImprove(slotIndex, k))
+    else {
+      setWarriorProp(slotIndex, 'statImprove', selected[0])
+      spendIP('stat')
+    }
+    onClose()
+  }
+  const cancel = () => setSelected(chosen ? [chosen] : [])
+
+  // Standard: the last IP may be held back for a captain who hasn't spent any yet
+  const captain = allSlots.find(s => s.isCaptain)
+  const heldForCaptain = !campaign && !slot.isCaptain && captain && !(captain.ip?.length > 0) &&
+    useBuilderStore.getState().getTotalIPSpent() < useBuilderStore.getState().ipLimit
+  const canAddNew = campaign ? left > 0 : (!!chosen || !poolFull)
+  const why = canAddNew || pending.length ? null
+    : campaign ? 'No IP left. Warriors earn IP at the end of a game.'
+    : heldForCaptain ? 'No IP left. 1 IP is held for the captain.'
+    : 'No IP left.'
+  const names = selected.map(k => STAT_INFO[k]?.name || k)
+  const shown = selected.at(-1)   // details for the last tapped stat
+  const toApply =campaign ? selected.length > 0 : (selected.length > 0 && selected[0] !== chosen)
+
+  return (
+    <BottomSheet
+      title="STAT IMPROVE"
+      onClose={onClose}
+      zIndex={1100}
+      footer={
+        <div className="pk-stat-foot">
+          {/* Like the Mark picker: what the selection does sits at the bottom, above the buttons */}
+          {shown && (
+            <div className="pk-stat-details" aria-live="polite">
+              <StatDetail k={shown} from={preview(shown)[0]} to={preview(shown)[1]} />
+              {pending.length > 0 && (
+                <p className="pk-stat-confirm">
+                  <b>Permanent.</b> {listJoin(names)} {pending.length > 1 ? 'improvements stay' : 'improvement stays'} for the rest of the campaign.
+                </p>
+              )}
+            </div>
+          )}
+          <div className="pk-stat-foot-btns">
+            {toApply ? (
+              <>
+                <button className="co-sheet-randomize" onClick={cancel}>Cancel</button>
+                <button className="co-sheet-done pk-stat-apply" onClick={apply}>
+                  {campaign
+                    ? (selected.length === 1 ? `Take ${names[0]}` : `Take ${selected.length} improvements`)
+                    : `Choose ${names[0]}`}
+                </button>
+              </>
+            ) : (
+              <>
+                {chosen && (
+                  <button className="co-sheet-randomize" onClick={() => { removeUpgrade('stat'); onClose() }}>
+                    Remove Upgrade
+                  </button>
+                )}
+                <button className="co-sheet-done" onClick={onClose}>Done</button>
+              </>
+            )}
+          </div>
+        </div>
+      }
+    >
+      <div className="pk-stat-grid" role="group" aria-label="Stats">
+        {Object.keys(STAT_IMPROVEMENT).map(k => {
+          const name = STAT_INFO[k]?.name || k
+          if (taken.includes(k)) return (
+            <div key={k} className="pk-stat is-taken" aria-label={`${STAT_INFO[k]?.name || k}, taken`}>
+              <span className="pk-stat-abbrev">{k}</span>
+              <span className="pk-stat-label">✓ Taken</span>
+            </div>
+          )
+          const [from, to] = preview(k)
+          const isSel = selected.includes(k)
+          const maxed = to.value === from.value
+          const disabled = !isSel && (maxed || !canAddNew)
+          const state = maxed ? 'At best' : chosen === k ? '✓ Chosen' : isSel ? '✓ Selected' : name
+          return (
+            <button
+              key={k}
+              type="button"
+              className={`pk-stat${isSel ? ' is-active' : ''}${chosen === k ? ' is-chosen' : ''}`}
+              disabled={disabled}
+              aria-pressed={isSel}
+              aria-label={`${name}${chosen === k ? ', chosen' : isSel ? ', selected' : ''}`}
+              onClick={() => pick(k)}
+            >
+              <span className="pk-stat-abbrev">{k}</span>
+              <span className="pk-stat-label">{state}</span>
+            </button>
+          )
+        })}
+      </div>
+      {why && <p className="pk-note pk-stat-why">{why}</p>}
+    </BottomSheet>
+  )
+}
+
 // ── Upgrade Modal ─────────────────────────────────────────────────────────────
 export default function WarriorUpgradeModal({
   isOpen, onClose, title, category,
   slotIndex, slot, wdata, poolFull,
   removeUpgrade, spendIP, freeIP,
-  hasFixedShield, hasFixedDualWield, primaryIsPolearmOne, isDualWield
+  hasFixedShield, hasFixedDualWield, primaryIsPolearmOne, isDualWield, ipLeft = 0
 }) {
-  const { setWarriorProp, addStatImprove, removeStatImprove } = useBuilderStore()
-  const companyMode = useBuilderStore(s => s.companyMode)
+  const setWarriorProp = useBuilderStore(s => s.setWarriorProp)
 
   if (!isOpen) return null
+
+  if (category === 'stat') {
+    return (
+      <StatImproveSheet
+        slotIndex={slotIndex} slot={slot} poolFull={poolFull} ipLeft={ipLeft}
+        removeUpgrade={removeUpgrade} spendIP={spendIP} onClose={onClose}
+      />
+    )
+  }
 
   const isFixed = category === 'weapon2' && (hasFixedShield || hasFixedDualWield || primaryIsPolearmOne)
 
   const showRemove = category !== 'weapon1' && (
     (category === 'weapon2' && slot.weapon2 && !isFixed) ||
     (category === 'climbing' && slot.climbing && slot.climbing !== 'None') ||
-    (category === 'consumable' && slot.consumable) ||
-    (category === 'stat' && slot.statImprove)
+    (category === 'consumable' && slot.consumable)
   )
 
   return (
@@ -227,74 +401,6 @@ export default function WarriorUpgradeModal({
                   onClose()
                 }}
               />
-            ))}
-          </div>
-        </>
-      )}
-
-      {category === 'stat' && companyMode === 'campaign' && (
-        <>
-          <PickIntro label="Stat improvement">+1 to a stat. Costs 1 IP each; each stat only once. Remove one to get its IP back.</PickIntro>
-          <div className="pk-stat-grid">
-            {Object.entries(STAT_IMPROVEMENT).map(([k, v]) => {
-              const taken = slot.statImproves?.includes(k)
-              const label = v.replace(/ \+1$/, '')
-              // Taken: a tile with an explicit Remove button (no accidental removal from the card)
-              if (taken) return (
-                <div key={k} className="pk-stat is-taken">
-                  <span className="pk-stat-abbrev">{k}</span>
-                  <span className="pk-stat-label">{label}</span>
-                  <span className="pk-stat-flag">✓ Taken</span>
-                  <button
-                    type="button"
-                    className="pk-stat-remove"
-                    onClick={() => removeStatImprove(slotIndex, k)}
-                    aria-label={`Remove ${v}`}
-                  >
-                    Remove
-                  </button>
-                </div>
-              )
-              return (
-                <button
-                  key={k}
-                  type="button"
-                  className="pk-stat"
-                  disabled={poolFull}
-                  onClick={() => { if (!poolFull) { addStatImprove(slotIndex, k); onClose() } }}
-                >
-                  <span className="pk-stat-abbrev">{k}</span>
-                  <span className="pk-stat-label">{label}</span>
-                  {poolFull && <span className="pk-stat-flag">No IP</span>}
-                </button>
-              )
-            })}
-          </div>
-        </>
-      )}
-
-      {category === 'stat' && companyMode !== 'campaign' && (
-        <>
-          <PickIntro label="Stat improvement">+1 to one stat. Costs 1 IP.</PickIntro>
-          <div className="pk-stat-grid">
-            {Object.entries(STAT_IMPROVEMENT).map(([k, v]) => (
-              <button
-                key={k}
-                type="button"
-                className={`pk-stat${slot.statImprove === k ? ' is-active' : ''}`}
-                aria-pressed={slot.statImprove === k}
-                onClick={() => {
-                  const newVal = slot.statImprove === k ? null : k
-                  setWarriorProp(slotIndex, 'statImprove', newVal)
-                  if (newVal) spendIP('stat')
-                  else freeIP('stat')
-                  onClose()
-                }}
-              >
-                <span className="pk-stat-abbrev">{k}</span>
-                <span className="pk-stat-label">{v.replace(/ \+1$/, '')}</span>
-                {slot.statImprove === k && <span className="pk-stat-flag">✓ Chosen</span>}
-              </button>
             ))}
           </div>
         </>

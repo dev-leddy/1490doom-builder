@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { signUp, createCompany, waitForSaved, portraitAlignment } from './helpers.js'
+import { signUp, createCompany, createCompanyViaApi, waitForSaved, portraitAlignment } from './helpers.js'
 
 test.describe('builder', () => {
   test.beforeEach(async ({ page }) => { await signUp(page) })
@@ -52,5 +52,37 @@ test.describe('builder', () => {
     await waitForSaved(page)
     const names = await page.evaluate(async () => (await (await fetch('/api/companies', { credentials: 'include' })).json()).companies.map(c => c.name))
     expect(names).toContain('Edited Offline')
+  })
+
+  test('Stat Improve: tap a stat to see the change, then choose it', async ({ page }) => {
+    await createCompanyViaApi(page, { name: 'Stat Co', slots: [{ type: 'Fighter', weapon1: 'Light Weapon' }] })
+    await page.getByRole('button', { name: 'Add stat' }).click()
+    const com = page.locator('button.pk-stat', { hasText: 'COM' })
+    await com.click()
+    await expect(page.locator('.pk-stat-detail[data-stat="COM"]')).toContainText('4+ to 3+')
+    await page.locator('.pk-stat-apply').click()
+    const tile = page.getByRole('button', { name: /^Stat Improve/ })
+    await expect(tile).toContainText('COM')
+    await expect(tile).not.toContainText('+1')
+  })
+
+  test('campaign Stat Improve is taken on confirm and can only be undone from warrior settings', async ({ page }) => {
+    await createCompanyViaApi(page, { name: 'Camp Stat Co', mode: 'campaign', ipLimit: 0, slots: [{ type: 'Fighter', weapon1: 'Light Weapon', earnedIP: 1 }] })
+    await page.getByRole('button', { name: 'Add stat' }).click()
+    await page.locator('button.pk-stat', { hasText: 'SKL' }).click()
+    await expect(page.locator('.pk-stat-confirm')).toContainText('rest of the campaign')
+    await page.locator('.pk-stat-apply').click()
+    const tile = page.getByRole('button', { name: /^Stat Improve/ })
+    await expect(tile).toContainText('SKL')
+    // Taken stats can't be removed from the picker
+    await tile.click()
+    await expect(page.locator('.pk-stat.is-taken', { hasText: 'SKL' })).toBeVisible()
+    await page.locator('.co-sheet-done').click()
+    // Escape hatch: warrior settings, behind a confirm
+    await page.locator('.slot-gear-btn').first().click()
+    await page.locator('.ws-undo-btn').click()
+    await page.getByRole('button', { name: 'CONFIRM' }).click()
+    await page.locator('.co-sheet-done').click()
+    await expect(page.getByRole('button', { name: /^Stat Improve/ })).toHaveCount(0)
   })
 })

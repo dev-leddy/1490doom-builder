@@ -773,6 +773,24 @@
   opacity: 0.85;
 }
 
+/* ── Campaign: undo the last stat improve (quiet secondary row) ── */
+.ws-undo { padding-top: 1rem; border-top: 1px solid var(--dim); }
+.ws-undo-btn {
+  min-height: 44px;
+  padding: 0.35rem 0.75rem;
+  background: none;
+  border: 1px dashed var(--mist);
+  border-radius: 4px;
+  color: #9a9a9a;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.ws-undo-btn:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
+@media (hover: hover) { .ws-undo-btn:hover { border-color: var(--blood); color: var(--parchment); } }
+
 /* ── Warrior class picker grid ── */
 .wcp-grid {
   display: grid;

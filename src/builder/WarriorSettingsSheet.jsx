@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useBuilderStore, getAvailableWarriorTypes } from '../store/builderStore'
 import { WARRIOR_IMAGES } from '../data/images'
+import { STAT_IMPROVEMENT } from '../data/warriors'
 import BottomSheet from '../shared/BottomSheet'
+import ConfirmModal from '../shared/ConfirmModal'
 import { SvgDice } from './icons'
 
 const G_FIRST = [
@@ -41,6 +43,12 @@ export default function WarriorSettingsSheet({ slotIndex, slot, allSlots, isOpen
   const [tempName, setTempName] = useState(slot.customName || '')
   const [tempType, setTempType] = useState(slot.type || null)
   const [tempIsCaptain, setTempIsCaptain] = useState(slot.isCaptain || false)
+  const [confirmUndo, setConfirmUndo] = useState(false)
+  const removeStatImprove = useBuilderStore(s => s.removeStatImprove)
+  const isCampaign = useBuilderStore(s => s.companyMode) === 'campaign'
+  // Campaign stat improves are permanent; this is the escape hatch for a mistake (most recent first)
+  const lastStat = isCampaign ? (slot.statImproves || []).at(-1) : null
+  const lastStatName = lastStat ? (STAT_IMPROVEMENT[lastStat] || lastStat).replace(/ \+1$/, '') : ''
 
   const available = getAvailableWarriorTypes(slotIndex, allSlots)
 
@@ -50,6 +58,7 @@ export default function WarriorSettingsSheet({ slotIndex, slot, allSlots, isOpen
       setTempName(slot.customName || '')
       setTempType(slot.type || null)
       setTempIsCaptain(slot.isCaptain || false)
+      setConfirmUndo(false)
     }
   }, [isOpen])
 
@@ -61,6 +70,18 @@ export default function WarriorSettingsSheet({ slotIndex, slot, allSlots, isOpen
   }
 
   if (!isOpen) return null
+
+  // Shown in place of the settings sheet; Cancel or Confirm returns to it with any edits kept
+  if (confirmUndo && lastStat) {
+    return (
+      <ConfirmModal
+        title={`UNDO ${lastStatName.toUpperCase()} IMPROVE?`}
+        subtitle={`Takes the ${lastStatName} improvement off ${slot.customName || slot.type} and gives back its 1 IP. Campaign upgrades are meant to be permanent, so only undo a mistake.`}
+        onConfirm={() => { removeStatImprove(slotIndex, lastStat); setConfirmUndo(false) }}
+        onCancel={() => setConfirmUndo(false)}
+      />
+    )
+  }
 
   return (
     <BottomSheet
@@ -131,6 +152,16 @@ export default function WarriorSettingsSheet({ slotIndex, slot, allSlots, isOpen
           ))}
         </div>
       </div>
+
+      {/* Campaign: undo the most recent stat improve. Kept quiet, behind a confirm */}
+      {lastStat && (
+        <div className="ws-section ws-section--row ws-undo">
+          <div className="ws-section-label">Stat Improve</div>
+          <button type="button" className="ws-undo-btn" onClick={() => setConfirmUndo(true)}>
+            Undo {lastStatName} improve
+          </button>
+        </div>
+      )}
     </BottomSheet>
   )
 }

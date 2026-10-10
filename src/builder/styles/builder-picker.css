@@ -152,17 +152,19 @@
 .pk-card.is-locked .pk-desc { opacity: 0.45; }
 .pk-status--locked { border: 1px dashed #8a4a4a; color: #d07070; }
 
-/* ── Stat improvement tiles ── */
-.pk-stat-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.45rem; }
+/* ── Stat Improve: five stats, 2 + 3; tap one to see what changes (shown above the buttons) ── */
+/* 6 columns: MOV and VIT span 3 each on top, SKL DEF COM span 2 each below, edge to edge */
+.pk-stat-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0.5rem; }
+.pk-stat-grid > .pk-stat { grid-column: span 2; }
+.pk-stat-grid > .pk-stat:nth-child(-n+2) { grid-column: span 3; } /* MOV, VIT on top; SKL, DEF, COM below */
 .pk-stat {
-  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  gap: 0.3rem;
-  min-height: 84px;
-  padding: 0.7rem 0.2rem 0.6rem;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 72px;
+  padding: 0.55rem 0.25rem;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--mist);
   border-radius: 8px;
@@ -173,69 +175,68 @@
   transition: border-color 0.15s, background 0.15s;
 }
 @media (hover: hover) {
-  .pk-stat:not(:disabled):not(.is-active):hover { border-color: #777; background: rgba(255, 255, 255, 0.07); }
+  .pk-stat:not(:disabled):not(.is-active):not(.is-taken):hover { border-color: #777; background: rgba(255, 255, 255, 0.07); }
 }
 .pk-stat:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
 .pk-stat-abbrev {
   font-family: 'Oswald', sans-serif;
-  font-size: 1.4rem;
+  font-size: 1.35rem;
   font-weight: 700;
+  letter-spacing: 0.06em;
   line-height: 1;
-  letter-spacing: 0.04em;
   color: #fff;
 }
 .pk-stat-label {
   font-family: 'Oswald', sans-serif;
-  font-size: 0.68rem;
-  line-height: 1.25;
-  letter-spacing: 0.06em;
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  text-align: center;
   color: var(--bone);
 }
-.pk-stat-flag {
-  margin-top: auto;
-  font-family: 'Oswald', sans-serif;
-  font-size: 0.6rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
+/* selected (not applied yet) */
 .pk-stat.is-active {
   background: rgba(190, 65, 39, 0.14);
   border-color: var(--blood);
   box-shadow: inset 0 3px 0 var(--blood);
 }
-.pk-stat.is-active .pk-stat-flag { color: #e0745c; }
-.pk-stat.is-taken {
-  background: transparent;
-  border-style: dashed;
-  border-color: #4a6a4a;
-  cursor: not-allowed;
-}
-.pk-stat.is-taken .pk-stat-abbrev { color: #8fbf8f; }
-.pk-stat.is-taken .pk-stat-label { opacity: 0.6; }
-.pk-stat.is-taken .pk-stat-flag { color: #6fbf6f; }
-/* Campaign: a taken stat is a tile with its own Remove button */
-div.pk-stat.is-taken { cursor: default; }
-.pk-stat-remove {
-  align-self: stretch;
-  min-height: 44px;
-  margin: 0.2rem 0.1rem 0;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 6px;
-  color: var(--bone);
-  font-family: 'Oswald', sans-serif;
-  font-size: 0.68rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-.pk-stat-remove:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
-@media (hover: hover) { .pk-stat-remove:hover { border-color: var(--blood); color: #fff; } }
-.pk-stat:disabled:not(.is-taken) { opacity: 0.45; cursor: not-allowed; }
+.pk-stat.is-active .pk-stat-label { color: #e0745c; }
+/* standard: the stat already bought; campaign: taken for good (a settled box, not a button) */
+.pk-stat.is-chosen .pk-stat-label,
+.pk-stat.is-taken .pk-stat-label { color: var(--green); }
+.pk-stat.is-taken { background: var(--fog); border-color: var(--dim); cursor: default; }
+.pk-stat.is-taken .pk-stat-abbrev { color: var(--green); }
+/* nothing left to spend: the same dashed "locked" look as .pk-card.is-locked */
+.pk-stat:disabled { background: transparent; border-style: dashed; cursor: not-allowed; }
+.pk-stat:disabled .pk-stat-abbrev,
+.pk-stat:disabled .pk-stat-label { color: #8a8a8a; }
+.pk-stat-why { display: block; margin: 0.7rem 0 0; }
 
-@media (max-width: 360px) {
-  .pk-stat-grid { grid-template-columns: repeat(3, 1fr); }
+/* What the selected stat(s) become */
+/* Footer: the selection's details sit above the buttons (like the Mark picker) */
+.pk-stat-foot { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.75rem; }
+.pk-stat-foot-btns { display: flex; gap: 0.75rem; }
+.pk-stat-details { display: flex; flex-direction: column; gap: 0.5rem; }
+.pk-stat-detail {
+  padding: 0.65rem 0.8rem;
+  background: rgba(190, 65, 39, 0.08);
+  border: 1px solid rgba(190, 65, 39, 0.45);
+  border-radius: 8px;
 }
+.pk-stat-detail-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem; }
+.pk-stat-detail-name {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--parchment);
+}
+.pk-stat-detail-change { font-family: 'Oswald', sans-serif; font-size: 0.8rem; letter-spacing: 0.06em; text-transform: uppercase; color: #9a9a9a; white-space: nowrap; }
+.pk-stat-detail-change .pk-stat-detail-from { font-size: 1.05rem; font-weight: 700; color: var(--bone); }
+.pk-stat-detail-change .pk-stat-detail-to { font-size: 1.35rem; font-weight: 700; color: var(--green); }
+.pk-stat-detail-odds { margin-top: 0.3rem; font-family: 'Oswald', sans-serif; font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; color: #9a9a9a; }
+.pk-stat-detail-odds .pk-stat-detail-from { color: var(--bone); }
+.pk-stat-detail-odds .pk-stat-detail-to { color: var(--green); font-weight: 700; }
+.pk-stat-detail-role { margin-top: 0.3rem; font-size: 0.88rem; line-height: 1.35; color: var(--bone); }
+
+.pk-stat-confirm { margin: 0; font-size: 0.85rem; line-height: 1.4; color: var(--bone); }
+.pk-stat-confirm b { font-family: 'Oswald', sans-serif; font-weight: 400; letter-spacing: 0.1em; text-transform: uppercase; color: #e0745c; }
