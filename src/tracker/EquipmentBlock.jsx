@@ -39,7 +39,9 @@ function EquipCard({ icon, name, meta = [], state, onClick, isCache, faded, extr
       {/* Crossbow: loaded / reload indicator in the tile's free right-hand space */}
       {state && (
         <span className={`tk-equip-card-state tk-equip-card-state--${state.toLowerCase()}`} aria-label={state}>
-          <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M2 14L14 2M9 2h5v5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          {state === 'Loaded'
+            ? <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3 8h9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /><path d="M15 8l-4-3v6z" fill="currentColor" /><path d="M1 5.5L3.5 8 1 10.5M3 5.5L5.5 8 3 10.5" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            : <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M13 8a5 5 0 1 1-1.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /><path d="M12.5 1.5v3.5H9" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>}
           <span className="tk-equip-card-state-label">{state}</span>
         </span>
       )}
