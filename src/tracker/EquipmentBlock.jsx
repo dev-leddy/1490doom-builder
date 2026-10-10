@@ -35,8 +35,14 @@ function EquipCard({ icon, name, meta = [], state, onClick, isCache, faded, extr
             {meta.map((m, i) => <span key={i} className={m.cls}>{m.text}</span>)}
           </span>
         )}
-        {state && <span className="tk-equip-card-state">{state}</span>}
       </span>
+      {/* Crossbow: loaded / reload indicator in the tile's free right-hand space */}
+      {state && (
+        <span className={`tk-equip-card-state tk-equip-card-state--${state.toLowerCase()}`} aria-label={state}>
+          <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M2 14L14 2M9 2h5v5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          <span className="tk-equip-card-state-label">{state}</span>
+        </span>
+      )}
     </button>
   )
 }

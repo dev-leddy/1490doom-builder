@@ -722,10 +722,22 @@
 .tk-equip-card-stat--dmg { color: var(--blood-text, #e0573a); font-weight: 700; }
 
 /* Crossbow: LOADED (green outline) vs RELOAD (solid red), readable at a glance */
-.tk-equip-card-state { align-self: flex-start; font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.1em; line-height: 1; padding: 0.15rem 0.35rem; border: 1px solid; border-radius: 2px; }
-.tk-equip-card--loaded .tk-equip-card-state { color: #6fbf6f; border-color: #4a9a4a; }
+/* Crossbow state: a small indicator on the right (bolt icon over a tiny label) */
+/* Narrow tiles: a small corner badge that takes no width from the name */
+.tk-equip-card--loaded, .tk-equip-card--unloaded { position: relative; padding-right: 1.5rem; }
+.tk-equip-card-state { position: absolute; top: 4px; right: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.2rem; width: 1.15rem; height: 1.15rem; border-radius: 3px; border: 1px solid; }
+.tk-equip-card-state svg { width: 10px; height: 10px; }
+.tk-equip-card-state-label { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.52rem; font-weight: 700; letter-spacing: 0.08em; line-height: 1;; display: none; }
+/* Narrow tiles: icon only (the label is in aria-label); wider tiles add the label */
+@container tkequip (min-width: 370px) and (max-width: 439px), (min-width: 560px) {
+  .tk-equip-card--loaded, .tk-equip-card--unloaded { padding-right: 0.45rem; }
+  .tk-equip-card-state { position: static; flex-shrink: 0; margin-left: auto; width: 2.6rem; height: 2.4rem; }
+  .tk-equip-card-state svg { width: 14px; height: 14px; }
+  .tk-equip-card-state-label { display: block; }
+}
+.tk-equip-card-state--loaded { color: #0b140b; background: #6fbf6f; border-color: #6fbf6f; }
+.tk-equip-card-state--reload { color: #f07a5e; background: transparent; border-color: #be4127; border-style: dashed; }
 .tk-equip-card--unloaded { border-color: rgba(190,65,39,0.6); background: rgba(190,65,39,0.08); }
-.tk-equip-card--unloaded .tk-equip-card-state { color: #fff; background: #be4127; border-color: #be4127; }
 
 /* Cache items: green tint, set apart from the warrior's own gear */
 .tk-equip-card--cache { border-color: #2a5a2a; background: rgba(74,154,74,0.06); }
