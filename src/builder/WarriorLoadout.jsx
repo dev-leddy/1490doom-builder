@@ -167,14 +167,15 @@ export default function WarriorLoadout({ slotIndex, slot, wdata, poolFull }) {
     ? iconImg(slot.type === 'Knight' && slot.weapon2 === 'Shield' ? `${base}assets/icons/checked-shield.svg` : ITEM_ICONS[slot.weapon2])
     : <SvgOffhand />
 
-  // Campaign: all stat improvements share one tile; standard: the single chosen stat
-  const statTile = isCampaign
-    ? (statImproves.length === 1
-        ? { name: STAT_IMPROVEMENT[statImproves[0]], meta: [{ text: 'Stat' }] }
-        : statImproves.length > 1
-          ? { name: statImproves.join(', '), full: statImproves.map(k => STAT_IMPROVEMENT[k]).join(', '), meta: [{ text: 'Stats +1' }] }
-          : null)
-    : (statVal ? { name: statVal, meta: [{ text: 'Stat' }] } : null)
+  // "Stat Improvement" over the chosen stat(s): MOV +1 (campaign: every one, e.g. MOV +1 | COM +1)
+  const chosenStats = isCampaign ? statImproves : (statVal ? [slot.statImprove] : [])
+  const statTile = chosenStats.length > 0
+    ? {
+        name: chosenStats.length > 1 ? 'Stat Improvements' : 'Stat Improvement',
+        full: chosenStats.map(k => STAT_IMPROVEMENT[k]).join(', '),
+        meta: chosenStats.map(k => ({ text: `${k} +1` })),
+      }
+    : null
 
   const canAdd = id => id === 'stat'
     ? (isCampaign ? (!poolFull && !campaignStatFull) : (!isRowSelected('stat') && !isRowLocked('stat')))
@@ -247,10 +248,10 @@ export default function WarriorLoadout({ slotIndex, slot, wdata, poolFull }) {
           <Tile
             icon={<SvgStat />}
             name={statTile.name}
-            fullName={`Stat improvement: ${statTile.full || statTile.name}`}
+            fullName={`${statTile.name}: ${statTile.full}`}
             meta={statTile.meta}
             onClick={() => setModalCategory('stat')}
-            title={`Stat improvement: ${statTile.full || statTile.name}`}
+            title={`${statTile.name}: ${statTile.full}`}
           />
         ) : openSlot('stat')}
       </div>
