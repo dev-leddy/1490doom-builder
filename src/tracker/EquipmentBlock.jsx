@@ -49,7 +49,13 @@ function EquipCard({ icon, name, meta = [], state, onClick, isCache, faded, extr
   )
 }
 
-function DetailModal({ title, desc, damage, range, onClose, onExpend, dead }) {
+// Shield: its two once-per-round abilities, usable from the tile (same state as the Abilities list)
+const SHIELD_OPR = [
+  { key: 'GUARDED', short: 'Guard' },
+  { key: 'SHIELD DEFENSE BONUS', short: '+1 DEF' },
+]
+
+function DetailModal({ title, desc, damage, range, onClose, onExpend, dead, opr, oprUsed, onToggleOpr }) {
   const hasStats = (damage > 0) || (range && range !== '—')
   return (
     <BottomSheet
@@ -90,13 +96,29 @@ function DetailModal({ title, desc, damage, range, onClose, onExpend, dead }) {
         </div>
       )}
       {desc ? <div className="tk-equip-detail-desc">{desc}</div> : null}
+      {opr && (
+        <div className="tk-opr-list">
+          {opr.map(a => {
+            const used = !!oprUsed[a.key]
+            return (
+              <button key={a.key} type="button" className={`tk-opr-row${used ? ' is-used' : ''}`} onClick={() => onToggleOpr(a.key)} disabled={dead} aria-pressed={used}>
+                <span className="tk-opr-row-head">
+                  <span className="tk-opr-row-name">{a.name}</span>
+                  <span className="tk-opr-row-state">{used ? '✓ Used this round' : 'Once per round'}</span>
+                </span>
+                <span className="tk-opr-row-desc">{a.desc}</span>
+              </button>
+            )
+          })}
+        </div>
+      )}
     </BottomSheet>
   )
 }
 
 export default function EquipmentBlock({ wi, warrior: w }) {
   const [detail, setDetail] = useState(null)
-  const { toggleConsumable, undoConsumable, spendCacheItem, undoCacheItem, toggleCrossbowLoaded } = useTrackerStore()
+  const { toggleConsumable, undoConsumable, spendCacheItem, undoCacheItem, toggleCrossbowLoaded, toggleOPR } = useTrackerStore()
 
   const cards = []
 
@@ -128,15 +150,15 @@ export default function EquipmentBlock({ wi, warrior: w }) {
   if (w.weapon2) {
     const wd = WEAPONS[w.weapon2]
     const isShield = w.weapon2 === 'Shield'
+    // Shield: one cell per once-per-round ability, dimmed and struck once used this round
     const meta = isShield
-      ? [{ text: '+1 DEF' }, { text: 'OPR' }]
+      ? SHIELD_OPR.map(a => ({ text: a.short, cls: `tk-opr-cell${w.oprUsed?.[a.key] ? ' tk-opr-cell--used' : ''}` }))
       : [
         wd?.damage > 0 && { text: `${wd.damage} DMG`, cls: 'tk-equip-card-stat--dmg' },
         wd?.range && wd.range !== '—' && { text: wd.range },
       ].filter(Boolean)
-    const desc = isShield
-      ? `${wd.note}${wd.abilityDesc ? `\n\n${wd.abilityDesc}` : ''}${wd.ability2Desc ? `\n\n${wd.ability2Desc}` : ''}`
-      : [wd?.offhandNote || wd?.note, wd?.special].filter(Boolean).join(' ')
+    // Shield: its sheet is just the ability toggles (the rules text is in the Abilities list)
+    const desc = isShield ? '' : [wd?.offhandNote || wd?.note, wd?.special].filter(Boolean).join(' ')
     cards.push({
       key: 'w2',
       icon: w.type === 'Knight' && w.weapon2 === 'Shield' ? `${import.meta.env.BASE_URL}assets/icons/checked-shield.svg`
@@ -146,6 +168,10 @@ export default function EquipmentBlock({ wi, warrior: w }) {
       desc,
       damage: isShield ? null : wd?.damage,
       range: isShield ? null : wd?.range,
+      ...(isShield && { opr: [
+        { key: 'GUARDED', name: wd.abilityName, desc: wd.abilityDesc },
+        { key: 'SHIELD DEFENSE BONUS', name: wd.ability2Name, desc: wd.ability2Desc },
+      ] }),
     })
   }
 
@@ -237,6 +263,9 @@ export default function EquipmentBlock({ wi, warrior: w }) {
           onClose={close}
           onExpend={hasExpend ? handleExpend : null}
           dead={w.dead}
+          opr={detail.opr}
+          oprUsed={w.oprUsed || {}}
+          onToggleOpr={key => toggleOPR(wi, key)}
         />
       )}
     </>

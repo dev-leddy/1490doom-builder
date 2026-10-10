@@ -99,4 +99,22 @@ test.describe('play mode', () => {
     await expect(herbs).toContainText('HEAL 3 VIT')
     await expect(count).toHaveText(vit(max - 2))
   })
+
+  test('shield abilities can be used from the shield tile and stay in sync with the Abilities list', async ({ page }) => {
+    await createCompany(page, { warriors: ['Knight'] })
+    await startPlay(page)
+    const shield = page.locator('.tk-equip-card', { hasText: 'Shield' })
+    const guardedAbility = page.locator('.tk-ability', { hasText: 'GUARDED' })
+    // Use GUARDED from the shield's sheet
+    await shield.click()
+    await page.locator('.tk-opr-row', { hasText: 'GUARDED' }).click()
+    await expect(page.locator('.tk-opr-row', { hasText: 'GUARDED' })).toContainText('Used this round')
+    await page.locator('.tk-detail-btn--ghost').click()
+    await expect(shield.locator('.tk-opr-cell--used')).toHaveText('Guard')
+    await expect(guardedAbility).toContainText('USED')
+    // Un-use it from the Abilities list: the tile follows
+    await guardedAbility.click()
+    await expect(guardedAbility).toContainText('ONCE PER ROUND')
+    await expect(shield.locator('.tk-opr-cell--used')).toHaveCount(0)
+  })
 })

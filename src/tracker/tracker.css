@@ -1348,3 +1348,18 @@
 .tk-status-card:disabled { cursor: default; opacity: 0.55; }
 .tk-status-card-name { font-size: 0.74rem; font-weight: 700; letter-spacing: 0.12em; color: #c4c4ff; white-space: nowrap; }
 .tk-status-card-sub { font-size: 0.66rem; letter-spacing: 0.06em; color: #8a8ac0; white-space: nowrap; }
+
+/* Shield once-per-round abilities: cells on the tile, toggles in its sheet */
+.tk-equip-card-meta > .tk-opr-cell { color: #e2dccf; }
+.tk-equip-card-meta > .tk-opr-cell--used { color: #6a6a6a; text-decoration: line-through; text-decoration-color: #555; }
+.tk-opr-list { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.9rem; }
+.tk-opr-row { display: flex; flex-direction: column; gap: 0.3rem; width: 100%; min-height: 44px; padding: 0.65rem 0.8rem; background: #141414; border: 1px solid #2a2a2a; border-left: 3px solid #e2dccf; color: inherit; font: inherit; text-align: left; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.tk-opr-row:disabled { cursor: default; opacity: 0.5; }
+.tk-opr-row:focus-visible { outline: 2px solid #be4127; outline-offset: 2px; }
+.tk-opr-row-head { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
+.tk-opr-row-name { font-family: 'Oswald', sans-serif; font-size: 0.9rem; letter-spacing: 0.08em; text-transform: uppercase; color: #fff; }
+.tk-opr-row-state { flex-shrink: 0; font-family: 'Oswald', sans-serif; font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; padding: 0.15rem 0.45rem; border: 1px solid #555; color: #bbb; }
+.tk-opr-row-desc { font-size: 0.88rem; line-height: 1.4; color: #e2dccf; }
+.tk-opr-row.is-used { border-left-color: #444; background: #101010; }
+.tk-opr-row.is-used .tk-opr-row-name, .tk-opr-row.is-used .tk-opr-row-desc { color: #777; }
+.tk-opr-row.is-used .tk-opr-row-state { border-color: #2a5a2a; color: #6fbf6f; }
