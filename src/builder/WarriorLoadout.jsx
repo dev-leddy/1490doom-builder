@@ -167,11 +167,11 @@ export default function WarriorLoadout({ slotIndex, slot, wdata, poolFull }) {
     ? iconImg(slot.type === 'Knight' && slot.weapon2 === 'Shield' ? `${base}assets/icons/checked-shield.svg` : ITEM_ICONS[slot.weapon2])
     : <SvgOffhand />
 
-  // "Stat Improvement" over the chosen stat(s): MOV +1 (campaign: every one, e.g. MOV +1 | COM +1)
+  // "Stat Improve" over the chosen stat(s): MOV +1 (campaign: every one, e.g. MOV +1 | COM +1)
   const chosenStats = isCampaign ? statImproves : (statVal ? [slot.statImprove] : [])
   const statTile = chosenStats.length > 0
     ? {
-        name: chosenStats.length > 1 ? 'Stat Improvements' : 'Stat Improvement',
+        name: 'Stat Improve',
         full: chosenStats.map(k => STAT_IMPROVEMENT[k]).join(', '),
         meta: chosenStats.map(k => ({ text: `${k} +1` })),
       }
