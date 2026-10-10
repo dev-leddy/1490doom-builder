@@ -604,9 +604,11 @@
 .notes-section { margin-top: auto; }
 /* -- EQUIPMENT & UPGRADES: fixed slot boxes --
    Main weapon, Off-hand, Gear, Item, Stat, always in that order and always the same size,
-   so choosing an item only changes a box's content. Always 2 columns. */
+   so choosing an item only changes a box's content. 2 columns, 3 when the card is wide
+   (container query on the card, since card width doesn't follow the viewport). */
 .warrior-slot { container: card / inline-size; }
 .eq-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 60px; gap: 0.3rem; margin-top: 0.4rem; }
+@container card (min-width: 440px) { .eq-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 
 .eq-slot {
   display: flex; align-items: center; gap: 0.5rem;
