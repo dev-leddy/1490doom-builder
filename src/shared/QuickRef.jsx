@@ -52,6 +52,10 @@ export default function QuickRef({ onBack }) {
             <tr><td>8+</td><td>☠ Death</td></tr>
           </tbody>
         </table>
+        {/* Optional rule: falling or jumping onto a model below */}
+        <p className="qr-fall-note qr-fall-landing">
+          <strong>Landing on a model</strong> (optional rule): a model that falls or jumps onto a lower model makes it pass a SKILL Check or lose 1 VIT and be Immobilized until the end of its next activation. Either way, the lower model's owner moves it just enough to make room.
+        </p>
       </div>
 
       <div className="qr-section">
