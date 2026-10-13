@@ -12,7 +12,7 @@ import { getAllowedWeapons, getSecondWeaponOptions } from '../utils/loadout'
 import {
   normalizeCampaign, campaignProgress, spendableCapacity, validateEndOfGame, applyEndOfGame,
   canUndoLastGame, undoLastGame, hireIntoVacancy, permanenceBlock, isPermanentUpgrade,
-  minEarnedIP, removeSlotBlock,
+  minEarnedIP, removeSlotBlock, logUpgrade, PERMANENT_GEAR, syncUpgradeItem, unlogLastUpgrade,
   undoLastUpgrade as undoLastUpgradeOf,
 } from './campaign'
 import { encodeCompany, decodeCompany } from './builderEncoding'
@@ -435,6 +435,7 @@ export const useBuilderStore = create((set, get) => {
     },
     setWarriorProp(slotIndex, prop, value) {
       const slots = [...get().slots]
+      const prevIP = slots[slotIndex]?.ip || []
       if (get().companyMode === 'campaign') {
         const current = slots[slotIndex]
         const blocked = permanenceBlock(current, prop, value)
@@ -476,6 +477,7 @@ export const useBuilderStore = create((set, get) => {
       }
       if (prop === 'weapon2') {
         slots[slotIndex].ip = slots[slotIndex].ip.filter(id => {
+          if (/^stat_\d+$/.test(id)) return true // campaign stat keys aren't IP_OPTIONS ids
           const opt = IP_OPTIONS.find(o => o.id === id)
           if (!opt) return false
           if (opt.id === 'w2stat' && !value) return false
@@ -483,6 +485,13 @@ export const useBuilderStore = create((set, get) => {
         })
       }
       set({ slots })
+      if (get().companyMode === 'campaign') {
+        const ip = slots[slotIndex].ip || []
+        // The one-handed polearm's Shield was just bought: log it. A bought item that
+        // changed: update its log entry rather than adding one.
+        if (ip.includes('weapon2') && !prevIP.includes('weapon2')) set({ campaign: logUpgrade(get(), slotIndex, 'weapon2') })
+        else if (PERMANENT_GEAR.includes(prop) && ip.includes(prop)) set({ campaign: syncUpgradeItem(get(), slotIndex, prop) })
+      }
       get()._autoDraft()
     },
     // In standard mode with a captain: only reserve IP if captain has 0 IP used
@@ -525,6 +534,10 @@ export const useBuilderStore = create((set, get) => {
       }
       slots[slotIndex] = slot
       set({ slots })
+      // Campaign: log the purchase (what and for whom) for the game log
+      if (checked && companyMode === 'campaign' && PERMANENT_GEAR.includes(optId)) {
+        set({ campaign: logUpgrade(get(), slotIndex, optId) })
+      }
       get()._autoDraft()
     },
     setCaptain(slotIndex) {
@@ -848,7 +861,7 @@ export const useBuilderStore = create((set, get) => {
       const slot = get().slots[slotIndex]
       const next = slot && undoLastUpgradeOf(slot)
       if (!next) return false
-      set({ slots: get().slots.map((s, i) => (i === slotIndex ? next : s)) })
+      set({ slots: get().slots.map((s, i) => (i === slotIndex ? next : s)), campaign: unlogLastUpgrade(get(), slot) })
       get()._autoDraft()
       return true
     },
@@ -862,6 +875,7 @@ export const useBuilderStore = create((set, get) => {
       slot.ip = [...(slot.ip || []), statKey]
       slots[slotIndex] = slot
       set({ slots })
+      if (get().companyMode === 'campaign') set({ campaign: logUpgrade(get(), slotIndex, statKey) })
       get()._autoDraft()
     },
     removeStatImprove(slotIndex, stat) {
@@ -874,6 +888,8 @@ export const useBuilderStore = create((set, get) => {
         get()._toast('Only the most recent upgrade can be undone.')
         return
       }
+      // Campaign: this is an undo of the last upgrade, so its log entry goes too
+      if (get().companyMode === 'campaign') set({ campaign: unlogLastUpgrade(get(), slots[slotIndex]) })
       // Renumber stat keys in place: slot.ip's order is the purchase order (see store/campaign.js)
       let n = 0
       slot.ip = (slot.ip || [])

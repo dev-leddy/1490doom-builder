@@ -5,6 +5,7 @@ import {
   undoLastGame, canUndoLastGame, hireIntoVacancy, vacancies,
   permanenceBlock, isPermanentUpgrade, undoLastUpgrade, lastUpgrade,
   endOfGameWarnings, minEarnedIP, removeSlotBlock,
+  logUpgrade, syncUpgradeItem, unlogLastUpgrade, upgradeLabel,
 } from '../../src/store/campaign.js'
 
 const warrior = (type, extra = {}) => ({
@@ -226,7 +227,7 @@ describe('older companies', () => {
     }
     const c = normalizeCampaign(legacy)
     expect(c.slots.every(s => typeof s.uid === 'string' && s.uid)).toBe(true)
-    expect(c.campaign).toEqual({ v: 1, log: [], completedAt: null, needsCaptain: false })
+    expect(c.campaign).toEqual({ v: 1, log: [], upgrades: [], completedAt: null, needsCaptain: false })
     expect(campaignProgress(c)).toMatchObject({ completed: 3, nextGame: 4, isComplete: false })
     const { company: next, record } = applyEndOfGame(legacy, draft())
     expect(record.gameNumber).toBe(4)
@@ -298,5 +299,56 @@ describe('permanent upgrades', () => {
     const polearm = warrior('Fighter', { weapon1: 'Polearm (one-handed)', weapon2: 'Shield', ip: ['weapon2'], earnedIP: 1 })
     const undone = undoLastUpgrade(polearm)
     expect(undone).toMatchObject({ ip: [], weapon2: null, weapon1: 'Light Weapon' })
+  })
+})
+
+describe('upgrade log', () => {
+  const withSlot = (c, i, patch) => ({ ...c, slots: c.slots.map((s, k) => (k === i ? { ...s, ...patch } : s)) })
+  const buy = (c, i, patch, id, now) => {
+    const next = withSlot(c, i, patch)
+    return { ...next, campaign: logUpgrade(next, i, id, { now }) }
+  }
+
+  it('logs what was bought, for whom and after how many games', () => {
+    let c = buy(trio(), 1, { customName: 'Vex', earnedIP: 2, statImproves: ['COM'], ip: ['stat_0'] }, 'stat_0', 5)
+    expect(c.campaign.upgrades).toEqual([
+      { afterGame: 0, uid: c.slots[1].uid, name: 'Vex', id: 'stat_0', kind: 'stat', stat: 'COM', label: 'Combat', at: 5 },
+    ])
+    c = applyEndOfGame(c, draft()).company
+    c = buy(c, 1, { climbing: 'Grappling Hook', ip: ['stat_0', 'climbing'] }, 'climbing', 6)
+    expect(c.campaign.upgrades.at(-1)).toMatchObject({ afterGame: 1, name: 'Vex', kind: 'gear', item: 'Grappling Hook', label: 'Grappling Hook' })
+    expect(upgradeLabel({ weapon2: 'Shield' }, 'weapon2')).toEqual({ kind: 'gear', item: 'Shield', label: 'Shield' })
+  })
+
+  it('a changed item updates its entry instead of adding one', () => {
+    let c = buy(trio(), 2, { earnedIP: 1, consumable: 'Fog of War Flask', ip: ['consumable'] }, 'consumable')
+    c = withSlot(c, 2, { consumable: 'Canister of Creeping Death' })
+    const camp = syncUpgradeItem(c, 2, 'consumable')
+    expect(camp.upgrades).toHaveLength(1)
+    expect(camp.upgrades[0]).toMatchObject({ item: 'Canister of Creeping Death', label: 'Canister of Creeping Death' })
+  })
+
+  it("undo last upgrade removes only that warrior's latest entry", () => {
+    let c = buy(trio(), 1, { earnedIP: 3, statImproves: ['MOV'], ip: ['stat_0'] }, 'stat_0')
+    c = buy(c, 2, { earnedIP: 1, climbing: 'Ladder', ip: ['climbing'] }, 'climbing')
+    c = buy(c, 1, { climbing: 'Ladder', ip: ['stat_0', 'climbing'] }, 'climbing')
+    const camp = unlogLastUpgrade(c, c.slots[1])
+    expect(camp.upgrades.map(e => [e.uid, e.id])).toEqual([[c.slots[1].uid, 'stat_0'], [c.slots[2].uid, 'climbing']])
+  })
+
+  it('undoing a game drops the upgrades bought after it', () => {
+    let c = buy(trio(), 1, { earnedIP: 1, statImproves: ['MOV'], ip: ['stat_0'] }, 'stat_0')
+    c = applyEndOfGame(c, draft()).company
+    c = buy(c, 1, { climbing: 'Ladder', ip: ['stat_0', 'climbing'] }, 'climbing')
+    expect(c.campaign.upgrades.map(e => e.afterGame)).toEqual([0, 1])
+    const back = undoLastGame(c)
+    expect(back.campaign.upgrades.map(e => e.id)).toEqual(['stat_0'])
+    expect(back.campaign.log[0]?.before).toBeUndefined()
+    expect(back.slots[1].ip).toEqual(['stat_0'])
+  })
+
+  it('standard companies log nothing', () => {
+    const std = { companyMode: 'standard', campaign: null, slots: [warrior('Fighter', { ip: ['climbing'], climbing: 'Ladder' })] }
+    expect(logUpgrade(std, 0, 'climbing')).toBeNull()
   })
 })

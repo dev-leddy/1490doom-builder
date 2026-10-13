@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useBuilderStore, getAvailableWarriorTypes } from '../store/builderStore'
 import { WARRIOR_IMAGES } from '../data/images'
 import BottomSheet from '../shared/BottomSheet'
+import { fallenName } from './campaignUi'
 
 // Recruit a new warrior into an empty campaign slot (a fallen warrior's place).
 // Starting IP is 0 by the rules; the field is there for house rules.
@@ -39,7 +40,7 @@ export default function RecruitSheet({ slotIndex, onClose }) {
       }
     >
       {slot?.fallen && (
-        <p className="eog-help">Replacing {slot.fallen.name}, who fell in game {slot.fallen.game}.</p>
+        <p className="eog-help">Replacing {fallenName(slot.fallen)}, who fell in game {slot.fallen.game}.</p>
       )}
 
       {canLead && (

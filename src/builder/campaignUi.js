@@ -19,7 +19,30 @@ export function resultTally(log = []) {
   return Object.entries(n).filter(([, c]) => c).map(([k, c]) => `${c}${RESULT_LETTER[k]}`).join(' ')
 }
 
-// Name of a warrior in a game record, by uid (roster first, then the fallen list)
+// A fallen warrior's name: "Brother Aldric (Warrior Priest)" with a custom name, else the class.
+// Takes a slot ({ customName, type }) or a record entry ({ name, type }).
+export function fallenName(w) {
+  if (!w) return 'A warrior'
+  const name = (w.customName ?? w.name ?? '').trim()
+  return name && name !== w.type ? `${name} (${w.type})` : (w.type || name || 'A warrior')
+}
+
+// Name of a warrior in a game record, by uid. The fallen are named with their class.
 export function nameInRecord(record, uid) {
-  return record.roster?.find(r => r.uid === uid)?.name || record.fallen?.find(f => f.uid === uid)?.name || 'A warrior'
+  const fell = record.fallen?.find(f => f.uid === uid)
+  if (fell) return fallenName(fell)
+  return record.roster?.find(r => r.uid === uid)?.name || 'A warrior'
+}
+
+// Upgrades bought between games, grouped per warrior in purchase order:
+// [{ uid, name, labels: ['Combat', 'Grappling Hook'] }] for those bought after `afterGame` games
+export function upgradesAfter(campaign, afterGame) {
+  const groups = []
+  for (const e of campaign?.upgrades || []) {
+    if (e.afterGame !== afterGame) continue
+    let g = groups.find(x => x.uid === e.uid)
+    if (!g) groups.push(g = { uid: e.uid, name: e.name, labels: [] })
+    g.labels.push(e.label || e.item || e.stat)
+  }
+  return groups
 }

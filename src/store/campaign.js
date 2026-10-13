@@ -4,7 +4,8 @@
 // A campaign company carries, besides campaignGame (games played):
 //   slot.uid         stable id of the warrior in that slot (a new recruit gets a new one)
 //   slot.fallen      on an empty slot: { uid, type, name, game } of the warrior who died there
-//   campaign         { v, log, completedAt, needsCaptain }
+//   campaign         { v, log, upgrades, completedAt, needsCaptain }
+//   campaign.upgrades[] every upgrade bought, when and by whom (see logUpgrade)
 //   campaign.log[]   one record per game, see applyEndOfGame. Only the latest record keeps
 //                    `before` (the company as it was), which is what makes undoLastGame exact.
 //
@@ -49,6 +50,7 @@ export function normalizeCampaign(company) {
     v: 1, completedAt: null, needsCaptain: false,
     ...c,
     log: Array.isArray(c.log) ? c.log : [],
+    upgrades: Array.isArray(c.upgrades) ? c.upgrades : [],
   }
   return { ...company, slots, campaign, campaignGame: company.campaignGame || 0 }
 }
@@ -209,7 +211,8 @@ export function applyEndOfGame(company, draft, { now = Date.now() } = {}) {
   const c = normalizeCampaign(company)
   const plan = planGame(c, draft)
   const gameNumber = campaignProgress(c).completed + 1
-  const { log: _log, ...campaignState } = c.campaign
+  // The log and the upgrade list are rebuilt on undo, so the snapshot leaves them out
+  const { log: _log, upgrades: _upgrades, ...campaignState } = c.campaign
   const before = { slots: c.slots, campaignGame: c.campaignGame, campaign: campaignState }
 
   // Awards
@@ -277,11 +280,14 @@ export function canUndoLastGame(company) {
 
 // Puts the company back exactly as it was before the latest game (anything changed since,
 // such as upgrades bought or recruits hired, is lost too). Only the latest game; null if none.
+// Upgrades logged after that game go too: the restored slots no longer have them.
 export function undoLastGame(company) {
   if (!canUndoLastGame(company)) return null
   const log = company.campaign.log
-  const { slots, campaignGame, campaign } = log.at(-1).before
-  return { ...company, slots, campaignGame, campaign: { ...campaign, log: log.slice(0, -1) } }
+  const last = log.at(-1)
+  const { slots, campaignGame, campaign } = last.before
+  const upgrades = (company.campaign.upgrades || []).filter(e => e.afterGame < last.gameNumber)
+  return { ...company, slots, campaignGame, campaign: { ...campaign, log: log.slice(0, -1), upgrades } }
 }
 
 // ── Recruiting ────────────────────────────────────────────────────────────────
@@ -400,4 +406,63 @@ export function undoLastUpgrade(slot) {
   }
   if (last === 'climbing' || last === 'consumable') return { ...slot, ip: rest, [last]: null }
   return { ...slot, ip: rest }
+}
+
+// ── Upgrade log ───────────────────────────────────────────────────────────────
+// campaign.upgrades: one entry per upgrade bought, in order:
+//   { afterGame, uid, name, id, kind: 'stat' | 'gear', stat?, item?, label, at }
+// afterGame is the number of games played when it was bought (0 = the starting company),
+// id is the slot.ip entry it paid for, label is what the UI shows ("Combat", "Grappling Hook").
+
+// What the IP entry `id` on this slot bought: { kind, stat?, item?, label }
+export function upgradeLabel(slot, id) {
+  const stat = /^stat_(\d+)$/.exec(id)
+  if (stat || id === 'stat') {
+    const k = stat ? (slot.statImproves || [])[Number(stat[1])] : slot.statImprove
+    return { kind: 'stat', stat: k ?? null, label: (STAT_IMPROVEMENT[k] || k || 'Stat').replace(/ \+1$/, '') }
+  }
+  const item = slot[id] ?? null
+  return { kind: 'gear', item, label: item || id }
+}
+
+// The campaign with the purchase of slot.ip entry `id` by this slot logged.
+// Non-campaign companies get their campaign back unchanged.
+export function logUpgrade(company, slotIndex, id, { now = Date.now() } = {}) {
+  const slot = company?.slots?.[slotIndex]
+  if (company?.companyMode !== 'campaign' || !slot?.type || !company.campaign) return company?.campaign ?? null
+  const entry = {
+    afterGame: campaignProgress(company).completed,
+    uid: slot.uid, name: nameOf(slot), id,
+    ...upgradeLabel(slot, id),
+    at: now,
+  }
+  return { ...company.campaign, upgrades: [...(company.campaign.upgrades || []), entry] }
+}
+
+const latestEntryIndex = (upgrades, uid, id) => {
+  for (let i = upgrades.length - 1; i >= 0; i--) {
+    if (upgrades[i].uid === uid && (id == null || upgrades[i].id === id)) return i
+  }
+  return -1
+}
+
+// A bought item changed (e.g. which consumable): update its entry instead of adding one
+export function syncUpgradeItem(company, slotIndex, id) {
+  const slot = company?.slots?.[slotIndex]
+  const upgrades = company?.campaign?.upgrades || []
+  const at = slot ? latestEntryIndex(upgrades, slot.uid, id) : -1
+  if (at < 0) return company?.campaign ?? null
+  const next = [...upgrades]
+  next[at] = { ...next[at], ...upgradeLabel(slot, id) }
+  return { ...company.campaign, upgrades: next }
+}
+
+// Undo last upgrade: drop this warrior's latest entry (the one for slot.ip's last id if logged)
+export function unlogLastUpgrade(company, slot) {
+  const upgrades = company?.campaign?.upgrades || []
+  if (!slot) return company?.campaign ?? null
+  let at = latestEntryIndex(upgrades, slot.uid, (slot.ip || []).at(-1))
+  if (at < 0) at = latestEntryIndex(upgrades, slot.uid)
+  if (at < 0) return company.campaign ?? null
+  return { ...company.campaign, upgrades: upgrades.filter((_, i) => i !== at) }
 }

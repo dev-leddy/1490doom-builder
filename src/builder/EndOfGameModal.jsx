@@ -6,6 +6,7 @@ import { WARRIOR_IMAGES } from '../data/images'
 import { CAMPAIGN_RULES } from '../data/campaign'
 import { validateEndOfGame, endOfGameWarnings, spendableCapacity, campaignProgress } from '../store/campaign'
 import BottomSheet from '../shared/BottomSheet'
+import { fallenName } from './campaignUi'
 
 // ── End of a campaign game: a stepped sheet ───────────────────────────────────
 // Result -> The fallen -> New Captain (if needed) -> Award IP (not on a retreat) -> Review.
@@ -24,12 +25,13 @@ const NEXT_LABEL = { fallen: 'Next: who fell', captain: 'Next: new Captain', awa
 
 const nameOf = s => (s.customName && s.customName.trim()) || s.type
 
-function Identity({ s, meta, star }) {
+// fell: name a fallen warrior with their class ("Brother Aldric (Warrior Priest)")
+function Identity({ s, meta, star, fell }) {
   return (
     <span className="eog-identity">
       <img src={WARRIOR_IMAGES[s.type]} alt="" className="eog-portrait-lg" />
       <span className="eog-identity-text">
-        <span className="eog-name">{nameOf(s)}{star && <span className="eog-star" aria-label="Captain"> ★</span>}</span>
+        <span className="eog-name">{fell ? fallenName(s) : nameOf(s)}{star && <span className="eog-star" aria-label="Captain"> ★</span>}</span>
         {meta && <span className="eog-meta">{meta}</span>}
       </span>
     </span>
@@ -333,7 +335,7 @@ export default function EndOfGameModal({ onClose, onConfirm, initialResult = nul
                 : `${rises ? '★ New Captain · ' : s.isCaptain ? 'Captain · ' : ''}${s.earnedIP || 0} → ${(s.earnedIP || 0) + gain} IP`
               return (
                 <div key={s.index} className={`eog-ledger-row${fell ? ' is-fell' : ''}`} data-slot={s.index}>
-                  <Identity s={s} meta={meta} />
+                  <Identity s={s} meta={meta} fell={fell} />
                   {fell
                     ? <span className="eog-ledger-note">Fell</span>
                     : <span className={`eog-ledger-delta${gain ? '' : ' is-zero'}`}>+{gain}</span>}

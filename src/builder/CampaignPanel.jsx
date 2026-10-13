@@ -3,7 +3,7 @@ import { useBuilderStore } from '../store/builderStore'
 import { campaignProgress, canUndoLastGame, vacancies } from '../store/campaign'
 import BottomSheet from '../shared/BottomSheet'
 import ConfirmModal from '../shared/ConfirmModal'
-import { RESULT_LETTER, RESULT_NAME, AWARD_REASON, spendableNow, resultTally, nameInRecord } from './campaignUi'
+import { RESULT_LETTER, RESULT_NAME, AWARD_REASON, spendableNow, resultTally, nameInRecord, fallenName, upgradesAfter } from './campaignUi'
 
 // ── Campaign panel in the company header ──────────────────────────────────────
 // "Before game N of 6" with the six-game track, what to do before the next game,
@@ -30,8 +30,23 @@ function scrollToSlot(selector) {
   el.querySelector('.slot-recruit-btn, .ip-upgrade-btn, button')?.focus({ preventScroll: true })
 }
 
-function GameLogSheet({ log, legacyGames, onClose }) {
+// "Upgrades before game 3" / "Starting company": "Name: Combat, Grappling Hook" per warrior
+function UpgradeGroup({ title, groups }) {
+  if (!groups.length) return null
+  return (
+    <div className="cmp-log-upgrades" style={{ marginTop: '0.4rem', fontSize: '0.9rem' }}>
+      <div className="cmp-log-upgrades-title" style={{ fontSize: '0.75rem', letterSpacing: '0.08em', textTransform: 'uppercase', opacity: 0.75 }}>{title}</div>
+      {/* Inline basics until builder-ui.css styles .cmp-log-upgrades */}
+      <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+        {groups.map(g => <li key={g.uid}><span className="cmp-log-upgrades-name">{g.name}:</span> {g.labels.join(', ')}</li>)}
+      </ul>
+    </div>
+  )
+}
+
+function GameLogSheet({ log, legacyGames, campaign, onClose }) {
   const fallenRoll = log.flatMap(r => (r.fallen || []).map(f => ({ ...f, game: r.gameNumber })))
+  const starting = upgradesAfter(campaign, 0)
   return (
     <BottomSheet title="GAME LOG" onClose={onClose} className="cmp-log-sheet"
       footer={<button className="co-sheet-done" onClick={onClose}>Done</button>}>
@@ -39,6 +54,11 @@ function GameLogSheet({ log, legacyGames, onClose }) {
         <p className="eog-help">{legacyGames === 1 ? 'Game 1 was' : `Games 1 to ${legacyGames} were`} played before the log was kept.</p>
       )}
       {log.length === 0 && legacyGames === 0 && <p className="eog-help">No games recorded yet. Use End of game after each game.</p>}
+      {starting.length > 0 && (
+        <div className="cmp-log-game cmp-log-start">
+          <UpgradeGroup title="Starting company" groups={starting} />
+        </div>
+      )}
       <ol className="cmp-log">
         {log.map(r => {
           const awards = (r.awards || []).map(a => `${nameInRecord(r, a.uid)} +${a.ip} (${AWARD_REASON[a.reason] || a.reason})`)
@@ -51,7 +71,7 @@ function GameLogSheet({ log, legacyGames, onClose }) {
               </div>
               {r.scenario && <div className="cmp-log-scenario">{r.scenario}</div>}
               <dl className="cmp-log-facts">
-                <div><dt>Fell</dt><dd>{r.fallen?.length ? r.fallen.map(f => f.name).join(', ') : 'No one'}</dd></div>
+                <div><dt>Fell</dt><dd>{r.fallen?.length ? r.fallen.map(fallenName).join(', ') : 'No one'}</dd></div>
                 <div><dt>IP</dt><dd>{awards.length ? awards.join(', ') : r.result === 'retreat' ? 'None (retreated)' : 'None'}</dd></div>
                 {cc && (
                   <div><dt>Captain</dt><dd>{cc.to
@@ -59,6 +79,7 @@ function GameLogSheet({ log, legacyGames, onClose }) {
                     : `${nameInRecord(r, cc.from)} fell with the whole company. A recruit leads next.`}</dd></div>
                 )}
               </dl>
+              <UpgradeGroup title={`Upgrades before game ${r.gameNumber + 1}`} groups={upgradesAfter(campaign, r.gameNumber)} />
             </li>
           )
         })}
@@ -68,7 +89,7 @@ function GameLogSheet({ log, legacyGames, onClose }) {
           <h3 className="cmp-fallen-title">The fallen</h3>
           <ul>
             {fallenRoll.map(f => (
-              <li key={`${f.uid}-${f.game}`}><span>{f.name}{f.name !== f.type ? ` (${f.type})` : ''}</span><span>Game {f.game} · {f.earnedIP || 0} IP</span></li>
+              <li key={`${f.uid}-${f.game}`}><span>{fallenName(f)}</span><span>Game {f.game} · {f.earnedIP || 0} IP</span></li>
             ))}
           </ul>
         </section>
@@ -98,7 +119,7 @@ export default function CampaignPanel({ onEndOfGame }) {
   const undoRules = last ? [
     { label: 'Result', text: `Game ${last.gameNumber} (${RESULT_NAME[last.result]}) comes off the log.` },
     ...(last.awards?.length ? [{ label: 'IP', text: `${last.awards.map(a => `${nameInRecord(last, a.uid)} +${a.ip}`).join(', ')} taken back.` }] : []),
-    ...(last.fallen?.length ? [{ label: 'The fallen', text: `${last.fallen.map(f => f.name).join(', ')} return to the company.` }] : []),
+    ...(last.fallen?.length ? [{ label: 'The fallen', text: `${last.fallen.map(fallenName).join(', ')} return to the company.` }] : []),
     ...(last.captainChange ? [{ label: 'Captain', text: `${nameInRecord(last, last.captainChange.from)} leads again.` }] : []),
     { label: 'Since then', text: `Recruits hired and upgrades bought after game ${last.gameNumber} are lost too.`, limit: true },
   ] : []
@@ -144,7 +165,7 @@ export default function CampaignPanel({ onEndOfGame }) {
         </button>
       </div>
 
-      {logOpen && <GameLogSheet log={log} legacyGames={legacyGames} onClose={() => setLogOpen(false)} />}
+      {logOpen && <GameLogSheet log={log} legacyGames={legacyGames} campaign={campaign} onClose={() => setLogOpen(false)} />}
       {confirmUndo && last && (
         <ConfirmModal
           title={`UNDO GAME ${last.gameNumber}?`}

@@ -7,6 +7,7 @@ import { SvgGear } from './icons'
 import WarriorLoadout from './WarriorLoadout'
 import WarriorSettingsSheet from './WarriorSettingsSheet'
 import RecruitSheet from './RecruitSheet'
+import { fallenName } from './campaignUi'
 import { getEffectiveStats, statTone, STAT_KEYS } from '../utils/stats'
 
 // ── Stats Row ────────────────────────────────────────────────────────────────
@@ -104,7 +105,7 @@ export default function WarriorCard({ slotIndex, slot }) {
         <>
           <p className="slot-fallen-note">
             {slot.fallen
-              ? <><strong>Fell in game {slot.fallen.game}:</strong> {slot.fallen.name}. Recruit a replacement. New warriors start with 0 IP.{needsCaptain && slot.isCaptain && ' Your company has no Captain: make one of your recruits Captain.'}</>
+              ? <><strong>Fell in game {slot.fallen.game}:</strong> {fallenName(slot.fallen)}. Recruit a replacement. New warriors start with 0 IP.{needsCaptain && slot.isCaptain && ' Your company has no Captain: make one of your recruits Captain.'}</>
               : <><strong>No Captain:</strong> the whole company fell. Recruit a new warrior to lead it.</>}
           </p>
           <button className="slot-choose-btn slot-recruit-btn" onClick={() => setShowRecruit(true)}>+ Recruit a new warrior</button>
