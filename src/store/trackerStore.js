@@ -17,7 +17,6 @@ const GEAR_OPG_COPY = {
     note: 'Declare after a successful COMBAT check, before damage.',
     confirmLabel: 'SHATTER SHIELD',
     doneToast: com => `Shield shattered. COMBAT now ${com}.`,
-    undoBody: () => 'For mistakes only. The Shield comes back with GUARDED and +1 DEF, the Polearm goes back to one hand, and COMBAT gets its -1 again.',
     undoneToast: com => `Shield restored. COMBAT back to ${com}.`,
   },
 }
@@ -343,7 +342,7 @@ export const useTrackerStore = create((set, get) => ({
     if (isUsed) {
       get().openConfirm(
         `Undo ${abilityName}?`,
-        copy.undoBody ? copy.undoBody(comNext) : 'For a mis-tap only. The gear comes back as it was.',
+        '',  // just the question: the title asks whether to undo
         apply,
         { confirmLabel: 'UNDO' }
       )

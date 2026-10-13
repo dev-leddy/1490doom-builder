@@ -16,7 +16,7 @@ export default function ConfirmModal({ title, subtitle, rules, note, confirmLabe
         </>
       }
     >
-      <p className="confirm-modal-text" style={className ? undefined : { color: '#fff', lineHeight: 1.6, margin: 0, fontSize: '1rem' }}>{subtitle}</p>
+      {subtitle && <p className="confirm-modal-text" style={className ? undefined : { color: '#fff', lineHeight: 1.6, margin: 0, fontSize: '1rem' }}>{subtitle}</p>}
       {rules?.length > 0 && (
         <dl className="tk-rule-list tk-confirm-rules">
           {rules.map(r => (
