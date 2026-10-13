@@ -17,7 +17,7 @@ const GEAR_OPG_COPY = {
     note: 'Declare after a successful COMBAT check, before damage.',
     confirmLabel: 'SHATTER SHIELD',
     doneToast: com => `Shield shattered. COMBAT now ${com}.`,
-    undoBody: com => `For a mis-tap only. The Shield comes back with GUARDED and +1 DEF, the Polearm goes back to one hand and COMBAT returns to ${com}.`,
+    undoBody: () => 'For mistakes only. The Shield comes back with GUARDED and +1 DEF, the Polearm goes back to one hand, and COMBAT gets its -1 again.',
     undoneToast: com => `Shield restored. COMBAT back to ${com}.`,
   },
 }
