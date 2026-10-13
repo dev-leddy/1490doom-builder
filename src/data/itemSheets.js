@@ -18,7 +18,7 @@ export const ITEM_SHEETS = {
   'Polearm (one-handed)': {
     tag: 'Melee weapon · Reach',
     keys: [{ label: 'HANDS', value: '1' }],
-    rules: [{ label: 'PENALTY', text: '-1 to all COMBAT Checks.', note: 'Counted in COM', limit: true }],
+    rules: [{ label: 'PENALTY', text: '-1 to all COMBAT Checks.', limit: true }],
   },
   'Bow': { tag: 'Ranged weapon', keys: [{ label: 'HANDS', value: '2' }] },
   'Crossbow': { tag: 'Ranged weapon', keys: [{ label: 'HANDS', value: '2' }] },

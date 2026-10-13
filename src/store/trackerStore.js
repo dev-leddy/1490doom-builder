@@ -12,7 +12,7 @@ import { afterUseOf, playUnit } from './trackerLoadout'
 // Confirm and toast copy for OPG abilities that change the gear (see _confirmGearOPG)
 const GEAR_OPG_COPY = {
   'THE SHATTERED SHIELD': {
-    body: 'Block all damage from this ATTACK. Blocks a Piercing Blow (no Breached), not other special abilities.',
+    body: 'Blocks all damage from one standard ATTACK. This can block a Piercing Blow, but cannot block any other special abilities.',
     destroyedText: { 'Shield': 'Destroyed. GUARDED and +1 DEF are lost.' },
     note: 'Declare after a successful COMBAT check, before damage.',
     confirmLabel: 'SHATTER SHIELD',
