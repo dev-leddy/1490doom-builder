@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTrackerStore } from '../store/trackerStore'
+import { playUnit } from '../store/trackerLoadout'
 import { WARRIORS, STAT_IMPROVEMENT } from '../data/warriors'
 import { WARRIOR_IMAGES } from '../data/images'
 import { WEAPONS, CLIMBING_DESCS, CONSUMABLES } from '../data/weapons'
@@ -75,11 +76,37 @@ function IPUpgrades({ warrior: w }) {
   )
 }
 
+// Stats whose shown value just changed on this warrior (e.g. COM after The Shattered Shield or
+// a status), for a brief outline. Switching to another warrior's tab doesn't count as a change.
+const STAT_FLASH_MS = 2400
+function useChangedStats(id, stats) {
+  const prev = useRef(null)
+  const [changed, setChanged] = useState([])
+  const sig = STAT_KEYS.map(s => stats[s].display).join('|')
+  useEffect(() => {
+    const now = sig.split('|')
+    const before = prev.current
+    prev.current = { id, now }
+    if (!before || before.id !== id) { setChanged([]); return }
+    // VIT shows max vitality, not the stat, so it's left out
+    const diff = STAT_KEYS.filter((s, i) => s !== 'VIT' && before.now[i] !== now[i])
+    if (diff.length === 0) return
+    setChanged(diff)
+    const t = setTimeout(() => setChanged([]), STAT_FLASH_MS)
+    return () => clearTimeout(t)
+  }, [id, sig])
+  return changed
+}
+
 export default function WarriorTrackerCard({ warrior: w, wi }) {
   const { openCacheLoot, openStatusModal, toggleActivated } = useTrackerStore()
   const wdata = WARRIORS[w.type]
   const portrait = WARRIOR_IMAGES[w.type]
-  const stats = getEffectiveStats(w, { statuses: w.statuses })
+  // The warrior with its current gear (an ability like The Shattered Shield can change it);
+  // store actions still take wi
+  const pw = playUnit(w)
+  const stats = getEffectiveStats(pw, { statuses: w.statuses })
+  const changedStats = useChangedStats(wi, stats)
 
   return (
     <div className={`tk-card${w.dead ? ' tk-dead' : ''}${w.isCaptain ? ' is-captain' : ''}`}>
@@ -119,7 +146,7 @@ export default function WarriorTrackerCard({ warrior: w, wi }) {
         <div className="tk-hdr-btn-group">
           <button className="tk-hdr-btn tk-hdr-btn-cache" onClick={() => openCacheLoot(wi)}>+ CACHE</button>
           <button className="tk-hdr-btn tk-hdr-btn-status" onClick={() => openStatusModal(wi)}>+ STATUS</button>
-          <IPUpgrades warrior={w} />
+          <IPUpgrades warrior={pw} />
         </div>
       </div>
 
@@ -131,7 +158,7 @@ export default function WarriorTrackerCard({ warrior: w, wi }) {
         {STAT_KEYS.map(s => {
           const toneClass = { improved: 'tk-stat-improved', debuffed: 'tk-stat-debuffed' }[statTone(stats[s])] || ''
           return (
-            <div key={s} className={`tk-stat ${toneClass}`}>
+            <div key={s} className={`tk-stat ${toneClass}${changedStats.includes(s) ? ' tk-stat--changed' : ''}`}>
               <span className="tk-stat-lbl">{s}</span>
               <span className="tk-stat-val">{s === 'VIT' ? w.maxVit : stats[s].display}</span>
             </div>
@@ -145,11 +172,11 @@ export default function WarriorTrackerCard({ warrior: w, wi }) {
 
       {/* Equipment (weapons, climbing, consumable, cache items) */}
       <div className="tk-section-label" style={{ marginTop: '0.7rem' }}>Equipment</div>
-      <EquipmentBlock wi={wi} warrior={w} />
+      <EquipmentBlock wi={wi} warrior={pw} />
 
       {/* Abilities */}
       <div className="tk-section-label" style={{ marginTop: '0.7rem' }}>Abilities</div>
-      <AbilityBlock wi={wi} warrior={w} wdata={wdata} />
+      <AbilityBlock wi={wi} warrior={pw} wdata={wdata} />
 
       {/* Homebrew Notes */}
       {(w.notes || []).length > 0 && (
@@ -168,9 +195,11 @@ export default function WarriorTrackerCard({ warrior: w, wi }) {
         </>
       )}
 
-      {/* Restrictions */}
+      {/* Restrictions (once The Shattered Shield has destroyed the Shield, the gear rule changes) */}
       {wdata.restrictions && (
-        <div className="tk-restrictions">{wdata.restrictions}</div>
+        <div className="tk-restrictions">
+          {pw.destroyedGear.length > 0 && wdata.restrictionsShattered ? wdata.restrictionsShattered : wdata.restrictions}
+        </div>
       )}
     </div>
   )

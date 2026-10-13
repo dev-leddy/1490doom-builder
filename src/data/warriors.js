@@ -84,9 +84,15 @@ export const WARRIORS = {
     abilities: [
       { name: 'GAUNT GALLOP', desc: 'Anytime the Hedge Knight has performed the DASH Action that brings them in CONTACT with an opposing model, that model makes a SKILL Check. If they fail, they lose 1 VITALITY. If they succeed, the Hedge Knight becomes Hindered.' },
       { name: 'SQUIRE OF MUD AND ROOT', desc: 'The Hedge Knight cannot be Immobilized. In addition, anytime the Hedge Knight successfully inspects a resource cache, they only find Food.' },
-      { name: 'THE SHATTERED SHIELD', desc: 'Once per game, the Hedge Knight can block all damage from one standard ATTACK. This ability must be declared after a successful COMBAT check, but before damage is dealt. This ability can block a Piercing Blow, but cannot block any other special abilities. After using this ability, the Hedge Knight\'s Shield is destroyed, and wields their Polearm with two hands for the rest of the game.' },
+      { name: 'THE SHATTERED SHIELD', desc: 'Once per game, the Hedge Knight can block all damage from one standard ATTACK. This ability must be declared after a successful COMBAT check, but before damage is dealt. This ability can block a Piercing Blow, but cannot block any other special abilities. After using this ability, the Hedge Knight\'s Shield is destroyed, and wields their Polearm with two hands for the rest of the game.',
+        // Play mode: once used, the gear changes for the rest of the game (see store/trackerLoadout.js)
+        afterUse: {
+          gear: { 'Shield': null, 'Polearm (one-handed)': 'Polearm (two-handed)' },
+          summary: 'The Shield is destroyed. The Polearm is wielded with two hands for the rest of the game.',
+        } },
     ],
     restrictions: 'Always equipped with a Polearm and Shield at no cost. Still has -1 COMBAT while using both a Shield and Polearm.',
+    restrictionsShattered: 'Shield destroyed by The Shattered Shield. Polearm wielded two-handed, no COMBAT penalty.',
     allowedWeapons: ['Polearm (one-handed)', 'Shield'],
     cantHave: ['Light Weapon', 'Heavy Weapon', 'Bow', 'Crossbow'],
     fixedWeapon: 'Polearm (one-handed)',

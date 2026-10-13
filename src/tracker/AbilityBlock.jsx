@@ -1,5 +1,16 @@
-import { useTrackerStore, canRestoreWithReliquary } from '../store/trackerStore'
+import { useTrackerStore } from '../store/trackerStore'
 import { WEAPONS } from '../data/weapons'
+
+// "Shield destroyed · Polearm two-handed": what a used ability changed on this warrior
+// (w is the play-mode unit, so its gear is already swapped)
+function gearChangeNote(gear, w) {
+  const parts = []
+  for (const [from, to] of Object.entries(gear)) {
+    if (!to && w.destroyedGear?.includes(from)) parts.push(`${from} destroyed`)
+    else if (to && (w.weapon1 === to || w.weapon2 === to)) parts.push(to.replace(/\s*\((.+)\)$/, ' $1'))
+  }
+  return parts.join(' · ')
+}
 
 export default function AbilityBlock({ wi, warrior: w, wdata }) {
   const { toggleOPG, toggleOPR, tapTPG } = useTrackerStore()
@@ -80,21 +91,27 @@ export default function AbilityBlock({ wi, warrior: w, wdata }) {
         // ── ONCE PER GAME ───────────────────────────────────────
         if (isOPG) {
           const isUsed = !!w.opgUsed[ab.name]
-          const isPermanent = !canRestoreWithReliquary(ab.name)
-          const badgeLabel = isUsed ? (isPermanent ? '✓ PERMANENT' : '✓ USED') : 'ONCE PER GAME'
-          const badgeCls = `tk-opg-badge${isUsed && isPermanent ? ' tk-opg-permanent' : isUsed ? ' tk-opg-used' : ''}`
+          // Abilities that change the gear (The Shattered Shield) say what changed, and that a mis-tap can be undone
+          const changesGear = isUsed && !!ab.afterUse
+          const activate = () => toggleOPG(wi, ab.name)
           return (
             <div
               key={i}
               className={`tk-ability${isUsed ? ' tk-ability-used' : ''}`}
-              onClick={!w.dead ? () => toggleOPG(wi, ab.name) : undefined}
+              onClick={!w.dead ? activate : undefined}
+              onKeyDown={!w.dead ? e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate() } } : undefined}
+              role={!w.dead ? 'button' : undefined}
+              tabIndex={!w.dead ? 0 : undefined}
+              aria-pressed={!w.dead ? isUsed : undefined}
               style={!w.dead ? { cursor: 'pointer' } : {}}
             >
               <div className="tk-ability-header">
                 <span className="tk-ability-name">{ab.name}</span>
-                <span className={badgeCls}>{badgeLabel}</span>
+                <span className={`tk-opg-badge${isUsed ? ' tk-opg-used' : ''}`}>{isUsed ? '✓ USED' : 'ONCE PER GAME'}</span>
               </div>
+              {changesGear && <span className="tk-ability-note">{gearChangeNote(ab.afterUse.gear, w)}</span>}
               <div className="tk-ability-desc">{ab.desc}</div>
+              {changesGear && !w.dead && <span className="tk-ability-undo">Tapped by mistake? Tap to undo</span>}
             </div>
           )
         }

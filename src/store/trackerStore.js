@@ -5,8 +5,22 @@ import { useBuilderStore } from './builderStore'
 import { saveGame, deleteGame } from '../api/games'
 import { getEffectiveStats } from '../utils/stats'
 import { expendHerbs, expendReliquary, expendCacheItem, undoCacheItem, undoCacheItemNote } from './trackerItems'
+import { afterUseOf, playUnit } from './trackerLoadout'
 
 // ── HELPERS ──────────────────────────────────────────────────────────────────
+
+// Confirm and toast copy for OPG abilities that change the gear (see _confirmGearOPG)
+const GEAR_OPG_COPY = {
+  'THE SHATTERED SHIELD': {
+    body: 'Block all damage from this ATTACK. Blocks a Piercing Blow (no Breached), not other special abilities.',
+    destroyedText: { 'Shield': 'Destroyed. GUARDED and +1 DEF are lost.' },
+    note: 'Declare after a successful COMBAT check, before damage.',
+    confirmLabel: 'SHATTER SHIELD',
+    doneToast: com => `Shield shattered. COMBAT now ${com}.`,
+    undoBody: com => `For a mis-tap only. The Shield comes back with GUARDED and +1 DEF, the Polearm goes back to one hand and COMBAT returns to ${com}.`,
+    undoneToast: com => `Shield restored. COMBAT back to ${com}.`,
+  },
+}
 
 export function getOPGAbilities(warriorType) {
   const wdata = WARRIORS[warriorType]
@@ -287,6 +301,7 @@ export const useTrackerStore = create((set, get) => ({
     if (w.dead) return
     const label = abilityName === '__captain__' ? 'Captain Re-Roll' : abilityName
     const isUsed = !!w.opgUsed[abilityName]
+    if (afterUseOf(w.type, abilityName)) return get()._confirmGearOPG(wi, abilityName)
     get().openConfirm(
       isUsed ? `Restore ${label}?` : `Use ${label}?`,
       isUsed ? 'Mark this ability as available again.' : 'This once per game ability will be marked as used.',
@@ -300,6 +315,56 @@ export const useTrackerStore = create((set, get) => ({
         })
         persistState(get)
       }
+    )
+  },
+
+  // An OPG ability that changes the gear (The Shattered Shield): the confirm spells out what
+  // is lost and how COMBAT changes; undo (for a mis-tap) says what comes back
+  _confirmGearOPG(wi, abilityName) {
+    const w = get().warriors[wi]
+    const rule = afterUseOf(w.type, abilityName)
+    const copy = GEAR_OPG_COPY[abilityName] || {}
+    const isUsed = !!w.opgUsed[abilityName]
+    const com = used => getEffectiveStats(playUnit({ ...w, opgUsed: { ...w.opgUsed, [abilityName]: used } }), { statuses: w.statuses }).COM.display
+    const comNow = com(isUsed)
+    const comNext = com(!isUsed)
+    const apply = () => {
+      set(state => {
+        const warriors = [...state.warriors]
+        // oprUsed is left alone, so an undo brings back this round's shield state too
+        warriors[wi] = { ...warriors[wi], opgUsed: { ...warriors[wi].opgUsed, [abilityName]: !isUsed } }
+        return { warriors }
+      })
+      persistState(get)
+      const toast = isUsed ? copy.undoneToast : copy.doneToast
+      if (toast) useBuilderStore.getState()._toast(toast(comNext))
+    }
+
+    if (isUsed) {
+      get().openConfirm(
+        `Undo ${abilityName}?`,
+        copy.undoBody ? copy.undoBody(comNext) : 'For a mis-tap only. The gear comes back as it was.',
+        apply,
+        { confirmLabel: 'UNDO' }
+      )
+      return
+    }
+
+    // One row per gear change, then COMBAT if it moves
+    const rules = Object.entries(rule.gear)
+      .filter(([from]) => w.weapon1 === from || w.weapon2 === from)
+      .map(([from, to]) => ({
+        label: from.split(' (')[0],
+        text: to ? (/two-handed/i.test(to) ? 'Two-handed for the rest of the game.' : `Becomes ${to}.`)
+                 : (copy.destroyedText?.[from] || 'Destroyed.'),
+        limit: !to,
+      }))
+    if (comNow !== comNext) rules.push({ label: 'Combat', text: `${comNow} becomes ${comNext}.` })
+    get().openConfirm(
+      `Use ${abilityName}?`,
+      copy.body || rule.summary,
+      apply,
+      { rules, note: copy.note, confirmLabel: copy.confirmLabel }
     )
   },
 
@@ -390,6 +455,8 @@ export const useTrackerStore = create((set, get) => ({
   confirmReliquary(wi, abilityName) {
     const { reliquaryModal } = get()
     if (!reliquaryModal) return
+    // Some abilities can't be restored (The Shattered Shield: the Shield is gone)
+    if (abilityName && !canRestoreWithReliquary(abilityName)) return
     const { cacheItemId } = reliquaryModal
     set(state => {
       const warriors = [...state.warriors]
@@ -541,8 +608,9 @@ export const useTrackerStore = create((set, get) => ({
   },
 
   // ── CONFIRM MODAL ──────────────────────────────────────────────────────────
-  openConfirm(title, subtitle, onConfirm) {
-    set({ confirmModal: { title, subtitle, onConfirm } })
+  // opts: { rules: [{ label, text, limit }], note, confirmLabel } (see shared/ConfirmModal)
+  openConfirm(title, subtitle, onConfirm, opts = {}) {
+    set({ confirmModal: { ...opts, title, subtitle, onConfirm } })
   },
   closeConfirm() {
     set({ confirmModal: null })

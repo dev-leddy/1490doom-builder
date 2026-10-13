@@ -117,4 +117,27 @@ test.describe('play mode', () => {
     await expect(guardedAbility).toContainText('ONCE PER ROUND')
     await expect(shield.locator('.tk-opr-cell--used')).toHaveCount(0)
   })
+
+  test("the Hedge Knight's Shattered Shield destroys the shield until undone", async ({ page }) => {
+    await createCompany(page, { warriors: ['Hedge Knight'] })
+    await startPlay(page)
+    const com = page.locator('.tk-stat', { hasText: 'COM' }).locator('.tk-stat-val')
+    const shieldRows = page.locator('.tk-ability', { hasText: 'from Shield' })
+    await expect(com).toHaveText('5+')
+    await expect(shieldRows).toHaveCount(2)
+    // Use it: the confirm explains the consequence
+    await page.locator('.tk-ability', { hasText: 'THE SHATTERED SHIELD' }).click()
+    await expect(page.locator('.tk-confirm-rules')).toContainText('Destroyed')
+    await page.locator('.co-sheet-done', { hasText: 'SHATTER SHIELD' }).click()
+    await expect(com).toHaveText('4+')
+    await expect(page.locator('.tk-equip-card--destroyed')).toContainText('Destroyed')
+    await expect(page.locator('.tk-equip-card', { hasText: 'Polearm (two-handed)' })).toBeVisible()
+    await expect(shieldRows).toHaveCount(0)
+    // Undo from the destroyed shield tile: everything comes back
+    await page.locator('.tk-equip-card--destroyed').click()
+    await page.locator('.co-sheet-done', { hasText: 'UNDO' }).click()
+    await expect(com).toHaveText('5+')
+    await expect(page.locator('.tk-equip-card--destroyed')).toHaveCount(0)
+    await expect(shieldRows).toHaveCount(2)
+  })
 })

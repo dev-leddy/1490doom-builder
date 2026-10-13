@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useTrackerStore } from '../store/trackerStore'
 import { WEAPONS, CLIMBING_ITEMS, CLIMBING_DESCS, CONSUMABLES } from '../data/weapons'
 import { ITEM_SHEETS } from '../data/itemSheets'
+import { WARRIORS } from '../data/warriors'
 import { ITEM_ICONS } from '../data/images'
 import BottomSheet from '../shared/BottomSheet'
 
@@ -54,9 +55,15 @@ const SHIELD_OPR = [
   { key: 'SHIELD DEFENSE BONUS', short: '+1 DEF' },
 ]
 
+// Once-per-game abilities that use up a piece of gear, offered on that item's sheet too
+// (short line; the full rule is in the Abilities list)
+const GEAR_OPG_SHORT = {
+  'THE SHATTERED SHIELD': 'Block all damage from one standard ATTACK. The Shield is destroyed.',
+}
+
 // Item sheet: header (icon, type, state) > key numbers > labelled rule rows > ability toggles
-function DetailModal({ card, onClose, onExpend, dead, oprUsed, onToggleOpr }) {
-  const { name: title, desc, sheet, keys = [], opr, chip } = card
+function DetailModal({ card, onClose, onExpend, dead, oprUsed, onToggleOpr, onUseOpg }) {
+  const { name: title, desc, sheet, keys = [], opr, opg, chip } = card
   return (
     <BottomSheet
       title={title}
@@ -109,9 +116,18 @@ function DetailModal({ card, onClose, onExpend, dead, oprUsed, onToggleOpr }) {
           ))}
         </dl>
       ) : !sheet && desc ? <div className="tk-equip-detail-desc">{desc}</div> : null}
-      {opr && (
+      {(opr || opg) && (
         <div className="tk-opr-list">
-          {opr.map(a => {
+          {opg && (
+            <button type="button" className="tk-opr-row tk-opr-row--opg" onClick={() => onUseOpg(opg.key)} disabled={dead}>
+              <span className="tk-opr-row-head">
+                <span className="tk-opr-row-name">{opg.name}</span>
+                <span className="tk-opr-row-state">Once per game</span>
+              </span>
+              <span className="tk-opr-row-desc">{opg.desc}</span>
+            </button>
+          )}
+          {(opr || []).map(a => {
             const used = !!oprUsed[a.key]
             return (
               <button key={a.key} type="button" className={`tk-opr-row${used ? ' is-used' : ''}`} onClick={() => onToggleOpr(a.key)} disabled={dead} aria-pressed={used}>
@@ -131,8 +147,9 @@ function DetailModal({ card, onClose, onExpend, dead, oprUsed, onToggleOpr }) {
 
 export default function EquipmentBlock({ wi, warrior: w }) {
   const [detail, setDetail] = useState(null)
-  const { toggleConsumable, undoConsumable, spendCacheItem, undoCacheItem, toggleCrossbowLoaded, toggleOPR } = useTrackerStore()
+  const { toggleConsumable, undoConsumable, spendCacheItem, undoCacheItem, toggleCrossbowLoaded, toggleOPR, toggleOPG } = useTrackerStore()
   const aliveCount = useTrackerStore(s => s.warriors.filter(x => !x.dead).length)
+  const abilities = WARRIORS[w.type]?.abilities || []
 
   const cards = []
 
@@ -167,6 +184,7 @@ export default function EquipmentBlock({ wi, warrior: w }) {
   if (w.weapon2) {
     const wd = WEAPONS[w.weapon2]
     const isShield = w.weapon2 === 'Shield'
+    const gearOpg = abilities.find(a => a.afterUse?.gear && w.weapon2 in a.afterUse.gear && !a.afterUse.gear[w.weapon2])
     // Shield: one cell per once-per-round ability, dimmed and struck once used this round
     const meta = isShield
       ? SHIELD_OPR.map(a => ({ text: a.short, cls: `tk-opr-cell${w.oprUsed?.[a.key] ? ' tk-opr-cell--used' : ''}` }))
@@ -192,6 +210,21 @@ export default function EquipmentBlock({ wi, warrior: w }) {
         { key: 'GUARDED', name: wd.abilityName, desc: wd.abilityDesc },
         { key: 'SHIELD DEFENSE BONUS', name: wd.ability2Name, desc: wd.ability2Desc },
       ] }),
+      // Hedge Knight: The Shattered Shield, from the gear it destroys
+      ...(gearOpg && { opg: { key: gearOpg.name, name: gearOpg.name, desc: GEAR_OPG_SHORT[gearOpg.name] || gearOpg.afterUse.summary } }),
+    })
+  }
+
+  // Gear destroyed by an ability (The Shattered Shield): stays in place, marked DESTROYED; tap to undo
+  for (const name of w.destroyedGear || []) {
+    const by = abilities.find(a => a.afterUse?.gear && name in a.afterUse.gear && w.opgUsed?.[a.name])
+    cards.push({
+      key: `destroyed-${name}`,
+      icon: ITEM_ICONS[name],
+      name,
+      meta: [{ text: 'Destroyed', cls: 'tk-equip-card-stat--destroyed' }],
+      variant: 'destroyed',
+      ability: by?.name,
     })
   }
 
@@ -265,7 +298,15 @@ export default function EquipmentBlock({ wi, warrior: w }) {
     // An expended item: tapping it offers to undo (for an accidental use)
     else if (c.spent && c.variant === 'consumable') undoConsumable(wi)
     else if (c.spent && c.variant === 'cache') undoCacheItem(wi, c.cacheId)
+    // Destroyed gear: tapping offers to undo the ability that destroyed it
+    else if (c.variant === 'destroyed') { if (c.ability) toggleOPG(wi, c.ability) }
     else open(c)
+  }
+
+  // An ability from an item's sheet (The Shattered Shield): close the sheet, then its confirm
+  const handleUseOpg = (abilityName) => {
+    close()
+    toggleOPG(wi, abilityName)
   }
 
   const hasExpend = detail?.variant === 'consumable' || detail?.variant === 'cache'
@@ -281,11 +322,14 @@ export default function EquipmentBlock({ wi, warrior: w }) {
               name={c.name}
               meta={c.meta}
               state={c.state}
-              title={c.variant === 'crossbow' ? 'Tap to mark the crossbow loaded or fired' : c.spent ? 'Expended. Tap to undo' : undefined}
+              title={c.variant === 'crossbow' ? 'Tap to mark the crossbow loaded or fired'
+                : c.variant === 'destroyed' ? `Destroyed by ${c.ability || 'an ability'}. Tap to undo`
+                : c.spent ? 'Expended. Tap to undo' : undefined}
               onClick={() => handleCardClick(c)}
               isCache={c.isCache}
               faded={c.faded}
-              extraClass={c.variant === 'crossbow' ? (c.loaded ? 'tk-equip-card--loaded' : 'tk-equip-card--unloaded') : undefined}
+              extraClass={c.variant === 'crossbow' ? (c.loaded ? 'tk-equip-card--loaded' : 'tk-equip-card--unloaded')
+                : c.variant === 'destroyed' ? 'tk-equip-card--destroyed' : undefined}
               mirror={c.mirror}
             />
           ))}
@@ -300,6 +344,7 @@ export default function EquipmentBlock({ wi, warrior: w }) {
           dead={w.dead}
           oprUsed={w.oprUsed || {}}
           onToggleOpr={key => toggleOPR(wi, key)}
+          onUseOpg={handleUseOpg}
         />
       )}
     </>

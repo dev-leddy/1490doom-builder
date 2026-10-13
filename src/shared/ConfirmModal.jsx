@@ -1,7 +1,9 @@
 import BottomSheet from './BottomSheet'
 
 // className: optional theme for the sheet (play mode passes "tk-sheet tk-sheet--confirm")
-export default function ConfirmModal({ title, subtitle, onConfirm, onCancel, className }) {
+// rules: optional [{ label, text, limit }] shown as labelled rows under the subtitle (what will change)
+// note: optional small line under the rules; confirmLabel: the confirm button's text
+export default function ConfirmModal({ title, subtitle, rules, note, confirmLabel = 'CONFIRM', onConfirm, onCancel, className }) {
   return (
     <BottomSheet
       title={title}
@@ -10,11 +12,22 @@ export default function ConfirmModal({ title, subtitle, onConfirm, onCancel, cla
       footer={
         <>
           <button className="co-sheet-randomize" onClick={onCancel}>CANCEL</button>
-          <button className="co-sheet-done" onClick={onConfirm}>CONFIRM</button>
+          <button className="co-sheet-done" onClick={onConfirm}>{confirmLabel}</button>
         </>
       }
     >
       <p className="confirm-modal-text" style={className ? undefined : { color: '#fff', lineHeight: 1.6, margin: 0, fontSize: '1rem' }}>{subtitle}</p>
+      {rules?.length > 0 && (
+        <dl className="tk-rule-list tk-confirm-rules">
+          {rules.map(r => (
+            <div key={r.label} className={`tk-rule-row${r.limit ? ' tk-rule-row--limit' : ''}`}>
+              <dt className="tk-rule-lbl">{r.label}</dt>
+              <dd className="tk-rule-text">{r.text}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+      {note && <span className="tk-confirm-when">{note}</span>}
     </BottomSheet>
   )
 }

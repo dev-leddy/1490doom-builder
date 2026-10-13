@@ -43,6 +43,9 @@ export default function TrackerPage() {
         <ConfirmModal
           title={confirmModal.title}
           subtitle={confirmModal.subtitle}
+          rules={confirmModal.rules}
+          note={confirmModal.note}
+          confirmLabel={confirmModal.confirmLabel}
           onConfirm={() => {
             doConfirm()
           }}
