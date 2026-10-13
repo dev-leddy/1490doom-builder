@@ -6,6 +6,7 @@ import { WARRIOR_IMAGES, ITEM_ICONS } from '../data/images'
 import { SvgGear } from './icons'
 import WarriorLoadout from './WarriorLoadout'
 import WarriorSettingsSheet from './WarriorSettingsSheet'
+import RecruitSheet from './RecruitSheet'
 import { getEffectiveStats, statTone, STAT_KEYS } from '../utils/stats'
 
 // ── Stats Row ────────────────────────────────────────────────────────────────
@@ -34,6 +35,10 @@ export default function WarriorCard({ slotIndex, slot }) {
 
   const [expandedNotes, setExpandedNotes] = useState(() => new Set())
   const [showSettings, setShowSettings] = useState(false)
+  const [showRecruit, setShowRecruit] = useState(false)
+  const needsCaptain = useBuilderStore(s => !!s.campaign?.needsCaptain)
+  // A campaign vacancy: someone fell here (or the company needs a new Captain)
+  const isVacancy = companyMode === 'campaign' && !slot.type && (!!slot.fallen || (needsCaptain && slot.isCaptain))
   const notes = slot.notes || []
 
   const addNote = () => {
@@ -80,20 +85,32 @@ export default function WarriorCard({ slotIndex, slot }) {
   }
 
   return (
-    <div className={`warrior-slot ${slot.isCaptain ? 'is-captain' : ''}`}>
+    <div className={`warrior-slot ${slot.isCaptain ? 'is-captain' : ''}${isVacancy ? ' is-vacancy' : ''}`} data-slot={slotIndex}>
       <div className="slot-header">
         <div className="slot-number">
           {slot.isCaptain && <span className="slot-captain-label">CAPTAIN</span>}
           <span style={{ fontFamily: "'Caslon Antique', serif", fontSize: '1.4rem', color: '#ffffff', textTransform: 'none', letterSpacing: 'normal' }}>
-            {slot.customName || slot.type || `WARRIOR ${slotIndex + 1}`}
+            {slot.customName || slot.type || (isVacancy ? 'Empty slot' : `WARRIOR ${slotIndex + 1}`)}
           </span>
         </div>
-        <button className="slot-gear-btn" onClick={() => setShowSettings(true)} title="Warrior Settings" aria-label="Warrior settings">
-          <SvgGear />
-        </button>
+        {!isVacancy && (
+          <button className="slot-gear-btn" onClick={() => setShowSettings(true)} title="Warrior Settings" aria-label="Warrior settings">
+            <SvgGear />
+          </button>
+        )}
       </div>
 
-      {!wdata ? (
+      {isVacancy ? (
+        <>
+          <p className="slot-fallen-note">
+            {slot.fallen
+              ? <><strong>Fell in game {slot.fallen.game}:</strong> {slot.fallen.name}. Recruit a replacement. New warriors start with 0 IP.{needsCaptain && slot.isCaptain && ' Your company has no Captain: make one of your recruits Captain.'}</>
+              : <><strong>No Captain:</strong> the whole company fell. Recruit a new warrior to lead it.</>}
+          </p>
+          <button className="slot-choose-btn slot-recruit-btn" onClick={() => setShowRecruit(true)}>+ Recruit a new warrior</button>
+          {showRecruit && <RecruitSheet slotIndex={slotIndex} onClose={() => setShowRecruit(false)} />}
+        </>
+      ) : !wdata ? (
         <button className="slot-choose-btn" onClick={() => setShowSettings(true)}>Choose Warrior</button>
       ) : (
         <>

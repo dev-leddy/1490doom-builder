@@ -79,7 +79,7 @@ export default function AppMenu({
           <Section title="This company">
             <Row icon={<Icon name="share" />} label="Share" onClick={go(onShare)} />
             <Row icon={<Icon name="print" />} label="Print" onClick={go(onPrint)} />
-            {isCampaign && <Row icon={<Icon name="flag" />} label="End campaign game" onClick={go(onEndCampaign)} />}
+            {isCampaign && <Row icon={<Icon name="flag" />} label="End of game" onClick={go(onEndCampaign)} />}
           </Section>
         )}
 

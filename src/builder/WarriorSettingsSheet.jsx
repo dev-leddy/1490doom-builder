@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useBuilderStore, getAvailableWarriorTypes } from '../store/builderStore'
 import { WARRIOR_IMAGES } from '../data/images'
 import { STAT_IMPROVEMENT } from '../data/warriors'
+import { lastUpgrade } from '../store/campaign'
 import BottomSheet from '../shared/BottomSheet'
 import ConfirmModal from '../shared/ConfirmModal'
 import { SvgDice } from './icons'
@@ -44,12 +45,14 @@ export default function WarriorSettingsSheet({ slotIndex, slot, allSlots, isOpen
   const [tempType, setTempType] = useState(slot.type || null)
   const [tempIsCaptain, setTempIsCaptain] = useState(slot.isCaptain || false)
   const [confirmUndo, setConfirmUndo] = useState(false)
-  const removeStatImprove = useBuilderStore(s => s.removeStatImprove)
+  const undoLastUpgrade = useBuilderStore(s => s.undoLastUpgrade)
   const isCampaign = useBuilderStore(s => s.companyMode) === 'campaign'
-  // Campaign stat improves are permanent; this is the escape hatch for a mistake. Only offered
-  // when a stat was the most recent upgrade (the store refuses anything older)
-  const lastStat = isCampaign && /^stat_\d+$/.test((slot.ip || []).at(-1) || '') ? (slot.statImproves || []).at(-1) : null
-  const lastStatName = lastStat ? (STAT_IMPROVEMENT[lastStat] || lastStat).replace(/ \+1$/, '') : ''
+  // Campaign upgrades are permanent; this is the escape hatch for a mistake, and it only
+  // takes back the most recent upgrade
+  const last = isCampaign ? lastUpgrade(slot) : null
+  const lastName = !last ? ''
+    : last.kind === 'stat' ? `${(STAT_IMPROVEMENT[last.stat] || last.stat || 'stat').replace(/ \+1$/, '')} improve`
+    : (last.item || 'item')
 
   const available = getAvailableWarriorTypes(slotIndex, allSlots)
 
@@ -73,12 +76,13 @@ export default function WarriorSettingsSheet({ slotIndex, slot, allSlots, isOpen
   if (!isOpen) return null
 
   // Shown in place of the settings sheet; Cancel or Confirm returns to it with any edits kept
-  if (confirmUndo && lastStat) {
+  if (confirmUndo && last) {
     return (
       <ConfirmModal
-        title={`UNDO ${lastStatName.toUpperCase()} IMPROVE?`}
-        subtitle={`Takes the ${lastStatName} improvement off ${slot.customName || slot.type} and gives back its 1 IP. Campaign upgrades are meant to be permanent, so only undo a mistake.`}
-        onConfirm={() => { removeStatImprove(slotIndex, lastStat); setConfirmUndo(false) }}
+        title={`UNDO ${lastName.toUpperCase()}?`}
+        subtitle={`Takes the ${lastName} off ${slot.customName || slot.type} and gives back its 1 IP. Campaign upgrades are permanent, so only undo a mistake.`}
+        confirmLabel="Undo"
+        onConfirm={() => { undoLastUpgrade(slotIndex); setConfirmUndo(false) }}
         onCancel={() => setConfirmUndo(false)}
       />
     )
@@ -154,12 +158,12 @@ export default function WarriorSettingsSheet({ slotIndex, slot, allSlots, isOpen
         </div>
       </div>
 
-      {/* Campaign: undo the most recent stat improve. Kept quiet, behind a confirm */}
-      {lastStat && (
+      {/* Campaign: undo the most recent upgrade. Kept quiet, behind a confirm */}
+      {last && (
         <div className="ws-section ws-section--row ws-undo">
-          <div className="ws-section-label">Stat Improve</div>
+          <div className="ws-section-label">Last upgrade</div>
           <button type="button" className="ws-undo-btn" onClick={() => setConfirmUndo(true)}>
-            Undo {lastStatName} improve
+            Undo {lastName}
           </button>
         </div>
       )}

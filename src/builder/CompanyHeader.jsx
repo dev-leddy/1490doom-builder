@@ -5,9 +5,11 @@ import { MARK_IMAGES } from '../data/images'
 import { MARKS } from '../data/warriors'
 import { getAvatarSrc } from '../data/avatars'
 import MarkPicker from './MarkPicker'
+import CampaignPanel from './CampaignPanel'
 
 export default function CompanyHeader({ onSettings, onEndOfGame, onShare, onPrint }) {
-  const { mark, setMark, companyName, companyAvatar, companyMode, campaignGame, slots, ipLimit } = useBuilderStore()
+  const { mark, setMark, companyName, companyAvatar, companyMode, slots, ipLimit } = useBuilderStore()
+  const filled = slots.filter(s => s.type).length
   const ipSpent = useBuilderStore(s => s.getTotalIPSpent())
   const [showMarkPicker, setShowMarkPicker] = useState(false)
   const [tempMark, setTempMark] = useState('')
@@ -49,8 +51,8 @@ export default function CompanyHeader({ onSettings, onEndOfGame, onShare, onPrin
                 </span>
                 <div className="ch-company-stats">
                   <div className="ch-cstat">
-                    <span className="ch-cstat-val">{slots.length}</span>
-                    <span className="ch-cstat-lbl">{slots.length === 1 ? 'WARRIOR' : 'WARRIORS'}</span>
+                    <span className="ch-cstat-val">{filled}</span>
+                    <span className="ch-cstat-lbl">{filled === 1 ? 'WARRIOR' : 'WARRIORS'}</span>
                   </div>
                   {companyMode !== 'campaign' && (
                     <div className="ch-cstat">
@@ -104,19 +106,8 @@ export default function CompanyHeader({ onSettings, onEndOfGame, onShare, onPrin
           </div>
         </div>
 
-        {/* Campaign badge */}
-        {companyMode === 'campaign' && (
-          <div className="ch-campaign-row">
-            <div className="ch-campaign-badge">
-              <span className="ch-campaign-text">CAMPAIGN</span>
-              <span className="ch-campaign-dot" aria-hidden="true" />
-              <span className="ch-campaign-text">GAME {campaignGame + 1}</span>
-            </div>
-            <button className="ch-campaign-eog-btn" onClick={onEndOfGame}>
-              End of Game
-            </button>
-          </div>
-        )}
+        {/* Campaign: the six-game track, what to do before the next game, End of game */}
+        {companyMode === 'campaign' && <CampaignPanel onEndOfGame={onEndOfGame} />}
 
       </div>
 

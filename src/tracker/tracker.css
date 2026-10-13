@@ -162,6 +162,55 @@
 }
 
 /* Campaign: game number over the End of Game button */
+/* Campaign chip: GAME N/6 with the six-game track; opens the campaign sheet (End game / Retreat) */
+.tk-campaign-chip {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 5px;
+  min-height: 44px;
+  padding: 0 0.65rem;
+  flex-shrink: 0;
+  background: none;
+  border: 1px solid #333;
+  border-radius: 6px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.tk-campaign-chip:active { background: #151515; }
+@media (hover: hover) { .tk-campaign-chip:hover { border-color: #555; } }
+.tk-campaign-chip:focus-visible { outline: 2px solid var(--blood, #be4127); outline-offset: 2px; }
+.tk-campaign-chip-label {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.74rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #c8c8c8;
+  line-height: 1;
+}
+.tk-campaign-chip-label b { color: #fff; font-weight: 500; }
+.tk-campaign-chip .cmp-pip { width: 10px; height: 6px; border-radius: 1px; font-size: 0; box-shadow: none; }
+.tk-campaign-chip .cmp-pip.is-now { background: #be4127; border-color: #be4127; }
+.tk-campaign-status {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0 0.2rem 0.8rem;
+  margin-bottom: 0.4rem;
+  border-bottom: 1px solid #1c1c1c;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #b0b0b0;
+}
+.tk-retreat-when { margin: 0 0 0.25rem; font-size: 1rem; line-height: 1.5; color: #e6e6e6; }
+
 .tk-topbar-campaign {
   display: flex;
   flex-direction: column;

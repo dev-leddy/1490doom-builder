@@ -59,7 +59,7 @@ test.describe('New Company wizard', () => {
     await expect(page.getByText(name, { exact: true }).first()).toBeVisible()
   })
 
-  test('campaign: per-warrior starting IP and the End campaign game action', async ({ page }) => {
+  test('campaign: starting IP, then record a game through the End of Game steps', async ({ page }) => {
     await openWizard(page)
     await page.getByRole('button', { name: 'Campaign' }).click()
     await expect(page.locator('.ncp-mode-desc')).toContainText('Campaign play')
@@ -69,7 +69,19 @@ test.describe('New Company wizard', () => {
     await page.locator('.ncp-btn--primary').click()
     await expect(page.getByLabel('Company Settings')).toBeVisible()
     await page.locator('.topbar-menu-btn').click()
-    await page.locator('.app-menu-row', { hasText: 'End campaign game' }).click()
-    await expect(page.locator('body')).toContainText(/end of game|survivors|survived/i)
+    await page.locator('.app-menu-row', { hasText: 'End of game' }).click()
+    // Result, the fallen (nobody), award the survivor point, review, record
+    await page.locator('.eog-result[data-result="win"]').click()
+    await page.locator('.eog-next-btn').click()
+    await page.locator('.eog-next-btn').click()
+    await page.locator('.eog-pick').first().click()
+    await page.locator('.eog-next-btn').click()
+    await page.locator('.eog-scenario-input').fill('The Ascent')
+    await page.locator('.eog-record-btn').click()
+    const panel = page.locator('[data-testid="campaign-panel"]')
+    await expect(panel).toContainText('Before game 2')
+    await expect(panel.locator('.cmp-pip.is-win')).toHaveCount(1)
+    await panel.locator('.ch-camp-log-btn').click()
+    await expect(page.locator('.cmp-log-game[data-game="1"]')).toContainText('The Ascent')
   })
 })

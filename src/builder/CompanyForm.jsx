@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { getAvatarSrc } from '../data/avatars'
 import EmblemSheet from './EmblemSheet'
+import { minEarnedIP } from '../store/campaign'
 
 const DOOM_NAMES = [
   'THE BLOOD SCRIBE', 'IRON RECAPTOR', 'VOID STALKERS', 'GRIM COVENANT', 'BONE RIPPERS',
@@ -22,6 +23,7 @@ export default function CompanyForm({
   warriors, setWarriors,
   ip, setIp,
   companyMode,
+  removeBlock = null,
   activeSlots = []
 }) {
   const [showPicker, setShowPicker] = useState(false)
@@ -89,10 +91,11 @@ export default function CompanyForm({
           <div className="cs-stepper-card">
             <span className="cs-field-label">Warriors</span>
             <div className="co-settings-stepper">
-              <button className="co-settings-step-btn" onClick={() => setWarriors(Math.max(1, warriors - 1))} disabled={warriors <= 1} aria-label="Fewer warriors">−</button>
+              <button className="co-settings-step-btn" onClick={() => setWarriors(Math.max(1, warriors - 1))} disabled={warriors <= 1 || !!removeBlock} title={removeBlock || undefined} aria-label="Fewer warriors">−</button>
               <span className="co-settings-step-val">{warriors}</span>
               <button className="co-settings-step-btn" onClick={() => setWarriors(Math.min(8, warriors + 1))} disabled={warriors >= 8} aria-label="More warriors">+</button>
             </div>
+            {removeBlock && warriors > 1 && <span className="cs-stepper-hint">{removeBlock}</span>}
           </div>
 
           {companyMode === 'standard' && (
@@ -125,7 +128,7 @@ export default function CompanyForm({
                     <span className="co-settings-warrior-class">{slot.type}{spent > 0 ? ` · ${spent} spent` : ''}</span>
                   </div>
                   <div className="co-settings-stepper">
-                    <button className="co-settings-step-btn" onClick={() => slot.onEarnedChange(earned - 1)} disabled={earned <= spent} aria-label={`Less IP for ${label}`}>−</button>
+                    <button className="co-settings-step-btn" onClick={() => slot.onEarnedChange(earned - 1)} disabled={earned <= minEarnedIP(slot)} aria-label={`Less IP for ${label}`}>−</button>
                     <span className="co-settings-step-val">{earned}</span>
                     <button className="co-settings-step-btn" onClick={() => slot.onEarnedChange(earned + 1)} aria-label={`More IP for ${label}`}>+</button>
                   </div>

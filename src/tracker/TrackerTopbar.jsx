@@ -6,16 +6,33 @@ import { getAvatarSrc } from '../data/avatars'
 import ConfirmModal from '../shared/ConfirmModal'
 import BottomSheet from '../shared/BottomSheet'
 import EndOfGameModal from '../builder/EndOfGameModal'
+import { campaignProgress } from '../store/campaign'
+import { CAMPAIGN_RULES } from '../data/campaign'
+import { RESULT_LETTER } from '../builder/campaignUi'
 
 export default function TrackerTopbar() {
   const { mark, companyName, companyAvatar, round, changeRound, warriors, resetTracker, closeTracker, openMarkPopup, refOpen, openRef, closeRef } = useTrackerStore()
-  const { companyMode, campaignGame } = useBuilderStore()
+  const trackerCampaign = useTrackerStore(s => s.campaign)
+  const { companyMode, campaignGame, campaign, slots } = useBuilderStore()
   const isCampaign = companyMode === 'campaign'
+  const progress = campaignProgress({ companyMode, campaignGame, campaign, slots })
+  const gameNumber = trackerCampaign?.gameNumber ?? progress.nextGame ?? progress.completed
+  const campaignLog = campaign?.log || []
+  const [campaignOpen, setCampaignOpen] = useState(false)
+  const [confirmRetreat, setConfirmRetreat] = useState(false)
+  const [eogResult, setEogResult] = useState(null)
   const markImg = mark ? MARK_IMAGES[mark] : null
   const avatarSrc = getAvatarSrc(companyAvatar)
   const [confirmReset, setConfirmReset] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [endOfGameOpen, setEndOfGameOpen] = useState(false)
+
+  function openEndOfGame(result = null) {
+    setCampaignOpen(false)
+    setMenuOpen(false)
+    setEogResult(result)
+    setEndOfGameOpen(true)
+  }
 
   function handleResetConfirm() {
     setConfirmReset(false)
@@ -59,12 +76,20 @@ export default function TrackerTopbar() {
           </div>
 
           {isCampaign && (
-            <div className="tk-topbar-campaign">
-              <span className="tk-topbar-game-label">Game {campaignGame + 1}</span>
-              <button className="tk-topbar-eog-btn" onClick={() => setEndOfGameOpen(true)}>
-                End of Game
-              </button>
-            </div>
+            <button
+              className="tk-campaign-chip"
+              onClick={() => setCampaignOpen(true)}
+              aria-label={`Campaign, game ${gameNumber} of ${CAMPAIGN_RULES.games}. End game or retreat`}
+            >
+              <span className="tk-campaign-chip-label">Game <b>{gameNumber}</b>/{CAMPAIGN_RULES.games}</span>
+              <span className="cmp-track" aria-hidden="true">
+                {Array.from({ length: CAMPAIGN_RULES.games }, (_, i) => {
+                  const r = campaignLog.find(x => x.gameNumber === i + 1)
+                  const cls = r ? ` is-${r.result}` : i < progress.completed ? ' is-played' : i === gameNumber - 1 ? ' is-now' : ''
+                  return <span key={i} className={`cmp-pip${cls}`} />
+                })}
+              </span>
+            </button>
           )}
         </div>
 
@@ -117,6 +142,7 @@ export default function TrackerTopbar() {
               </span>
               {refOpen && <span className="tk-menu-badge">ON</span>}
             </button>
+            {isCampaign && <CampaignMenuRows onEnd={() => openEndOfGame()} onRetreat={() => { setMenuOpen(false); setConfirmRetreat(true) }} />}
             <button
               className="tk-menu-item tk-menu-item--danger"
               onClick={() => { setMenuOpen(false); setConfirmReset(true) }}
@@ -145,10 +171,52 @@ export default function TrackerTopbar() {
         </BottomSheet>
       )}
 
+      {/* Campaign sheet: opened from the GAME N/6 chip */}
+      {campaignOpen && (
+        <BottomSheet title={`CAMPAIGN · GAME ${gameNumber} OF ${CAMPAIGN_RULES.games}`} onClose={() => setCampaignOpen(false)} className="tk-sheet tk-sheet--menu tk-campaign-sheet">
+          <div className="tk-campaign-status">
+            <span>Round {round} · {standing.length} of {warriors.length} standing</span>
+            <span className="cmp-track" aria-hidden="true">
+              {Array.from({ length: CAMPAIGN_RULES.games }, (_, i) => {
+                const r = campaignLog.find(x => x.gameNumber === i + 1)
+                const cls = r ? ` is-${r.result}` : i < progress.completed ? ' is-played' : i === gameNumber - 1 ? ' is-now' : ''
+                return <span key={i} className={`cmp-pip${cls}`}>{r ? RESULT_LETTER[r.result] : i + 1}</span>
+              })}
+            </span>
+          </div>
+          <div className="tk-menu-list">
+            <CampaignMenuRows onEnd={() => openEndOfGame()} onRetreat={() => { setCampaignOpen(false); setConfirmRetreat(true) }} />
+          </div>
+        </BottomSheet>
+      )}
+
+      {confirmRetreat && (
+        <BottomSheet
+          title="RETREAT?"
+          onClose={() => setConfirmRetreat(false)}
+          className="tk-sheet tk-sheet--confirm tk-retreat-sheet"
+          footer={
+            <>
+              <button className="co-sheet-randomize" onClick={() => setConfirmRetreat(false)}>Keep fighting</button>
+              <button className="co-sheet-done tk-retreat-confirm" onClick={() => { setConfirmRetreat(false); openEndOfGame('retreat') }}>Retreat</button>
+            </>
+          }
+        >
+          <p className="tk-retreat-when">You may retreat at the start of any model's activation.</p>
+          <div className="eog-callout">
+            <strong>What it costs</strong><br />
+            Your opponent takes all victory points.<br />
+            Your company earns no IP this game.<br />
+            Warriors still standing survive. The fallen are still lost.
+          </div>
+        </BottomSheet>
+      )}
+
       {endOfGameOpen && (
         <EndOfGameModal
+          initialResult={eogResult}
           onClose={() => setEndOfGameOpen(false)}
-          // The modal already closed this game; back to the builder to replace the fallen and spend IP
+          // The sheet closes this game itself once the result is recorded
           onConfirm={() => setEndOfGameOpen(false)}
         />
       )}
@@ -162,6 +230,35 @@ export default function TrackerTopbar() {
           className="tk-sheet tk-sheet--confirm"
         />
       )}
+    </>
+  )
+}
+
+const ICON_FLAG = <path d="M5 21V4h11l-1.5 4L16 12H5" />
+const ICON_RETREAT = <><path d="M15 12H4" /><path d="M8 8l-4 4 4 4" /><path d="M14 5l6 7-6 7" /></>
+
+function CampaignMenuRows({ onEnd, onRetreat }) {
+  const icon = d => (
+    <span className="tk-menu-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">{d}</svg>
+    </span>
+  )
+  return (
+    <>
+      <button className="tk-menu-item tk-menu-item--end-game" onClick={onEnd}>
+        {icon(ICON_FLAG)}
+        <span className="tk-menu-text">
+          <span className="tk-menu-label">End game</span>
+          <span className="tk-menu-sub">Record the result and award IP</span>
+        </span>
+      </button>
+      <button className="tk-menu-item tk-menu-item--danger tk-menu-item--retreat" onClick={onRetreat}>
+        {icon(ICON_RETREAT)}
+        <span className="tk-menu-text">
+          <span className="tk-menu-label">Retreat</span>
+          <span className="tk-menu-sub">Concede all VP. No IP this game</span>
+        </span>
+      </button>
     </>
   )
 }

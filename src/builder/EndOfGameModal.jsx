@@ -4,119 +4,145 @@ import { useTrackerStore } from '../store/trackerStore'
 import { deleteGame } from '../api/games'
 import { WARRIOR_IMAGES } from '../data/images'
 import { CAMPAIGN_RULES } from '../data/campaign'
+import { validateEndOfGame, endOfGameWarnings, spendableCapacity, campaignProgress } from '../store/campaign'
 import BottomSheet from '../shared/BottomSheet'
 
-const RULEBOOK_TEXT =
-  'At the end of each game, each player gives 1 improvement point to a model that ' +
-  'survived the game. The winner awards 1 additional point to their Captain. These ' +
-  'points cannot be spent on the same item or stat twice on a single warrior. ' +
-  'These upgrades are permanent.'
+// ── End of a campaign game: a stepped sheet ───────────────────────────────────
+// Result -> The fallen -> New Captain (if needed) -> Award IP (not on a retreat) -> Review.
+// Nothing changes until "Record game N" on the review; the engine (store/campaign.js) has
+// the rules, this sheet only builds the draft.
 
-const RETREAT_TEXT =
-  'At the beginning of any model\'s activation, a player may choose to retreat. ' +
-  'That player concedes all victory points to their opponent, and in a Campaign ' +
-  'they add NO improvement points to their Doom Company.'
+const RESULTS = [
+  { id: 'win', name: 'Victory', earn: '1 IP to a survivor, 1 IP to your Captain if they survived', ip: '+2' },
+  { id: 'loss', name: 'Defeat', earn: '1 IP to a survivor', ip: '+1' },
+  { id: 'draw', name: 'Draw', earn: '1 IP to a survivor. No Captain point', ip: '+1' },
+  { id: 'retreat', name: 'We retreated', earn: 'No IP this game. The fallen are still lost', ip: '+0' },
+]
+const RESULT_WORD = { win: 'Victory', loss: 'Defeat', draw: 'Draw', retreat: 'Retreat' }
+const STEP_LABEL = { result: 'Result', fallen: 'The fallen', captain: 'New Captain', award: 'Award IP', review: 'Review' }
+const NEXT_LABEL = { fallen: 'Next: who fell', captain: 'Next: new Captain', award: 'Next: award IP', review: 'Next: review' }
 
-/* ── Warrior identity block: portrait + name + class ─────── */
-function WarriorIdentity({ s, isCaptain, showClass }) {
-  const displayName = s.customName && s.customName !== s.type ? s.customName : s.type
+const nameOf = s => (s.customName && s.customName.trim()) || s.type
 
+function Identity({ s, meta, star }) {
   return (
-    <div className="eog-identity">
-      <img src={WARRIOR_IMAGES[s.type]} alt={s.type} className="eog-portrait" />
-      <div className="eog-identity-text">
-        <span className="eog-warrior-name">
-          {isCaptain && <span className="eog-captain-star">★ </span>}
-          {displayName}
-        </span>
-        {showClass && <span className="eog-warrior-class">{s.type}</span>}
-      </div>
+    <span className="eog-identity">
+      <img src={WARRIOR_IMAGES[s.type]} alt="" className="eog-portrait-lg" />
+      <span className="eog-identity-text">
+        <span className="eog-name">{nameOf(s)}{star && <span className="eog-star" aria-label="Captain"> ★</span>}</span>
+        {meta && <span className="eog-meta">{meta}</span>}
+      </span>
+    </span>
+  )
+}
+
+function Steps({ steps, current }) {
+  const i = steps.indexOf(current)
+  return (
+    <div className="eog-steps" aria-label={`Step ${i + 1} of ${steps.length}: ${STEP_LABEL[current]}`}>
+      {steps.map((st, k) => (
+        <span key={st} className={`eog-step-pip${k < i ? ' is-done' : k === i ? ' is-current' : ''}`} aria-hidden="true" />
+      ))}
+      <span className="eog-step-count" aria-hidden="true">{i + 1} of {steps.length} · {STEP_LABEL[current]}</span>
     </div>
   )
 }
 
-export default function EndOfGameModal({ onClose, onConfirm }) {
-  const { slots, campaignGame, awardEndOfGame, companyId } = useBuilderStore()
-  const activeSlots = slots.map((s, i) => ({ ...s, index: i })).filter(s => s.type)
-  const anyNamed = activeSlots.some(s => s.customName && s.customName.trim())
+// initialResult: 'retreat' when opened from play mode's Retreat (the sheet starts at The fallen)
+export default function EndOfGameModal({ onClose, onConfirm, initialResult = null }) {
+  const store = useBuilderStore()
+  const { slots, companyId, recordCampaignGame } = store
+  const company = { companyMode: store.companyMode, slots, campaignGame: store.campaignGame, campaign: store.campaign }
+  const progress = campaignProgress(company)
+  const gameNumber = progress.nextGame ?? progress.completed
+  const active = slots.map((s, i) => ({ ...s, index: i })).filter(s => s.type)
 
-  // Pre-populate survivors from tracker vitality, but only from this company's game
-  const initialSurvivors = useMemo(() => {
+  // Prefill the fallen from play mode, but only from this company's game
+  const prefill = useMemo(() => {
     const tracker = useTrackerStore.getState()
-    const trackerWarriors = tracker.companyId === companyId ? tracker.warriors : []
-    if (trackerWarriors.length > 0) {
-      return new Set(
-        activeSlots
-          .filter(s => {
-            const tw = trackerWarriors.find(w => w.index === s.index)
-            return !tw || tw.currentVit > 0
-          })
-          .map(s => s.index)
-      )
-    }
-    return new Set(activeSlots.map(s => s.index))
+    if (tracker.companyId !== companyId || !tracker.warriors.length) return null
+    return active
+      .filter(s => { const w = tracker.warriors.find(t => t.index === s.index); return w && (w.dead || w.currentVit <= 0) })
+      .map(s => s.index)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Step order: 1 = Victory/Defeat/Retreat + Who survived, 2 = Captain promo (if needed), 3 = Allocate IP
-  const [step, setStep] = useState(1)
-  const [won, setWon] = useState(null)       // true | false | 'retreat' | null
-  const [survivors, setSurvivors] = useState(initialSurvivors)
+  const [result, setResult] = useState(initialResult)
+  const [fallen, setFallen] = useState(() => new Set(prefill || []))
   const [newCaptainIndex, setNewCaptainIndex] = useState(null)
-  const [objectiveIPs, setObjectiveIPs] = useState(0)
-  const [allocation, setAllocation] = useState({})
+  const [survivorPick, setSurvivorPick] = useState(null)
+  const [bonus, setBonus] = useState({})        // { slotIndex: ip }
+  const [bonusOpen, setBonusOpen] = useState(false)
+  const [scenario, setScenario] = useState('')
+  const [step, setStep] = useState(initialResult ? 'fallen' : 'result')
 
-  const isRetreat = won === 'retreat'
+  const survivors = active.filter(s => !fallen.has(s.index))
+  const captain = active.find(s => s.isCaptain) || null
+  const captainFell = !!captain && fallen.has(captain.index)
+  const earns = result !== 'retreat' || CAMPAIGN_RULES.retreatGivesIP
+  const captainPoint = earns && result === 'win' && captain && !captainFell
+  const leader = captainFell ? survivors.find(s => s.index === newCaptainIndex) : captain
 
-  const captain = activeSlots.find(s => s.isCaptain)
-  const captainFell = captain && !survivors.has(captain.index)
-  const survivingNonCaptains = activeSlots.filter(s => survivors.has(s.index) && !s.isCaptain)
-  const captainInSurvivors = captain && survivors.has(captain.index)
-  const needsCaptainPromo = captainFell && survivingNonCaptains.length > 0
+  const steps = ['result', 'fallen',
+    ...(captainFell && survivors.length ? ['captain'] : []),
+    ...(earns && survivors.length ? ['award'] : []),
+    'review']
 
-  const effectiveCaptainIndex = captainInSurvivors
-    ? captain?.index
-    : (needsCaptainPromo ? newCaptainIndex : null)
-  // The winner's point goes to the Captain only if the Captain survived (a fallen Captain earns nothing)
-  const captainBonus = won === true && captainInSurvivors
-  // The survivor's point needs someone to survive
-  const survivorPoint = survivors.size > 0 ? 1 : 0
+  const draft = {
+    result,
+    scenario: scenario.trim() || undefined,
+    fallenIndices: [...fallen],
+    newCaptainIndex: captainFell && survivors.length ? newCaptainIndex : null,
+    survivorPick: earns && survivors.length ? survivorPick : null,
+    bonus: earns ? Object.entries(bonus).filter(([i, ip]) => ip > 0 && !fallen.has(+i)).map(([i, ip]) => ({ index: +i, ip })) : [],
+  }
+  const errors = validateEndOfGame(company, draft)
+  const { captainCantSpend } = endOfGameWarnings(company, draft)
 
-  const freePool = survivorPoint + objectiveIPs + (captainBonus ? 1 : 0)
-  const allocated = useMemo(
-    () => Object.values(allocation).reduce((sum, n) => sum + n, 0),
-    [allocation]
-  )
-  const remaining = freePool - allocated
+  // Room a survivor has for the survivor point (the Captain's point and bonus take room first)
+  const bonusOf = i => (fallen.has(i) ? 0 : bonus[i] || 0)
+  const room = s => spendableCapacity(s) - (captainPoint && s.index === captain.index ? CAMPAIGN_RULES.winnerCaptainIP : 0) - bonusOf(s.index)
+  const anyRoom = survivors.some(s => room(s) > 0)
+  const bonusTotal = survivors.reduce((n, s) => n + bonusOf(s.index), 0)
 
-  function toggleSurvivor(idx) {
-    setSurvivors(prev => {
+  const gainOf = i => {
+    if (!earns || fallen.has(i)) return 0
+    return (survivorPick === i ? CAMPAIGN_RULES.survivorIP : 0) +
+      (captainPoint && captain.index === i ? CAMPAIGN_RULES.winnerCaptainIP : 0) + bonusOf(i)
+  }
+  const totalGain = active.reduce((n, s) => n + gainOf(s.index), 0)
+
+  function toggleFate(i, fell) {
+    setFallen(prev => {
       const next = new Set(prev)
-      if (next.has(idx)) next.delete(idx)
-      else next.add(idx)
+      if (fell) next.add(i); else next.delete(i)
       return next
     })
-    setNewCaptainIndex(null)
-    setAllocation({})
+    if (fell) {
+      if (survivorPick === i) setSurvivorPick(null)
+      if (newCaptainIndex === i) setNewCaptainIndex(null)
+    }
   }
 
-  function adjustAllocation(idx, delta) {
-    setAllocation(prev => {
-      const cur = prev[idx] || 0
-      if (delta > 0 && remaining <= 0) return prev
-      return { ...prev, [idx]: Math.max(0, cur + delta) }
+  function stepBonus(i, delta) {
+    setBonus(prev => {
+      const cur = prev[i] || 0
+      const next = Math.max(0, cur + delta)
+      if (delta > 0 && bonusTotal >= CAMPAIGN_RULES.maxBonusIP) return prev
+      return { ...prev, [i]: next }
     })
   }
 
-  function goToAllocation() {
-    // Nothing to hand out (nobody survived): record the game straight away
-    if (freePool === 0) { handleConfirm(); return }
-    // On victory, default the free IP to the captain; the player can reassign
-    setAllocation(captainBonus && effectiveCaptainIndex != null
-      ? { [effectiveCaptainIndex]: 1 }
-      : {}
-    )
-    setStep(3)
-  }
+  const canAdvance = {
+    result: !!result,
+    fallen: true,
+    captain: newCaptainIndex != null && survivors.some(s => s.index === newCaptainIndex),
+    award: survivorPick != null && !errors.some(e => /survivor IP|bonus/i.test(e)),
+    review: errors.length === 0,
+  }[step]
+
+  const idx = steps.indexOf(step)
+  const nextStep = steps[idx + 1]
+  const prevStep = steps[idx - 1]
 
   // The game is over: drop this company's saved game so Play doesn't offer to resume it
   function finishGame() {
@@ -127,179 +153,226 @@ export default function EndOfGameModal({ onClose, onConfirm }) {
     onClose()
   }
 
-  // TODO(campaign UI): the new end-of-game sheet should build a draft and call
-  // recordCampaignGame directly; awardEndOfGame maps this pooled allocation onto it.
-  // Nothing is recorded (and the sheet stays open) if the engine refuses the result.
-  function handleRetreatConfirm() {
-    const ok = awardEndOfGame({
-      survivorIndices: [...survivors],
-      ipAllocations: {},
-      newCaptainIndex: needsCaptainPromo ? newCaptainIndex : null,
-      retreat: true,
-    })
-    if (ok) finishGame()
+  function record() {
+    const res = recordCampaignGame(draft)
+    if (res.ok) finishGame()
   }
 
-  function goNext() {
-    if (needsCaptainPromo) setStep(2)
-    else if (isRetreat) handleRetreatConfirm()
-    else goToAllocation()
-  }
-
-  function handleConfirm() {
-    const ok = awardEndOfGame({
-      survivorIndices: [...survivors],
-      ipAllocations: allocation,
-      newCaptainIndex: needsCaptainPromo ? newCaptainIndex : null,
-      result: won === true ? 'win' : 'loss',
-    })
-    if (ok) finishGame()
-  }
-
-  const stepTitle = step === 1 ? `END OF GAME ${campaignGame + 1}`
-    : step === 2 ? 'CHOOSE CAPTAIN'
-    : 'ALLOCATE IP'
-
-  // Step 2 next: on retreat skip allocation
-  const step2Next = isRetreat ? handleRetreatConfirm : goToAllocation
-
-  const footer = step === 1 ? (
+  const isLast = gameNumber >= CAMPAIGN_RULES.games
+  const footer = (
     <>
-      <button className="co-sheet-randomize" onClick={onClose}>Cancel</button>
-      <button className="co-sheet-done" disabled={won === null} onClick={goNext}>
-        {isRetreat ? 'Confirm Retreat' : 'Next'}
-      </button>
-    </>
-  ) : step === 2 ? (
-    <>
-      <button className="co-sheet-randomize" onClick={() => setStep(1)}>Back</button>
-      <button className="co-sheet-done" disabled={newCaptainIndex === null} onClick={step2Next}>
-        {isRetreat ? 'Confirm Retreat' : 'Next'}
-      </button>
-    </>
-  ) : (
-    <>
-      <button className="co-sheet-randomize" onClick={() => setStep(needsCaptainPromo ? 2 : 1)}>Back</button>
-      <button className="co-sheet-done" disabled={remaining !== 0} onClick={handleConfirm}>Confirm</button>
+      {prevStep
+        ? <button className="co-sheet-randomize" onClick={() => setStep(prevStep)}>Back</button>
+        : <button className="co-sheet-randomize" onClick={onClose}>Cancel</button>}
+      {step === 'review'
+        ? <button className="co-sheet-done eog-record-btn" disabled={!canAdvance} onClick={record}>Record game {gameNumber}</button>
+        : <button className="co-sheet-done eog-next-btn" disabled={!canAdvance} onClick={() => setStep(nextStep)}>{NEXT_LABEL[nextStep]}</button>}
     </>
   )
 
+  if (progress.isComplete) {
+    return (
+      <BottomSheet title="CAMPAIGN COMPLETE" onClose={onClose}
+        footer={<button className="co-sheet-done" onClick={onClose}>Done</button>}>
+        <p className="eog-help">All {CAMPAIGN_RULES.games} games are recorded. No more games can be added to this campaign.</p>
+      </BottomSheet>
+    )
+  }
+
   return (
-    <BottomSheet title={stepTitle} onClose={onClose} footer={footer}>
+    <BottomSheet title={`END OF GAME ${gameNumber}`} onClose={onClose} footer={footer} className="eog-sheet">
+      <Steps steps={steps} current={step} />
 
-      {/* ── STEP 1: Victory/Defeat/Retreat + Who survived ───── */}
-      {step === 1 && (
+      {/* ── 1. RESULT ─────────────────────────────────────── */}
+      {step === 'result' && (
         <>
-          <div className="eog-win-btns">
-            <button className={`eog-win-btn ${won === true ? 'selected' : ''}`} onClick={() => setWon(true)}>Victory</button>
-            <button className={`eog-win-btn ${won === false ? 'selected' : ''}`} onClick={() => setWon(false)}>Defeat</button>
-            <button className={`eog-win-btn eog-win-btn--retreat ${won === 'retreat' ? 'selected' : ''}`} onClick={() => setWon('retreat')}>Retreated</button>
-          </div>
-
-          {isRetreat && (
-            <div className="eog-retreat-note">{RETREAT_TEXT}</div>
-          )}
-
-          <div className="eog-subtitle" style={{ marginTop: '1rem' }}>Which warriors survived?</div>
-          <div className="eog-warrior-list">
-            {activeSlots.map(s => (
-              <label key={s.index} className={`eog-warrior-row ${survivors.has(s.index) ? 'survived' : 'fallen'}`}>
-                <input type="checkbox" checked={survivors.has(s.index)} onChange={() => toggleSurvivor(s.index)} />
-                <WarriorIdentity s={s} isCaptain={s.isCaptain} showClass={anyNamed} />
-                <span className="eog-warrior-ip">{s.earnedIP || 0} IP</span>
-              </label>
-            ))}
-          </div>
-          {captainFell && survivingNonCaptains.length > 0 && (
-            <div className="eog-captain-fell-note">★ The Captain fell — you'll choose a replacement next.</div>
-          )}
-          {captainFell && survivingNonCaptains.length === 0 && (
-            <div className="eog-captain-fell-note">★ The Captain fell with no surviving warriors. A new Captain will be added.</div>
-          )}
-        </>
-      )}
-
-      {/* ── STEP 2: Captain promotion ───────────────────────── */}
-      {step === 2 && (
-        <>
-          <div className="eog-subtitle">Choose a new Captain</div>
-          <div className="eog-captain-promo-note">
-            The Captain fell in battle. An existing warrior must rise to lead the company.
-          </div>
-          <div className="eog-warrior-list">
-            {survivingNonCaptains.map(s => (
-              <label key={s.index} className={`eog-warrior-row survived ${newCaptainIndex === s.index ? 'new-captain' : ''}`}>
-                <input type="radio" name="new-captain" checked={newCaptainIndex === s.index} onChange={() => setNewCaptainIndex(s.index)} />
-                <WarriorIdentity s={s} isCaptain={false} showClass={anyNamed} />
-                <span className="eog-warrior-ip">{s.earnedIP || 0} IP</span>
-              </label>
-            ))}
-          </div>
-        </>
-      )}
-
-      {/* ── STEP 3: IP Allocation ───────────────────────────── */}
-      {step === 3 && (
-        <>
-          <div className="eog-rulebook-reminder">{RULEBOOK_TEXT}</div>
-
-          <div className="eog-objective-row">
-            <span className="eog-objective-label">Objective Bonus IP</span>
-            <div className="eog-stepper">
+          <p className="eog-lede" id="eog-result-q">How did it end?</p>
+          <div className="eog-result-grid" role="radiogroup" aria-labelledby="eog-result-q">
+            {RESULTS.map(r => (
               <button
-                className="eog-stepper-btn"
-                onClick={() => {
-                  const next = Math.max(0, objectiveIPs - 1)
-                  if (allocated > 1 + next) setAllocation({})
-                  setObjectiveIPs(next)
-                }}
-              >−</button>
-              <span className="eog-stepper-val">{objectiveIPs}</span>
-              <button className="eog-stepper-btn" onClick={() => setObjectiveIPs(v => Math.min(CAMPAIGN_RULES.maxBonusIP, v + 1))}>+</button>
+                key={r.id}
+                type="button"
+                role="radio"
+                aria-checked={result === r.id}
+                className={`eog-result eog-result--${r.id}`}
+                data-result={r.id}
+                onClick={() => setResult(r.id)}
+              >
+                <span className="eog-result-name">{r.name}</span>
+                <span className="eog-result-earn">{r.earn}</span>
+                <span className="eog-result-ip" aria-hidden="true">{r.ip}</span>
+              </button>
+            ))}
+          </div>
+          <p className="eog-result-foot">Opponent retreated? That counts as a Victory.</p>
+        </>
+      )}
+
+      {/* ── 2. THE FALLEN ─────────────────────────────────── */}
+      {step === 'fallen' && (
+        <>
+          <p className="eog-lede">Who fell?</p>
+          {prefill && <span className="eog-from-play"><span aria-hidden="true">●</span> Filled in from play mode</span>}
+          {active.map(s => {
+            const fell = fallen.has(s.index)
+            return (
+              <div key={s.index} className={`eog-fate-row${fell ? ' is-fell' : ''}`} data-slot={s.index}>
+                <Identity s={s} star={s.isCaptain} meta={`${s.isCaptain ? 'Captain · ' : ''}${s.earnedIP || 0} IP`} />
+                <span className="eog-fate" role="group" aria-label={nameOf(s)}>
+                  <button type="button" className="is-standing" aria-pressed={!fell} onClick={() => toggleFate(s.index, false)}>Standing</button>
+                  <button type="button" className="is-fell" aria-pressed={fell} onClick={() => toggleFate(s.index, true)}>Fell</button>
+                </span>
+              </div>
+            )
+          })}
+          <p className="eog-perm">
+            {survivors.length === 0
+              ? 'The whole company fell. You will recruit new warriors and choose a Captain before the next game.'
+              : `The fallen are lost for good and earn no IP. You will replace them with new warriors before game ${gameNumber + 1}.`}
+          </p>
+        </>
+      )}
+
+      {/* ── 3. NEW CAPTAIN ────────────────────────────────── */}
+      {step === 'captain' && (
+        <>
+          <p className="eog-lede">Your Captain fell</p>
+          <p className="eog-help">Choose a surviving warrior to lead the company. They keep their IP and gear.</p>
+          <div role="radiogroup" aria-label="New Captain">
+            {survivors.map(s => (
+              <button key={s.index} type="button" role="radio" aria-checked={newCaptainIndex === s.index}
+                className="eog-pick" data-slot={s.index} onClick={() => setNewCaptainIndex(s.index)}>
+                <span className="eog-pick-radio" aria-hidden="true" />
+                <Identity s={s} meta={`${s.earnedIP || 0} IP`} />
+                {newCaptainIndex === s.index && <span className="eog-pick-gain" aria-hidden="true">★</span>}
+              </button>
+            ))}
+          </div>
+          {result === 'win' && <p className="eog-perm">A fallen Captain earns no IP, so there is no Captain's point this game.</p>}
+        </>
+      )}
+
+      {/* ── 4. AWARD IP ───────────────────────────────────── */}
+      {step === 'award' && (
+        <>
+          <div className="eog-award">
+            <div className="eog-award-head"><span id="eog-survivor-q">Survivor's point</span><b>+{CAMPAIGN_RULES.survivorIP} IP</b></div>
+            <p className="eog-help eog-help--tight">Give {CAMPAIGN_RULES.survivorIP} IP to one warrior who survived. The Captain can take it too.</p>
+            <div role="radiogroup" aria-labelledby="eog-survivor-q">
+              {survivors.map(s => {
+                const full = room(s) <= 0 && anyRoom
+                const isLeader = leader && s.index === leader.index
+                const meta = full ? 'Nothing left to buy'
+                  : `${isLeader ? (captainFell ? 'New Captain · ' : 'Captain · ') : ''}${s.earnedIP || 0} IP`
+                return (
+                  <button key={s.index} type="button" role="radio" aria-checked={survivorPick === s.index}
+                    className="eog-pick" data-slot={s.index} disabled={full}
+                    onClick={() => setSurvivorPick(s.index)}>
+                    <span className="eog-pick-radio" aria-hidden="true" />
+                    <Identity s={s} star={isLeader} meta={meta} />
+                    {survivorPick === s.index && <span className="eog-pick-gain">+{CAMPAIGN_RULES.survivorIP}</span>}
+                  </button>
+                )
+              })}
             </div>
           </div>
 
-          <div className="eog-alloc-header">
-            <span>Warriors</span>
-            <span className="eog-remaining" data-over={remaining < 0}>{remaining} IP remaining</span>
-          </div>
-
-          <div className="eog-warrior-list">
-            {[...activeSlots].sort((a, b) => (survivors.has(a.index) ? 0 : 1) - (survivors.has(b.index) ? 0 : 1)).map(s => {
-              const isDead = !survivors.has(s.index)
-              const isEffCaptain = s.index === effectiveCaptainIndex
-              const captainBonusHere = captainBonus && isEffCaptain
-              const cur = allocation[s.index] || 0
-              return (
-                <div key={s.index} className={`eog-warrior-row eog-alloc-row ${isDead ? 'fallen' : 'survived'} ${captainBonusHere ? 'eog-captain-victory-row' : ''}`}>
-                  <div className="eog-alloc-warrior-info">
-                    <WarriorIdentity s={s} isCaptain={s.isCaptain || isEffCaptain} showClass={anyNamed} />
-                    <span className="eog-current-ip">Current IP {s.earnedIP || 0}</span>
+          {result === 'win' && (
+            <div className="eog-award">
+              <div className="eog-award-head"><span>Victory: Captain's point</span><b>{captainPoint ? `+${CAMPAIGN_RULES.winnerCaptainIP} IP` : 'None'}</b></div>
+              {captainPoint ? (
+                <>
+                  <div className="eog-locked" data-slot={captain.index}>
+                    <Identity s={captain} star meta="Your Captain" />
+                    <span className="eog-pick-gain">+{CAMPAIGN_RULES.winnerCaptainIP}</span>
                   </div>
-                  {isDead ? (
-                    <span className="eog-dead-label">💀 DEAD</span>
-                  ) : (
-                    <div className="eog-stepper">
-                      <button className="eog-stepper-btn" onClick={() => adjustAllocation(s.index, -1)} disabled={cur <= (captainBonusHere ? 1 : 0)}>−</button>
-                      <span className="eog-stepper-val">{cur}</span>
-                      <button className="eog-stepper-btn" onClick={() => adjustAllocation(s.index, 1)} disabled={remaining <= 0}>+</button>
-                    </div>
-                  )}
+                  {captainCantSpend && <p className="eog-perm">{nameOf(captain)} has nothing left to buy. The point is still theirs by the rules.</p>}
+                </>
+              ) : (
+                <p className="eog-help eog-help--tight">Your Captain fell, and the fallen earn no IP.</p>
+              )}
+            </div>
+          )}
+
+          <div className="eog-bonus">
+            <button type="button" className="eog-bonus-toggle" aria-expanded={bonusOpen} onClick={() => setBonusOpen(v => !v)}>
+              <span>Scenario bonus IP</span>
+              <span className="eog-bonus-meta">{bonusTotal ? `+${bonusTotal}` : 'Optional'} <span aria-hidden="true">{bonusOpen ? '▴' : '▾'}</span></span>
+            </button>
+            {bonusOpen && (
+              <div className="eog-bonus-body">
+                <p className="eog-help eog-help--tight">Only if the scenario awards extra IP. Up to {CAMPAIGN_RULES.maxBonusIP} per game, to survivors.</p>
+                {survivors.map(s => (
+                  <div key={s.index} className="eog-bonus-row" data-slot={s.index}>
+                    <span className="eog-name">{nameOf(s)}</span>
+                    <span className="eog-stepper">
+                      <button type="button" className="eog-stepper-btn" aria-label={`Less bonus IP for ${nameOf(s)}`} disabled={!bonusOf(s.index)} onClick={() => stepBonus(s.index, -1)}>−</button>
+                      <span className="eog-stepper-val">{bonusOf(s.index)}</span>
+                      <button type="button" className="eog-stepper-btn" aria-label={`More bonus IP for ${nameOf(s)}`} disabled={bonusTotal >= CAMPAIGN_RULES.maxBonusIP} onClick={() => stepBonus(s.index, 1)}>+</button>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          {errors.filter(e => /survivor IP|bonus/i.test(e) && survivorPick != null).map(e => <p key={e} className="eog-error" role="alert">{e}</p>)}
+        </>
+      )}
+
+      {/* ── 5. REVIEW ─────────────────────────────────────── */}
+      {step === 'review' && (
+        <>
+          <p className="eog-lede">{RESULT_WORD[result]}. Game {gameNumber} of {CAMPAIGN_RULES.games}</p>
+          <div className="eog-ledger">
+            {active.map(s => {
+              const fell = fallen.has(s.index)
+              const gain = gainOf(s.index)
+              const rises = captainFell && s.index === newCaptainIndex
+              const meta = fell
+                ? `${s.isCaptain ? 'Captain · ' : ''}${s.earnedIP || 0} IP lost`
+                : `${rises ? '★ New Captain · ' : s.isCaptain ? 'Captain · ' : ''}${s.earnedIP || 0} → ${(s.earnedIP || 0) + gain} IP`
+              return (
+                <div key={s.index} className={`eog-ledger-row${fell ? ' is-fell' : ''}`} data-slot={s.index}>
+                  <Identity s={s} meta={meta} />
+                  {fell
+                    ? <span className="eog-ledger-note">Fell</span>
+                    : <span className={`eog-ledger-delta${gain ? '' : ' is-zero'}`}>+{gain}</span>}
                 </div>
               )
             })}
           </div>
+          {!earns && <p className="eog-perm">You retreated: no IP this game. Your opponent takes all victory points.</p>}
 
-          {remaining !== 0 && (
-            <div className="eog-alloc-hint">
-              {remaining > 0
-                ? `Allocate all ${freePool} IP before confirming.`
-                : 'Too many IPs allocated — reduce before confirming.'}
-            </div>
-          )}
+          <label className="eog-field">
+            <span className="eog-field-label">Scenario <span>(optional)</span></span>
+            <input
+              className="co-settings-input eog-scenario-input"
+              type="text"
+              maxLength={80}
+              value={scenario}
+              placeholder="Name of the scenario you played"
+              autoComplete="off"
+              onChange={e => setScenario(e.target.value)}
+            />
+          </label>
+
+          <div className="eog-callout">
+            {isLast ? (
+              <><strong>The last game</strong><br />Recording game {gameNumber} completes the campaign.</>
+            ) : (
+              <>
+                <strong>Before game {gameNumber + 1}</strong><br />
+                {fallen.size > 0 && <>Replace {fallen.size} fallen {fallen.size === 1 ? 'warrior' : 'warriors'} (new warriors start with 0 IP).<br /></>}
+                {survivors.length === 0 && <>Choose a Captain when you recruit.<br /></>}
+                {totalGain > 0 && <>Spend {totalGain} new IP. Upgrades are permanent.</>}
+                {fallen.size === 0 && totalGain === 0 && <>Nothing to do. Your company is ready.</>}
+              </>
+            )}
+          </div>
+          {errors.map(e => <p key={e} className="eog-error" role="alert">{e}</p>)}
         </>
       )}
-
     </BottomSheet>
   )
 }
+

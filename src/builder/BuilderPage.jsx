@@ -12,6 +12,7 @@ import ImportModal from './ImportModal'
 import ConfirmModal from '../shared/ConfirmModal'
 import PrintRoster from './PrintRoster'
 import EndOfGameModal from './EndOfGameModal'
+import { removeSlotBlock } from '../store/campaign'
 import CompanyForm from './CompanyForm'
 import ModeSelectModal from './ModeSelectModal'
 import NewCompanyPage from './NewCompanyPage'
@@ -461,6 +462,7 @@ function CompanySettingsModal({ onClose }) {
         }}
         ip={ipLimit} setIp={newVal => changeIPLimit(newVal - ipLimit)}
         companyMode={companyMode}
+        removeBlock={companyMode === 'campaign' ? removeSlotBlock(slots.at(-1)) : null}
         activeSlots={activeSlots.map(s => ({
           ...s,
           onEarnedChange: (val) => setEarnedIP(s.index, val)

@@ -35,7 +35,7 @@ test.describe('signed-in menu and company list', () => {
     const open = () => page.locator('.topbar-menu-btn').click()
     await open()
     await expect(page.getByText('This company')).toBeVisible()
-    await expect(page.locator('.app-menu-row', { hasText: 'End campaign game' })).toHaveCount(0) // standard company
+    await expect(page.locator('.app-menu-row', { hasText: 'End of game' })).toHaveCount(0) // standard company
     await page.locator('.app-menu-row', { hasText: 'Quick reference' }).click()
     await expect(page.getByText('Statuses').first()).toBeVisible()
     await open()

@@ -1452,6 +1452,170 @@ button.eq-slot:focus-visible { outline: 2px solid var(--blood); outline-offset: 
   font-style: italic;
 }
 
+/* ── END OF GAME (stepped sheet) ─────────────────────────────────────────────
+   Result -> The fallen -> New Captain -> Award IP -> Review. Secondary text is #a8a8a8
+   (about 8:1 on the sheet); --mist is too dark for text here. */
+.eog-steps { display: flex; align-items: center; gap: 6px; margin: -0.25rem 0 1rem; }
+.eog-step-pip { flex: 1; height: 3px; border-radius: 2px; background: #2a2a2a; }
+.eog-step-pip.is-done { background: var(--rust); }
+.eog-step-pip.is-current { background: var(--blood); }
+.eog-step-count { flex: none; margin-left: 4px; font-family: 'Oswald', sans-serif; font-size: 0.72rem;
+  letter-spacing: 0.12em; text-transform: uppercase; color: #a8a8a8; }
+
+.eog-lede { font-family: 'Oswald', sans-serif; font-size: 1rem; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--parchment); margin: 0 0 0.6rem; }
+.eog-help { font-size: 0.92rem; line-height: 1.45; color: #a8a8a8; margin: 0 0 1rem; }
+.eog-help--tight { margin-bottom: 0.5rem; }
+.eog-perm { margin: 0.75rem 0 0; font-size: 0.88rem; line-height: 1.45; color: #a8a8a8; }
+.eog-error { margin: 0.75rem 0 0; font-size: 0.88rem; line-height: 1.4; color: #ff9a85; }
+
+/* Result tiles: each says what it earns */
+.eog-result-grid { display: grid; gap: 0.5rem; }
+.eog-result { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 0.15rem 0.75rem;
+  min-height: 60px; padding: 0.6rem 0.9rem; text-align: left; background: var(--ash);
+  border: 1px solid #2c2c2c; border-radius: 6px; color: var(--bone); cursor: pointer;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.eog-result-name { font-family: 'Oswald', sans-serif; font-size: 1.02rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--parchment); }
+.eog-result-earn { grid-column: 1; font-size: 0.86rem; line-height: 1.3; color: #a8a8a8; }
+.eog-result-ip { grid-row: 1 / span 2; grid-column: 2; font-family: 'Oswald', sans-serif; font-size: 1.1rem; color: var(--blood-text); }
+.eog-result--retreat .eog-result-ip { color: #a8a8a8; }
+.eog-result[aria-checked="true"] { border-color: var(--blood); background: rgba(190, 65, 39, 0.12); box-shadow: inset 3px 0 0 var(--blood); }
+.eog-result:focus-visible, .eog-pick:focus-visible, .eog-fate button:focus-visible, .eog-bonus-toggle:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
+.eog-result-foot { margin: 0.75rem 0 0; font-size: 0.88rem; color: #a8a8a8; }
+
+/* The fallen: STANDING / FELL per warrior */
+.eog-from-play { display: inline-flex; gap: 0.35rem; align-items: center; margin-bottom: 0.75rem; padding: 0.3rem 0.65rem;
+  border: 1px solid #333; border-radius: 99px; font-family: 'Oswald', sans-serif; font-size: 0.72rem; letter-spacing: 0.1em;
+  text-transform: uppercase; color: #a8a8a8; }
+.eog-from-play span { color: var(--blood-text); font-size: 0.6rem; }
+.eog-fate-row { display: flex; align-items: center; gap: 0.6rem; padding: 0.45rem 0.55rem; min-height: 60px;
+  background: var(--ash); border: 1px solid #2c2c2c; border-radius: 6px; }
+.eog-fate-row + .eog-fate-row { margin-top: 0.4rem; }
+.eog-fate-row.is-fell .eog-identity { opacity: 0.6; }
+.eog-portrait-lg { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; object-position: top center; flex: none;
+  border: 1px solid rgba(255,255,255,0.1); background: #1a1a1a; }
+.eog-name { font-family: 'Oswald', sans-serif; font-size: 0.95rem; letter-spacing: 0.05em; color: var(--parchment);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.eog-meta { display: block; font-family: 'Oswald', sans-serif; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: #a8a8a8; }
+.eog-star { color: var(--blood-text); }
+.eog-fate { display: inline-flex; flex: none; border: 1px solid #3a3a3a; border-radius: 6px; overflow: hidden; }
+.eog-fate button { min-width: 72px; min-height: 44px; padding: 0 0.55rem; background: none; border: 0; color: #a8a8a8;
+  font-family: 'Oswald', sans-serif; font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.eog-fate button + button { border-left: 1px solid #3a3a3a; }
+.eog-fate button[aria-pressed="true"].is-standing { background: #1d2a1d; color: #9fd49f; }
+.eog-fate button[aria-pressed="true"].is-fell { background: #3a0f0a; color: #ff9a85; }
+
+/* New Captain / survivor's point: one choice from warrior cards */
+.eog-pick { display: flex; align-items: center; gap: 0.65rem; width: 100%; min-height: 60px; padding: 0.45rem 0.75rem;
+  text-align: left; background: var(--ash); border: 1px solid #2c2c2c; border-radius: 6px; color: var(--bone); cursor: pointer;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.eog-pick + .eog-pick { margin-top: 0.4rem; }
+.eog-pick-radio { width: 22px; height: 22px; flex: none; border: 2px solid #666; border-radius: 50%; display: grid; place-items: center; box-sizing: border-box; }
+.eog-pick[aria-checked="true"] { border-color: var(--blood); background: rgba(190, 65, 39, 0.12); }
+.eog-pick[aria-checked="true"] .eog-pick-radio { border-color: var(--blood); }
+.eog-pick[aria-checked="true"] .eog-pick-radio::after { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--blood); }
+.eog-pick:disabled { cursor: not-allowed; background: #0c0c0c; border-style: dashed; }
+.eog-pick:disabled .eog-identity, .eog-pick:disabled .eog-pick-radio { opacity: 0.5; }
+.eog-pick-gain { font-family: 'Oswald', sans-serif; font-size: 0.95rem; color: var(--blood-text); flex: none; }
+.eog-award { margin-bottom: 1.1rem; }
+.eog-award-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.35rem;
+  font-family: 'Oswald', sans-serif; font-size: 0.8rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--bone); }
+.eog-award-head b { color: var(--blood-text); font-weight: 500; }
+.eog-locked { display: flex; align-items: center; gap: 0.65rem; padding: 0.45rem 0.75rem; min-height: 60px;
+  border: 1px dashed #444; border-radius: 6px; background: #0c0c0c; }
+
+/* Scenario bonus: collapsed by default */
+.eog-bonus { border-top: 1px solid #1f1f1f; padding-top: 0.25rem; }
+.eog-bonus-toggle { display: flex; justify-content: space-between; align-items: center; width: 100%; min-height: 44px;
+  padding: 0 0.1rem; background: none; border: 0; color: var(--bone); cursor: pointer;
+  font-family: 'Oswald', sans-serif; font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; }
+.eog-bonus-meta { color: #a8a8a8; }
+.eog-bonus-body { padding: 0.25rem 0; }
+.eog-bonus-row { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; min-height: 52px; }
+.eog-bonus-row + .eog-bonus-row { border-top: 1px solid #1a1a1a; }
+
+/* Review: ledger, scenario name, what comes next */
+.eog-ledger { border: 1px solid #2c2c2c; border-radius: 6px; overflow: hidden; }
+.eog-ledger-row { display: flex; align-items: center; gap: 0.65rem; padding: 0.5rem 0.75rem; background: var(--ash); }
+.eog-ledger-row + .eog-ledger-row { border-top: 1px solid #1c1c1c; }
+.eog-ledger-row.is-fell .eog-portrait-lg { filter: grayscale(1) brightness(0.7); }
+.eog-ledger-delta { font-family: 'Oswald', sans-serif; font-size: 1rem; color: var(--blood-text); flex: none; }
+.eog-ledger-delta.is-zero { color: #8a8a8a; }
+.eog-ledger-note { font-family: 'Oswald', sans-serif; font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: #ff9a85; flex: none; }
+.eog-field { display: block; margin-top: 1rem; }
+.eog-field-label { display: block; margin-bottom: 0.35rem; font-family: 'Oswald', sans-serif; font-size: 0.78rem;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--bone); }
+.eog-field-label span { color: #a8a8a8; text-transform: none; letter-spacing: 0.04em; }
+.eog-scenario-input { width: 100%; box-sizing: border-box; min-height: 44px; }
+.eog-callout { margin-top: 1rem; padding: 0.7rem 0.85rem; border-left: 3px solid var(--blood); background: #160b08;
+  font-size: 0.92rem; line-height: 1.5; color: var(--bone); }
+.eog-callout strong { font-family: 'Oswald', sans-serif; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--parchment); }
+
+/* ── Campaign track: six games, W/L/D/R ───────────────────────────────────── */
+.cmp-track { display: inline-flex; gap: 4px; align-items: center; flex: none; }
+.cmp-pip { width: 20px; height: 20px; border-radius: 3px; border: 1px solid #444; display: grid; place-items: center;
+  font-family: 'Oswald', sans-serif; font-size: 0.62rem; line-height: 1; color: #bdbdbd; box-sizing: border-box; }
+.cmp-pip.is-win { background: var(--rust); border-color: var(--blood); color: #ffd6cc; }
+.cmp-pip.is-loss { background: #262626; border-color: #555; color: #e0e0e0; }
+.cmp-pip.is-draw { background: #1f2430; border-color: #4a5266; color: #d6dcea; }
+.cmp-pip.is-retreat { background: transparent; border-style: dashed; border-color: #666; color: #bdbdbd; }
+.cmp-pip.is-played { background: #262626; border-color: #555; }
+.cmp-pip.is-now { border-color: var(--blood); box-shadow: 0 0 0 1px var(--blood); color: var(--parchment); }
+
+/* ── Builder: campaign panel in the company header ────────────────────────── */
+.ch-camp { display: grid; gap: 0.5rem; border-top: 1px solid rgba(190, 65, 39, 0.2); padding: 0.6rem 0.7rem 0.15rem; }
+.ch-camp-head { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+.ch-camp-title { font-family: 'Oswald', sans-serif; font-size: 0.85rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--parchment); }
+.ch-camp-title span { color: #a8a8a8; }
+.ch-camp-todo { display: flex; align-items: center; gap: 0.6rem; min-height: 44px; padding: 0.35rem 0.7rem; width: 100%; box-sizing: border-box;
+  background: #160b08; border: 1px solid rgba(190, 65, 39, 0.45); border-radius: 6px; color: var(--bone); text-align: left; cursor: pointer;
+  font-family: 'Oswald', sans-serif; font-size: 0.82rem; letter-spacing: 0.08em; text-transform: uppercase;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.ch-camp-todo .n { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--blood); color: #fff; font-size: 0.75rem; flex: none; }
+.ch-camp-todo .go { margin-left: auto; color: var(--blood-text); font-size: 1.1rem; }
+.ch-camp-todo.is-done { background: none; border-color: #2c2c2c; color: #a8a8a8; cursor: default; }
+.ch-camp-todo.is-done .n { background: #1d2a1d; color: #9fd49f; }
+.ch-camp-todo:focus-visible, .ch-camp-ghost:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
+.ch-camp-actions { display: flex; gap: 0.5rem; }
+.ch-camp-actions > button { flex: 1; min-height: 44px; padding: 0 0.6rem; }
+.ch-camp-ghost { background: none; border: 1px solid #3a3a3a; border-radius: 4px; color: var(--bone); font-family: 'Oswald', sans-serif;
+  font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; touch-action: manipulation; }
+@media (hover: hover) { .ch-camp-ghost:hover { border-color: #666; color: var(--parchment); } }
+.ch-camp-eog-btn:disabled { opacity: 0.6; cursor: not-allowed; background: none; border-color: #3a3a3a; color: #a8a8a8; }
+@media (min-width: 1025px) {
+  .ch-camp { grid-template-columns: 1fr 1fr; column-gap: 0.75rem; }
+  .ch-camp-head, .ch-camp-actions, .ch-camp-todo.is-done { grid-column: 1 / -1; }
+  .ch-camp-actions { justify-content: flex-end; }
+  .ch-camp-actions > button { flex: 0 0 auto; min-width: 9.5rem; }
+}
+
+/* Game log sheet */
+.cmp-log { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.6rem; }
+.cmp-log-game { border: 1px solid #2c2c2c; border-radius: 6px; padding: 0.65rem 0.8rem; background: var(--ash); }
+.cmp-log-head { display: flex; align-items: center; gap: 0.55rem; }
+.cmp-log-title { font-family: 'Oswald', sans-serif; font-size: 0.92rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--parchment); }
+.cmp-log-scenario { margin-top: 0.2rem; font-size: 0.92rem; color: var(--bone); font-style: italic; }
+.cmp-log-facts { margin: 0.45rem 0 0; display: grid; gap: 0.2rem; }
+.cmp-log-facts div { display: grid; grid-template-columns: 4.5rem 1fr; gap: 0.5rem; }
+.cmp-log-facts dt { font-family: 'Oswald', sans-serif; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: #a8a8a8; padding-top: 0.15rem; }
+.cmp-log-facts dd { margin: 0; font-size: 0.9rem; line-height: 1.4; color: var(--bone); }
+.cmp-fallen-roll { margin-top: 1.1rem; }
+.cmp-fallen-title { margin: 0 0 0.4rem; font-family: 'Oswald', sans-serif; font-weight: 500; font-size: 0.8rem; letter-spacing: 0.14em; text-transform: uppercase; color: #ff9a85; }
+.cmp-fallen-roll ul { list-style: none; margin: 0; padding: 0; }
+.cmp-fallen-roll li { display: flex; justify-content: space-between; gap: 0.75rem; padding: 0.35rem 0; border-top: 1px solid #1c1c1c; font-size: 0.9rem; color: var(--bone); }
+.cmp-fallen-roll li span:last-child { font-family: 'Oswald', sans-serif; font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: #a8a8a8; white-space: nowrap; }
+
+/* Vacancy slot: say why it is empty */
+.slot-fallen-note { margin: 0.25rem 0 0.75rem; font-size: 0.95rem; line-height: 1.45; color: var(--bone); }
+.slot-fallen-note strong { font-family: 'Oswald', sans-serif; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #ff9a85; }
+.warrior-slot.is-vacancy .slot-recruit-btn { color: var(--parchment); border-color: rgba(190, 65, 39, 0.6); min-height: 48px; }
+.recruit-sheet .ws-section--row { justify-content: space-between; align-items: flex-start; }
+.recruit-sheet .ws-section--row .eog-help { margin-top: 0.3rem; }
+.recruit-sheet .co-settings-step-btn { width: 44px; height: 44px; }
+.recruit-sheet .ws-captain-toggle { white-space: nowrap; flex: none; }
+.cs-stepper-hint { display: block; margin-top: 0.4rem; font-size: 0.82rem; line-height: 1.35; color: #a8a8a8; }
+
 /* ── WIZARD ─────────────────────────────────────────────── */
 .wizard-step-indicator {
   display: flex;
