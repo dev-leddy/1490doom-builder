@@ -3,6 +3,7 @@ import { useBuilderStore } from '../store/builderStore'
 import { useTrackerStore } from '../store/trackerStore'
 import { deleteGame } from '../api/games'
 import { WARRIOR_IMAGES } from '../data/images'
+import { CAMPAIGN_RULES } from '../data/campaign'
 import BottomSheet from '../shared/BottomSheet'
 
 const RULEBOOK_TEXT =
@@ -126,14 +127,17 @@ export default function EndOfGameModal({ onClose, onConfirm }) {
     onClose()
   }
 
+  // TODO(campaign UI): the new end-of-game sheet should build a draft and call
+  // recordCampaignGame directly; awardEndOfGame maps this pooled allocation onto it.
+  // Nothing is recorded (and the sheet stays open) if the engine refuses the result.
   function handleRetreatConfirm() {
-    awardEndOfGame({
+    const ok = awardEndOfGame({
       survivorIndices: [...survivors],
       ipAllocations: {},
       newCaptainIndex: needsCaptainPromo ? newCaptainIndex : null,
       retreat: true,
     })
-    finishGame()
+    if (ok) finishGame()
   }
 
   function goNext() {
@@ -143,12 +147,13 @@ export default function EndOfGameModal({ onClose, onConfirm }) {
   }
 
   function handleConfirm() {
-    awardEndOfGame({
+    const ok = awardEndOfGame({
       survivorIndices: [...survivors],
       ipAllocations: allocation,
       newCaptainIndex: needsCaptainPromo ? newCaptainIndex : null,
+      result: won === true ? 'win' : 'loss',
     })
-    finishGame()
+    if (ok) finishGame()
   }
 
   const stepTitle = step === 1 ? `END OF GAME ${campaignGame + 1}`
@@ -250,7 +255,7 @@ export default function EndOfGameModal({ onClose, onConfirm }) {
                 }}
               >−</button>
               <span className="eog-stepper-val">{objectiveIPs}</span>
-              <button className="eog-stepper-btn" onClick={() => setObjectiveIPs(v => v + 1)}>+</button>
+              <button className="eog-stepper-btn" onClick={() => setObjectiveIPs(v => Math.min(CAMPAIGN_RULES.maxBonusIP, v + 1))}>+</button>
             </div>
           </div>
 

@@ -5,6 +5,9 @@
 // saved. If the stored copy is newer (another tab/device saved since), the save is
 // refused with 409 and the newer copy, so the client can adopt it instead of
 // silently overwriting it.
+//
+// Campaign log guard: clients from before the campaign log don't send `campaign` at all.
+// If such a save arrives for a company that has one stored, the stored log is kept.
 import { json } from '../../_middleware.js'
 
 export async function onRequestGet(context) {
@@ -32,7 +35,8 @@ export async function onRequestPost(context) {
   let body
   try { body = await context.request.json() } catch { return json({ error: 'Invalid JSON' }, 400) }
 
-  const { id, name, mode, data, baseSavedAt } = body
+  const { id, name, mode, baseSavedAt } = body
+  let { data } = body
   if (!id || !name || !data) return json({ error: 'Missing required fields' }, 400)
 
   const existing = await context.env.DB.prepare(
@@ -47,6 +51,12 @@ export async function onRequestPost(context) {
       error: 'conflict',
       company: { id, name: existing.name, mode: existing.mode, saved_at: existing.saved_at, data: JSON.parse(existing.data) },
     }, 409)
+  }
+
+  if (existing && typeof data === 'object' && !('campaign' in data)) {
+    let stored = null
+    try { stored = JSON.parse(existing.data)?.campaign ?? null } catch { /* unreadable row: nothing to keep */ }
+    if (stored) data = { ...data, campaign: stored }
   }
 
   const savedAt = Date.now()

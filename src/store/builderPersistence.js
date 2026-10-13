@@ -18,8 +18,8 @@ const baseSavedAt = new Map()
 
 // Builder state → the save entry stored in companies.data
 export function snapshotCompany(state) {
-  const { mark, companyName, companyAvatar, ipLimit, slots, companyId, companyMode, campaignGame } = state
-  return { mark, companyName, companyAvatar, ipLimit, slots, companyId, companyMode, campaignGame }
+  const { mark, companyName, companyAvatar, ipLimit, slots, companyId, companyMode, campaignGame, campaign = null } = state
+  return { mark, companyName, companyAvatar, ipLimit, slots, companyId, companyMode, campaignGame, campaign }
 }
 
 // API row → save entry used by the saved-companies list

@@ -6,6 +6,7 @@ import { saveGame, deleteGame } from '../api/games'
 import { getEffectiveStats } from '../utils/stats'
 import { expendHerbs, expendReliquary, expendCacheItem, undoCacheItem, undoCacheItemNote } from './trackerItems'
 import { afterUseOf, playUnit } from './trackerLoadout'
+import { campaignProgress } from './campaign'
 
 // ── HELPERS ──────────────────────────────────────────────────────────────────
 
@@ -85,6 +86,7 @@ function gameSnapshot(state) {
     companyId: state.companyId,
     doomedChoirUsed: state.doomedChoirUsed,
     gravebornUsed: state.gravebornUsed,
+    campaign: state.campaign, // { gameNumber } for a campaign game, else null
   }
 }
 
@@ -121,6 +123,7 @@ export const useTrackerStore = create((set, get) => ({
   sessionId: null,
   savedBuilderSlots: null,
   restored: false,
+  campaign: null,          // { gameNumber } when playing a campaign game
 
   // Modal state
   confirmModal: null,      // { title, subtitle, onConfirm }
@@ -157,6 +160,9 @@ export const useTrackerStore = create((set, get) => ({
       sessionId: Date.now().toString(36),
       savedBuilderSlots: builderState.slots.map(s => s.type),
       restored: false,
+      campaign: builderState.companyMode === 'campaign'
+        ? { gameNumber: campaignProgress(builderState).nextGame }
+        : null,
       doomedChoirUsed: false,
       gravebornUsed: false,
       // Ashbound: pop up a reminder as soon as the game starts
@@ -197,6 +203,7 @@ export const useTrackerStore = create((set, get) => ({
       companyId: stored.companyId,
       doomedChoirUsed: stored.doomedChoirUsed || false,
       gravebornUsed: stored.gravebornUsed || false,
+      campaign: stored.campaign || null, // games saved before this field have none
       markAbilityModal: null, // never restore transient modal state
       restored: true,
     })

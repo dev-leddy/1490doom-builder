@@ -1,0 +1,366 @@
+// ── Campaign engine ───────────────────────────────────────────────────────────
+// Pure (company in, company out) so it's unit-testable; builderStore wraps it in actions.
+//
+// A campaign company carries, besides campaignGame (games played):
+//   slot.uid         stable id of the warrior in that slot (a new recruit gets a new one)
+//   slot.fallen      on an empty slot: { uid, type, name, game } of the warrior who died there
+//   campaign         { v, log, completedAt, needsCaptain }
+//   campaign.log[]   one record per game, see applyEndOfGame. Only the latest record keeps
+//                    `before` (the company as it was), which is what makes undoLastGame exact.
+//
+// Upgrade order: in a campaign, slot.ip is appended to as upgrades are bought, so it doubles
+// as the purchase log. Campaign stat keys (stat_0, stat_1, ...) are numbered in the order the
+// stats were taken, matching slot.statImproves. undoLastUpgrade reverts slot.ip's last entry.
+
+import { WARRIORS, STAT_IMPROVEMENT } from '../data/warriors.js'
+import { CAMPAIGN_RULES, GAME_RESULTS } from '../data/campaign.js'
+import { getEffectiveStats, improvedStats } from '../utils/stats.js'
+import { getAllowedWeapons, getSecondWeaponOptions, defaultLoadout } from '../utils/loadout.js'
+
+// iOS Safari <15.4 doesn't have crypto.randomUUID
+const newId = () =>
+  globalThis.crypto?.randomUUID?.() ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
+
+const nameOf = slot => (slot.customName && slot.customName.trim()) || slot.type
+
+// Gear bought with IP. In a campaign it is kept for good (stats too, as stat_N keys).
+export const PERMANENT_GEAR = ['weapon2', 'climbing', 'consumable']
+const GEAR_LABEL = { weapon2: 'The off-hand', climbing: 'The climbing item', consumable: 'The consumable' }
+
+function vacantSlot(fallen) {
+  return {
+    type: null, weapon1: null, weapon2: null, consumable: null,
+    climbing: null, ip: [], isCaptain: false,
+    notes: [], customName: null,
+    earnedIP: 0, statImproves: [],
+    uid: newId(), fallen,
+  }
+}
+
+// ── Shape & progress ──────────────────────────────────────────────────────────
+
+// Fills in what older campaign companies lack (uids, the campaign object). Standard
+// companies are returned untouched. Safe to call repeatedly.
+export function normalizeCampaign(company) {
+  if (!company || company.companyMode !== 'campaign') return company
+  const slots = (company.slots || []).map(s => (s.uid ? s : { ...s, uid: newId() }))
+  const c = company.campaign || {}
+  const campaign = {
+    v: 1, completedAt: null, needsCaptain: false,
+    ...c,
+    log: Array.isArray(c.log) ? c.log : [],
+  }
+  return { ...company, slots, campaign, campaignGame: company.campaignGame || 0 }
+}
+
+// completed counts campaignGame too, so companies from before the log keep their count
+export function campaignProgress(company) {
+  const completed = Math.max(company?.campaignGame || 0, company?.campaign?.log?.length || 0)
+  const total = CAMPAIGN_RULES.games
+  const isComplete = completed >= total || !!company?.campaign?.completedAt
+  return { completed, total, isComplete, nextGame: isComplete ? null : completed + 1 }
+}
+
+// ── Upgrade capacity ──────────────────────────────────────────────────────────
+
+// Upgrades this warrior could still buy (ignoring IP): 'stat:MOV', 'weapon2', 'climbing', ...
+// A stat already at its best (2+) is not an option; neither is an off-hand the class can't carry.
+export function openUpgrades(slot) {
+  const wdata = WARRIORS[slot?.type]
+  if (!wdata) return []
+  const ip = slot.ip || []
+  const open = []
+  const taken = improvedStats(slot)
+  const now = getEffectiveStats(slot)
+  for (const k of Object.keys(STAT_IMPROVEMENT)) {
+    if (taken.has(k)) continue
+    const withIt = getEffectiveStats({ ...slot, statImproves: [...(slot.statImproves || []), k] })
+    if (withIt[k].value !== now[k].value) open.push(`stat:${k}`)
+  }
+  const canOffhand = !wdata.fixedShield && !wdata.fixedDualWield &&
+    getAllowedWeapons(wdata).some(w => getSecondWeaponOptions(wdata, w).length > 0)
+  if (canOffhand && !ip.includes('weapon2')) open.push('weapon2')
+  if (!ip.includes('climbing')) open.push('climbing')
+  if (!ip.includes('consumable')) open.push('consumable')
+  return open
+}
+
+// How many more IP this warrior could usefully receive: open upgrades minus IP already
+// banked (earned, not yet spent). 0 means another point would be wasted on them.
+export function spendableCapacity(slot) {
+  if (!slot?.type) return 0
+  const banked = Math.max(0, (slot.earnedIP || 0) - (slot.ip?.length || 0))
+  return Math.max(0, openUpgrades(slot).length - banked)
+}
+
+// ── End of game ───────────────────────────────────────────────────────────────
+// Draft: {
+//   result:          'win' | 'loss' | 'draw' | 'retreat'  (opponent retreated = 'win')
+//   scenario:        optional free text
+//   fallenIndices:   slot indices of warriors that died
+//   newCaptainIndex: surviving slot index to promote when the Captain fell (and someone survived)
+//   survivorPick:    slot index of the survivor who gets the survivor IP (null if nobody survived / retreat)
+//   bonus:           [{ index, ip }] scenario / objective IP to survivors (total <= maxBonusIP)
+// }
+
+function planGame(company, draft) {
+  const slots = company.slots || []
+  const fallen = new Set((draft.fallenIndices || []).filter(i => slots[i]?.type))
+  const active = slots.map((s, i) => (s.type ? i : -1)).filter(i => i >= 0)
+  const survivors = active.filter(i => !fallen.has(i))
+  const captainIdx = active.find(i => slots[i].isCaptain) ?? null
+  const captainFell = captainIdx != null && fallen.has(captainIdx)
+  const earns = draft.result !== 'retreat' || CAMPAIGN_RULES.retreatGivesIP
+
+  // Dead warriors never earn, so the winner's point needs the Captain alive (not a promoted one)
+  const awards = []
+  if (earns && survivors.length && draft.survivorPick != null && CAMPAIGN_RULES.survivorIP > 0) {
+    awards.push({ index: draft.survivorPick, ip: CAMPAIGN_RULES.survivorIP, reason: 'survivor' })
+  }
+  if (earns && draft.result === 'win' && captainIdx != null && !captainFell && CAMPAIGN_RULES.winnerCaptainIP > 0) {
+    awards.push({ index: captainIdx, ip: CAMPAIGN_RULES.winnerCaptainIP, reason: 'captain' })
+  }
+  if (earns) {
+    for (const b of draft.bonus || []) {
+      if (b && b.ip > 0) awards.push({ index: b.index, ip: b.ip, reason: 'bonus' })
+    }
+  }
+  return { fallen, active, survivors, captainIdx, captainFell, earns, awards }
+}
+
+// Every reason the draft can't be recorded yet (empty = OK)
+export function validateEndOfGame(company, draft = {}) {
+  if (company?.companyMode !== 'campaign') return ['This company is not playing a campaign.']
+  if (campaignProgress(company).isComplete) return ['The campaign is complete. No more games can be recorded.']
+
+  const errors = []
+  const slots = company.slots || []
+  if (!GAME_RESULTS.includes(draft.result)) errors.push('Choose how the game ended.')
+  for (const i of draft.fallenIndices || []) {
+    if (!slots[i]?.type) errors.push(`Slot ${i + 1} has no warrior in it.`)
+  }
+
+  const plan = planGame(company, draft)
+  const { survivors, earns } = plan
+  if (plan.captainFell && survivors.length) {
+    if (draft.newCaptainIndex == null) errors.push('The Captain fell. Choose a surviving warrior to become Captain.')
+    else if (!survivors.includes(draft.newCaptainIndex)) errors.push('The new Captain must be a warrior who survived.')
+  }
+
+  if (earns && survivors.length) {
+    const pick = draft.survivorPick
+    if (pick == null) errors.push('Choose a surviving warrior to receive the survivor IP.')
+    else if (!survivors.includes(pick)) errors.push('The survivor IP must go to a warrior who survived.')
+    else {
+      // A point a warrior can't spend must go to someone who can (if anyone can)
+      const otherAwards = i => plan.awards.filter(a => a.index === i && a.reason !== 'survivor').reduce((n, a) => n + a.ip, 0)
+      const room = i => spendableCapacity(slots[i]) - otherAwards(i)
+      if (room(pick) <= 0 && survivors.some(j => j !== pick && room(j) > 0)) {
+        errors.push(`${nameOf(slots[pick])} has no upgrades left to buy. Give the survivor IP to another warrior.`)
+      }
+    }
+  }
+
+  if (earns) {
+    let total = 0
+    for (const b of draft.bonus || []) {
+      if (!b) continue
+      if (!Number.isInteger(b.ip) || b.ip < 0) errors.push('Bonus IP must be a whole number.')
+      else if (b.ip > 0 && !survivors.includes(b.index)) errors.push('Bonus IP can only go to warriors who survived.')
+      else total += b.ip
+    }
+    if (total > CAMPAIGN_RULES.maxBonusIP) errors.push(`At most ${CAMPAIGN_RULES.maxBonusIP} bonus IP can be awarded in one game.`)
+  }
+  return errors
+}
+
+const withoutBefore = ({ before: _b, ...record }) => record
+
+// Records a finished game. Returns { company, record }; throws if validateEndOfGame objects.
+// Atomic: awards, deaths (slot -> vacancy), captain change and the log entry together.
+export function applyEndOfGame(company, draft, { now = Date.now() } = {}) {
+  const errors = validateEndOfGame(company, draft)
+  if (errors.length) throw new Error(errors.join(' '))
+
+  const c = normalizeCampaign(company)
+  const plan = planGame(c, draft)
+  const gameNumber = campaignProgress(c).completed + 1
+  const { log: _log, ...campaignState } = c.campaign
+  const before = { slots: c.slots, campaignGame: c.campaignGame, campaign: campaignState }
+
+  // Awards
+  const gained = {}
+  for (const a of plan.awards) gained[a.index] = (gained[a.index] || 0) + a.ip
+  let slots = c.slots.map((s, i) => (gained[i] ? { ...s, earnedIP: (s.earnedIP || 0) + gained[i] } : s))
+
+  // Deaths: the slot becomes a vacancy that remembers who fell there
+  const fallenIdx = [...plan.fallen].sort((a, b) => a - b)
+  const fallen = fallenIdx.map(i => {
+    const s = c.slots[i]
+    return { uid: s.uid, type: s.type, name: nameOf(s), earnedIP: s.earnedIP || 0, statImproves: [...(s.statImproves || [])], ip: [...(s.ip || [])] }
+  })
+  fallenIdx.forEach((i, n) => {
+    slots[i] = vacantSlot({ uid: fallen[n].uid, type: fallen[n].type, name: fallen[n].name, game: gameNumber })
+  })
+
+  // Captain: a survivor rises; with no survivors the first emptied slot holds the place
+  // until the player picks a Captain among the recruits
+  let captainChange = null
+  let needsCaptain = !!c.campaign.needsCaptain
+  if (plan.captainFell) {
+    const from = c.slots[plan.captainIdx].uid
+    if (plan.survivors.length) {
+      const to = draft.newCaptainIndex
+      slots = slots.map((s, i) => (s.isCaptain === (i === to) ? s : { ...s, isCaptain: i === to }))
+      captainChange = { from, to: slots[to].uid, reason: 'promoted' }
+    } else {
+      slots[fallenIdx[0]] = { ...slots[fallenIdx[0]], isCaptain: true }
+      needsCaptain = true
+      captainChange = { from, to: null, reason: 'needsCaptain' }
+    }
+  }
+
+  const record = {
+    id: newId(),
+    gameNumber,
+    scenario: (draft.scenario || '').trim().slice(0, 80) || null,
+    result: draft.result,
+    finishedAt: now,
+    roster: plan.active.map(i => {
+      const s = c.slots[i]
+      return { uid: s.uid, type: s.type, name: nameOf(s), wasCaptain: !!s.isCaptain, survived: !plan.fallen.has(i) }
+    }),
+    awards: plan.awards.map(a => ({ uid: c.slots[a.index].uid, ip: a.ip, reason: a.reason })),
+    captainChange,
+    fallen,
+    before,
+  }
+
+  // Only the newest record can be undone, so older ones drop their snapshot
+  const log = c.campaign.log.map((r, i, all) => (i === all.length - 1 ? withoutBefore(r) : r))
+  const campaign = {
+    ...c.campaign,
+    needsCaptain,
+    completedAt: gameNumber >= CAMPAIGN_RULES.games ? now : c.campaign.completedAt,
+    log: [...log, record],
+  }
+  return { company: { ...c, slots, campaignGame: gameNumber, campaign }, record }
+}
+
+export function canUndoLastGame(company) {
+  return !!company?.campaign?.log?.at(-1)?.before
+}
+
+// Puts the company back exactly as it was before the latest game (anything changed since,
+// such as upgrades bought or recruits hired, is lost too). Only the latest game; null if none.
+export function undoLastGame(company) {
+  if (!canUndoLastGame(company)) return null
+  const log = company.campaign.log
+  const { slots, campaignGame, campaign } = log.at(-1).before
+  return { ...company, slots, campaignGame, campaign: { ...campaign, log: log.slice(0, -1) } }
+}
+
+// ── Recruiting ────────────────────────────────────────────────────────────────
+
+// Empty slots, with who fell there and whether it is holding the Captain's place
+export function vacancies(company) {
+  const needsCaptain = !!company?.campaign?.needsCaptain
+  return (company?.slots || [])
+    .map((s, i) => (s.type ? null : { index: i, fallen: s.fallen || null, captainPlaceholder: needsCaptain && !!s.isCaptain }))
+    .filter(Boolean)
+}
+
+// Puts a new warrior in an empty slot. startIP (default 0, the rule) is for house rules.
+// makeCaptain: the recruit leads the company (only when it has no living Captain).
+// Throws with a player-facing message if the hire isn't possible.
+export function hireIntoVacancy(company, slotIndex, type, { startIP = 0, makeCaptain = false } = {}) {
+  const c = normalizeCampaign(company)
+  let slots = [...(c.slots || [])]
+  const target = slots[slotIndex]
+  if (!target) throw new Error('There is no such slot.')
+  if (target.type) throw new Error('That slot already has a warrior.')
+  if (!WARRIORS[type]) throw new Error('Choose a warrior class.')
+  if (slots.some(s => s.type === type)) throw new Error(`The company already has a ${type}.`)
+  if (makeCaptain && slots.some(s => s.type && s.isCaptain)) throw new Error('The company already has a Captain.')
+
+  let needsCaptain = !!c.campaign?.needsCaptain
+  const { fallen: _fallen, ...rest } = target
+  const hired = {
+    ...rest,
+    type, ...defaultLoadout(type),
+    consumable: null, climbing: null, ip: [], statImproves: [],
+    notes: [], customName: null,
+    earnedIP: Math.max(0, Math.floor(Number(startIP) || 0)),
+    uid: newId(),
+  }
+
+  if (makeCaptain) {
+    slots = slots.map(s => (s.isCaptain ? { ...s, isCaptain: false } : s))
+    hired.isCaptain = true
+    needsCaptain = false
+  } else if (needsCaptain && target.isCaptain) {
+    // Hired into the Captain's placeholder but not as Captain: the place moves to another
+    // vacancy, or, if this is the last recruit, they lead
+    const other = slots.findIndex((s, i) => i !== slotIndex && !s.type)
+    if (other >= 0) {
+      slots[other] = { ...slots[other], isCaptain: true }
+      hired.isCaptain = false
+    } else {
+      needsCaptain = false
+    }
+  }
+  slots[slotIndex] = hired
+
+  return c.campaign ? { ...c, slots, campaign: { ...c.campaign, needsCaptain } } : { ...c, slots }
+}
+
+// ── Permanence ────────────────────────────────────────────────────────────────
+
+// Why this change to a campaign warrior isn't allowed (a bought item can't be removed or
+// swapped, and the main weapon can't change to one the bought off-hand can't go with), or null
+export function permanenceBlock(slot, prop, value) {
+  const ip = slot?.ip || []
+  if (PERMANENT_GEAR.includes(prop) && ip.includes(prop) && (slot[prop] ?? null) !== (value ?? null)) {
+    return `${GEAR_LABEL[prop]} is a permanent campaign upgrade. Use Undo last upgrade to fix a mistake.`
+  }
+  if (prop === 'weapon1' && value !== slot.weapon1 && ip.includes('weapon2') && slot.weapon2 &&
+      !getSecondWeaponOptions(WARRIORS[slot.type], value).includes(slot.weapon2)) {
+    return `The ${slot.weapon2} off-hand is permanent and can't be carried with that main weapon.`
+  }
+  return null
+}
+
+// Returns true when removing this IP entry would take back a bought campaign upgrade
+export function isPermanentUpgrade(id) {
+  return PERMANENT_GEAR.includes(id) || id === 'stat' || /^stat_\d+$/.test(id)
+}
+
+// The most recent upgrade: { id, kind: 'stat' | 'gear', stat?, item? } or null
+export function lastUpgrade(slot) {
+  const id = (slot?.ip || []).at(-1)
+  if (!id) return null
+  if (/^stat_\d+$/.test(id)) return { id, kind: 'stat', stat: (slot.statImproves || []).at(-1) ?? null }
+  if (id === 'stat') return { id, kind: 'stat', stat: slot.statImprove ?? null }
+  return { id, kind: 'gear', item: slot[id] ?? null }
+}
+
+// Takes back only the most recent upgrade and its IP. Returns the new slot, or null.
+export function undoLastUpgrade(slot) {
+  const ip = slot?.ip || []
+  const last = ip.at(-1)
+  if (!last) return null
+  const rest = ip.slice(0, -1)
+  if (/^stat_\d+$/.test(last)) return { ...slot, ip: rest, statImproves: (slot.statImproves || []).slice(0, -1) }
+  if (last === 'stat') return { ...slot, ip: rest, statImprove: null }
+  if (last === 'weapon2') {
+    const wdata = WARRIORS[slot.type]
+    if (slot.weapon1 === 'Polearm (one-handed)' && !wdata?.fixedShield) {
+      // The Shield came with the polearm, so the polearm goes back too
+      const weapon1 = getAllowedWeapons(wdata).find(w => w !== 'Polearm (one-handed)') ?? slot.weapon1
+      return { ...slot, ip: rest, weapon1, weapon2: null }
+    }
+    return { ...slot, ip: rest, weapon2: null }
+  }
+  if (last === 'climbing' || last === 'consumable') return { ...slot, ip: rest, [last]: null }
+  return { ...slot, ip: rest }
+}

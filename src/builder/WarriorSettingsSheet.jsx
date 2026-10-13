@@ -46,8 +46,9 @@ export default function WarriorSettingsSheet({ slotIndex, slot, allSlots, isOpen
   const [confirmUndo, setConfirmUndo] = useState(false)
   const removeStatImprove = useBuilderStore(s => s.removeStatImprove)
   const isCampaign = useBuilderStore(s => s.companyMode) === 'campaign'
-  // Campaign stat improves are permanent; this is the escape hatch for a mistake (most recent first)
-  const lastStat = isCampaign ? (slot.statImproves || []).at(-1) : null
+  // Campaign stat improves are permanent; this is the escape hatch for a mistake. Only offered
+  // when a stat was the most recent upgrade (the store refuses anything older)
+  const lastStat = isCampaign && /^stat_\d+$/.test((slot.ip || []).at(-1) || '') ? (slot.statImproves || []).at(-1) : null
   const lastStatName = lastStat ? (STAT_IMPROVEMENT[lastStat] || lastStat).replace(/ \+1$/, '') : ''
 
   const available = getAvailableWarriorTypes(slotIndex, allSlots)

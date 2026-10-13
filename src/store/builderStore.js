@@ -7,10 +7,19 @@ const randomUUID = () =>
     (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16)
   )
 import { WARRIORS, MARKS, STAT_IMPROVEMENT, IP_OPTIONS } from '../data/warriors'
-import { WEAPON_NAMES, CLIMBING_ITEMS, CONSUMABLE_NAMES } from '../data/weapons'
+import { CLIMBING_ITEMS, CONSUMABLE_NAMES } from '../data/weapons'
+import { getAllowedWeapons, getSecondWeaponOptions } from '../utils/loadout'
+import {
+  normalizeCampaign, campaignProgress, spendableCapacity, validateEndOfGame, applyEndOfGame,
+  canUndoLastGame, undoLastGame, hireIntoVacancy, permanenceBlock, isPermanentUpgrade,
+  undoLastUpgrade as undoLastUpgradeOf,
+} from './campaign'
 import { encodeCompany, decodeCompany } from './builderEncoding'
 import { fetchCloudSaves, removeCloudCompany, createSaver, migrateLocalData, snapshotCompany } from './builderPersistence'
 import { useAuthStore } from './authStore'
+
+// Weapon rules live in utils/loadout (pure); re-exported for the UI
+export { getAllowedWeapons, getSecondWeaponOptions }
 
 function getUser() { return useAuthStore.getState().user }
 
@@ -29,34 +38,6 @@ export function getBaseIP(slotIndex) {
 
 export function getTotalCompanyIP(ipLimit) {
   return ipLimit
-}
-
-export function getAllowedWeapons(wdata) {
-  if (!wdata) return WEAPON_NAMES.filter(w => w !== 'Shield')
-  // fixedWeapon warriors have exactly one primary — no choice
-  if (wdata.fixedWeapon) return [wdata.fixedWeapon]
-  const cantHave = wdata.cantHave || []
-  // Use allowedWeapons whitelist when present; fall back to all weapons minus Shield and cantHave
-  return (wdata.allowedWeapons || WEAPON_NAMES).filter(w => w !== 'Shield' && !cantHave.includes(w))
-}
-
-export function getSecondWeaponOptions(wdata, primaryWeapon) {
-  if (!wdata || !primaryWeapon) return []
-  const cantHave = wdata.cantHave || []
-  const twoHanded = ['Heavy Weapon', 'Polearm (two-handed)', 'Bow', 'Crossbow']
-  if (twoHanded.includes(primaryWeapon)) return []
-  // Polearm (one-handed) always pairs with Shield only
-  if (primaryWeapon === 'Polearm (one-handed)') {
-    return cantHave.includes('Shield') ? [] : ['Shield']
-  }
-  const canShield = (wdata.allowedWeapons || []).includes('Shield') && !cantHave.includes('Shield')
-  const canDualLight = !cantHave.includes('Light Weapon')
-  // Light Weapon primary: can dual-wield or pair with Shield
-  if (primaryWeapon === 'Light Weapon') {
-    return [...(canDualLight ? ['Light Weapon'] : []), ...(canShield ? ['Shield'] : [])]
-  }
-  // Other one-handed: Light Weapon or Shield offhand (if allowed)
-  return [...(canDualLight ? ['Light Weapon'] : []), ...(canShield ? ['Shield'] : [])]
 }
 
 export function isOPG(abilityName) {
@@ -113,6 +94,23 @@ function emptySlot(i, isCaptain) {
   }
 }
 
+// The old end-of-game modal hands out one pool of IP; split it into the engine's draft
+// (survivor point, bonus) and leave out the winner's Captain point, which the engine adds
+function allocationToDraft(slots, { survivorIndices = [], ipAllocations = {}, newCaptainIndex = null, result, scenario = null }) {
+  const fallenIndices = slots.map((s, i) => (s.type && !survivorIndices.includes(i) ? i : -1)).filter(i => i >= 0)
+  const alloc = { ...ipAllocations }
+  const captainIdx = slots.findIndex(s => s.type && s.isCaptain)
+  if (result === 'win' && survivorIndices.includes(captainIdx) && alloc[captainIdx] > 0) alloc[captainIdx]--
+  const given = Object.entries(alloc).filter(([, n]) => n > 0).map(([i, n]) => [Number(i), n])
+  // The survivor point goes to someone who can use it, if anyone can; the rest is bonus
+  const first = given.find(([i]) => spendableCapacity(slots[i]) > 0) ?? given[0]
+  const survivorPick = first ? first[0] : null
+  const bonus = given
+    .map(([index, n]) => ({ index, ip: index === survivorPick ? n - 1 : n }))
+    .filter(b => b.ip > 0)
+  return { result, scenario, fallenIndices, newCaptainIndex, survivorPick, bonus }
+}
+
 function defaultState() {
   return {
     companyId: randomUUID(),
@@ -122,6 +120,7 @@ function defaultState() {
     ipLimit: 3,
     companyMode: 'standard',
     campaignGame: 0,
+    campaign: null,        // campaign log etc. (see store/campaign.js); null for standard companies
     slots: Array.from({ length: 3 }, (_, i) => emptySlot(i)),
   }
 }
@@ -136,7 +135,7 @@ export const useBuilderStore = create((set, get) => {
       const imported = decodeCompany(hash)
       if (imported) {
         history.replaceState(null, '', window.location.pathname + window.location.search)
-        return { ...defaultState(), ...imported, _fromShare: true }
+        return { ...normalizeCampaign({ ...defaultState(), ...imported }), _fromShare: true }
       }
     }
     return defaultState()
@@ -178,7 +177,7 @@ export const useBuilderStore = create((set, get) => {
       upsertSave(save)
       if (save.companyId === get().companyId) {
         const { savedAt: _t, ...company } = save
-        set({ ...company, companyAvatar: company.companyAvatar ?? null })
+        set({ ...normalizeCampaign({ campaign: null, ...company }), companyAvatar: company.companyAvatar ?? null })
         get()._toast('Updated with changes from another device.')
       }
     },
@@ -240,7 +239,8 @@ export const useBuilderStore = create((set, get) => {
     addSlot() {
       const { slots } = get()
       if (slots.length >= 8) return
-      set({ slots: [...slots, emptySlot(slots.length, false)] })
+      const slot = emptySlot(slots.length, false)
+      set({ slots: [...slots, get().companyMode === 'campaign' ? { ...slot, uid: randomUUID() } : slot] })
       get()._autoDraft()
     },
     removeSlot() {
@@ -270,6 +270,17 @@ export const useBuilderStore = create((set, get) => {
     },
     selectWarrior(slotIndex, type) {
       const slots = [...get().slots]
+      const isCampaign = get().companyMode === 'campaign'
+      // Campaign upgrades are permanent, and a class change would refund them
+      if (isCampaign && slots[slotIndex]?.ip?.length && type !== slots[slotIndex].type) {
+        get()._toast("Campaign upgrades are permanent. A warrior with upgrades can't change class.")
+        return
+      }
+      // Campaign: a warrior picked for an empty slot is a new recruit (new uid, the fallen one is history)
+      if (isCampaign && !slots[slotIndex]?.type && type) {
+        const { fallen: _fallen, ...rest } = slots[slotIndex]
+        slots[slotIndex] = { ...rest, uid: randomUUID() }
+      }
       const wdata = type ? WARRIORS[type] : null
       const firstWeapon = wdata ? (wdata.fixedWeapon || getAllowedWeapons(wdata)[0]) : null
       const fixedShield = wdata?.fixedShield || false
@@ -411,6 +422,19 @@ export const useBuilderStore = create((set, get) => {
     },
     setWarriorProp(slotIndex, prop, value) {
       const slots = [...get().slots]
+      if (get().companyMode === 'campaign') {
+        const current = slots[slotIndex]
+        const blocked = permanenceBlock(current, prop, value)
+        if (blocked) { get()._toast(blocked); return }
+        // A one-handed polearm brings a Shield that costs 1 IP; never hand it out free
+        const wdata = WARRIORS[current?.type]
+        if (prop === 'weapon1' && value === 'Polearm (one-handed)' && value !== current.weapon1 &&
+            !wdata?.fixedShield && !current.ip?.includes('weapon2') &&
+            (current.ip?.length || 0) >= (current.earnedIP || 0)) {
+          get()._toast('A one-handed polearm comes with a Shield for 1 IP. No IP left.')
+          return
+        }
+      }
       slots[slotIndex] = { ...slots[slotIndex], [prop]: value }
       // Handle weapon1 changes
       if (prop === 'weapon1') {
@@ -479,6 +503,11 @@ export const useBuilderStore = create((set, get) => {
         }
         slot.ip = [...(slot.ip || []), optId]
       } else {
+        // Campaign upgrades are permanent; undoLastUpgrade is the only way back
+        if (companyMode === 'campaign' && slot.ip?.includes(optId) && isPermanentUpgrade(optId)) {
+          get()._toast('Campaign upgrades are permanent. Use Undo last upgrade to fix a mistake.')
+          return
+        }
         slot.ip = (slot.ip || []).filter(id => id !== optId)
       }
       slots[slotIndex] = slot
@@ -496,7 +525,10 @@ export const useBuilderStore = create((set, get) => {
         slots[0] = slots[slotIndex]
         slots[slotIndex] = temp
       }
-      
+
+      // Campaign: a Captain picked among the recruits fills the place left when everyone fell
+      const { campaign } = get()
+      if (campaign?.needsCaptain && slots[0]?.type) set({ campaign: { ...campaign, needsCaptain: false } })
       set({ slots })
       get()._autoDraft()
     },
@@ -527,8 +559,10 @@ export const useBuilderStore = create((set, get) => {
     loadCompany(index) {
       const save = get().saves[index]
       if (!save) return
-      const { mark: m, companyName: n, companyAvatar: a = null, ipLimit: ip, slots: sl, companyId: cid, companyMode: cm = 'standard', campaignGame: cg = 0 } = save
-      set({ mark: m, companyName: n, companyAvatar: a, ipLimit: ip, slots: sl, companyId: cid || randomUUID(), companyMode: cm, campaignGame: cg, viewingShare: false })
+      const { mark: m, companyName: n, companyAvatar: a = null, ipLimit: ip, slots: sl, companyId: cid, companyMode: cm = 'standard', campaignGame: cg = 0, campaign: cp = null } = save
+      // Every saved field must be listed here, or the next auto-save drops it (campaign holds the game log)
+      const loaded = normalizeCampaign({ companyMode: cm, campaignGame: cg, campaign: cp, slots: sl })
+      set({ mark: m, companyName: n, companyAvatar: a, ipLimit: ip, companyId: cid || randomUUID(), ...loaded, viewingShare: false })
       get()._toast('Company loaded!')
     },
     async deleteCompany(index) {
@@ -586,7 +620,7 @@ export const useBuilderStore = create((set, get) => {
     openSharedLink(code) {
       const imported = decodeCompany(code)
       if (!imported) return false
-      set({ ...defaultState(), ...imported, companyId: randomUUID(), viewingShare: true, _savedSnapshot: JSON.stringify(imported) })
+      set({ ...normalizeCampaign({ ...defaultState(), ...imported }), companyId: randomUUID(), viewingShare: true, _savedSnapshot: JSON.stringify(imported) })
       get()._toast('Company loaded from shared link!')
       return true
     },
@@ -595,7 +629,8 @@ export const useBuilderStore = create((set, get) => {
       const imported = decodeCompany(code)
       if (!imported) { get()._toast('Invalid import code'); return false }
       // New id: an import is a new company, never an overwrite of the one being edited
-      set({ ...imported, companyId: randomUUID(), viewingShare: false, _savedSnapshot: JSON.stringify(imported) })
+      // campaign: null first, so the open company's game log isn't carried into the import
+      set({ ...normalizeCampaign({ campaign: null, ...imported }), companyId: randomUUID(), viewingShare: false, _savedSnapshot: JSON.stringify(imported) })
       get()._autoDraft()
       get()._toast('Company imported!')
       set({ importOpen: false })
@@ -679,7 +714,8 @@ export const useBuilderStore = create((set, get) => {
     },
     // Apply a pre-built random result to the store
     applyRandomResult(result) {
-      set({ ...result, companyId: randomUUID() })
+      // A new company: never inherit the previous one's campaign log
+      set(normalizeCampaign({ companyMode: get().companyMode, ...result, companyId: randomUUID(), campaign: null }))
       get()._autoDraft()
     },
     applyQuizCompany({ mark, companyName, warriors }) {
@@ -711,12 +747,14 @@ export const useBuilderStore = create((set, get) => {
         })
       }
 
-      set({ 
-        mark, 
-        companyName, 
+      set(normalizeCampaign({
+        companyMode: get().companyMode,
+        mark,
+        companyName,
         slots,
-        companyId: randomUUID() 
-      })
+        companyId: randomUUID(),
+        campaign: null,
+      }))
       get()._autoDraft()
     },
     rollRandom({ warriors = 3, ipLimit = 3 } = {}) {
@@ -726,38 +764,85 @@ export const useBuilderStore = create((set, get) => {
 
     // ── CAMPAIGN ───────────────────────────────────────────────────────────────
     setCompanyMode(mode) {
-      set({ companyMode: mode, ipLimit: mode === 'campaign' ? 0 : 3 })
+      const { slots, campaign, campaignGame } = get()
+      set({ ...normalizeCampaign({ companyMode: mode, slots, campaign, campaignGame }), ipLimit: mode === 'campaign' ? 0 : 3 })
       get()._autoDraft()
     },
-    awardEndOfGame({ survivorIndices, ipAllocations = {}, newCaptainIndex, retreat = false }) {
-      const { slots, campaignGame } = get()
-      const newSlots = slots.map((slot, i) => {
-        if (!slot.type) return slot
-        const survived = survivorIndices.includes(i)
-        if (!survived) {
-          // Warrior fell — replace with a fresh empty slot
-          return emptySlot(i, false)
-        }
-        // Survived — add manually allocated IPs
-        const add = ipAllocations[i] || 0
-        // Handle captain promotion: override isCaptain on promoted warrior
-        let isCaptain = slot.isCaptain
-        if (newCaptainIndex != null) {
-          isCaptain = (i === newCaptainIndex)
-        }
-        return { ...slot, earnedIP: (slot.earnedIP || 0) + add, isCaptain }
-      })
-      // Everyone with a Captain fell: the first slot leads until the player picks another
-      if (!newSlots.some(s => s.isCaptain)) newSlots[0] = { ...newSlots[0], isCaptain: true }
-      const nextGame = campaignGame + 1
-      set({ slots: newSlots, campaignGame: nextGame })
+    getCampaignProgress() {
+      return campaignProgress(get())
+    },
+    // 0 = this warrior has no upgrade left to spend another IP on (grey them out for awards)
+    getSpendableCapacity(slotIndex) {
+      return spendableCapacity(get().slots[slotIndex])
+    },
+    canUndoLastCampaignGame() {
+      return canUndoLastGame(get())
+    },
+    // Record a finished campaign game (draft shape: see store/campaign.js).
+    // Returns { ok, errors, record }; on errors nothing changes and the first one is toasted.
+    recordCampaignGame(draft) {
+      const errors = validateEndOfGame(get(), draft)
+      if (errors.length) {
+        get()._toast(errors[0])
+        return { ok: false, errors, record: null }
+      }
+      const { company, record } = applyEndOfGame(get(), draft)
+      set({ slots: company.slots, campaignGame: company.campaignGame, campaign: company.campaign })
       get()._autoDraft()
-      get()._toast(retreat ? `Game ${nextGame} recorded. No IP for a retreat.` : `Game ${nextGame} recorded.`)
+      const n = record.gameNumber
+      get()._toast(
+        company.campaign.completedAt ? `Game ${n} recorded. The campaign is complete.`
+          : company.campaign.needsCaptain ? `Game ${n} recorded. Recruit new warriors and choose a Captain.`
+          : record.result === 'retreat' ? `Game ${n} recorded. No IP for a retreat.`
+          : `Game ${n} recorded.`
+      )
+      return { ok: true, errors: [], record }
+    },
+    // Older entry point (pooled IP allocation); maps onto recordCampaignGame
+    awardEndOfGame({ survivorIndices, ipAllocations = {}, newCaptainIndex = null, retreat = false, result, scenario = null }) {
+      const draft = allocationToDraft(get().slots, {
+        survivorIndices, ipAllocations, newCaptainIndex, scenario,
+        result: retreat ? 'retreat' : (result || 'loss'),
+      })
+      return get().recordCampaignGame(draft).ok
+    },
+    // Puts the company back as it was before the latest game (only that one)
+    undoLastCampaignGame() {
+      const restored = undoLastGame(get())
+      if (!restored) { get()._toast('There is no game to undo.'); return false }
+      set({ slots: restored.slots, campaignGame: restored.campaignGame, campaign: restored.campaign })
+      get()._autoDraft()
+      get()._toast(`Game ${restored.campaignGame + 1} undone.`)
+      return true
+    },
+    // New warrior in an empty slot. startIP: house rules (the rule is 0).
+    // makeCaptain: the recruit becomes Captain (when the company has no living Captain).
+    hireWarrior(slotIndex, type, { startIP = 0, makeCaptain = false } = {}) {
+      let company
+      try {
+        company = hireIntoVacancy(get(), slotIndex, type, { startIP, makeCaptain })
+      } catch (err) {
+        get()._toast(err.message)
+        return false
+      }
+      set({ slots: company.slots, ...(company.campaign ? { campaign: company.campaign } : {}) })
+      get()._autoDraft()
+      return true
+    },
+    // The escape hatch for permanent campaign upgrades: takes back only the most recent one
+    undoLastUpgrade(slotIndex) {
+      const slot = get().slots[slotIndex]
+      const next = slot && undoLastUpgradeOf(slot)
+      if (!next) return false
+      set({ slots: get().slots.map((s, i) => (i === slotIndex ? next : s)) })
+      get()._autoDraft()
+      return true
     },
     addStatImprove(slotIndex, stat) {
       const slots = [...get().slots]
       const slot = { ...slots[slotIndex] }
       if (slot.statImproves?.includes(stat)) return
+      if (get().companyMode === 'campaign' && (slot.ip?.length || 0) >= (slot.earnedIP || 0)) return // no IP left
       const statKey = `stat_${slot.statImproves?.length || 0}`
       slot.statImproves = [...(slot.statImproves || []), stat]
       slot.ip = [...(slot.ip || []), statKey]
@@ -768,13 +853,19 @@ export const useBuilderStore = create((set, get) => {
     removeStatImprove(slotIndex, stat) {
       const slots = [...get().slots]
       const slot = { ...slots[slotIndex] }
-      const statIdx = slot.statImproves?.indexOf(stat)
+      const statIdx = slot.statImproves?.indexOf(stat) ?? -1
       if (statIdx < 0) return
-      const newImproves = slot.statImproves.filter(s => s !== stat)
-      const otherIps = (slot.ip || []).filter(id => !id.startsWith('stat_'))
-      const newStatIps = newImproves.map((_, i) => `stat_${i}`)
-      slot.statImproves = newImproves
-      slot.ip = [...otherIps, ...newStatIps]
+      // Campaign: permanent, except for undoing the most recent upgrade
+      if (get().companyMode === 'campaign' && slot.ip?.at(-1) !== `stat_${statIdx}`) {
+        get()._toast('Only the most recent upgrade can be undone.')
+        return
+      }
+      // Renumber stat keys in place: slot.ip's order is the purchase order (see store/campaign.js)
+      let n = 0
+      slot.ip = (slot.ip || [])
+        .filter(id => id !== `stat_${statIdx}`)
+        .map(id => (id.startsWith('stat_') ? `stat_${n++}` : id))
+      slot.statImproves = slot.statImproves.filter(s => s !== stat)
       slots[slotIndex] = slot
       set({ slots })
       get()._autoDraft()
