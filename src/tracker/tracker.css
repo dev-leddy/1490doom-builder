@@ -837,8 +837,6 @@
 /* ONCE PER ROUND — steel blue */
 .tk-opr-badge { background: #001a2a; color: #6aaed0; border-color: #1a3a50; }
 
-/* ── RESTRICTIONS ───────────────────────────────────────── */
-.tk-restrictions { font-size: 1rem; color: #a09070; font-style: italic; margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px solid #1e1e1e; line-height: 1.6; }
 
 
 /* ── BOTTOM TAB BAR ─────────────────────────────────────── */

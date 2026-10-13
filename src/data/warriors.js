@@ -92,7 +92,6 @@ export const WARRIORS = {
         } },
     ],
     restrictions: 'Always equipped with a Polearm and Shield at no cost. Still has -1 COMBAT while using both a Shield and Polearm.',
-    restrictionsShattered: 'Shield destroyed by The Shattered Shield. Polearm wielded two-handed, no COMBAT penalty.',
     allowedWeapons: ['Polearm (one-handed)', 'Shield'],
     cantHave: ['Light Weapon', 'Heavy Weapon', 'Bow', 'Crossbow'],
     fixedWeapon: 'Polearm (one-handed)',

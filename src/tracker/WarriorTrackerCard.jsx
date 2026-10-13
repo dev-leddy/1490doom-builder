@@ -194,13 +194,6 @@ export default function WarriorTrackerCard({ warrior: w, wi }) {
           </div>
         </>
       )}
-
-      {/* Restrictions (once The Shattered Shield has destroyed the Shield, the gear rule changes) */}
-      {wdata.restrictions && (
-        <div className="tk-restrictions">
-          {pw.destroyedGear.length > 0 && wdata.restrictionsShattered ? wdata.restrictionsShattered : wdata.restrictions}
-        </div>
-      )}
     </div>
   )
 }
