@@ -170,8 +170,32 @@ export function validateEndOfGame(company, draft = {}) {
       else total += b.ip
     }
     if (total > CAMPAIGN_RULES.maxBonusIP) errors.push(`At most ${CAMPAIGN_RULES.maxBonusIP} bonus IP can be awarded in one game.`)
+
+    // Bonus IP a warrior can't spend must go to someone who can (if anyone can)
+    const awardedTo = (i, keep = () => true) => plan.awards.filter(a => a.index === i && keep(a)).reduce((n, a) => n + a.ip, 0)
+    const bonusIdx = [...new Set(plan.awards.filter(a => a.reason === 'bonus').map(a => a.index))]
+    for (const i of bonusIdx) {
+      if (!survivors.includes(i)) continue
+      const room = spendableCapacity(slots[i]) - awardedTo(i, a => a.reason !== 'bonus')
+      const others = survivors.some(j => j !== i && spendableCapacity(slots[j]) - awardedTo(j) > 0)
+      if (awardedTo(i, a => a.reason === 'bonus') > room && others) {
+        errors.push(`${nameOf(slots[i])} can't use that much bonus IP. Give it to another warrior.`)
+      }
+    }
   }
   return errors
+}
+
+// Things worth telling the player that don't stop the game being recorded:
+//   captainCantSpend: the winner's Captain point goes to a Captain with no upgrade left to buy
+//                     (it is the Captain's by rule, so it is still awarded)
+export function endOfGameWarnings(company, draft = {}) {
+  const plan = planGame(company || {}, draft)
+  const slots = company?.slots || []
+  const captainPoint = plan.awards.find(a => a.reason === 'captain')
+  const captainCantSpend = !!captainPoint &&
+    spendableCapacity(slots[captainPoint.index]) - plan.awards.filter(a => a.index === captainPoint.index && a.reason !== 'captain').reduce((n, a) => n + a.ip, 0) <= 0
+  return { captainCantSpend }
 }
 
 const withoutBefore = ({ before: _b, ...record }) => record
@@ -327,6 +351,19 @@ export function permanenceBlock(slot, prop, value) {
       !getSecondWeaponOptions(WARRIORS[slot.type], value).includes(slot.weapon2)) {
     return `The ${slot.weapon2} off-hand is permanent and can't be carried with that main weapon.`
   }
+  return null
+}
+
+// Lowest earnedIP a warrior can be set to: the IP already spent can't be taken back
+export function minEarnedIP(slot) {
+  return slot?.ip?.length || 0
+}
+
+// Why this campaign slot can't be removed, or null (empty slots always can)
+export function removeSlotBlock(slot) {
+  if (!slot?.type) return null
+  if (slot.ip?.length) return `${nameOf(slot)} has campaign upgrades and can't be removed.`
+  if (slot.isCaptain) return "The Captain can't be removed. Make another warrior Captain first."
   return null
 }
 

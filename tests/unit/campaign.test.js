@@ -4,6 +4,7 @@ import {
   normalizeCampaign, campaignProgress, spendableCapacity, validateEndOfGame, applyEndOfGame,
   undoLastGame, canUndoLastGame, hireIntoVacancy, vacancies,
   permanenceBlock, isPermanentUpgrade, undoLastUpgrade, lastUpgrade,
+  endOfGameWarnings, minEarnedIP, removeSlotBlock,
 } from '../../src/store/campaign.js'
 
 const warrior = (type, extra = {}) => ({
@@ -94,6 +95,52 @@ describe('upgrade capacity', () => {
   it('allows it when no survivor can use it', () => {
     const c = company([maxedFighter({ isCaptain: true }), warrior('Scout', { weapon1: 'Bow' })])
     expect(validateEndOfGame(c, draft({ fallenIndices: [1], survivorPick: 0 }))).toEqual([])
+  })
+})
+
+describe('IP someone can use: Captain point and bonus', () => {
+  it('a Captain with nothing left to buy still gets the winner point, with a warning', () => {
+    const c = company([maxedFighter({ isCaptain: true }), warrior('Scout', { weapon1: 'Bow' })])
+    const d = draft({ result: 'win', survivorPick: 1 })
+    expect(validateEndOfGame(c, d)).toEqual([])
+    expect(endOfGameWarnings(c, d)).toEqual({ captainCantSpend: true })
+    expect(ipOf(applyEndOfGame(c, d).company)).toEqual([9, 1])
+    expect(endOfGameWarnings(trio(), draft({ result: 'win' }))).toEqual({ captainCantSpend: false })
+    expect(endOfGameWarnings(c, draft({ result: 'loss' }))).toEqual({ captainCantSpend: false }) // no Captain point
+  })
+
+  it('refuses bonus IP for a warrior with nothing left to buy while another survivor can use it', () => {
+    const c = company([maxedFighter({ isCaptain: true }), warrior('Scout', { weapon1: 'Bow' })])
+    expect(validateEndOfGame(c, draft({ bonus: [{ index: 0, ip: 1 }] })).length).toBeGreaterThan(0)
+    expect(validateEndOfGame(c, draft({ bonus: [{ index: 1, ip: 1 }] }))).toEqual([])
+  })
+
+  it('allows it when no survivor can use it', () => {
+    const c = company([maxedFighter({ isCaptain: true }), warrior('Scout', { weapon1: 'Bow' })])
+    expect(validateEndOfGame(c, draft({ fallenIndices: [1], survivorPick: 0, bonus: [{ index: 0, ip: 1 }] }))).toEqual([])
+  })
+
+  it('counts the other points already going to that warrior', () => {
+    // Scout with 1 upgrade left: the survivor point fills it, so bonus on top is refused
+    const nearlyDone = warrior('Scout', { weapon1: 'Bow', earnedIP: 7 })
+    const c = company([warrior('Fighter', { isCaptain: true }), nearlyDone])
+    expect(spendableCapacity(nearlyDone)).toBe(1)
+    expect(validateEndOfGame(c, draft({ survivorPick: 1, bonus: [{ index: 1, ip: 1 }] })).length).toBeGreaterThan(0)
+    expect(validateEndOfGame(c, draft({ survivorPick: 1, bonus: [{ index: 0, ip: 1 }] }))).toEqual([])
+  })
+})
+
+describe('roster guards', () => {
+  it('earned IP never goes below the IP already spent', () => {
+    expect(minEarnedIP(warrior('Fighter', { ip: ['climbing', 'stat_0'], earnedIP: 3 }))).toBe(2)
+    expect(minEarnedIP(warrior('Fighter'))).toBe(0)
+  })
+
+  it('only empty slots and plain warriors without upgrades can be removed', () => {
+    expect(removeSlotBlock({ type: null, ip: [] })).toBeNull()
+    expect(removeSlotBlock(warrior('Scout'))).toBeNull()
+    expect(removeSlotBlock(warrior('Scout', { ip: ['climbing'], earnedIP: 1 }))).toBeTruthy()
+    expect(removeSlotBlock(warrior('Fighter', { isCaptain: true }))).toBeTruthy()
   })
 })
 

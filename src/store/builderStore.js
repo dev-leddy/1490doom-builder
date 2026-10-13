@@ -12,6 +12,7 @@ import { getAllowedWeapons, getSecondWeaponOptions } from '../utils/loadout'
 import {
   normalizeCampaign, campaignProgress, spendableCapacity, validateEndOfGame, applyEndOfGame,
   canUndoLastGame, undoLastGame, hireIntoVacancy, permanenceBlock, isPermanentUpgrade,
+  minEarnedIP, removeSlotBlock,
   undoLastUpgrade as undoLastUpgradeOf,
 } from './campaign'
 import { encodeCompany, decodeCompany } from './builderEncoding'
@@ -227,12 +228,15 @@ export const useBuilderStore = create((set, get) => {
     },
     setEarnedIPAll(ip) {
       const { slots } = get()
-      set({ slots: slots.map(slot => ({ ...slot, earnedIP: ip })) })
+      // Campaign: never below what a warrior has already spent
+      const floor = slot => (get().companyMode === 'campaign' ? minEarnedIP(slot) : 0)
+      set({ slots: slots.map(slot => ({ ...slot, earnedIP: Math.max(floor(slot), ip) })) })
       get()._autoDraft()
     },
     setEarnedIP(slotIndex, ip) {
       const { slots } = get()
-      const newSlots = slots.map((slot, i) => i === slotIndex ? { ...slot, earnedIP: Math.max(0, ip) } : slot)
+      const floor = slot => (get().companyMode === 'campaign' ? minEarnedIP(slot) : 0)
+      const newSlots = slots.map((slot, i) => i === slotIndex ? { ...slot, earnedIP: Math.max(0, floor(slot), ip) } : slot)
       set({ slots: newSlots })
       get()._autoDraft()
     },
@@ -249,10 +253,14 @@ export const useBuilderStore = create((set, get) => {
       // Always remove an empty slot first; fall back to last slot
       const lastEmptyIdx = slots.map((s, i) => (!s.type ? i : -1)).filter(i => i !== -1).pop()
       const removeIdx = lastEmptyIdx ?? slots.length - 1
+      // Campaign: a warrior with upgrades, or the Captain, stays
+      const blocked = get().companyMode === 'campaign' && removeSlotBlock(slots[removeIdx])
+      if (blocked) { get()._toast(blocked); return }
       set({ slots: slots.filter((_, i) => i !== removeIdx) })
       get()._autoDraft()
     },
     changeIPLimit(delta) {
+      if (get().companyMode === 'campaign') return // campaign IP is earned per warrior, not a pool
       const { ipLimit, slots } = get()
       const newLimit = Math.max(0, Math.min(20, ipLimit + delta))
       // Remove IP from slots that exceed new pool
@@ -300,6 +308,11 @@ export const useBuilderStore = create((set, get) => {
       get()._autoDraft()
     },
     randomizeWarriors() {
+      // Campaign rosters are earned game by game; a reroll would throw away permanent upgrades
+      if (get().companyMode === 'campaign') {
+        get()._toast("A campaign company can't be randomized.")
+        return
+      }
       const { ipLimit, companyMode } = get()
       const allTypes = Object.keys(WARRIORS)
       const shuffled = [...allTypes].sort(() => Math.random() - 0.5)
@@ -714,8 +727,8 @@ export const useBuilderStore = create((set, get) => {
     },
     // Apply a pre-built random result to the store
     applyRandomResult(result) {
-      // A new company: never inherit the previous one's campaign log
-      set(normalizeCampaign({ companyMode: get().companyMode, ...result, companyId: randomUUID(), campaign: null }))
+      // A new company: game 0 and a fresh campaign, never the previous one's log
+      set(normalizeCampaign({ companyMode: get().companyMode, ...result, companyId: randomUUID(), campaignGame: 0, campaign: null }))
       get()._autoDraft()
     },
     applyQuizCompany({ mark, companyName, warriors }) {
@@ -753,6 +766,7 @@ export const useBuilderStore = create((set, get) => {
         companyName,
         slots,
         companyId: randomUUID(),
+        campaignGame: 0,
         campaign: null,
       }))
       get()._autoDraft()
