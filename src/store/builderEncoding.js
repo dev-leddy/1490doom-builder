@@ -85,7 +85,8 @@ export function decodeCompany(code) {
     if (parts.length < 4) return null
     const mark       = parts[0] === '_' ? '' : (ALL_MARKS[parseInt(parts[0], 36)] || ALL_MARKS[0])
     const companyName = decodeURIComponent(parts[1] || '')
-    const ipLimit    = parseInt(parts[2], 36) || (isCampaign ? 0 : 3)
+    const ipRaw      = parseInt(parts[2], 36)
+    const ipLimit    = Number.isNaN(ipRaw) ? (isCampaign ? 0 : 3) : ipRaw  // 0 is a valid limit
     // Every encoded warrior (companies can have up to 8; at least 3 places as before)
     const slotCount = Math.min(MAX_SLOTS, Math.max(3, parts.length - 3))
     const slots = Array.from({ length: slotCount }, (_, i) => {

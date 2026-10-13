@@ -282,6 +282,8 @@ export const useBuilderStore = create((set, get) => {
         consumable: null,
         climbing: null,
         ip: [],
+        // Spent IP is refunded on a class change, so campaign stat picks go with it (no free stats)
+        statImproves: [],
       }
       set({ slots })
       get()._autoDraft()
@@ -565,8 +567,9 @@ export const useBuilderStore = create((set, get) => {
 
     // ── SHARE / IMPORT ─────────────────────────────────────────────────────────
     openShare() {
-      const { mark, companyName, ipLimit, slots } = get()
-      const code = encodeCompany({ mark, companyName, ipLimit, slots })
+      // Campaign fields too, or a campaign company is shared as a standard one
+      const { mark, companyName, ipLimit, slots, companyMode, campaignGame } = get()
+      const code = encodeCompany({ mark, companyName, ipLimit, slots, companyMode, campaignGame })
       const url = `${window.location.origin}${window.location.pathname}#${code}`
       set({ shareCode: url })
     },
@@ -744,11 +747,12 @@ export const useBuilderStore = create((set, get) => {
         }
         return { ...slot, earnedIP: (slot.earnedIP || 0) + add, isCaptain }
       })
+      // Everyone with a Captain fell: the first slot leads until the player picks another
+      if (!newSlots.some(s => s.isCaptain)) newSlots[0] = { ...newSlots[0], isCaptain: true }
       const nextGame = campaignGame + 1
       set({ slots: newSlots, campaignGame: nextGame })
       get()._autoDraft()
-      const totalIP = Object.values(ipAllocations).reduce((sum, n) => sum + n, 0)
-      get()._toast(retreat ? `Game ${nextGame} complete — Coward!` : totalIP > 0 ? `Game ${nextGame} complete — IP awarded!` : `Game ${nextGame} complete — Coward!`)
+      get()._toast(retreat ? `Game ${nextGame} recorded. No IP for a retreat.` : `Game ${nextGame} recorded.`)
     },
     addStatImprove(slotIndex, stat) {
       const slots = [...get().slots]

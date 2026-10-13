@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useBuilderStore } from '../store/builderStore'
 import { useTrackerStore } from '../store/trackerStore'
+import { deleteGame } from '../api/games'
 import { WARRIOR_IMAGES } from '../data/images'
 import BottomSheet from '../shared/BottomSheet'
 
@@ -34,13 +35,14 @@ function WarriorIdentity({ s, isCaptain, showClass }) {
 }
 
 export default function EndOfGameModal({ onClose, onConfirm }) {
-  const { slots, campaignGame, awardEndOfGame } = useBuilderStore()
+  const { slots, campaignGame, awardEndOfGame, companyId } = useBuilderStore()
   const activeSlots = slots.map((s, i) => ({ ...s, index: i })).filter(s => s.type)
   const anyNamed = activeSlots.some(s => s.customName && s.customName.trim())
 
-  // Pre-populate survivors from tracker vitality if available
+  // Pre-populate survivors from tracker vitality, but only from this company's game
   const initialSurvivors = useMemo(() => {
-    const trackerWarriors = useTrackerStore.getState().warriors
+    const tracker = useTrackerStore.getState()
+    const trackerWarriors = tracker.companyId === companyId ? tracker.warriors : []
     if (trackerWarriors.length > 0) {
       return new Set(
         activeSlots
@@ -73,9 +75,12 @@ export default function EndOfGameModal({ onClose, onConfirm }) {
   const effectiveCaptainIndex = captainInSurvivors
     ? captain?.index
     : (needsCaptainPromo ? newCaptainIndex : null)
-  const captainBonus = won === true && effectiveCaptainIndex != null
+  // The winner's point goes to the Captain only if the Captain survived (a fallen Captain earns nothing)
+  const captainBonus = won === true && captainInSurvivors
+  // The survivor's point needs someone to survive
+  const survivorPoint = survivors.size > 0 ? 1 : 0
 
-  const freePool = 1 + objectiveIPs + (captainBonus ? 1 : 0)
+  const freePool = survivorPoint + objectiveIPs + (captainBonus ? 1 : 0)
   const allocated = useMemo(
     () => Object.values(allocation).reduce((sum, n) => sum + n, 0),
     [allocation]
@@ -102,12 +107,23 @@ export default function EndOfGameModal({ onClose, onConfirm }) {
   }
 
   function goToAllocation() {
-    // On victory, default the free IP to the captain — player can reassign
+    // Nothing to hand out (nobody survived): record the game straight away
+    if (freePool === 0) { handleConfirm(); return }
+    // On victory, default the free IP to the captain; the player can reassign
     setAllocation(captainBonus && effectiveCaptainIndex != null
       ? { [effectiveCaptainIndex]: 1 }
       : {}
     )
     setStep(3)
+  }
+
+  // The game is over: drop this company's saved game so Play doesn't offer to resume it
+  function finishGame() {
+    const tracker = useTrackerStore.getState()
+    if (tracker.companyId === companyId) tracker.closeTracker()
+    else if (companyId) deleteGame(companyId).catch(() => {})
+    onConfirm?.()
+    onClose()
   }
 
   function handleRetreatConfirm() {
@@ -117,8 +133,7 @@ export default function EndOfGameModal({ onClose, onConfirm }) {
       newCaptainIndex: needsCaptainPromo ? newCaptainIndex : null,
       retreat: true,
     })
-    onConfirm?.()
-    onClose()
+    finishGame()
   }
 
   function goNext() {
@@ -133,8 +148,7 @@ export default function EndOfGameModal({ onClose, onConfirm }) {
       ipAllocations: allocation,
       newCaptainIndex: needsCaptainPromo ? newCaptainIndex : null,
     })
-    onConfirm?.()
-    onClose()
+    finishGame()
   }
 
   const stepTitle = step === 1 ? `END OF GAME ${campaignGame + 1}`

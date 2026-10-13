@@ -60,7 +60,8 @@ function decodeCompany(code) {
     const parts = raw.split('|')
     const mark = parts[0] === '_' ? '' : (ALL_MARKS[parseInt(parts[0], 36)] || ALL_MARKS[0]) // '_' = no mark
     const companyName = decodeURIComponent(parts[1] || '')
-    const ipLimit = parseInt(parts[2], 36) || (isCampaign ? 0 : 3)
+    const ipRaw = parseInt(parts[2], 36)
+    const ipLimit = Number.isNaN(ipRaw) ? (isCampaign ? 0 : 3) : ipRaw  // 0 is a valid limit
 
     const warriors = []
     // Every encoded warrior (companies can have up to 8)
@@ -96,10 +97,14 @@ function decodeCompany(code) {
       const statImprove = !isCampaign && statImpsEnc && statImpsEnc !== '-'
         ? (ALL_STAT_KEYS[parseInt(statImpsEnc[0], 36)] || null)
         : null
+      // Campaign: stat_N is the Nth stat this warrior improved, in the order taken
+      const statImproves = isCampaign && statImpsEnc && statImpsEnc !== '-'
+        ? statImpsEnc.split('').map(c => ALL_STAT_KEYS[parseInt(c, 36)]).filter(Boolean)
+        : []
       const ipUpgrades = rawUpgrades.map(id => {
         if (!isCampaign && id === 'stat') return statImprove ? `stat_${statImprove}` : 'stat'
         const m = id.match(/^stat_(\d+)$/)
-        if (m) { const k = ALL_STAT_KEYS[parseInt(m[1])]; return k ? `stat_${k}` : id }
+        if (m) { const k = statImproves[parseInt(m[1])]; return k ? `stat_${k}` : id }
         return id
       })
 

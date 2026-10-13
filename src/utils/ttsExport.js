@@ -1,16 +1,14 @@
-const STAT_KEYS = ['MOV', 'VIT', 'SKL', 'DEF', 'COM']
-
 // Normalise internal ip IDs to TTS output format:
 //   standard 'stat' + statImprove 'VIT' → 'stat_VIT'
-//   campaign 'stat_0'..'stat_4'          → 'stat_MOV'..'stat_COM'
-function normaliseUpgrades(ip, companyMode, statImprove) {
+//   campaign 'stat_N' (the Nth stat this warrior improved) → 'stat_' + statImproves[N]
+function normaliseUpgrades(ip, companyMode, statImprove, statImproves = []) {
   return (ip ?? []).map(id => {
     if (companyMode === 'standard' && id === 'stat') {
       return statImprove ? `stat_${statImprove}` : 'stat'
     }
     const campMatch = id.match(/^stat_(\d+)$/)
     if (campMatch) {
-      const key = STAT_KEYS[parseInt(campMatch[1])]
+      const key = statImproves[parseInt(campMatch[1])]
       return key ? `stat_${key}` : id
     }
     return id
@@ -29,7 +27,7 @@ export function buildTTSPayload({ mark, companyName, companyMode, campaignGame, 
         weapon2: s.weapon2 || null,
         consumable: s.consumable || null,
         climbing: s.climbing || null,
-        ipUpgrades: normaliseUpgrades(s.ip, companyMode, s.statImprove),
+        ipUpgrades: normaliseUpgrades(s.ip, companyMode, s.statImprove, s.statImproves),
       }
       if (companyMode === 'campaign') w.earnedIP = s.earnedIP ?? 0
       if (s.notes?.length) w.notes = s.notes

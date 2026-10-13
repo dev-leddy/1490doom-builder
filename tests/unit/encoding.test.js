@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { encodeCompany, decodeCompany } from '../../src/store/builderEncoding.js'
 import { MARKS, WARRIORS } from '../../src/data/warriors.js'
+import { buildTTSPayload } from '../../src/utils/ttsExport.js'
 
 const slot = (type, weapon1, isCaptain = false) => ({
   type, weapon1, weapon2: null, consumable: null, climbing: null, ip: [], isCaptain, notes: [],
@@ -61,5 +62,37 @@ describe('share links keep the whole company', () => {
       'Assassin', 'Beekeeper', 'Blacksmith', 'Brute', 'Doom Hunter', 'Executioner', 'Fighter',
       'Hedge Knight', 'Knight', 'Saboteur', 'Scavenger', 'Scout', 'Reaver', 'Warrior Priest',
     ])
+  })
+})
+
+describe('campaign share links', () => {
+  const campaignCompany = () => ({
+    mark: MARKS[0].name, companyName: 'Camp', ipLimit: 0, companyMode: 'campaign', campaignGame: 3,
+    slots: [
+      { ...slot('Fighter', 'Light Weapon', true), earnedIP: 2, statImproves: ['COM'], ip: ['stat_0', 'climbing'], climbing: 'Ladder' },
+      { ...slot('Scout', 'Bow'), earnedIP: 1, statImproves: [], ip: [] },
+    ],
+  })
+
+  it('keep campaign mode, the game number, earned IP and stat picks', () => {
+    const d = decodeCompany(encodeCompany(campaignCompany()))
+    expect(d.companyMode).toBe('campaign')
+    expect(d.campaignGame).toBe(3)
+    expect(d.ipLimit).toBe(0)
+    expect(d.slots[0].earnedIP).toBe(2)
+    expect(d.slots[0].statImproves).toEqual(['COM'])
+    expect(d.slots[0].ip).toEqual(['stat_0', 'climbing'])
+  })
+
+  it('a standard company with 0 IP stays at 0 (it used to come back as 3)', () => {
+    const d = decodeCompany(encodeCompany({ mark: MARKS[0].name, companyName: 'Zero', ipLimit: 0, slots: [slot('Fighter', 'Light Weapon', true)] }))
+    expect(d.ipLimit).toBe(0)
+  })
+
+  it('TTS names the stat that was actually improved (COM, not the first stat, MOV)', async () => {
+    const { decodeCompany: serverDecode } = await import('../../functions/lib/decode.js')
+    const company = campaignCompany()
+    expect(buildTTSPayload(company).warriors[0].ipUpgrades).toContain('stat_COM')
+    expect(serverDecode(encodeCompany(company)).warriors[0].ipUpgrades).toContain('stat_COM')
   })
 })

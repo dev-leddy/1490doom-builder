@@ -182,8 +182,8 @@ export default function BuilderPage({ initialView = null }) {
   function handleSaveShared() {
     if (useAuthStore.getState().user) { saveSharedCopy(); return }
     // Keep the shared company on screen across the Google/Discord redirect
-    const { mark, companyName, ipLimit, slots } = useBuilderStore.getState()
-    try { sessionStorage.setItem('__pendingShare', encodeCompany({ mark, companyName, ipLimit, slots })) } catch { /* storage unavailable */ }
+    const { mark, companyName, ipLimit, slots, companyMode, campaignGame } = useBuilderStore.getState()
+    try { sessionStorage.setItem('__pendingShare', encodeCompany({ mark, companyName, ipLimit, slots, companyMode, campaignGame })) } catch { /* storage unavailable */ }
     requireLogin('Sign in to save this company to your account.', { type: 'share' })
   }
 

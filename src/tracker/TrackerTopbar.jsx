@@ -148,7 +148,8 @@ export default function TrackerTopbar() {
       {endOfGameOpen && (
         <EndOfGameModal
           onClose={() => setEndOfGameOpen(false)}
-          onConfirm={() => { setEndOfGameOpen(false); resetTracker() }}
+          // The modal already closed this game; back to the builder to replace the fallen and spend IP
+          onConfirm={() => setEndOfGameOpen(false)}
         />
       )}
 
