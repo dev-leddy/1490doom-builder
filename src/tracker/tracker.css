@@ -820,7 +820,6 @@
 .tk-ability[role="button"]:focus-visible { outline: 2px solid #be4127; outline-offset: 2px; }
 /* What a used ability changed (The Shattered Shield), and that a mis-tap can be undone */
 .tk-ability-note { display: block; margin: -0.15rem 0 0.35rem; font-family: 'Oswald', sans-serif; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: #e0674d; }
-.tk-ability-undo { display: block; margin-top: 0.35rem; font-family: 'Oswald', sans-serif; font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; color: #8a8a8a; }
 .tk-ability-desc { font-size: 1rem; color: #c8b890; line-height: 1.6; overflow-wrap: break-word; word-break: break-word; }
 .tk-ability.tk-ability-used .tk-ability-desc { color: #808080; }
 .tracker-modal-close { position: absolute; top: 0.5rem; right: 0.6rem; background: none; border: none; color: #666; font-size: 1.4rem; line-height: 1; cursor: pointer; padding: 0.2rem 0.4rem; transition: color 0.15s; }

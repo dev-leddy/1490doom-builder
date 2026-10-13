@@ -111,7 +111,6 @@ export default function AbilityBlock({ wi, warrior: w, wdata }) {
               </div>
               {changesGear && <span className="tk-ability-note">{gearChangeNote(ab.afterUse.gear, w)}</span>}
               <div className="tk-ability-desc">{ab.desc}</div>
-              {changesGear && !w.dead && <span className="tk-ability-undo">Tapped by mistake? Tap to undo</span>}
             </div>
           )
         }
