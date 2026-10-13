@@ -34,10 +34,9 @@ function scrollToSlot(selector) {
 function UpgradeGroup({ title, groups }) {
   if (!groups.length) return null
   return (
-    <div className="cmp-log-upgrades" style={{ marginTop: '0.4rem', fontSize: '0.9rem' }}>
-      <div className="cmp-log-upgrades-title" style={{ fontSize: '0.75rem', letterSpacing: '0.08em', textTransform: 'uppercase', opacity: 0.75 }}>{title}</div>
-      {/* Inline basics until builder-ui.css styles .cmp-log-upgrades */}
-      <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+    <div className="cmp-log-upgrades">
+      <div className="cmp-log-upgrades-title">{title}</div>
+      <ul>
         {groups.map(g => <li key={g.uid}><span className="cmp-log-upgrades-name">{g.name}:</span> {g.labels.join(', ')}</li>)}
       </ul>
     </div>

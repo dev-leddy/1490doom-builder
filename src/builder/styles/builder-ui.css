@@ -1583,11 +1583,30 @@ button.eq-slot:focus-visible { outline: 2px solid var(--blood); outline-offset: 
   font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; touch-action: manipulation; }
 @media (hover: hover) { .ch-camp-ghost:hover { border-color: #666; color: var(--parchment); } }
 .ch-camp-eog-btn:disabled { opacity: 0.6; cursor: not-allowed; background: none; border-color: #3a3a3a; color: #a8a8a8; }
+/* Stacked header (<=1024px): same divider and spacing as the Mark / Share rows above */
+@media (max-width: 1024px) {
+  .ch-camp { border-top-color: rgba(255, 255, 255, 0.14); padding: 0.6rem 0.6rem 0; margin-top: 0.5rem; }
+}
+/* Narrow phones: three buttons don't fit on one line, so End game takes its own row */
+@media (max-width: 399px) {
+  .ch-camp-actions { flex-wrap: wrap; }
+  .ch-camp-actions > button { white-space: nowrap; }
+  .ch-camp-actions:has(.ch-camp-undo-btn) .ch-camp-eog-btn { flex-basis: 100%; }
+}
+/* Wider: to-dos and buttons share rows and wrap as whole items (never overlap). Two to-dos sit
+   side by side; the buttons join their row when there's room, else take the next row in full */
+@media (min-width: 600px) {
+  .ch-camp { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+  .ch-camp-head { flex: 1 1 100%; }
+  .ch-camp-todo { width: auto; flex: 1 1 12rem; min-width: 0; }
+  .ch-camp-todo.is-done { flex-basis: 17rem; }
+  .ch-camp-actions { flex: 1 1 auto; justify-content: flex-end; }
+  .ch-camp-actions > button { flex: 1 0 auto; padding: 0 1rem; white-space: nowrap; }
+}
+/* Full-width header: keep the buttons compact at the right of the to-dos */
 @media (min-width: 1025px) {
-  .ch-camp { grid-template-columns: 1fr 1fr; column-gap: 0.75rem; }
-  .ch-camp-head, .ch-camp-actions, .ch-camp-todo.is-done { grid-column: 1 / -1; }
-  .ch-camp-actions { justify-content: flex-end; }
-  .ch-camp-actions > button { flex: 0 0 auto; min-width: 9.5rem; }
+  .ch-camp-actions { flex-grow: 0; }
+  .ch-camp-actions > button { flex: 0 0 auto; min-width: 8.5rem; }
 }
 
 /* Game log sheet */
@@ -1600,6 +1619,14 @@ button.eq-slot:focus-visible { outline: 2px solid var(--blood); outline-offset: 
 .cmp-log-facts div { display: grid; grid-template-columns: 4.5rem 1fr; gap: 0.5rem; }
 .cmp-log-facts dt { font-family: 'Oswald', sans-serif; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: #a8a8a8; padding-top: 0.15rem; }
 .cmp-log-facts dd { margin: 0; font-size: 0.9rem; line-height: 1.4; color: var(--bone); }
+.cmp-log-start { margin-bottom: 0.6rem; }
+.cmp-log-upgrades { margin-top: 0.55rem; padding-top: 0.5rem; border-top: 1px solid #1c1c1c; }
+.cmp-log-start .cmp-log-upgrades { margin-top: 0; padding-top: 0; border-top: 0; }
+.cmp-log-upgrades-title { margin-bottom: 0.25rem; font-family: 'Oswald', sans-serif; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: #a8a8a8; }
+.cmp-log-start .cmp-log-upgrades-title { font-size: 0.85rem; letter-spacing: 0.1em; color: var(--parchment); margin-bottom: 0.35rem; }
+.cmp-log-upgrades ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.15rem; }
+.cmp-log-upgrades li { font-size: 0.9rem; line-height: 1.4; color: var(--bone); }
+.cmp-log-upgrades-name { font-family: 'Oswald', sans-serif; font-size: 0.82rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--parchment); }
 .cmp-fallen-roll { margin-top: 1.1rem; }
 .cmp-fallen-title { margin: 0 0 0.4rem; font-family: 'Oswald', sans-serif; font-weight: 500; font-size: 0.8rem; letter-spacing: 0.14em; text-transform: uppercase; color: #ff9a85; }
 .cmp-fallen-roll ul { list-style: none; margin: 0; padding: 0; }
