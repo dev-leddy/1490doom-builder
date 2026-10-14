@@ -6,6 +6,7 @@ import {
   permanenceBlock, isPermanentUpgrade, undoLastUpgrade, lastUpgrade,
   endOfGameWarnings, minEarnedIP, removeSlotBlock,
   logUpgrade, syncUpgradeItem, unlogLastUpgrade, upgradeLabel,
+  undoRecruit, undoRecruitBlock, nameWithClass,
 } from '../../src/store/campaign.js'
 
 const warrior = (type, extra = {}) => ({
@@ -227,7 +228,7 @@ describe('older companies', () => {
     }
     const c = normalizeCampaign(legacy)
     expect(c.slots.every(s => typeof s.uid === 'string' && s.uid)).toBe(true)
-    expect(c.campaign).toEqual({ v: 1, log: [], upgrades: [], completedAt: null, needsCaptain: false })
+    expect(c.campaign).toEqual({ v: 1, log: [], upgrades: [], roster: [], completedAt: null, needsCaptain: false })
     expect(campaignProgress(c)).toMatchObject({ completed: 3, nextGame: 4, isComplete: false })
     const { company: next, record } = applyEndOfGame(legacy, draft())
     expect(record.gameNumber).toBe(4)
@@ -350,5 +351,69 @@ describe('upgrade log', () => {
   it('standard companies log nothing', () => {
     const std = { companyMode: 'standard', campaign: null, slots: [warrior('Fighter', { ip: ['climbing'], climbing: 'Ladder' })] }
     expect(logUpgrade(std, 0, 'climbing')).toBeNull()
+  })
+})
+
+describe('recruits and the roster log', () => {
+  it('names warriors with their class only when they have a custom name', () => {
+    expect(nameWithClass({ customName: 'Joss', type: 'Scout' })).toBe('Joss (Scout)')
+    expect(nameWithClass({ name: 'Scout', type: 'Scout' })).toBe('Scout')
+    expect(nameWithClass({ customName: null, type: 'Scout' })).toBe('Scout')
+  })
+
+  it('hiring is logged with the starting IP and the fallen warrior it replaces', () => {
+    const { company: c } = applyEndOfGame(trio(), draft({ fallenIndices: [2] }))
+    const hired = hireIntoVacancy(c, 2, 'Knight', { startIP: 1, now: 7 })
+    expect(hired.campaign.roster).toEqual([{
+      afterGame: 1, uid: hired.slots[2].uid, name: 'Knight', type: 'Knight', action: 'recruited',
+      startIP: 1, replaced: c.slots[2].fallen, at: 7,
+    }])
+  })
+
+  it("a recruit with upgrades can't be undone until the upgrades are", () => {
+    expect(undoRecruitBlock(warrior('Scout', { ip: ['climbing'], earnedIP: 1 }))).toBeTruthy()
+    expect(undoRecruitBlock({ type: null })).toBeTruthy()
+    expect(undoRecruitBlock(warrior('Scout'))).toBeNull()
+    const c = company([warrior('Fighter', { isCaptain: true, ip: ['climbing'], climbing: 'Ladder', earnedIP: 1 })])
+    expect(() => undoRecruit(c, 0)).toThrow()
+  })
+
+  it('undoing a recruit puts the fallen record back and is logged', () => {
+    const { company: c } = applyEndOfGame(trio(), draft({ fallenIndices: [2] }))
+    const fallen = c.slots[2].fallen
+    const hired = hireIntoVacancy(c, 2, 'Knight', { startIP: 1 })
+    const back = undoRecruit({ ...hired, slots: hired.slots.map((s, i) => (i === 2 ? { ...s, customName: 'Ser Dunk' } : s)) }, 2, { now: 9 })
+    expect(back.slots[2]).toMatchObject({ type: null, isCaptain: false, earnedIP: 0, fallen })
+    expect(back.campaign.roster.map(e => e.action)).toEqual(['recruited', 'recruit undone'])
+    expect(back.campaign.roster[1]).toMatchObject({ afterGame: 1, name: 'Ser Dunk (Knight)', type: 'Knight', at: 9 })
+  })
+
+  it('undoing a founding recruit leaves an empty slot that keeps the Captain place', () => {
+    let c = company([{ ...warrior(null), type: null, isCaptain: true }, { ...warrior(null), type: null }])
+    c = hireIntoVacancy(c, 0, 'Fighter')
+    expect(c.slots[0].isCaptain).toBe(true)
+    const back = undoRecruit(c, 0)
+    expect(back.slots[0]).toMatchObject({ type: null, isCaptain: true })
+    expect('fallen' in back.slots[0]).toBe(false)
+    expect(back.campaign.needsCaptain).toBe(false)
+  })
+
+  it('undoing a Captain recruit after a game leaves the company needing a Captain', () => {
+    const { company: dead } = applyEndOfGame(trio(), draft({ fallenIndices: [0, 1, 2], survivorPick: null }))
+    const led = hireIntoVacancy(dead, 1, 'Knight', { makeCaptain: true })
+    expect(led.campaign.needsCaptain).toBe(false)
+    const back = undoRecruit(led, 1)
+    expect(back.slots[1].isCaptain).toBe(true)
+    expect(back.campaign.needsCaptain).toBe(true)
+  })
+
+  it('undoing a game drops the roster changes made after it', () => {
+    let c = hireIntoVacancy(company([warrior('Fighter', { isCaptain: true }), { ...warrior(null), type: null }]), 1, 'Scout')
+    c = applyEndOfGame(c, draft({ survivorPick: 0, fallenIndices: [1] })).company
+    c = hireIntoVacancy(c, 1, 'Knight')
+    expect(c.campaign.roster.map(e => e.afterGame)).toEqual([0, 1])
+    const back = undoLastGame(c)
+    expect(back.campaign.roster.map(e => e.type)).toEqual(['Scout'])
+    expect(back.slots[1].type).toBe('Scout')
   })
 })

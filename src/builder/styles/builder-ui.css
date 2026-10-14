@@ -1626,6 +1626,7 @@ button.eq-slot:focus-visible { outline: 2px solid var(--blood); outline-offset: 
 .cmp-log-start .cmp-log-upgrades-title { font-size: 0.85rem; letter-spacing: 0.1em; color: var(--parchment); margin-bottom: 0.35rem; }
 .cmp-log-upgrades ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.15rem; }
 .cmp-log-upgrades li { font-size: 0.9rem; line-height: 1.4; color: var(--bone); }
+.cmp-log-roster { font-size: 0.9rem; line-height: 1.4; color: var(--parchment); }
 .cmp-log-upgrades-name { font-family: 'Oswald', sans-serif; font-size: 0.82rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--parchment); }
 .cmp-fallen-roll { margin-top: 1.1rem; }
 .cmp-fallen-title { margin: 0 0 0.4rem; font-family: 'Oswald', sans-serif; font-weight: 500; font-size: 0.8rem; letter-spacing: 0.14em; text-transform: uppercase; color: #ff9a85; }

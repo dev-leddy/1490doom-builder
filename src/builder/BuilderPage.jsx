@@ -267,7 +267,9 @@ export default function BuilderPage({ initialView = null }) {
         const state = useBuilderStore.getState()
         pickedSlots.forEach((type, idx) => {
           if (type && state.slots[idx] !== undefined) {
-            s.selectWarrior(idx, type)
+            // Campaign: hire with the starting IP so the roster log records it
+            if (mode === 'campaign') s.hireWarrior(idx, type, { startIP: slotIps ? (slotIps[idx] || 0) : (ip || 0) })
+            else s.selectWarrior(idx, type)
           }
         })
       }

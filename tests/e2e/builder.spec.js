@@ -80,7 +80,7 @@ test.describe('builder', () => {
     await page.locator('.co-sheet-done').click()
     // Escape hatch: warrior settings, behind a confirm
     await page.locator('.slot-gear-btn').first().click()
-    await page.locator('.ws-undo-btn').click()
+    await page.locator('.ws-undo-btn', { hasText: /improve/i }).click()
     await page.getByRole('button', { name: 'CONFIRM' }).click()
     await page.locator('.co-sheet-done').click()
     await expect(page.getByRole('button', { name: /^Stat Improve/ })).toHaveCount(0)

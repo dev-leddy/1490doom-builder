@@ -3,7 +3,7 @@ import { useBuilderStore } from '../store/builderStore'
 import { campaignProgress, canUndoLastGame, vacancies } from '../store/campaign'
 import BottomSheet from '../shared/BottomSheet'
 import ConfirmModal from '../shared/ConfirmModal'
-import { RESULT_LETTER, RESULT_NAME, AWARD_REASON, spendableNow, resultTally, nameInRecord, fallenName, upgradesAfter } from './campaignUi'
+import { RESULT_LETTER, RESULT_NAME, AWARD_REASON, spendableNow, resultTally, nameInRecord, fallenName, upgradesAfter, rosterLinesAfter } from './campaignUi'
 
 // ── Campaign panel in the company header ──────────────────────────────────────
 // "Before game N of 6" with the six-game track, what to do before the next game,
@@ -31,12 +31,14 @@ function scrollToSlot(selector) {
 }
 
 // "Upgrades before game 3" / "Starting company": "Name: Combat, Grappling Hook" per warrior
-function UpgradeGroup({ title, groups }) {
-  if (!groups.length) return null
+// Recruits ("Recruited: Joss (Scout), starting IP 1") come first, then the upgrades
+function UpgradeGroup({ title, groups, roster = [] }) {
+  if (!groups.length && !roster.length) return null
   return (
     <div className="cmp-log-upgrades">
       <div className="cmp-log-upgrades-title">{title}</div>
       <ul>
+        {roster.map((line, i) => <li key={`r${i}`} className="cmp-log-roster">{line}</li>)}
         {groups.map(g => <li key={g.uid}><span className="cmp-log-upgrades-name">{g.name}:</span> {g.labels.join(', ')}</li>)}
       </ul>
     </div>
@@ -46,6 +48,7 @@ function UpgradeGroup({ title, groups }) {
 function GameLogSheet({ log, legacyGames, campaign, onClose }) {
   const fallenRoll = log.flatMap(r => (r.fallen || []).map(f => ({ ...f, game: r.gameNumber })))
   const starting = upgradesAfter(campaign, 0)
+  const startingRoster = rosterLinesAfter(campaign, 0)
   return (
     <BottomSheet title="GAME LOG" onClose={onClose} className="cmp-log-sheet"
       footer={<button className="co-sheet-done" onClick={onClose}>Done</button>}>
@@ -53,9 +56,9 @@ function GameLogSheet({ log, legacyGames, campaign, onClose }) {
         <p className="eog-help">{legacyGames === 1 ? 'Game 1 was' : `Games 1 to ${legacyGames} were`} played before the log was kept.</p>
       )}
       {log.length === 0 && legacyGames === 0 && <p className="eog-help">No games recorded yet. Use End of game after each game.</p>}
-      {starting.length > 0 && (
+      {(starting.length > 0 || startingRoster.length > 0) && (
         <div className="cmp-log-game cmp-log-start">
-          <UpgradeGroup title="Starting company" groups={starting} />
+          <UpgradeGroup title="Starting company" groups={starting} roster={startingRoster} />
         </div>
       )}
       <ol className="cmp-log">
@@ -78,7 +81,14 @@ function GameLogSheet({ log, legacyGames, campaign, onClose }) {
                     : `${nameInRecord(r, cc.from)} fell with the whole company. A recruit leads next.`}</dd></div>
                 )}
               </dl>
-              <UpgradeGroup title={`Upgrades before game ${r.gameNumber + 1}`} groups={upgradesAfter(campaign, r.gameNumber)} />
+              {(() => {
+                const roster = rosterLinesAfter(campaign, r.gameNumber)
+                return (
+                  <UpgradeGroup
+                    title={roster.length ? `Before game ${r.gameNumber + 1}` : `Upgrades before game ${r.gameNumber + 1}`}
+                    groups={upgradesAfter(campaign, r.gameNumber)} roster={roster} />
+                )
+              })()}
             </li>
           )
         })}

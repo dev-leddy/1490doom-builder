@@ -775,6 +775,9 @@
 
 /* ── Campaign: undo the last stat improve (quiet secondary row) ── */
 .ws-undo { padding-top: 1rem; border-top: 1px solid var(--dim); }
+.ws-undo-why { margin: 0.35rem 0 0; font-size: 0.85rem; line-height: 1.4; color: #a8a8a8; }
+/* Campaign: the class can't change once recruited */
+.ws-class-locked { margin: 0; padding: 0.7rem 0.85rem; border: 1px dashed #3a3a3a; font-size: 0.9rem; line-height: 1.4; color: #a8a8a8; }
 .ws-undo-btn {
   min-height: 44px;
   padding: 0.35rem 0.75rem;

@@ -13,7 +13,7 @@ import {
   normalizeCampaign, campaignProgress, spendableCapacity, validateEndOfGame, applyEndOfGame,
   canUndoLastGame, undoLastGame, hireIntoVacancy, permanenceBlock, isPermanentUpgrade,
   minEarnedIP, removeSlotBlock, logUpgrade, PERMANENT_GEAR, syncUpgradeItem, unlogLastUpgrade,
-  undoLastUpgrade as undoLastUpgradeOf,
+  undoLastUpgrade as undoLastUpgradeOf, undoRecruit as undoRecruitOf, undoRecruitBlock,
 } from './campaign'
 import { encodeCompany, decodeCompany } from './builderEncoding'
 import { fetchCloudSaves, removeCloudCompany, createSaver, migrateLocalData, snapshotCompany } from './builderPersistence'
@@ -278,16 +278,16 @@ export const useBuilderStore = create((set, get) => {
     },
     selectWarrior(slotIndex, type) {
       const slots = [...get().slots]
-      const isCampaign = get().companyMode === 'campaign'
-      // Campaign upgrades are permanent, and a class change would refund them
-      if (isCampaign && slots[slotIndex]?.ip?.length && type !== slots[slotIndex].type) {
-        get()._toast("Campaign upgrades are permanent. A warrior with upgrades can't change class.")
+      // Campaign: a class is locked once chosen (undoRecruit is the way back). A class picked
+      // for an empty slot is a recruit, hired (uid, roster log) keeping any IP already set.
+      if (get().companyMode === 'campaign') {
+        const current = slots[slotIndex]
+        if (current?.type) {
+          if (type !== current.type) get()._toast("A warrior's class is locked in a campaign.")
+          return
+        }
+        if (type) get().hireWarrior(slotIndex, type, { startIP: current?.earnedIP || 0 })
         return
-      }
-      // Campaign: a warrior picked for an empty slot is a new recruit (new uid, the fallen one is history)
-      if (isCampaign && !slots[slotIndex]?.type && type) {
-        const { fallen: _fallen, ...rest } = slots[slotIndex]
-        slots[slotIndex] = { ...rest, uid: randomUUID() }
       }
       const wdata = type ? WARRIORS[type] : null
       const firstWeapon = wdata ? (wdata.fixedWeapon || getAllowedWeapons(wdata)[0]) : null
@@ -855,6 +855,17 @@ export const useBuilderStore = create((set, get) => {
       set({ slots: company.slots, ...(company.campaign ? { campaign: company.campaign } : {}) })
       get()._autoDraft()
       return true
+    },
+    // Campaign: takes a recruit back out (only with no upgrades bought). Returns null when
+    // done, else the reason it can't be (also toasted). Noted in campaign.roster.
+    undoRecruit(slotIndex) {
+      const reason = undoRecruitBlock(get().slots[slotIndex])
+      if (reason) { get()._toast(reason); return reason }
+      const company = undoRecruitOf(get(), slotIndex)
+      set({ slots: company.slots, ...(company.campaign ? { campaign: company.campaign } : {}) })
+      get()._autoDraft()
+      get()._toast('Recruit undone. Noted in the campaign log.')
+      return null
     },
     // The escape hatch for permanent campaign upgrades: takes back only the most recent one
     undoLastUpgrade(slotIndex) {

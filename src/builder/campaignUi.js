@@ -1,5 +1,5 @@
 // Small display helpers for the campaign UI (the rules live in store/campaign.js)
-import { openUpgrades } from '../store/campaign'
+import { openUpgrades, nameWithClass } from '../store/campaign'
 
 export const RESULT_LETTER = { win: 'W', loss: 'L', draw: 'D', retreat: 'R' }
 export const RESULT_NAME = { win: 'Victory', loss: 'Defeat', draw: 'Draw', retreat: 'Retreat' }
@@ -19,19 +19,23 @@ export function resultTally(log = []) {
   return Object.entries(n).filter(([, c]) => c).map(([k, c]) => `${c}${RESULT_LETTER[k]}`).join(' ')
 }
 
-// A fallen warrior's name: "Brother Aldric (Warrior Priest)" with a custom name, else the class.
-// Takes a slot ({ customName, type }) or a record entry ({ name, type }).
-export function fallenName(w) {
-  if (!w) return 'A warrior'
-  const name = (w.customName ?? w.name ?? '').trim()
-  return name && name !== w.type ? `${name} (${w.type})` : (w.type || name || 'A warrior')
-}
+// A fallen warrior's name: "Brother Aldric (Warrior Priest)" with a custom name, else the class
+export const fallenName = nameWithClass
 
 // Name of a warrior in a game record, by uid. The fallen are named with their class.
 export function nameInRecord(record, uid) {
   const fell = record.fallen?.find(f => f.uid === uid)
   if (fell) return fallenName(fell)
   return record.roster?.find(r => r.uid === uid)?.name || 'A warrior'
+}
+
+// Roster changes between games, as lines: "Recruited: Joss (Scout), starting IP 1", "Recruit undone: Scout"
+export function rosterLinesAfter(campaign, afterGame) {
+  return (campaign?.roster || [])
+    .filter(e => e.afterGame === afterGame)
+    .map(e => e.action === 'recruited'
+      ? `Recruited: ${e.name}${e.startIP ? `, starting IP ${e.startIP}` : ''}`
+      : `Recruit undone: ${e.name}`)
 }
 
 // Upgrades bought between games, grouped per warrior in purchase order:

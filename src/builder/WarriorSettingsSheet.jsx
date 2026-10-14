@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useBuilderStore, getAvailableWarriorTypes } from '../store/builderStore'
 import { WARRIOR_IMAGES } from '../data/images'
 import { STAT_IMPROVEMENT } from '../data/warriors'
-import { lastUpgrade } from '../store/campaign'
+import { lastUpgrade, undoRecruitBlock, nameWithClass } from '../store/campaign'
 import BottomSheet from '../shared/BottomSheet'
 import ConfirmModal from '../shared/ConfirmModal'
 import { SvgDice } from './icons'
@@ -45,7 +45,9 @@ export default function WarriorSettingsSheet({ slotIndex, slot, allSlots, isOpen
   const [tempType, setTempType] = useState(slot.type || null)
   const [tempIsCaptain, setTempIsCaptain] = useState(slot.isCaptain || false)
   const [confirmUndo, setConfirmUndo] = useState(false)
+  const [confirmUnrecruit, setConfirmUnrecruit] = useState(false)
   const undoLastUpgrade = useBuilderStore(s => s.undoLastUpgrade)
+  const undoRecruit = useBuilderStore(s => s.undoRecruit)
   const isCampaign = useBuilderStore(s => s.companyMode) === 'campaign'
   // Campaign upgrades are permanent; this is the escape hatch for a mistake, and it only
   // takes back the most recent upgrade
@@ -55,6 +57,9 @@ export default function WarriorSettingsSheet({ slotIndex, slot, allSlots, isOpen
     : (last.item || 'item')
 
   const available = getAvailableWarriorTypes(slotIndex, allSlots)
+  // Campaign: the class is locked once chosen; undoing the recruit is the way back
+  const classLocked = isCampaign && !!slot.type
+  const unrecruitBlock = classLocked ? undoRecruitBlock(slot) : null
 
   // Sync temp state from slot each time the sheet opens
   useEffect(() => {
@@ -63,6 +68,7 @@ export default function WarriorSettingsSheet({ slotIndex, slot, allSlots, isOpen
       setTempType(slot.type || null)
       setTempIsCaptain(slot.isCaptain || false)
       setConfirmUndo(false)
+      setConfirmUnrecruit(false)
     }
   }, [isOpen])
 
@@ -84,6 +90,18 @@ export default function WarriorSettingsSheet({ slotIndex, slot, allSlots, isOpen
         confirmLabel="Undo"
         onConfirm={() => { undoLastUpgrade(slotIndex); setConfirmUndo(false) }}
         onCancel={() => setConfirmUndo(false)}
+      />
+    )
+  }
+
+  if (confirmUnrecruit && classLocked && !unrecruitBlock) {
+    return (
+      <ConfirmModal
+        title="UNDO RECRUIT?"
+        subtitle={`Remove ${nameWithClass(slot)}? They go back to an empty slot. This is noted in the campaign log.`}
+        confirmLabel="Undo recruit"
+        onConfirm={() => { undoRecruit(slotIndex); setConfirmUnrecruit(false); onClose() }}
+        onCancel={() => setConfirmUnrecruit(false)}
       />
     )
   }
@@ -139,9 +157,12 @@ export default function WarriorSettingsSheet({ slotIndex, slot, allSlots, isOpen
         </button>
       </div>
 
-      {/* Class */}
+      {/* Class (locked in a campaign) */}
       <div className="ws-section">
         <div className="ws-section-label">Class</div>
+        {classLocked ? (
+          <p className="ws-class-locked">{slot.type}. Class is locked in a campaign.</p>
+        ) : (
         <div className="wcp-grid">
           {[...available, ...(slot.type && !available.includes(slot.type) ? [slot.type] : [])].map(wt => (
             <button
@@ -156,6 +177,7 @@ export default function WarriorSettingsSheet({ slotIndex, slot, allSlots, isOpen
             </button>
           ))}
         </div>
+        )}
       </div>
 
       {/* Campaign: undo the most recent upgrade. Kept quiet, behind a confirm */}
@@ -167,6 +189,18 @@ export default function WarriorSettingsSheet({ slotIndex, slot, allSlots, isOpen
           </button>
         </div>
       )}
+
+      {/* Campaign: take the recruit back out. Quiet, behind a confirm; upgrades must go first */}
+      {classLocked && (
+        <div className="ws-section ws-section--row ws-undo">
+          <div className="ws-section-label">Recruit</div>
+          <button type="button" className="ws-undo-btn" disabled={!!unrecruitBlock}
+            title={unrecruitBlock || undefined} onClick={() => setConfirmUnrecruit(true)}>
+            Undo recruit
+          </button>
+        </div>
+      )}
+      {classLocked && unrecruitBlock && <p className="ws-undo-why">{unrecruitBlock}</p>}
     </BottomSheet>
   )
 }

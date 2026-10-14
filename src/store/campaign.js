@@ -4,8 +4,9 @@
 // A campaign company carries, besides campaignGame (games played):
 //   slot.uid         stable id of the warrior in that slot (a new recruit gets a new one)
 //   slot.fallen      on an empty slot: { uid, type, name, game } of the warrior who died there
-//   campaign         { v, log, upgrades, completedAt, needsCaptain }
+//   campaign         { v, log, upgrades, roster, completedAt, needsCaptain }
 //   campaign.upgrades[] every upgrade bought, when and by whom (see logUpgrade)
+//   campaign.roster[]   recruits hired and recruits undone (see hireIntoVacancy / undoRecruit)
 //   campaign.log[]   one record per game, see applyEndOfGame. Only the latest record keeps
 //                    `before` (the company as it was), which is what makes undoLastGame exact.
 //
@@ -23,6 +24,14 @@ const newId = () =>
   globalThis.crypto?.randomUUID?.() ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
 
 const nameOf = slot => (slot.customName && slot.customName.trim()) || slot.type
+
+// "Brother Aldric (Warrior Priest)" with a custom name, else just the class.
+// Takes a slot ({ customName, type }) or a record entry ({ name, type }).
+export function nameWithClass(w) {
+  if (!w) return 'A warrior'
+  const name = (w.customName ?? w.name ?? '').trim()
+  return name && name !== w.type ? `${name} (${w.type})` : (w.type || name || 'A warrior')
+}
 
 // Gear bought with IP. In a campaign it is kept for good (stats too, as stat_N keys).
 export const PERMANENT_GEAR = ['weapon2', 'climbing', 'consumable']
@@ -51,6 +60,7 @@ export function normalizeCampaign(company) {
     ...c,
     log: Array.isArray(c.log) ? c.log : [],
     upgrades: Array.isArray(c.upgrades) ? c.upgrades : [],
+    roster: Array.isArray(c.roster) ? c.roster : [],
   }
   return { ...company, slots, campaign, campaignGame: company.campaignGame || 0 }
 }
@@ -212,7 +222,7 @@ export function applyEndOfGame(company, draft, { now = Date.now() } = {}) {
   const plan = planGame(c, draft)
   const gameNumber = campaignProgress(c).completed + 1
   // The log and the upgrade list are rebuilt on undo, so the snapshot leaves them out
-  const { log: _log, upgrades: _upgrades, ...campaignState } = c.campaign
+  const { log: _log, upgrades: _upgrades, roster: _roster, ...campaignState } = c.campaign
   const before = { slots: c.slots, campaignGame: c.campaignGame, campaign: campaignState }
 
   // Awards
@@ -280,14 +290,15 @@ export function canUndoLastGame(company) {
 
 // Puts the company back exactly as it was before the latest game (anything changed since,
 // such as upgrades bought or recruits hired, is lost too). Only the latest game; null if none.
-// Upgrades logged after that game go too: the restored slots no longer have them.
+// Upgrades and roster changes logged after that game go too: the restored slots predate them.
 export function undoLastGame(company) {
   if (!canUndoLastGame(company)) return null
   const log = company.campaign.log
   const last = log.at(-1)
   const { slots, campaignGame, campaign } = last.before
   const upgrades = (company.campaign.upgrades || []).filter(e => e.afterGame < last.gameNumber)
-  return { ...company, slots, campaignGame, campaign: { ...campaign, log: log.slice(0, -1), upgrades } }
+  const roster = (company.campaign.roster || []).filter(e => e.afterGame < last.gameNumber)
+  return { ...company, slots, campaignGame, campaign: { ...campaign, log: log.slice(0, -1), upgrades, roster } }
 }
 
 // ── Recruiting ────────────────────────────────────────────────────────────────
@@ -303,7 +314,9 @@ export function vacancies(company) {
 // Puts a new warrior in an empty slot. startIP (default 0, the rule) is for house rules.
 // makeCaptain: the recruit leads the company (only when it has no living Captain).
 // Throws with a player-facing message if the hire isn't possible.
-export function hireIntoVacancy(company, slotIndex, type, { startIP = 0, makeCaptain = false } = {}) {
+// In a campaign the hire is logged in campaign.roster ('recruited'), remembering the fallen
+// record it replaced so undoRecruit can put it back.
+export function hireIntoVacancy(company, slotIndex, type, { startIP = 0, makeCaptain = false, now = Date.now() } = {}) {
   const c = normalizeCampaign(company)
   let slots = [...(c.slots || [])]
   const target = slots[slotIndex]
@@ -319,7 +332,7 @@ export function hireIntoVacancy(company, slotIndex, type, { startIP = 0, makeCap
     ...rest,
     type, ...defaultLoadout(type),
     consumable: null, climbing: null, ip: [], statImproves: [],
-    notes: [], customName: null,
+    notes: target.notes || [], customName: target.customName ?? null,
     earnedIP: Math.max(0, Math.floor(Number(startIP) || 0)),
     uid: newId(),
   }
@@ -341,7 +354,44 @@ export function hireIntoVacancy(company, slotIndex, type, { startIP = 0, makeCap
   }
   slots[slotIndex] = hired
 
-  return c.campaign ? { ...c, slots, campaign: { ...c.campaign, needsCaptain } } : { ...c, slots }
+  if (!c.campaign) return { ...c, slots }
+  const entry = {
+    afterGame: campaignProgress(c).completed,
+    uid: hired.uid, name: nameWithClass(hired), type, action: 'recruited',
+    startIP: hired.earnedIP,
+    ...(target.fallen ? { replaced: target.fallen } : {}),
+    at: now,
+  }
+  return { ...c, slots, campaign: { ...c.campaign, needsCaptain, roster: [...(c.campaign.roster || []), entry] } }
+}
+
+// Why this warrior's recruitment can't be undone, or null. Upgrades must be undone first.
+export function undoRecruitBlock(slot) {
+  if (!slot?.type) return 'There is no warrior in this slot.'
+  if (slot.ip?.length) return `${nameOf(slot)} has upgrades. Undo them first with Undo last upgrade.`
+  return null
+}
+
+// Takes a recruit back out: the slot is empty again, with the fallen warrior it replaced
+// (if any) so "Fell in game N" shows again. A Captain removed after a game leaves the
+// company needing a Captain. Logged as 'recruit undone'. Throws with the block reason.
+export function undoRecruit(company, slotIndex, { now = Date.now() } = {}) {
+  const c = normalizeCampaign(company)
+  const slot = c.slots?.[slotIndex]
+  const blocked = undoRecruitBlock(slot)
+  if (blocked) throw new Error(blocked)
+
+  const roster = c.campaign?.roster || []
+  const hire = [...roster].reverse().find(e => e.uid === slot.uid && e.action === 'recruited')
+  const completed = campaignProgress(c).completed
+  const vacancy = { ...vacantSlot(hire?.replaced), isCaptain: !!slot.isCaptain }
+  if (!hire?.replaced) delete vacancy.fallen
+  const slots = c.slots.map((s, i) => (i === slotIndex ? vacancy : s))
+  if (!c.campaign) return { ...c, slots }
+
+  const needsCaptain = c.campaign.needsCaptain || (!!slot.isCaptain && completed > 0)
+  const entry = { afterGame: completed, uid: slot.uid, name: nameWithClass(slot), type: slot.type, action: 'recruit undone', at: now }
+  return { ...c, slots, campaign: { ...c.campaign, needsCaptain, roster: [...roster, entry] } }
 }
 
 // ── Permanence ────────────────────────────────────────────────────────────────
