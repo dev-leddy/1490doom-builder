@@ -911,7 +911,8 @@ export const useBuilderStore = create((set, get) => {
     _autoDraft() {
       if (!getUser() || get().viewingShare) return
       const snapshot = snapshotCompany(get())
-      if (!snapshot.slots.some(s => s.type)) return // don't save empty companies
+      // Don't save empty companies, except a campaign that has played (a game where everyone fell must be kept)
+      if (!snapshot.slots.some(s => s.type) && !snapshot.campaign?.log?.length) return
       const saves = get().saves
       const existing = saves.findIndex(s => s.companyId === snapshot.companyId)
       const entry = { ...snapshot, savedAt: Date.now() }
