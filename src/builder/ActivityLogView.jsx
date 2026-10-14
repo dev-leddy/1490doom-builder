@@ -10,6 +10,7 @@ import { campaignProgress } from '../store/campaign'
 import { campaignLogText } from './campaignUi'
 import GameLogCards from './GameLogCards'
 import LogEntryDetail, { confirmFor } from './LogEntryDetail'
+import EditOutcomeFlow from './OutcomeEditor'
 import BottomSheet from '../shared/BottomSheet'
 import ConfirmModal from '../shared/ConfirmModal'
 import './styles/activity-log.css'
@@ -79,6 +80,7 @@ function Tags({ r }) {
   return (
     <>
       {r.undone && <span className="alv-flag">Undone</span>}
+      {r.edited && <span className="alv-flag alv-flag--edited">Edited</span>}
       {r.rejected && <span className="alv-flag alv-flag--warn">Not saved</span>}
     </>
   )
@@ -105,10 +107,11 @@ export default function ActivityLogView({ companyId, companyName, onClose }) {
   const wide = useWide()
   const [selectedId, setSelectedId] = useState(null)
   const [ask, setAsk] = useState(null) // a confirm asked for by the entry detail
+  const [editing, setEditing] = useState(null) // { gameNumber, latest }: the outcome editor
   const opener = useRef(null)          // the row button that opened the detail, for focus on close
   const detailHeading = useRef(null)
   const closeDetail = () => { setSelectedId(null); setAsk(null); opener.current?.focus?.({ preventScroll: true }) }
-  useModal(ref, () => (ask ? setAsk(null) : selectedId ? closeDetail() : onClose()))
+  useModal(ref, () => (editing ? setEditing(null) : ask ? setAsk(null) : selectedId ? closeDetail() : onClose()))
 
   const { events, error, retry, refresh } = useActivityLog(companyId)
   const { slots, campaign, companyMode, campaignGame } = useBuilderStore()
@@ -173,7 +176,7 @@ export default function ActivityLogView({ companyId, companyName, onClose }) {
   if (view === 'games') {
     body = (
       <div className="alv-cards">
-        <GameLogCards log={log} legacyGames={Math.max(0, completed - log.length)} campaign={campaign} onRenamed={refresh} />
+        <GameLogCards log={log} legacyGames={Math.max(0, completed - log.length)} campaign={campaign} onRenamed={refresh} onEditOutcome={setEditing} />
       </div>
     )
   } else if (error) {
@@ -321,16 +324,17 @@ export default function ActivityLogView({ companyId, companyName, onClose }) {
               <h3 className="alv-detail-title" id={`${titleId}-entry`}>Log entry</h3>
               <button type="button" className="alv-close" onClick={closeDetail} aria-label="Close the entry">✕</button>
             </div>
-            <LogEntryDetail row={selected} onAsk={setAsk} onChanged={refresh} headingRef={detailHeading} />
+            <LogEntryDetail row={selected} onAsk={setAsk} onChanged={refresh} onEditOutcome={setEditing} headingRef={detailHeading} />
           </aside>
         )}
       </div>
       {view === 'entries' && selected && !wide && (
         <BottomSheet title="LOG ENTRY" onClose={closeDetail} zIndex={1100} className="alv-entry-sheet"
           footer={<button type="button" className="co-sheet-done" onClick={closeDetail}>Done</button>}>
-          <LogEntryDetail row={selected} onAsk={setAsk} onChanged={refresh} headingRef={detailHeading} />
+          <LogEntryDetail row={selected} onAsk={setAsk} onChanged={refresh} onEditOutcome={setEditing} headingRef={detailHeading} />
         </BottomSheet>
       )}
+      {editing && <EditOutcomeFlow editing={editing} onClose={() => setEditing(null)} onSaved={refresh} />}
       {ask && selected && (
         <ConfirmModal zIndex={1200} {...confirmFor(ask, {
           company: { slots, campaign, companyMode, campaignGame }, row: selected,

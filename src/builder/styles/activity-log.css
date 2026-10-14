@@ -23,15 +23,15 @@
 .alv-close:hover { color: var(--parchment); border-color: #3a3a3a; }
 
 /* View toggle: All entries / By game */
-.alv-views { display: inline-grid; grid-auto-flow: column; grid-auto-columns: 1fr; flex: none; border: 1px solid #3a3a3a; border-radius: 6px; overflow: hidden; }
+.alv-views { display: inline-grid; grid-auto-flow: column; grid-auto-columns: 1fr; flex: none; border: 1px solid #4a4a4a; border-radius: 6px; overflow: hidden; background: #1f1f1f; }
 .alv-view {
   min-height: 44px; padding: 0 1rem; background: none; border: 0; color: #bdbdbd; cursor: pointer; touch-action: manipulation; white-space: nowrap;
   font-family: 'Oswald', sans-serif; font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase;
 }
-.alv-view + .alv-view { border-left: 1px solid #3a3a3a; }
-.alv-view[aria-pressed="true"] { background: rgba(190, 65, 39, 0.18); color: var(--parchment); box-shadow: inset 0 -2px 0 var(--blood); }
+.alv-view + .alv-view { border-left: 1px solid #4a4a4a; }
+.alv-view[aria-pressed="true"] { background: #3a1a12; color: var(--parchment); box-shadow: inset 0 -2px 0 var(--blood); }
 .alv-view:focus-visible { outline: 2px solid var(--blood); outline-offset: -2px; }
-@media (hover: hover) { .alv-view[aria-pressed="false"]:hover { color: var(--parchment); } }
+@media (hover: hover) { .alv-view[aria-pressed="false"]:hover { background: #262626; color: var(--parchment); } }
 
 /* By game: the game cards, full width; two columns on wide screens */
 .alv-cards { box-sizing: border-box; max-width: 1240px; margin: 0 auto; padding: 1rem; }
@@ -42,11 +42,11 @@
 
 .alv-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; min-height: 44px; padding: 0 0.9rem;
-  background: none; border: 1px solid #3a3a3a; border-radius: 4px; color: var(--bone); cursor: pointer; touch-action: manipulation;
+  background: #1f1f1f; border: 1px solid #4a4a4a; border-radius: 4px; color: var(--bone); cursor: pointer; touch-action: manipulation;
   font-family: 'Oswald', sans-serif; font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase;
 }
 .alv-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-@media (hover: hover) { .alv-btn:not(:disabled):hover { border-color: #666; color: var(--parchment); } }
+@media (hover: hover) { .alv-btn:not(:disabled):hover { background: #262626; border-color: #6a6a6a; color: var(--parchment); } }
 .alv-btn svg { width: 18px; height: 18px; }
 .alv-btn:focus-visible, .alv-close:focus-visible, .alv-chip:focus-visible, .alv-switch:focus-visible, .alv-link:focus-visible,
 .alv-sort:focus-visible, .alv-search:focus-visible, .alv-select:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
@@ -71,12 +71,13 @@
 }
 .alv-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
 .alv-chip {
-  position: relative; min-height: 36px; padding: 0 0.75rem; border-radius: 999px; border: 1px solid #3a3a3a; background: none;
+  position: relative; min-height: 36px; padding: 0 0.75rem; border-radius: 999px; border: 1px solid #4a4a4a; background: #1f1f1f;
   color: var(--bone); cursor: pointer; touch-action: manipulation;
   font-family: 'Oswald', sans-serif; font-size: 0.74rem; letter-spacing: 0.1em; text-transform: uppercase;
 }
 .alv-chip::after { content: ''; position: absolute; inset: -4px 0; }
 .alv-chip[aria-pressed="true"] { border-color: var(--blood); background: var(--rust); color: #fff; }
+@media (hover: hover) { .alv-chip[aria-pressed="false"]:hover { background: #262626; border-color: #6a6a6a; } }
 .alv-switch {
   display: inline-flex; align-items: center; gap: 0.55rem; min-height: 44px; padding: 0 0.25rem; background: none; border: 0;
   color: var(--bone); cursor: pointer; font-family: 'Oswald', sans-serif; font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase;
@@ -255,3 +256,36 @@
 .cmp-log-rename { display: grid; gap: 0.5rem; margin-top: 0.5rem; }
 .cmp-log-rename-input { width: 100%; box-sizing: border-box; min-height: 44px; }
 .cmp-log-rename-btns { display: flex; justify-content: flex-end; gap: 0.5rem; }
+
+/* Edited games: a tag on the original record row */
+.alv-flag--edited { border-style: solid; border-color: #6a5226; color: #f0c27a; }
+
+/* Edit outcome: from the entry panel and the By game cards */
+.led-edit { justify-content: flex-start; }
+.cmp-log-actions { display: flex; justify-content: flex-end; margin-top: 0.6rem; }
+.cmp-log-edit { min-height: 44px; }
+
+/* End of Game: playing past the planned length, and editing a game */
+.eog-beyond { margin: 0 0 0.9rem; padding: 0.55rem 0.75rem; border-left: 3px solid #8a6a2a; background: rgba(138, 106, 42, 0.12);
+  font-size: 0.9rem; line-height: 1.4; color: #f0c27a; }
+
+/* Simple outcome editor (older games) */
+.oe-sheet .eog-lede.oe-gap { margin-top: 1.4rem; }
+.oe-picks { display: grid; gap: 0.4rem; }
+.oe-pick { min-height: 48px; }
+.oe-preview { display: grid; gap: 0.25rem; margin-top: 1rem; padding: 0.65rem 0.8rem; border: 1px solid #2c2c2c; border-radius: 6px; background: var(--fog); }
+.oe-preview-label { font-family: 'Oswald', sans-serif; font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase; color: #a8a8a8; }
+.oe-preview-text { font-size: 0.95rem; color: var(--parchment); }
+.oe-block { font-size: 0.9rem; line-height: 1.4; color: #ff9a85; }
+.oe-warn { font-size: 0.86rem; line-height: 1.4; color: #f0c27a; }
+.oe-losses { margin: 0 0 0.9rem; padding-left: 1.2rem; display: grid; gap: 0.25rem; font-size: 0.92rem; color: var(--parchment); }
+.oe-picks .eog-pick + .eog-pick { margin-top: 0; }
+
+/* End of Game and outcome editor: choices on a raised ground, not black on black */
+.eog-sheet .eog-result, .eog-sheet .eog-pick { background: #1f1f1f; border-color: #4a4a4a; }
+@media (hover: hover) {
+  .eog-sheet .eog-result:not([aria-checked="true"]):hover, .eog-sheet .eog-pick:not([aria-checked="true"]):not(:disabled):hover { background: #262626; border-color: #6a6a6a; }
+}
+.eog-sheet .eog-result[aria-checked="true"], .eog-sheet .eog-pick[aria-checked="true"] { background: #2a1510; border-color: var(--blood); }
+.eog-sheet .eog-pick:disabled { background: #141414; }
+.eog-sheet .eog-fate { background: #1f1f1f; border-color: #4a4a4a; }

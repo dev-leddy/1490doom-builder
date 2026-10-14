@@ -138,6 +138,86 @@ test.describe('campaign activity log', () => {
     await expect(view.locator('.alv-item', { hasText: /^Note/ })).toHaveCount(0)
   })
 
+  test('a game recorded as a Defeat can be edited to a Victory from the log', async ({ page }) => {
+    const name = 'Edit Outcome Co'
+    await createCompanyViaApi(page, {
+      name, mode: 'campaign', ipLimit: 0,
+      slots: [{ type: 'Fighter', weapon1: 'Light Weapon' }, { type: 'Scout', weapon1: 'Bow' }],
+    })
+    // Game 1: a Defeat, everyone standing, survivor point to the Fighter (the Captain)
+    await page.locator('.ch-camp-eog-btn').click()
+    await page.locator('[data-result="loss"]').click()
+    await page.locator('.eog-next-btn').click()
+    await page.locator('.eog-next-btn').click()
+    await page.locator('.eog-pick[data-slot="0"]').first().click()
+    await page.locator('.eog-next-btn').click()
+    await page.locator('.eog-record-btn').click()
+
+    // Log -> the game's entry -> Edit outcome (latest game: the full sheet, prefilled)
+    await page.locator('.ch-camp-log-btn').click()
+    const view = page.getByRole('dialog', { name: /campaign log/i })
+    await view.locator('.alv-item', { hasText: 'Game 1 recorded: Defeat' }).locator('.alv-item-btn').click()
+    await page.locator('.alv-entry-sheet').getByRole('button', { name: 'Edit outcome' }).click()
+    const edit = page.locator('.eog-sheet').last()
+    await expect(edit.locator('.co-sheet-title')).toHaveText('EDIT GAME 1')
+    await expect(edit.locator('[data-result="loss"]')).toHaveAttribute('aria-checked', 'true')
+    await edit.locator('[data-result="win"]').click()
+    await edit.locator('.eog-next-btn').click()                     // who fell (prefilled)
+    await edit.locator('.eog-next-btn').click()                     // award (survivor prefilled)
+    await edit.locator('.eog-next-btn').click()                     // review
+    await edit.getByRole('button', { name: 'Save changes' }).click()
+
+    // The change is a row of its own; the original record stays, tagged Edited
+    const changed = view.locator('.alv-item', { hasText: 'Game 1 outcome changed: Defeat to Victory' })
+    await expect(changed).toHaveCount(1)
+    await expect(changed).toContainText('Fighter +1')
+    await expect(view.locator('.alv-item', { hasText: 'Game 1 recorded: Defeat' }).locator('.alv-flag--edited')).toBeVisible()
+
+    // The Captain's Victory point: 1 (survivor) + 1 (Captain)
+    await page.keyboard.press('Escape')
+    await page.keyboard.press('Escape')
+    await waitForSaved(page)
+    const fighter = await page.evaluate(async companyName => {
+      const { companies } = await (await fetch('/api/companies', { credentials: 'include' })).json()
+      return companies.find(c => c.name === companyName).data.slots.find(s => s.type === 'Fighter')
+    }, name)
+    expect(fighter.earnedIP).toBe(2)
+  })
+
+  test('a seventh game can be recorded after the sixth', async ({ page }) => {
+    const name = 'Seven Games Co'
+    const id = `e2e-${Date.now()}`
+    const base = { weapon2: null, consumable: null, climbing: null, ip: [], notes: [], customName: null, statImproves: [], earnedIP: 0 }
+    await page.evaluate(async body => fetch('/api/companies', {
+      method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+    }), { id, name, mode: 'campaign', data: {
+      companyId: id, companyName: name, companyMode: 'campaign', mark: '', companyAvatar: null, ipLimit: 0, campaignGame: 6,
+      slots: [{ ...base, type: 'Fighter', weapon1: 'Light Weapon', isCaptain: true }, { ...base, type: 'Scout', weapon1: 'Bow', isCaptain: false }],
+    } })
+    await page.reload()
+    await page.getByText(name, { exact: true }).first().click()
+    await expect(page.getByLabel('Company Settings')).toBeVisible()
+
+    await page.locator('.topbar-menu-btn').click()
+    await page.locator('.app-menu-row', { hasText: 'End of game' }).click()
+    await expect(page.locator('.eog-beyond')).toHaveText('Your campaign was set to 6 games. Recording this game adds one more.')
+    await page.locator('[data-result="win"]').click()
+    await page.locator('.eog-next-btn').click()
+    await page.locator('.eog-next-btn').click()
+    await page.locator('.eog-pick[data-slot="1"]').first().click()
+    await page.locator('.eog-next-btn').click()
+    await expect(page.locator('.eog-record-btn')).toHaveText('Record game 7')
+    await page.locator('.eog-record-btn').click()
+
+    await waitForSaved(page)
+    const campaign = await page.evaluate(async companyName => {
+      const { companies } = await (await fetch('/api/companies', { credentials: 'include' })).json()
+      return companies.find(c => c.name === companyName).data.campaign
+    }, name)
+    expect(campaign.log.at(-1).gameNumber).toBe(7)
+    expect(campaign.length).toBe(7)
+  })
+
   test("another account can't read the log", async ({ page, browser }) => {
     const name = 'Private Log Co'
     await createCompanyViaApi(page, { name, mode: 'campaign', ipLimit: 0, slots: [{ type: 'Fighter', weapon1: 'Light Weapon' }] })

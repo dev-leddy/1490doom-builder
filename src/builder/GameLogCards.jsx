@@ -6,6 +6,8 @@ import { RESULT_LETTER, RESULT_NAME, AWARD_REASON, nameInRecord, fallenName, upg
 // ── Campaign log, By game: one card per recorded game, then the fallen ────────
 // Shown in the full-screen campaign log (ActivityLogView). Each game's scenario name can be
 // set or changed in place (the pencil); onRenamed lets the log refetch to show the entry.
+// readOnly (another member's company in a shared campaign): no pencil, nothing editable.
+// onEditOutcome({ gameNumber, latest }) opens the outcome editor (OutcomeEditor.jsx).
 
 // "Upgrades before game 3" / "Starting company": "Name: Combat, Grappling Hook" per warrior
 // Recruits ("Recruited: Joss (Scout), starting IP 1") come first, then the upgrades
@@ -24,7 +26,7 @@ function UpgradeGroup({ title, groups, roster = [] }) {
 
 // The scenario line of a game card: the name (or a muted "No scenario name"), with a pencil
 // that turns it into an input. Enter saves, Escape cancels (without closing the log).
-function ScenarioName({ record, onRenamed }) {
+function ScenarioName({ record, onRenamed, readOnly }) {
   const setGameScenario = useBuilderStore(s => s.setGameScenario)
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState('')
@@ -40,6 +42,9 @@ function ScenarioName({ record, onRenamed }) {
     stop()
   }
 
+  if (readOnly) {
+    return record.scenario ? <div className="cmp-log-scenario-row"><span className="cmp-log-scenario">{record.scenario}</span></div> : null
+  }
   if (editing) {
     return (
       <div className="cmp-log-rename">
@@ -71,7 +76,7 @@ function ScenarioName({ record, onRenamed }) {
   )
 }
 
-export default function GameLogCards({ log, legacyGames, campaign, onRenamed }) {
+export default function GameLogCards({ log, legacyGames, campaign, onRenamed, onEditOutcome, readOnly = false }) {
   const fallenRoll = log.flatMap(r => (r.fallen || []).map(f => ({ ...f, game: r.gameNumber })))
   const starting = upgradesAfter(campaign, 0)
   const startingRoster = rosterLinesAfter(campaign, 0)
@@ -80,7 +85,7 @@ export default function GameLogCards({ log, legacyGames, campaign, onRenamed }) 
       {legacyGames > 0 && (
         <p className="eog-help">{legacyGames === 1 ? 'Game 1 was' : `Games 1 to ${legacyGames} were`} played before the log was kept.</p>
       )}
-      {log.length === 0 && legacyGames === 0 && <p className="eog-help">No games recorded yet. Use End of game after each game.</p>}
+      {log.length === 0 && legacyGames === 0 && <p className="eog-help">{readOnly ? 'No games recorded yet.' : 'No games recorded yet. Use End of game after each game.'}</p>}
       {(starting.length > 0 || startingRoster.length > 0) && (
         <div className="cmp-log-game cmp-log-start">
           <UpgradeGroup title="Starting company" groups={starting} roster={startingRoster} />
@@ -96,7 +101,7 @@ export default function GameLogCards({ log, legacyGames, campaign, onRenamed }) 
                 <span className={`cmp-pip is-${r.result}`} aria-hidden="true">{RESULT_LETTER[r.result]}</span>
                 <span className="cmp-log-title">Game {r.gameNumber} · {RESULT_NAME[r.result]}</span>
               </div>
-              <ScenarioName record={r} onRenamed={onRenamed} />
+              <ScenarioName record={r} onRenamed={onRenamed} readOnly={readOnly} />
               <dl className="cmp-log-facts">
                 <div><dt>Fell</dt><dd>{r.fallen?.length ? r.fallen.map(fallenName).join(', ') : 'No one'}</dd></div>
                 <div><dt>IP</dt><dd>{awards.length ? awards.join(', ') : r.result === 'retreat' ? 'None (retreated)' : 'None'}</dd></div>
@@ -106,6 +111,14 @@ export default function GameLogCards({ log, legacyGames, campaign, onRenamed }) 
                     : `${nameInRecord(r, cc.from)} fell with the whole company. A recruit leads next.`}</dd></div>
                 )}
               </dl>
+              {onEditOutcome && !readOnly && (
+                <div className="cmp-log-actions">
+                  <button type="button" className="alv-btn cmp-log-edit"
+                    onClick={() => onEditOutcome({ gameNumber: r.gameNumber, latest: r === log.at(-1) && !!r.before })}>
+                    Edit outcome
+                  </button>
+                </div>
+              )}
               {(() => {
                 const roster = rosterLinesAfter(campaign, r.gameNumber)
                 return (

@@ -4,16 +4,20 @@ import { useTrackerStore } from '../store/trackerStore'
 import { deleteGame } from '../api/games'
 import { WARRIOR_IMAGES } from '../data/images'
 import { CAMPAIGN_RULES } from '../data/campaign'
-import { validateEndOfGame, endOfGameWarnings, spendableCapacity, campaignProgress } from '../store/campaign'
+import { validateEndOfGame, endOfGameWarnings, spendableCapacity, campaignProgress, undoLastGame, draftFromRecord } from '../store/campaign'
 import BottomSheet from '../shared/BottomSheet'
 import { fallenName } from './campaignUi'
+import './styles/activity-log.css'
 
 // ── End of a campaign game: a stepped sheet ───────────────────────────────────
 // Result -> The fallen -> New Captain (if needed) -> Award IP (not on a retreat) -> Review.
 // Nothing changes until "Record game N" on the review; the engine (store/campaign.js) has
-// the rules, this sheet only builds the draft.
+// the rules, this sheet only builds the draft. A game past the planned length is fine: the
+// store grows the campaign to fit.
+// edit: enter the latest game again (prefilled from its record). The roster is the company
+// as it was before that game (the record's snapshot); "Save changes" calls editLatestGame.
 
-const RESULTS = [
+export const RESULTS = [
   { id: 'win', name: 'Victory', earn: '1 IP to a survivor, 1 IP to your Captain if they survived', ip: '+2' },
   { id: 'loss', name: 'Defeat', earn: '1 IP to a survivor', ip: '+1' },
   { id: 'draw', name: 'Draw', earn: '1 IP to a survivor. No Captain point', ip: '+1' },
@@ -51,16 +55,25 @@ function Steps({ steps, current }) {
 }
 
 // initialResult: 'retreat' when opened from play mode's Retreat (the sheet starts at The fallen)
-export default function EndOfGameModal({ onClose, onConfirm, initialResult = null }) {
+// edit: re-enter the latest game; onSaved after saving, onFallback if only the simple
+// outcome editor can change it (no snapshot)
+export default function EndOfGameModal({ onClose, onConfirm, initialResult = null, edit = false, onSaved, onFallback }) {
   const store = useBuilderStore()
-  const { slots, companyId, recordCampaignGame } = store
-  const company = { companyMode: store.companyMode, slots, campaignGame: store.campaignGame, campaign: store.campaign }
+  const { companyId, recordCampaignGame, editLatestGame } = store
+  const current = { companyMode: store.companyMode, slots: store.slots, campaignGame: store.campaignGame, campaign: store.campaign }
+  // Editing: the company as it was before the latest game, and that game's draft (fixed
+  // when the sheet opens, so saving doesn't swap the roster under it)
+  const [editBase] = useState(() => (edit ? undoLastGame(current) : null))
+  const [editDraft] = useState(() => (edit ? draftFromRecord(current) : null))
+  const company = editBase || current
+  const { slots } = company
   const progress = campaignProgress(company)
-  const gameNumber = progress.nextGame ?? progress.completed
+  const gameNumber = progress.nextGame
   const active = slots.map((s, i) => ({ ...s, index: i })).filter(s => s.type)
 
   // Prefill the fallen from play mode, but only from this company's game
   const prefill = useMemo(() => {
+    if (edit) return null
     const tracker = useTrackerStore.getState()
     if (tracker.companyId !== companyId || !tracker.warriors.length) return null
     return active
@@ -68,13 +81,13 @@ export default function EndOfGameModal({ onClose, onConfirm, initialResult = nul
       .map(s => s.index)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const [result, setResult] = useState(initialResult)
-  const [fallen, setFallen] = useState(() => new Set(prefill || []))
-  const [newCaptainIndex, setNewCaptainIndex] = useState(null)
-  const [survivorPick, setSurvivorPick] = useState(null)
-  const [bonus, setBonus] = useState({})        // { slotIndex: ip }
-  const [bonusOpen, setBonusOpen] = useState(false)
-  const [scenario, setScenario] = useState('')
+  const [result, setResult] = useState(editDraft?.result ?? initialResult)
+  const [fallen, setFallen] = useState(() => new Set(editDraft?.fallenIndices || prefill || []))
+  const [newCaptainIndex, setNewCaptainIndex] = useState(editDraft?.newCaptainIndex ?? null)
+  const [survivorPick, setSurvivorPick] = useState(editDraft?.survivorPick ?? null)
+  const [bonus, setBonus] = useState(() => Object.fromEntries((editDraft?.bonus || []).map(b => [b.index, b.ip]))) // { slotIndex: ip }
+  const [bonusOpen, setBonusOpen] = useState(!!editDraft?.bonus?.length)
+  const [scenario, setScenario] = useState(editDraft?.scenario || '')
   const [step, setStep] = useState(initialResult ? 'fallen' : 'result')
 
   const survivors = active.filter(s => !fallen.has(s.index))
@@ -156,38 +169,52 @@ export default function EndOfGameModal({ onClose, onConfirm, initialResult = nul
   }
 
   function record() {
+    if (edit) {
+      const res = editLatestGame(draft)
+      if (res.ok) { onSaved?.(); onClose() } else if (res.fallback) onFallback?.()
+      return
+    }
     const res = recordCampaignGame(draft)
     if (res.ok) finishGame()
   }
 
-  const isLast = gameNumber >= CAMPAIGN_RULES.games
+  // Past the planned length (or after ending early) the game still records; say what happens
+  const beyond = !edit && progress.isComplete
+  const beyondNote = !beyond ? null
+    : progress.endedEarly ? 'This campaign was ended early. Recording this game reopens it.'
+      : `Your campaign was set to ${progress.total} games. Recording this game adds one more.`
+  const isLast = !progress.unlimited && gameNumber === progress.total
   const footer = (
     <>
       {prevStep
         ? <button className="co-sheet-randomize" onClick={() => setStep(prevStep)}>Back</button>
         : <button className="co-sheet-randomize" onClick={onClose}>Cancel</button>}
       {step === 'review'
-        ? <button className="co-sheet-done eog-record-btn" disabled={!canAdvance} onClick={record}>Record game {gameNumber}</button>
+        ? <button className="co-sheet-done eog-record-btn" disabled={!canAdvance} onClick={record}>{edit ? 'Save changes' : `Record game ${gameNumber}`}</button>
         : <button className="co-sheet-done eog-next-btn" disabled={!canAdvance} onClick={() => setStep(nextStep)}>{NEXT_LABEL[nextStep]}</button>}
     </>
   )
 
-  if (progress.isComplete) {
+  if (edit && !editBase) {
+    // No snapshot to re-enter from: only the simple outcome editor can change this game
     return (
-      <BottomSheet title="CAMPAIGN COMPLETE" onClose={onClose}
-        footer={<button className="co-sheet-done" onClick={onClose}>Done</button>}>
-        <p className="eog-help">All {CAMPAIGN_RULES.games} games are recorded. No more games can be added to this campaign.</p>
+      <BottomSheet title="EDIT GAME" onClose={onClose} zIndex={1200}
+        footer={<button className="co-sheet-done" onClick={() => (onFallback ? onFallback() : onClose())}>Continue</button>}>
+        <p className="eog-help">Only the result and the survivor point of this game can be changed.</p>
       </BottomSheet>
     )
   }
 
   return (
-    <BottomSheet title={`END OF GAME ${gameNumber}`} onClose={onClose} footer={footer} className="eog-sheet">
+    <BottomSheet title={edit ? `EDIT GAME ${gameNumber}` : `END OF GAME ${gameNumber}`} onClose={onClose} footer={footer}
+      className="eog-sheet" zIndex={edit ? 1200 : undefined}>
       <Steps steps={steps} current={step} />
 
       {/* ── 1. RESULT ─────────────────────────────────────── */}
       {step === 'result' && (
         <>
+          {beyondNote && <p className="eog-beyond" role="note">{beyondNote}</p>}
+          {edit && <p className="eog-beyond" role="note">Change anything about game {gameNumber}, then save. IP moves to match.</p>}
           <p className="eog-lede" id="eog-result-q">How did it end?</p>
           <div className="eog-result-grid" role="radiogroup" aria-labelledby="eog-result-q">
             {RESULTS.map(r => (
@@ -324,7 +351,7 @@ export default function EndOfGameModal({ onClose, onConfirm, initialResult = nul
       {/* ── 5. REVIEW ─────────────────────────────────────── */}
       {step === 'review' && (
         <>
-          <p className="eog-lede">{RESULT_WORD[result]}. Game {gameNumber} of {CAMPAIGN_RULES.games}</p>
+          <p className="eog-lede">{RESULT_WORD[result]}. Game {gameNumber}{!progress.unlimited && gameNumber <= progress.total ? ` of ${progress.total}` : ''}</p>
           <div className="eog-ledger">
             {active.map(s => {
               const fell = fallen.has(s.index)
@@ -359,8 +386,12 @@ export default function EndOfGameModal({ onClose, onConfirm, initialResult = nul
           </label>
 
           <div className="eog-callout">
-            {isLast ? (
+            {edit ? (
+              <><strong>Saving replaces game {gameNumber}</strong><br />The company is set as if the game had been recorded like this.</>
+            ) : isLast ? (
               <><strong>The last game</strong><br />Recording game {gameNumber} completes the campaign.</>
+            ) : beyond ? (
+              <><strong>An extra game</strong><br />Recording game {gameNumber} adds it to the campaign.</>
             ) : (
               <>
                 <strong>Before game {gameNumber + 1}</strong><br />

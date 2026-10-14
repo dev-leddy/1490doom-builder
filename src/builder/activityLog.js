@@ -84,6 +84,25 @@ export function describeEvent(e) {
         ]),
       }
     }
+    case 'game.edited': {
+      const from = p.from?.result, to = p.to?.result
+      const deltas = (p.deltas || []).map(d => `${d.name || 'A warrior'} ${d.ip > 0 ? '+' : ''}${d.ip}`)
+      return {
+        icon: '✎',
+        text: from && to && from !== to
+          ? `Game ${p.gameNumber} outcome changed: ${RESULT[from] || from} to ${RESULT[to] || to}`
+          : `Game ${p.gameNumber} outcome changed`,
+        sub: deltas.length ? deltas.join(', ') : 'No IP changed',
+      }
+    }
+    case 'campaign.lengthChanged': {
+      const n = v => (v == null ? 'no limit' : `${v} games`)
+      return {
+        icon: '⚑',
+        text: p.from != null && p.to != null ? `Campaign length: ${p.from} to ${p.to} games` : `Campaign length: ${n(p.from)} to ${n(p.to)}`,
+        sub: null,
+      }
+    }
     case 'game.undone': return { icon: '↶', text: `Game ${p.gameNumber} undone`, sub: p.result ? `Was a ${RESULT[p.result] || p.result}` : null }
     case 'game.renamed': return { icon: '✎', text: `Game ${p.gameNumber} renamed: ${p.to || 'no name'}`, sub: p.from ? `Was ${p.from}` : null }
     case 'entry.noted': return { icon: '✎', text: p.text ? `Note: ${p.text}` : 'Note removed', sub: null }
@@ -168,6 +187,7 @@ export function eventWarriors(e, nameToUid = new Map()) {
   const byName = name => ({ uid: nameToUid.get(name) || `name:${name}`, name })
   switch (e.type) {
     case 'campaign.baseline': return (p.roster || []).map(r => ({ uid: r.uid, name: r.name }))
+    case 'game.edited': return (p.deltas || []).filter(d => d.uid).map(d => ({ uid: d.uid, name: d.name }))
     case 'game.recorded': {
       const out = (p.awards || []).filter(a => a.uid).map(a => ({ uid: a.uid, name: a.name }))
       for (const f of p.fallen || []) out.push(byName(f))
@@ -181,7 +201,7 @@ export function eventWarriors(e, nameToUid = new Map()) {
   }
 }
 
-// Table rows, oldest first: { e, at, kind, tag, game, warriors, text, sub, note, undone, isUndo, rejected, haystack }.
+// Table rows, oldest first: { e, at, kind, tag, game, warriors, text, sub, note, undone, edited, isUndo, rejected, haystack }.
 // Notes (entry.noted) aren't rows: the latest note shows on the row it is about.
 export function buildRows(events = [], total = CAMPAIGN_RULES.games) {
   const sorted = [...events].sort((a, b) => (eventAt(a) || 0) - (eventAt(b) || 0))
@@ -194,6 +214,8 @@ export function buildRows(events = [], total = CAMPAIGN_RULES.games) {
     for (const a of p.awards || []) if (a.uid && a.name) nameToUid.set(a.name, a.uid)
   }
   const undone = undoneIds(sorted)
+  // Recorded games whose outcome was edited later (the record row stays, tagged Edited)
+  const edited = new Set(sorted.filter(e => e.type === 'game.edited' && e.ref && e.status !== 'rejected').map(e => e.ref))
   return sorted.filter(e => e.type !== 'entry.noted').map(e => {
     const kind = eventKind(e.type)
     const game = gameOf(e, total)
@@ -202,7 +224,7 @@ export function buildRows(events = [], total = CAMPAIGN_RULES.games) {
     const note = noted.length ? notesFor(noted, e.id) : null
     return {
       e, at: eventAt(e), kind, tag: KIND_TAG[kind], game, warriors, text, sub, note,
-      undone: undone.has(e.id), isUndo: UNDO_TYPES.has(e.type) && !!e.ref && e.status !== 'rejected',
+      undone: undone.has(e.id), edited: edited.has(e.id), isUndo: UNDO_TYPES.has(e.type) && !!e.ref && e.status !== 'rejected',
       rejected: e.status === 'rejected',
       haystack: [text, sub, note, game.label, KIND_TAG[kind], ...warriors.map(w => w.name)].filter(Boolean).join(' ').toLowerCase(),
     }

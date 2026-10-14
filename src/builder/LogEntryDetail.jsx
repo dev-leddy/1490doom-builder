@@ -45,7 +45,7 @@ export function confirmFor(kind, { company, row, onDone }) {
   }
 }
 
-export default function LogEntryDetail({ row, onAsk, onChanged, headingRef }) {
+export default function LogEntryDetail({ row, onAsk, onChanged, onEditOutcome, headingRef }) {
   const { slots, companyMode, campaignGame, campaign, noteLogEntry, setGameScenario, setEarnedIP } = useBuilderStore()
   const company = { slots, companyMode, campaignGame, campaign }
   const e = row.e
@@ -69,7 +69,7 @@ export default function LogEntryDetail({ row, onAsk, onChanged, headingRef }) {
   const saveNote = text => { if (noteLogEntry(e.id, text, { afterGame: e.afterGame })) onChanged() }
   const noteChanged = note.trim() !== (row.note || '')
   const scenarioChanged = record && scenario.trim() !== (record.scenario || '')
-  const hasActions = actions.undoGame || actions.undoUpgrade || actions.undoRecruit || actions.renameGame || actions.fixIP.length
+  const hasActions = actions.editOutcome || actions.undoGame || actions.undoUpgrade || actions.undoRecruit || actions.renameGame || actions.fixIP.length
 
   return (
     <div className="led">
@@ -77,6 +77,7 @@ export default function LogEntryDetail({ row, onAsk, onChanged, headingRef }) {
         <span className="alv-tag" data-kind={row.kind}>{row.tag}</span>
         <h3 className="led-title" ref={headingRef} tabIndex={-1}>{row.text}</h3>
         {row.undone && <span className="alv-flag">Undone</span>}
+        {row.edited && <span className="alv-flag alv-flag--edited">Edited</span>}
         {row.rejected && <span className="alv-flag alv-flag--warn">Not saved</span>}
       </div>
       {(row.rejected || row.sub) && (
@@ -102,6 +103,11 @@ export default function LogEntryDetail({ row, onAsk, onChanged, headingRef }) {
       {hasActions ? (
         <section className="led-section">
           <h4 className="led-label">Change it</h4>
+          {actions.editOutcome && (
+            <button type="button" className="alv-btn led-edit" onClick={() => onEditOutcome?.(actions.editOutcome)}>
+              Edit outcome
+            </button>
+          )}
           {record && (
             <div className="led-rename">
               <label className="led-sublabel" htmlFor={`led-scn-${e.id}`}>Game {record.gameNumber} scenario</label>
