@@ -1569,6 +1569,8 @@ button.eq-slot:focus-visible { outline: 2px solid var(--blood); outline-offset: 
 .ch-camp {
   --camp-muted: #b4b4b4; /* secondary text, ~9:1 on --fog */
   --camp-line: #3a3a3a;
+  --camp-raised: #1f1f1f;  /* quiet buttons sit above the black panel, not on it */
+  --camp-edge: #4a4a4a;
   --camp-tap: 48px;
   display: grid; gap: 0.6rem; border-top: 1px solid rgba(190, 65, 39, 0.2); padding: 0.75rem 0.7rem 0.6rem;
 }
@@ -1582,9 +1584,9 @@ button.eq-slot:focus-visible { outline: 2px solid var(--blood); outline-offset: 
 
 /* To-dos: neutral rows; the count and chevron carry the accent */
 .ch-camp-todo { display: flex; align-items: center; gap: 0.75rem; min-height: 56px; padding: 0.5rem 0.8rem; width: 100%; box-sizing: border-box;
-  background: #151515; border: 1px solid var(--camp-line); border-radius: 6px; color: var(--parchment); text-align: left; cursor: pointer;
+  background: var(--camp-raised); border: 1px solid var(--camp-edge); border-radius: 6px; color: var(--parchment); text-align: left; cursor: pointer;
   -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
-@media (hover: hover) { .ch-camp-todo:hover { border-color: #5a5a5a; } }
+@media (hover: hover) { .ch-camp-todo:hover { background: #242424; border-color: #6a6a6a; } }
 .ch-camp-todo .n { display: grid; place-items: center; width: 28px; height: 28px; flex: none; border: 1px solid var(--blood-text); border-radius: 50%;
   font-family: 'Oswald', sans-serif; font-size: 0.9rem; line-height: 1; color: var(--blood-text); }
 .ch-camp-todo-text { display: grid; gap: 0.1rem; min-width: 0; flex: 1; }
@@ -1598,10 +1600,10 @@ button.eq-slot:focus-visible { outline: 2px solid var(--blood); outline-offset: 
 /* Buttons: one height, one radius. Log and the gear are quiet outlines; End game is the filled primary */
 .ch-camp-actions { display: flex; gap: 0.5rem; }
 .ch-camp-btn { display: inline-flex; align-items: center; justify-content: center; flex: 1 1 0; min-height: var(--camp-tap); padding: 0 1rem;
-  background: none; border: 1px solid var(--camp-line); border-radius: 6px; color: var(--bone);
+  background: var(--camp-raised); border: 1px solid var(--camp-edge); border-radius: 6px; color: var(--bone);
   font-family: 'Oswald', sans-serif; font-size: 0.9rem; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap;
   cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; transition: border-color 0.15s, background 0.15s; }
-@media (hover: hover) { .ch-camp-btn:hover { border-color: #666; color: var(--parchment); } }
+@media (hover: hover) { .ch-camp-btn:hover { background: #262626; border-color: #6a6a6a; color: var(--parchment); } }
 .ch-camp-btn--primary { flex-grow: 2; background: var(--blood); border-color: var(--blood); color: #fff; font-weight: 500; }
 @media (hover: hover) { .ch-camp-btn--primary:hover { background: var(--blood); border-color: var(--blood); color: #fff; filter: brightness(1.12); } }
 .ch-camp-actions > .ch-camp-gear { flex: 0 0 var(--camp-tap); width: var(--camp-tap); padding: 0; }
