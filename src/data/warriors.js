@@ -5,7 +5,7 @@ export const WARRIORS = {
     stats: { MOV: 5, ATK: 1, VIT: 5, SKL: '5+', COM: '4+', DEF: '5+' },
     abilities: [
       { name: 'NIGHT STALKER', desc: 'The Assassin cannot be attacked until after they ATTACK, PUSH, or Round 4 begins. Until NIGHT STALKER has been expended, enemy models may move over the Assassin as long as they do not land on top of them, and may SCALE climbing items the Assassin occupies.' },
-      { name: 'KILLSHOT', desc: 'Once per game after a successful COMBAT Check, the Assassin may perform a KILL SHOT that does 4 damage. The Assassin may only use KILL SHOT on a model that has not activated this round and is within 3 inches. This attack ignores DEFENSE rolls.' },
+      { name: 'KILLSHOT', desc: 'Once per game after a successful COMBAT Check, the Assassin may perform a KILL SHOT that does 4 damage. The Assassin may only use KILL SHOT on a model that has not activated this round and is within 3 inches. This attack ignores DEFENSE rolls. KILL SHOT replaces one successful attack; any other successful attacks resolve normally.' },
       { name: 'CAMOUFLAGED CLIMBER', desc: 'An Assassin only requires a 3+ on SKILL Checks while using the CLIMB action.' },
     ],
     restrictions: 'Cannot equip Heavy Weapons or Polearms.',
