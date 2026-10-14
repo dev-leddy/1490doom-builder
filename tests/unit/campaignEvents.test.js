@@ -179,7 +179,7 @@ describe('activity log display', () => {
   it('reads like the mock', () => {
     expect(describeEvent(ev('upgrade.bought', { name: 'Reaver', kind: 'gear', label: 'Grappling Hook' })).text).toBe('Reaver bought Grappling Hook')
     expect(describeEvent(ev('game.recorded', { gameNumber: 2, result: 'loss', awards: [] })).text).toBe('Game 2 recorded: Defeat')
-    expect(describeEvent(ev('ip.edited', { name: 'Fighter', from: 0, to: 1 })).text).toBe('Fighter IP set by hand: 0 to 1')
+    expect(describeEvent(ev('ip.edited', { name: 'Fighter', from: 0, to: 1 })).text).toBe('Fighter IP modified by user: 0 to 1')
   })
 
   it('marks events an undo took back, but not when the undo itself was rejected', () => {

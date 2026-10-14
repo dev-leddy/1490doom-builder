@@ -98,7 +98,7 @@ export function describeEvent(e) {
     case 'warrior.removed': return { icon: '−', text: `${p.name} removed from the company`, sub: null }
     case 'warrior.renamed': return { icon: '✎', text: `${p.from} renamed to ${p.to}`, sub: p.type && p.to !== p.type ? p.type : null }
     case 'captain.changed': return { icon: '★', text: `${p.to} is now Captain`, sub: p.from ? `Was ${p.from}` : null }
-    case 'ip.edited': return { icon: '±', text: `${p.name} IP set by hand: ${p.from} to ${p.to}`, sub: null }
+    case 'ip.edited': return { icon: '±', text: `${p.name} IP modified by user: ${p.from} to ${p.to}`, sub: null }
     case 'company.renamed': return { icon: '✎', text: `Company renamed to ${p.to || 'Unnamed Company'}`, sub: p.from ? `Was ${p.from}` : null }
     case 'mark.changed': return { icon: '✎', text: `Mark changed to ${p.to || 'no mark'}`, sub: p.from ? `Was ${p.from}` : null }
     case 'system.unlogged': return {
