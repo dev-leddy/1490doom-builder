@@ -1,13 +1,16 @@
 import { useState } from 'react'
 import { useBuilderStore } from '../store/builderStore'
-import { campaignProgress, canUndoLastGame, vacancies } from '../store/campaign'
+import { campaignProgress, vacancies } from '../store/campaign'
 import BottomSheet from '../shared/BottomSheet'
-import ConfirmModal from '../shared/ConfirmModal'
+import CampaignSettingsSheet from './CampaignSettingsSheet'
+import { SvgGear } from './icons'
+import { ActivityLogBody } from './ActivityLogSheet'
 import { RESULT_LETTER, RESULT_NAME, AWARD_REASON, spendableNow, resultTally, nameInRecord, fallenName, upgradesAfter, rosterLinesAfter } from './campaignUi'
 
 // ── Campaign panel in the company header ──────────────────────────────────────
 // "Before game N of 6" with the six-game track, what to do before the next game,
-// and Game log / Undo game / End of game. After the last game: "Campaign complete".
+// and Log / End of game / the gear for campaign settings (undo, names, IP, export, end early).
+// After the last game: "Campaign complete".
 
 function Track({ log, completed, total }) {
   return (
@@ -45,13 +48,31 @@ function UpgradeGroup({ title, groups, roster = [] }) {
   )
 }
 
-function GameLogSheet({ log, legacyGames, campaign, onClose }) {
+// Campaign log: "By game" (one card per recorded game) and "All activity" (every change, from the server)
+function CampaignLogSheet({ tab, onTab, companyId, onClose, ...games }) {
+  const tabs = [['games', 'By game'], ['activity', 'All activity']]
+  return (
+    <BottomSheet title="CAMPAIGN LOG" onClose={onClose} className="cmp-log-sheet"
+      footer={<button className="co-sheet-done" onClick={onClose}>Done</button>}>
+      <div className="cmp-log-tabs" role="tablist" aria-label="Campaign log">
+        {tabs.map(([id, label]) => (
+          <button key={id} type="button" role="tab" id={`cmp-log-tab-${id}`} aria-selected={tab === id}
+            aria-controls="cmp-log-panel" className="cmp-log-tab" onClick={() => onTab(id)}>{label}</button>
+        ))}
+      </div>
+      <div id="cmp-log-panel" role="tabpanel" aria-labelledby={`cmp-log-tab-${tab}`}>
+        {tab === 'activity' ? <ActivityLogBody companyId={companyId} /> : <GameLogBody {...games} />}
+      </div>
+    </BottomSheet>
+  )
+}
+
+function GameLogBody({ log, legacyGames, campaign }) {
   const fallenRoll = log.flatMap(r => (r.fallen || []).map(f => ({ ...f, game: r.gameNumber })))
   const starting = upgradesAfter(campaign, 0)
   const startingRoster = rosterLinesAfter(campaign, 0)
   return (
-    <BottomSheet title="GAME LOG" onClose={onClose} className="cmp-log-sheet"
-      footer={<button className="co-sheet-done" onClick={onClose}>Done</button>}>
+    <>
       {legacyGames > 0 && (
         <p className="eog-help">{legacyGames === 1 ? 'Game 1 was' : `Games 1 to ${legacyGames} were`} played before the log was kept.</p>
       )}
@@ -103,35 +124,24 @@ function GameLogSheet({ log, legacyGames, campaign, onClose }) {
           </ul>
         </section>
       )}
-    </BottomSheet>
+    </>
   )
 }
 
 export default function CampaignPanel({ onEndOfGame }) {
-  const { slots, companyMode, campaignGame, campaign, undoLastCampaignGame } = useBuilderStore()
-  const [logOpen, setLogOpen] = useState(false)
-  const [confirmUndo, setConfirmUndo] = useState(false)
+  const { slots, companyMode, campaignGame, campaign, companyId } = useBuilderStore()
+  const [logOpen, setLogOpen] = useState(null) // null | 'games' | 'activity'
+  const [settingsOpen, setSettingsOpen] = useState(false)
 
   const company = { companyMode, slots, campaignGame, campaign }
   const { completed, total, isComplete, nextGame } = campaignProgress(company)
   const log = campaign?.log || []
   const legacyGames = Math.max(0, completed - log.length)
-  const last = log.at(-1)
-  const canUndo = canUndoLastGame(company)
 
   const fallenSlots = vacancies(company).filter(v => v.fallen || v.captainPlaceholder)
   const spendSlots = slots.map((s, i) => ({ i, n: spendableNow(s) })).filter(x => x.n > 0)
   const toSpend = spendSlots.reduce((n, x) => n + x.n, 0)
   const ready = fallenSlots.length === 0 && toSpend === 0
-
-  // What an undo takes back, in plain words
-  const undoRules = last ? [
-    { label: 'Result', text: `Game ${last.gameNumber} (${RESULT_NAME[last.result]}) comes off the log.` },
-    ...(last.awards?.length ? [{ label: 'IP', text: `${last.awards.map(a => `${nameInRecord(last, a.uid)} +${a.ip}`).join(', ')} taken back.` }] : []),
-    ...(last.fallen?.length ? [{ label: 'The fallen', text: `${last.fallen.map(fallenName).join(', ')} return to the company.` }] : []),
-    ...(last.captainChange ? [{ label: 'Captain', text: `${nameInRecord(last, last.captainChange.from)} leads again.` }] : []),
-    { label: 'Since then', text: `Recruits hired and upgrades bought after game ${last.gameNumber} are lost too.`, limit: true },
-  ] : []
 
   return (
     <div className={`ch-camp${isComplete ? ' is-complete' : ''}`} data-testid="campaign-panel">
@@ -164,26 +174,24 @@ export default function CampaignPanel({ onEndOfGame }) {
       ))}
 
       <div className="ch-camp-actions">
-        <button type="button" className="ch-camp-ghost ch-camp-log-btn" onClick={() => setLogOpen(true)}>Game log</button>
-        {canUndo && (
-          <button type="button" className="ch-camp-ghost ch-camp-undo-btn" onClick={() => setConfirmUndo(true)}>Undo game {last.gameNumber}</button>
-        )}
+        <button type="button" className="ch-camp-ghost ch-camp-log-btn" onClick={() => setLogOpen('games')}>Log</button>
         <button type="button" className="ch-campaign-eog-btn ch-camp-eog-btn" onClick={onEndOfGame} disabled={isComplete}
           title={isComplete ? 'The campaign is complete' : undefined}>
           {isComplete ? 'Complete' : `End game ${nextGame}`}
         </button>
+        <button type="button" className="ch-camp-ghost ch-camp-gear" onClick={() => setSettingsOpen(true)}
+          aria-label="Campaign settings" title="Campaign settings">
+          <SvgGear />
+        </button>
       </div>
 
-      {logOpen && <GameLogSheet log={log} legacyGames={legacyGames} campaign={campaign} onClose={() => setLogOpen(false)} />}
-      {confirmUndo && last && (
-        <ConfirmModal
-          title={`UNDO GAME ${last.gameNumber}?`}
-          subtitle={`The company goes back to how it was before game ${last.gameNumber} was recorded.`}
-          rules={undoRules}
-          confirmLabel={`Undo game ${last.gameNumber}`}
-          onConfirm={() => { undoLastCampaignGame(); setConfirmUndo(false) }}
-          onCancel={() => setConfirmUndo(false)}
-        />
+      {logOpen && (
+        <CampaignLogSheet tab={logOpen} onTab={setLogOpen} companyId={companyId} onClose={() => setLogOpen(null)}
+          log={log} legacyGames={legacyGames} campaign={campaign} />
+      )}
+      {settingsOpen && (
+        <CampaignSettingsSheet onClose={() => setSettingsOpen(false)}
+          onOpenLog={() => { setSettingsOpen(false); setLogOpen('activity') }} />
       )}
     </div>
   )

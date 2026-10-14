@@ -12,7 +12,8 @@ import './styles/activity-log.css'
 
 const MAX_PAGES = 25 // 200 events each
 
-export default function ActivityLogSheet({ companyId, onClose }) {
+// The log itself (filters, groups, rows). Also the "All activity" tab of the campaign log.
+export function ActivityLogBody({ companyId }) {
   const [events, setEvents] = useState(null)   // null = loading
   const [error, setError] = useState(false)
   const [filter, setFilter] = useState('all')
@@ -44,8 +45,7 @@ export default function ActivityLogSheet({ companyId, onClose }) {
   const groups = events ? groupEvents(events.filter(e => matchesFilter(e, filter))) : []
 
   return (
-    <BottomSheet title="ACTIVITY LOG" onClose={onClose} className="al-sheet"
-      footer={<button className="co-sheet-done" onClick={onClose}>Done</button>}>
+    <>
       <div className="al-filters" role="group" aria-label="Show">
         {FILTERS.map(f => (
           <button key={f.id} type="button" className={`al-chip${filter === f.id ? ' is-active' : ''}`}
@@ -92,6 +92,15 @@ export default function ActivityLogSheet({ companyId, onClose }) {
           </ol>
         </section>
       ))}
+    </>
+  )
+}
+
+export default function ActivityLogSheet({ companyId, onClose }) {
+  return (
+    <BottomSheet title="ACTIVITY LOG" onClose={onClose} className="al-sheet"
+      footer={<button className="co-sheet-done" onClick={onClose}>Done</button>}>
+      <ActivityLogBody companyId={companyId} />
     </BottomSheet>
   )
 }
