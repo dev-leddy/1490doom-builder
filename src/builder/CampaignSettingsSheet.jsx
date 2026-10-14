@@ -4,12 +4,12 @@ import { campaignProgress, canUndoLastGame, minEarnedIP, nameWithClass } from '.
 import BottomSheet from '../shared/BottomSheet'
 import ConfirmModal from '../shared/ConfirmModal'
 import { RESULT_NAME, resultTally, undoGameRules } from './campaignUi'
-import { IconUndo, IconPencil, IconCoin, IconEnd } from './icons'
+import { IconUndo, IconCoin, IconEnd } from './icons'
 
-// ── Campaign settings: the four tools behind the gear in the campaign panel ───
-// Undo the latest game, rename games, fix IP by hand, end the campaign early (or reopen it).
-// The log and its export live in the full-screen campaign log; undoing an upgrade lives in
-// the warrior's own settings.
+// ── Campaign settings: the tools behind the gear in the campaign panel ────────
+// Undo the latest game, fix IP by hand, end the campaign early (or reopen it).
+// The log, its export and renaming games live in the full-screen campaign log; undoing an
+// upgrade lives in the warrior's own settings.
 
 // One row: icon and label; a short grey reason only when it can't be used
 function Row({ icon, label, reason, danger, onClick, testId }) {
@@ -29,11 +29,10 @@ function Row({ icon, label, reason, danger, onClick, testId }) {
 export default function CampaignSettingsSheet({ onClose }) {
   const {
     slots, companyMode, campaignGame, campaign,
-    undoLastCampaignGame, setEarnedIP, setGameScenario, endCampaignEarly, reopenCampaign,
+    undoLastCampaignGame, setEarnedIP, endCampaignEarly, reopenCampaign,
   } = useBuilderStore()
-  const [view, setView] = useState('menu') // menu | names | ip
+  const [view, setView] = useState('menu') // menu | ip
   const [confirm, setConfirm] = useState(null) // 'game' | 'end'
-  const [names, setNames] = useState({})
 
   const company = { companyMode, slots, campaignGame, campaign }
   const { completed, total, isComplete, endedEarly } = campaignProgress(company)
@@ -41,14 +40,6 @@ export default function CampaignSettingsSheet({ onClose }) {
   const last = log.at(-1)
   const canUndoGame = canUndoLastGame(company)
   const living = slots.map((s, index) => ({ ...s, index })).filter(s => s.type)
-
-  function saveNames() {
-    for (const r of log) {
-      const v = names[r.gameNumber]
-      if (v != null && v.trim() !== (r.scenario || '')) setGameScenario(r.gameNumber, v.trim())
-    }
-    setView('menu')
-  }
 
   // Confirmations take the sheet's place; Cancel goes back to the menu
   if (confirm === 'game' && last) {
@@ -77,26 +68,6 @@ export default function CampaignSettingsSheet({ onClose }) {
   }
 
   const back = <button type="button" className="co-sheet-randomize" onClick={() => setView('menu')}>Back</button>
-
-  if (view === 'names') {
-    return (
-      <BottomSheet title="RENAME GAMES" onClose={onClose} className="cmp-set-sheet"
-        footer={<>{back}<button type="button" className="co-sheet-done" onClick={saveNames}>Save names</button></>}>
-        <p className="eog-help">Name the scenario each game was played as. Leave blank for none.</p>
-        <div className="cmp-set-names">
-          {log.map(r => (
-            <label key={r.id || r.gameNumber} className="eog-field">
-              <span className="eog-field-label">Game {r.gameNumber} <span>· {RESULT_NAME[r.result]}</span></span>
-              <input className="co-settings-input eog-scenario-input" type="text" maxLength={80} autoComplete="off"
-                placeholder="Name of the scenario"
-                value={names[r.gameNumber] ?? r.scenario ?? ''}
-                onChange={e => setNames(n => ({ ...n, [r.gameNumber]: e.target.value }))} />
-            </label>
-          ))}
-        </div>
-      </BottomSheet>
-    )
-  }
 
   if (view === 'ip') {
     return (
@@ -138,8 +109,6 @@ export default function CampaignSettingsSheet({ onClose }) {
         <Row icon={<IconUndo />} label={last ? `Undo game ${last.gameNumber}` : 'Undo game'} danger testId="cmp-set-undo-game"
           reason={canUndoGame ? null : log.length ? 'Only the latest game can be undone.' : noGames}
           onClick={() => setConfirm('game')} />
-        <Row icon={<IconPencil />} label="Rename games" reason={log.length ? null : noGames}
-          onClick={() => { setNames({}); setView('names') }} />
         <Row icon={<IconCoin />} label="Fix IP" reason={living.length ? null : 'No warriors yet.'} onClick={() => setView('ip')} />
         {endedEarly ? (
           <Row icon={<IconEnd />} label="Reopen campaign" onClick={() => { if (reopenCampaign()) onClose() }} />

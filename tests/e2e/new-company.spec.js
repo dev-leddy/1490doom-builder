@@ -86,6 +86,18 @@ test.describe('New Company wizard', () => {
     const log = page.getByRole('dialog', { name: /campaign log/i })
     await log.getByRole('button', { name: 'By game' }).click()
     await expect(log.locator('.cmp-log-game[data-game="1"]')).toContainText('The Ascent')
+
+    // Rename game 1 in place from its card
+    const card = log.locator('.cmp-log-game[data-game="1"]')
+    await card.getByRole('button', { name: 'Rename game 1' }).click()
+    await card.getByLabel('Game 1 scenario name').fill('The Long Night')
+    await card.getByRole('button', { name: 'Save' }).click()
+    await expect(card.locator('.cmp-log-scenario')).toHaveText('The Long Night')
+    // Escape cancels an edit without closing the log
+    await card.getByRole('button', { name: 'Rename game 1' }).click()
+    await page.keyboard.press('Escape')
+    await expect(log).toBeVisible()
+    await expect(card.locator('.cmp-log-scenario')).toHaveText('The Long Night')
   })
 
   test('campaign: undo the latest game from the campaign settings gear', async ({ page }) => {

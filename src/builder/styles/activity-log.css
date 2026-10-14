@@ -242,3 +242,16 @@
 .led-danger { justify-content: flex-start; border-color: rgba(190, 65, 39, 0.6); color: var(--blood-text); }
 @media (hover: hover) { .led-danger:hover { background: rgba(190, 65, 39, 0.12); } }
 .led-none { margin: 1rem 0 0; font-size: 0.88rem; color: #a8a8a8; }
+
+/* By game: rename a game in place (pencil, then an input with Save / Cancel) */
+.cmp-log-scenario-row { display: flex; align-items: center; gap: 0.5rem; margin: 0.1rem -0.4rem 0 0; min-height: 44px; }
+.cmp-log-scenario-row .cmp-log-scenario { flex: 1; min-width: 0; margin: 0; }
+.cmp-log-scenario.is-empty { font-style: italic; color: #a8a8a8; }
+.cmp-log-pencil { flex: none; width: 44px; height: 44px; display: grid; place-items: center; background: none; border: 1px solid transparent;
+  border-radius: 4px; color: #bdbdbd; cursor: pointer; touch-action: manipulation; }
+.cmp-log-pencil svg { width: 18px; height: 18px; }
+@media (hover: hover) { .cmp-log-pencil:hover { color: var(--parchment); border-color: #3a3a3a; } }
+.cmp-log-pencil:focus-visible { outline: 2px solid var(--blood); outline-offset: 0; }
+.cmp-log-rename { display: grid; gap: 0.5rem; margin-top: 0.5rem; }
+.cmp-log-rename-input { width: 100%; box-sizing: border-box; min-height: 44px; }
+.cmp-log-rename-btns { display: flex; justify-content: flex-end; gap: 0.5rem; }

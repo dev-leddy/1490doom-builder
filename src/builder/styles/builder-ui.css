@@ -1650,8 +1650,6 @@ button.eq-slot:focus-visible { outline: 2px solid var(--blood); outline-offset: 
 .cmp-set-row.is-danger .cmp-set-label, .cmp-set-row.is-danger .cmp-set-icon { color: var(--blood-text); }
 .cmp-set-row[aria-disabled] { cursor: default; }
 .cmp-set-row[aria-disabled] .cmp-set-label, .cmp-set-row[aria-disabled] .cmp-set-icon { color: #8a8a8a; }
-.cmp-set-names { display: grid; gap: 0.9rem; }
-.cmp-set-names .eog-field { margin-top: 0; }
 
 /* Vacancy slot: say why it is empty */
 .slot-fallen-note { margin: 0.25rem 0 0.75rem; font-size: 0.95rem; line-height: 1.45; color: var(--bone); }

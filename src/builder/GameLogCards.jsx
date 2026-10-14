@@ -1,7 +1,11 @@
+import { useEffect, useRef, useState } from 'react'
+import { useBuilderStore } from '../store/builderStore'
+import { IconPencil } from './icons'
 import { RESULT_LETTER, RESULT_NAME, AWARD_REASON, nameInRecord, fallenName, upgradesAfter, rosterLinesAfter } from './campaignUi'
 
 // ── Campaign log, By game: one card per recorded game, then the fallen ────────
-// Shown in the full-screen campaign log (ActivityLogView).
+// Shown in the full-screen campaign log (ActivityLogView). Each game's scenario name can be
+// set or changed in place (the pencil); onRenamed lets the log refetch to show the entry.
 
 // "Upgrades before game 3" / "Starting company": "Name: Combat, Grappling Hook" per warrior
 // Recruits ("Recruited: Joss (Scout), starting IP 1") come first, then the upgrades
@@ -18,7 +22,56 @@ function UpgradeGroup({ title, groups, roster = [] }) {
   )
 }
 
-export default function GameLogCards({ log, legacyGames, campaign }) {
+// The scenario line of a game card: the name (or a muted "No scenario name"), with a pencil
+// that turns it into an input. Enter saves, Escape cancels (without closing the log).
+function ScenarioName({ record, onRenamed }) {
+  const setGameScenario = useBuilderStore(s => s.setGameScenario)
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState('')
+  const input = useRef(null)
+  const pencil = useRef(null)
+  const n = record.gameNumber
+  useEffect(() => { if (editing) input.current?.focus() }, [editing])
+
+  const stop = () => { setEditing(false); setTimeout(() => pencil.current?.focus({ preventScroll: true }), 0) }
+  const save = () => {
+    const name = draft.trim()
+    if (name !== (record.scenario || '') && setGameScenario(n, name)) onRenamed?.()
+    stop()
+  }
+
+  if (editing) {
+    return (
+      <div className="cmp-log-rename">
+        <label className="alv-hidden" htmlFor={`cmp-scn-${n}`}>Game {n} scenario name</label>
+        <input id={`cmp-scn-${n}`} ref={input} className="co-settings-input cmp-log-rename-input" type="text" maxLength={80}
+          autoComplete="off" placeholder="Name of the scenario" value={draft}
+          onChange={e => setDraft(e.target.value)}
+          onKeyDown={e => {
+            if (e.key === 'Enter') { e.preventDefault(); save() }
+            if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); stop() }
+          }} />
+        <div className="cmp-log-rename-btns">
+          <button type="button" className="alv-btn" onClick={stop}>Cancel</button>
+          <button type="button" className="alv-btn led-primary" onClick={save}>Save</button>
+        </div>
+      </div>
+    )
+  }
+  return (
+    <div className="cmp-log-scenario-row">
+      {record.scenario
+        ? <span className="cmp-log-scenario">{record.scenario}</span>
+        : <span className="cmp-log-scenario is-empty">No scenario name</span>}
+      <button type="button" ref={pencil} className="cmp-log-pencil" aria-label={`Rename game ${n}`} title={`Rename game ${n}`}
+        onClick={() => { setDraft(record.scenario || ''); setEditing(true) }}>
+        <IconPencil />
+      </button>
+    </div>
+  )
+}
+
+export default function GameLogCards({ log, legacyGames, campaign, onRenamed }) {
   const fallenRoll = log.flatMap(r => (r.fallen || []).map(f => ({ ...f, game: r.gameNumber })))
   const starting = upgradesAfter(campaign, 0)
   const startingRoster = rosterLinesAfter(campaign, 0)
@@ -43,7 +96,7 @@ export default function GameLogCards({ log, legacyGames, campaign }) {
                 <span className={`cmp-pip is-${r.result}`} aria-hidden="true">{RESULT_LETTER[r.result]}</span>
                 <span className="cmp-log-title">Game {r.gameNumber} · {RESULT_NAME[r.result]}</span>
               </div>
-              {r.scenario && <div className="cmp-log-scenario">{r.scenario}</div>}
+              <ScenarioName record={r} onRenamed={onRenamed} />
               <dl className="cmp-log-facts">
                 <div><dt>Fell</dt><dd>{r.fallen?.length ? r.fallen.map(fallenName).join(', ') : 'No one'}</dd></div>
                 <div><dt>IP</dt><dd>{awards.length ? awards.join(', ') : r.result === 'retreat' ? 'None (retreated)' : 'None'}</dd></div>

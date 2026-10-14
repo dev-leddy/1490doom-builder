@@ -173,7 +173,7 @@ export default function ActivityLogView({ companyId, companyName, onClose }) {
   if (view === 'games') {
     body = (
       <div className="alv-cards">
-        <GameLogCards log={log} legacyGames={Math.max(0, completed - log.length)} campaign={campaign} />
+        <GameLogCards log={log} legacyGames={Math.max(0, completed - log.length)} campaign={campaign} onRenamed={refresh} />
       </div>
     )
   } else if (error) {
