@@ -3,12 +3,14 @@ import BottomSheet from './BottomSheet'
 // className: optional theme for the sheet (play mode passes "tk-sheet tk-sheet--confirm")
 // rules: optional [{ label, text, limit }] shown as labelled rows under the subtitle (what will change)
 // note: optional small line under the rules; confirmLabel: the confirm button's text
-export default function ConfirmModal({ title, subtitle, rules, note, confirmLabel = 'CONFIRM', onConfirm, onCancel, className }) {
+// zIndex: to show above something already on top (the full-screen campaign log)
+export default function ConfirmModal({ title, subtitle, rules, note, confirmLabel = 'CONFIRM', onConfirm, onCancel, className, zIndex }) {
   return (
     <BottomSheet
       title={title}
       onClose={onCancel}
       className={className}
+      zIndex={zIndex}
       footer={
         <>
           <button className="co-sheet-randomize" onClick={onCancel}>CANCEL</button>

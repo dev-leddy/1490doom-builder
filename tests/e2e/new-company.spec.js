@@ -81,8 +81,11 @@ test.describe('New Company wizard', () => {
     const panel = page.locator('[data-testid="campaign-panel"]')
     await expect(panel).toContainText('Before game 2')
     await expect(panel.locator('.cmp-pip.is-win')).toHaveCount(1)
+    // Log opens the full-screen campaign log; By game shows the game cards
     await panel.locator('.ch-camp-log-btn').click()
-    await expect(page.locator('.cmp-log-game[data-game="1"]')).toContainText('The Ascent')
+    const log = page.getByRole('dialog', { name: /campaign log/i })
+    await log.getByRole('button', { name: 'By game' }).click()
+    await expect(log.locator('.cmp-log-game[data-game="1"]')).toContainText('The Ascent')
   })
 
   test('campaign: undo the latest game from the campaign settings gear', async ({ page }) => {

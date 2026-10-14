@@ -1633,34 +1633,25 @@ button.eq-slot:focus-visible { outline: 2px solid var(--blood); outline-offset: 
 .cmp-fallen-roll li { display: flex; justify-content: space-between; gap: 0.75rem; padding: 0.35rem 0; border-top: 1px solid #1c1c1c; font-size: 0.9rem; color: var(--bone); }
 .cmp-fallen-roll li span:last-child { font-family: 'Oswald', sans-serif; font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: #a8a8a8; white-space: nowrap; }
 
-/* Campaign settings: the gear in the panel, then the sheet's grouped rows */
+/* Campaign settings: the gear in the panel, then the sheet's four rows */
 .ch-camp-actions > .ch-camp-gear { flex: 0 0 44px; width: 44px; min-width: 44px; padding: 0; display: grid; place-items: center; }
 .ch-camp-gear svg { width: 20px; height: 20px; }
-.cmp-set-group { margin: 0 0 1.1rem; }
-.cmp-set-group:last-child { margin-bottom: 0; }
-.cmp-set-group-label { margin: 0 0 0.35rem; font-family: 'Oswald', sans-serif; font-weight: 400; font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase; color: #a8a8a8; }
 .cmp-set-list { border: 1px solid #2c2c2c; border-radius: 6px; overflow: hidden; }
-.cmp-set-row { display: flex; align-items: center; gap: 0.75rem; width: 100%; min-height: 56px; padding: 0.55rem 0.8rem; box-sizing: border-box;
+.cmp-set-row { display: flex; align-items: center; gap: 0.9rem; width: 100%; min-height: 52px; padding: 0.5rem 1rem; box-sizing: border-box;
   background: var(--fog); border: 0; border-top: 1px solid #222; color: var(--bone); text-align: left; cursor: pointer; touch-action: manipulation; }
 .cmp-set-list > .cmp-set-row:first-child { border-top: 0; }
 .cmp-set-row:focus-visible { outline: 2px solid var(--blood); outline-offset: -2px; }
 @media (hover: hover) { .cmp-set-row:not([aria-disabled]):hover { background: #181818; } }
 .cmp-set-icon { display: grid; place-items: center; width: 20px; flex: none; color: #bdbdbd; }
 .cmp-set-text { display: grid; gap: 0.1rem; min-width: 0; flex: 1; }
-.cmp-set-label { font-family: 'Oswald', sans-serif; font-size: 0.9rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--parchment); }
-.cmp-set-sub { font-size: 0.85rem; line-height: 1.35; color: #a8a8a8; }
+.cmp-set-label { font-family: 'Oswald', sans-serif; font-size: 0.95rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--parchment); }
+.cmp-set-reason { font-size: 0.85rem; line-height: 1.35; color: #a8a8a8; }
 .cmp-set-go { flex: none; color: #8a8a8a; font-size: 1.1rem; }
 .cmp-set-row.is-danger .cmp-set-label, .cmp-set-row.is-danger .cmp-set-icon { color: var(--blood-text); }
 .cmp-set-row[aria-disabled] { cursor: default; }
 .cmp-set-row[aria-disabled] .cmp-set-label, .cmp-set-row[aria-disabled] .cmp-set-icon { color: #8a8a8a; }
 .cmp-set-names { display: grid; gap: 0.9rem; }
 .cmp-set-names .eog-field { margin-top: 0; }
-.cmp-set-export { margin: 0; max-height: 50vh; overflow: auto; padding: 0.75rem; background: var(--fog); border: 1px solid #2c2c2c; border-radius: 6px;
-  font-family: ui-monospace, Consolas, monospace; font-size: 0.8rem; line-height: 1.45; color: var(--bone); white-space: pre-wrap; word-break: break-word; }
-.cmp-set-export:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
-
-/* Game log: the way into the full log, above the game cards */
-.cmp-log-full { margin-bottom: 0.9rem; }
 
 /* Vacancy slot: say why it is empty */
 .slot-fallen-note { margin: 0.25rem 0 0.75rem; font-size: 0.95rem; line-height: 1.45; color: var(--bone); }

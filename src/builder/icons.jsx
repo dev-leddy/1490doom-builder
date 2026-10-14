@@ -50,7 +50,6 @@ const LineIcon = ({ children }) => (
 )
 export const IconUndo = () => <LineIcon><path d="M3 7v6h6" /><path d="M21 17a9 9 0 0 0-15-6.7L3 13" /></LineIcon>
 export const IconPencil = () => <LineIcon><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" /></LineIcon>
-export const IconList = () => <LineIcon><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" /></LineIcon>
 export const IconDownload = () => <LineIcon><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><path d="M7 10l5 5 5-5" /><path d="M12 15V3" /></LineIcon>
 export const IconCoin = () => <LineIcon><circle cx="12" cy="12" r="8" /><path d="M12 8v8M8 12h8" /></LineIcon>
 export const IconEnd = () => <LineIcon><path d="M4 4h16v16H4z" /><path d="M9 9h6v6H9z" /></LineIcon>

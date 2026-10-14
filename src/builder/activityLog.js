@@ -1,7 +1,8 @@
 // ── Activity log: what each event says ────────────────────────────────────────
-// Pure display helpers for ActivityLogSheet (events: see store/campaignEvents.js).
+// Pure display helpers for the campaign log (events: see store/campaignEvents.js).
 
 import { CAMPAIGN_RULES } from '../data/campaign.js'
+import { notesFor } from '../store/campaignEvents.js'
 
 const RESULT = { win: 'Victory', loss: 'Defeat', draw: 'Draw', retreat: 'Retreat' }
 const REASON = { survivor: 'survivor', captain: 'Captain', bonus: 'bonus' }
@@ -84,7 +85,8 @@ export function describeEvent(e) {
       }
     }
     case 'game.undone': return { icon: '↶', text: `Game ${p.gameNumber} undone`, sub: p.result ? `Was a ${RESULT[p.result] || p.result}` : null }
-    case 'game.renamed': return { icon: '✎', text: `Game ${p.gameNumber} scenario: ${p.to || 'none'}`, sub: p.from ? `Was ${p.from}` : null }
+    case 'game.renamed': return { icon: '✎', text: `Game ${p.gameNumber} renamed: ${p.to || 'no name'}`, sub: p.from ? `Was ${p.from}` : null }
+    case 'entry.noted': return { icon: '✎', text: p.text ? `Note: ${p.text}` : 'Note removed', sub: null }
     case 'upgrade.bought': return { icon: '▲', text: p.kind === 'stat' ? `${p.name} improved ${p.label}` : `${p.name} bought ${p.label}`, sub: null }
     case 'upgrade.changed': return { icon: '✎', text: `${p.name} swapped ${p.from} for ${p.to}`, sub: null }
     case 'upgrade.undone': return { icon: '↶', text: `${p.name}: ${p.label} undone`, sub: 'IP given back' }
@@ -139,24 +141,21 @@ export function eventKind(type) {
 
 const eventAt = e => (Number.isFinite(e.at) ? e.at : e.serverAt)
 
-// Which game an event belongs to: a game's own events, and the changes made before it.
-// key: 'start' (the starting company), 'g3' (game 3 and what was done before it), 'end'
+// Which game an event belongs to: a game's own events, and everything done to get ready
+// for it (the starting company is game 1; changes after the last game count as the last game)
 export function gameOf(e, total = CAMPAIGN_RULES.games) {
   const p = e.payload || {}
-  if (e.type.startsWith('game.') && Number.isFinite(p.gameNumber)) return { key: `g${p.gameNumber}`, label: `Game ${p.gameNumber}` }
-  const k = e.afterGame || 0
-  if (k === 0) return { key: 'start', label: 'Starting company' }
-  if (k >= total) return { key: 'end', label: `After game ${k}` }
-  return { key: `g${k + 1}`, label: `Before game ${k + 1}` }
+  const n = e.type.startsWith('game.') && Number.isFinite(p.gameNumber)
+    ? p.gameNumber
+    : Math.min((e.afterGame || 0) + 1, total)
+  return { key: `g${n}`, label: `Game ${n}` }
 }
 
-// The game filter's options, in campaign order, for the games that appear in the log
+// The game filter's options, in order, for the games that appear in the log
 export function gameOptions(events, total = CAMPAIGN_RULES.games) {
-  const keys = new Set(events.map(e => gameOf(e, total).key))
+  const keys = new Set(events.filter(e => e.type !== 'entry.noted').map(e => gameOf(e, total).key))
   const opts = []
-  if (keys.has('start')) opts.push({ id: 'start', label: 'Starting company' })
   for (let n = 1; n <= total; n++) if (keys.has(`g${n}`)) opts.push({ id: `g${n}`, label: `Game ${n}` })
-  if (keys.has('end')) opts.push({ id: 'end', label: 'After the last game' })
   return opts
 }
 
@@ -182,9 +181,11 @@ export function eventWarriors(e, nameToUid = new Map()) {
   }
 }
 
-// Table rows, oldest first: { e, at, kind, tag, game, warriors, text, sub, undone, isUndo, rejected, haystack }
+// Table rows, oldest first: { e, at, kind, tag, game, warriors, text, sub, note, undone, isUndo, rejected, haystack }.
+// Notes (entry.noted) aren't rows: the latest note shows on the row it is about.
 export function buildRows(events = [], total = CAMPAIGN_RULES.games) {
   const sorted = [...events].sort((a, b) => (eventAt(a) || 0) - (eventAt(b) || 0))
+  const noted = sorted.filter(e => e.type === 'entry.noted')
   const nameToUid = new Map()
   for (const e of sorted) {
     const p = e.payload || {}
@@ -193,16 +194,17 @@ export function buildRows(events = [], total = CAMPAIGN_RULES.games) {
     for (const a of p.awards || []) if (a.uid && a.name) nameToUid.set(a.name, a.uid)
   }
   const undone = undoneIds(sorted)
-  return sorted.map(e => {
+  return sorted.filter(e => e.type !== 'entry.noted').map(e => {
     const kind = eventKind(e.type)
     const game = gameOf(e, total)
     const warriors = eventWarriors(e, nameToUid)
     const { text, sub } = describeEvent(e)
+    const note = noted.length ? notesFor(noted, e.id) : null
     return {
-      e, at: eventAt(e), kind, tag: KIND_TAG[kind], game, warriors, text, sub,
+      e, at: eventAt(e), kind, tag: KIND_TAG[kind], game, warriors, text, sub, note,
       undone: undone.has(e.id), isUndo: UNDO_TYPES.has(e.type) && !!e.ref && e.status !== 'rejected',
       rejected: e.status === 'rejected',
-      haystack: [text, sub, game.label, KIND_TAG[kind], ...warriors.map(w => w.name)].filter(Boolean).join(' ').toLowerCase(),
+      haystack: [text, sub, note, game.label, KIND_TAG[kind], ...warriors.map(w => w.name)].filter(Boolean).join(' ').toLowerCase(),
     }
   })
 }
@@ -242,10 +244,10 @@ export function filterRows(rows, f, { newestFirst = true } = {}) {
 // The rows shown, as CSV (Export)
 export function rowsToCsv(rows) {
   const cell = v => `"${String(v ?? '').replace(/"/g, '""')}"`
-  const head = ['Time', 'Game', 'Warrior', 'Event type', 'Event', 'Details', 'Status']
+  const head = ['Time', 'Game', 'Warrior', 'Event type', 'Event', 'Details', 'Note', 'Status']
   const lines = rows.map(r => [
     Number.isFinite(r.at) ? new Date(r.at).toISOString() : '', r.game.label, r.warriors.map(w => w.name).join('; '),
-    r.tag, r.text, r.sub, r.rejected ? 'Not saved' : r.undone ? 'Undone' : '',
+    r.tag, r.text, r.sub, r.note, r.rejected ? 'Not saved' : r.undone ? 'Undone' : '',
   ].map(cell).join(','))
   return [head.map(cell).join(','), ...lines].join('\r\n') + '\r\n'
 }

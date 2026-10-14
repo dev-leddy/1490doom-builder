@@ -4,7 +4,7 @@ import { fetchCompanyEvents } from '../api/companies'
 
 // ── Loads a campaign company's activity log from the server ───────────────────
 // Sends anything still queued first, so the newest changes are in the log, then reads
-// every page. { events: null while loading, error, retry }.
+// every page. { events: null while loading, error, retry, refresh }.
 
 const MAX_PAGES = 25 // 200 events each
 
@@ -34,5 +34,9 @@ export function useActivityLog(companyId) {
     return () => { live = false }
   }, [companyId, reload])
 
-  return { events, error, retry: () => { setEvents(null); setReload(n => n + 1) } }
+  return {
+    events, error,
+    retry: () => { setEvents(null); setReload(n => n + 1) },   // after an error: show loading again
+    refresh: () => setReload(n => n + 1),                      // after a change: keep the rows on show
+  }
 }

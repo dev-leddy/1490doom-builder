@@ -3,45 +3,36 @@ import { useBuilderStore } from '../store/builderStore'
 import { campaignProgress, canUndoLastGame, minEarnedIP, nameWithClass } from '../store/campaign'
 import BottomSheet from '../shared/BottomSheet'
 import ConfirmModal from '../shared/ConfirmModal'
-import { RESULT_NAME, resultTally, undoGameRules, campaignLogText } from './campaignUi'
-import { IconUndo, IconPencil, IconList, IconDownload, IconCoin, IconEnd } from './icons'
+import { RESULT_NAME, resultTally, undoGameRules } from './campaignUi'
+import { IconUndo, IconPencil, IconCoin, IconEnd } from './icons'
 
-// ── Campaign settings: the tools behind the gear in the campaign panel ────────
-// Games (undo the latest, name them), Upgrades (undo the latest, fix IP by hand),
-// Log (open, export) and Campaign (end early / reopen).
+// ── Campaign settings: the four tools behind the gear in the campaign panel ───
+// Undo the latest game, rename games, fix IP by hand, end the campaign early (or reopen it).
+// The log and its export live in the full-screen campaign log; undoing an upgrade lives in
+// the warrior's own settings.
 
-function Row({ icon, label, sub, danger, disabled, onClick, testId }) {
+// One row: icon and label; a short grey reason only when it can't be used
+function Row({ icon, label, reason, danger, onClick, testId }) {
   return (
     <button type="button" className={`cmp-set-row${danger ? ' is-danger' : ''}`} data-testid={testId}
-      onClick={disabled ? undefined : onClick} aria-disabled={disabled || undefined}>
+      onClick={reason ? undefined : onClick} aria-disabled={reason ? true : undefined}>
       <span className="cmp-set-icon">{icon}</span>
       <span className="cmp-set-text">
         <span className="cmp-set-label">{label}</span>
-        {sub && <span className="cmp-set-sub">{sub}</span>}
+        {reason && <span className="cmp-set-reason">{reason}</span>}
       </span>
-      {!disabled && <span className="cmp-set-go" aria-hidden="true">›</span>}
+      {!reason && <span className="cmp-set-go" aria-hidden="true">›</span>}
     </button>
   )
 }
 
-function Group({ label, children }) {
-  return (
-    <section className="cmp-set-group">
-      <h3 className="cmp-set-group-label">{label}</h3>
-      <div className="cmp-set-list">{children}</div>
-    </section>
-  )
-}
-
-const slug = s => (s || 'company').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'company'
-
-export default function CampaignSettingsSheet({ onClose, onOpenLog }) {
+export default function CampaignSettingsSheet({ onClose }) {
   const {
-    slots, companyMode, campaignGame, campaign, companyName,
-    undoLastCampaignGame, undoLastUpgrade, setEarnedIP, setGameScenario, endCampaignEarly, reopenCampaign, _toast: toast,
+    slots, companyMode, campaignGame, campaign,
+    undoLastCampaignGame, setEarnedIP, setGameScenario, endCampaignEarly, reopenCampaign,
   } = useBuilderStore()
-  const [view, setView] = useState('menu') // menu | names | ip | export
-  const [confirm, setConfirm] = useState(null) // 'game' | 'upgrade' | 'end'
+  const [view, setView] = useState('menu') // menu | names | ip
+  const [confirm, setConfirm] = useState(null) // 'game' | 'end'
   const [names, setNames] = useState({})
 
   const company = { companyMode, slots, campaignGame, campaign }
@@ -49,31 +40,8 @@ export default function CampaignSettingsSheet({ onClose, onOpenLog }) {
   const log = campaign?.log || []
   const last = log.at(-1)
   const canUndoGame = canUndoLastGame(company)
-
-  // The newest upgrade, if its warrior still has it as their latest purchase
-  const lastEntry = (campaign?.upgrades || []).at(-1)
-  const upSlotIndex = lastEntry ? slots.findIndex(s => s?.type && s.uid === lastEntry.uid) : -1
-  const upSlot = upSlotIndex >= 0 ? slots[upSlotIndex] : null
-  const canUndoUpgrade = !!upSlot && upSlot.ip?.at(-1) === lastEntry.id
-  const upLabel = lastEntry?.label || lastEntry?.item || 'upgrade'
-
   const living = slots.map((s, index) => ({ ...s, index })).filter(s => s.type)
-  const exportText = () => campaignLogText({ companyName, slots, campaign, completed, total })
 
-  async function copyLog() {
-    try {
-      await navigator.clipboard.writeText(exportText())
-      toast('Campaign log copied.')
-    } catch {
-      toast("Couldn't copy. Use Download instead.")
-    }
-  }
-  function downloadLog() {
-    const url = URL.createObjectURL(new Blob([exportText()], { type: 'text/plain;charset=utf-8' }))
-    const a = Object.assign(document.createElement('a'), { href: url, download: `${slug(companyName)}-campaign-log.txt` })
-    document.body.appendChild(a); a.click(); a.remove()
-    setTimeout(() => URL.revokeObjectURL(url), 1000)
-  }
   function saveNames() {
     for (const r of log) {
       const v = names[r.gameNumber]
@@ -95,17 +63,6 @@ export default function CampaignSettingsSheet({ onClose, onOpenLog }) {
       />
     )
   }
-  if (confirm === 'upgrade' && canUndoUpgrade) {
-    return (
-      <ConfirmModal
-        title={`UNDO ${upLabel.toUpperCase()}?`}
-        subtitle={`Takes the ${upLabel} off ${nameWithClass(upSlot)} and gives back its 1 IP. Campaign upgrades are permanent, so only undo a mistake.`}
-        confirmLabel="Undo upgrade"
-        onConfirm={() => { undoLastUpgrade(upSlotIndex); setConfirm(null) }}
-        onCancel={() => setConfirm(null)}
-      />
-    )
-  }
   if (confirm === 'end') {
     const tally = resultTally(log)
     return (
@@ -123,7 +80,7 @@ export default function CampaignSettingsSheet({ onClose, onOpenLog }) {
 
   if (view === 'names') {
     return (
-      <BottomSheet title="GAME NAMES" onClose={onClose} className="cmp-set-sheet"
+      <BottomSheet title="RENAME GAMES" onClose={onClose} className="cmp-set-sheet"
         footer={<>{back}<button type="button" className="co-sheet-done" onClick={saveNames}>Save names</button></>}>
         <p className="eog-help">Name the scenario each game was played as. Leave blank for none.</p>
         <div className="cmp-set-names">
@@ -143,7 +100,7 @@ export default function CampaignSettingsSheet({ onClose, onOpenLog }) {
 
   if (view === 'ip') {
     return (
-      <BottomSheet title="ADJUST IP" onClose={onClose} className="cmp-set-sheet" footer={back}>
+      <BottomSheet title="FIX IP" onClose={onClose} className="cmp-set-sheet" footer={back}>
         <div className="cs-form">
           <p className="eog-help eog-help--tight">For fixing a game that was scored wrong. A warrior can't go below the IP they've already spent.</p>
           <div className="cs-warrior-list">
@@ -173,58 +130,25 @@ export default function CampaignSettingsSheet({ onClose, onOpenLog }) {
     )
   }
 
-  if (view === 'export') {
-    return (
-      <BottomSheet title="EXPORT LOG" onClose={onClose} className="cmp-set-sheet"
-        footer={<>{back}<button type="button" className="co-sheet-randomize" onClick={copyLog}>Copy text</button>
-          <button type="button" className="co-sheet-done" onClick={downloadLog}>Download .txt</button></>}>
-        <p className="eog-help eog-help--tight">The roster, every game and every upgrade, as plain text.</p>
-        <pre className="cmp-set-export" tabIndex={0} aria-label="Campaign log text">{exportText()}</pre>
-      </BottomSheet>
-    )
-  }
-
-  const gameSub = canUndoGame
-    ? `${last.scenario ? `${last.scenario}, ` : ''}${RESULT_NAME[last.result]}. Takes back its IP and anything bought since.`
-    : log.length ? 'Only the latest game can be undone.' : 'No games recorded yet.'
-  const namesSub = log.length
-    ? log.map(r => `Game ${r.gameNumber} ${r.scenario || '(no name)'}`).join(', ')
-    : 'No games recorded yet.'
-  const upSub = canUndoUpgrade
-    ? `${nameWithClass(upSlot)}: ${upLabel}. 1 IP goes back to them.`
-    : 'No upgrade to undo.'
-
+  const noGames = 'No games recorded yet.'
   return (
     <BottomSheet title="CAMPAIGN" onClose={onClose} className="cmp-set-sheet"
       footer={<button type="button" className="co-sheet-done" onClick={onClose}>Done</button>}>
-      <Group label="Games">
-        <Row icon={<IconUndo />} label={last ? `Undo game ${last.gameNumber}` : 'Undo game'} sub={gameSub}
-          danger disabled={!canUndoGame} onClick={() => setConfirm('game')} testId="cmp-set-undo-game" />
-        <Row icon={<IconPencil />} label="Edit game names" sub={namesSub}
-          disabled={!log.length} onClick={() => { setNames({}); setView('names') }} />
-      </Group>
-      <Group label="Upgrades">
-        <Row icon={<IconUndo />} label="Undo last upgrade" sub={upSub}
-          disabled={!canUndoUpgrade} onClick={() => setConfirm('upgrade')} />
-        <Row icon={<IconCoin />} label="Adjust IP by hand" sub="Fix a warrior's IP if a game was scored wrong."
-          disabled={!living.length} onClick={() => setView('ip')} />
-      </Group>
-      <Group label="Log">
-        <Row icon={<IconList />} label="Campaign log" sub="Every change, with times" onClick={onOpenLog} />
-        <Row icon={<IconDownload />} label="Export log" sub="Copy as text or download a file" onClick={() => setView('export')} />
-      </Group>
-      <Group label="Campaign">
+      <div className="cmp-set-list">
+        <Row icon={<IconUndo />} label={last ? `Undo game ${last.gameNumber}` : 'Undo game'} danger testId="cmp-set-undo-game"
+          reason={canUndoGame ? null : log.length ? 'Only the latest game can be undone.' : noGames}
+          onClick={() => setConfirm('game')} />
+        <Row icon={<IconPencil />} label="Rename games" reason={log.length ? null : noGames}
+          onClick={() => { setNames({}); setView('names') }} />
+        <Row icon={<IconCoin />} label="Fix IP" reason={living.length ? null : 'No warriors yet.'} onClick={() => setView('ip')} />
         {endedEarly ? (
-          <Row icon={<IconEnd />} label="Reopen campaign" sub={`Ended early after game ${completed}. Carry on with game ${completed + 1}.`}
-            onClick={() => { if (reopenCampaign()) onClose() }} />
+          <Row icon={<IconEnd />} label="Reopen campaign" onClick={() => { if (reopenCampaign()) onClose() }} />
         ) : (
-          <Row icon={<IconEnd />} label="End campaign early"
-            sub={isComplete ? `All ${total} games are played.`
-              : completed === 0 ? 'Play at least one game first.'
-                : `Marks it complete after game ${completed}. You can reopen it.`}
-            danger disabled={isComplete || completed === 0} onClick={() => setConfirm('end')} />
+          <Row icon={<IconEnd />} label="End campaign early" danger
+            reason={isComplete ? `All ${total} games are played.` : completed === 0 ? 'Play at least one game first.' : null}
+            onClick={() => setConfirm('end')} />
         )}
-      </Group>
+      </div>
     </BottomSheet>
   )
 }

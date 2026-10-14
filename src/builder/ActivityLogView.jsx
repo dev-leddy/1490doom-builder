@@ -5,11 +5,23 @@ import {
   KINDS, DEFAULT_LOG_FILTERS, buildRows, gameOptions, warriorOptions, filterRows, activeFilterCount, rowsToCsv, eventTime,
 } from './activityLog'
 import { IconDownload } from './icons'
+import { useBuilderStore } from '../store/builderStore'
+import { campaignProgress } from '../store/campaign'
+import { campaignLogText } from './campaignUi'
+import GameLogCards from './GameLogCards'
+import LogEntryDetail, { confirmFor } from './LogEntryDetail'
+import BottomSheet from '../shared/BottomSheet'
+import ConfirmModal from '../shared/ConfirmModal'
 import './styles/activity-log.css'
 
 // ── Campaign log, full screen ─────────────────────────────────────────────────
-// Every event of a campaign company as a table (>= 768px) or two-line rows (phones),
-// with filters by game, warrior, kind and text. Undone entries are struck through.
+// Two views: All entries (every event as a table at >= 768px, two-line rows on phones,
+// with filters by game, warrior, kind and text; undone entries struck through) and
+// By game (one card per recorded game, then the fallen). A tapped entry opens its detail
+// (side panel on wide screens, bottom sheet on phones): its note and what can still be changed.
+
+const VIEWS = [['entries', 'All entries'], ['games', 'By game']]
+let lastView = 'entries' // the view the log reopens on, for this visit
 
 const WIDE = '(min-width: 768px)'
 
@@ -24,10 +36,11 @@ function useWide() {
   return wide
 }
 
-// Focus stays inside the view; Escape closes; the page behind doesn't scroll
-function useModal(ref, onClose) {
-  const close = useRef(onClose)
-  close.current = onClose
+// Focus stays inside the view; Escape calls onEscape; the page behind doesn't scroll.
+// Sheets opened on top (entry detail on phones, confirms) keep their own focus.
+function useModal(ref, onEscape) {
+  const close = useRef(onEscape)
+  close.current = onEscape
   useEffect(() => {
     const el = ref.current
     const before = document.activeElement
@@ -37,6 +50,7 @@ function useModal(ref, onClose) {
     const onKey = e => {
       if (e.key === 'Escape') { e.preventDefault(); close.current(); return }
       if (e.key !== 'Tab') return
+      if (document.activeElement?.closest('.co-settings-sheet')) return
       const items = [...el.querySelectorAll('button:not([disabled]), input, select, [tabindex="0"]')].filter(x => x.offsetParent !== null)
       if (!items.length) return
       const first = items[0], last = items[items.length - 1]
@@ -54,9 +68,9 @@ function useModal(ref, onClose) {
 
 const slug = s => (s || 'company').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'company'
 
-function downloadCsv(rows, companyName) {
-  const url = URL.createObjectURL(new Blob([rowsToCsv(rows)], { type: 'text/csv;charset=utf-8' }))
-  const a = Object.assign(document.createElement('a'), { href: url, download: `${slug(companyName)}-campaign-log.csv` })
+function download(text, type, filename) {
+  const url = URL.createObjectURL(new Blob([text], { type: `${type};charset=utf-8` }))
+  const a = Object.assign(document.createElement('a'), { href: url, download: filename })
   document.body.appendChild(a); a.click(); a.remove()
   setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
@@ -70,6 +84,16 @@ function Tags({ r }) {
   )
 }
 
+const NoteIcon = () => (
+  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M4 4h16v12H8l-4 4z" />
+  </svg>
+)
+function Note({ r }) {
+  if (!r.note) return null
+  return <span className="alv-note"><NoteIcon /><span className="alv-hidden">Note: </span>{r.note}</span>
+}
+
 const details = r => (r.rejected ? 'Replaced by changes from another device' : r.sub)
 const names = r => r.warriors.map(w => w.name).join(', ')
 const rowClass = r => `${r.undone ? ' is-undone' : ''}${r.rejected ? ' is-rejected' : ''}`
@@ -79,9 +103,19 @@ export default function ActivityLogView({ companyId, companyName, onClose }) {
   const titleId = useId()
   const panelId = useId()
   const wide = useWide()
-  useModal(ref, onClose)
+  const [selectedId, setSelectedId] = useState(null)
+  const [ask, setAsk] = useState(null) // a confirm asked for by the entry detail
+  const opener = useRef(null)          // the row button that opened the detail, for focus on close
+  const detailHeading = useRef(null)
+  const closeDetail = () => { setSelectedId(null); setAsk(null); opener.current?.focus?.({ preventScroll: true }) }
+  useModal(ref, () => (ask ? setAsk(null) : selectedId ? closeDetail() : onClose()))
 
-  const { events, error, retry } = useActivityLog(companyId)
+  const { events, error, retry, refresh } = useActivityLog(companyId)
+  const { slots, campaign, companyMode, campaignGame } = useBuilderStore()
+  const { completed, total } = campaignProgress({ slots, campaign, companyMode, campaignGame })
+  const log = campaign?.log || []
+  const [view, setViewState] = useState(lastView)
+  const setView = v => { lastView = v; setViewState(v) }
   const [f, setF] = useState(DEFAULT_LOG_FILTERS)
   const [newestFirst, setNewestFirst] = useState(true)
   const [filtersOpen, setFiltersOpen] = useState(false)
@@ -95,6 +129,9 @@ export default function ActivityLogView({ companyId, companyName, onClose }) {
   const set = patch => setF(x => ({ ...x, ...patch }))
   const toggleKind = id => setF(x => ({ ...x, kinds: x.kinds.includes(id) ? x.kinds.filter(k => k !== id) : [...x.kinds, id] }))
   const sortLabel = newestFirst ? 'Newest first' : 'Oldest first'
+  const selected = selectedId ? rows.find(r => r.e.id === selectedId) : null
+  const openRow = (r, button) => { opener.current = button; setSelectedId(r.e.id); setAsk(null) }
+  useEffect(() => { if (selectedId) detailHeading.current?.focus({ preventScroll: true }) }, [selectedId])
 
   const search = (
     <input type="search" className="alv-search" value={f.q} onChange={e => set({ q: e.target.value })}
@@ -133,7 +170,13 @@ export default function ActivityLogView({ companyId, companyName, onClose }) {
   )
 
   let body
-  if (error) {
+  if (view === 'games') {
+    body = (
+      <div className="alv-cards">
+        <GameLogCards log={log} legacyGames={Math.max(0, completed - log.length)} campaign={campaign} />
+      </div>
+    )
+  } else if (error) {
     body = (
       <div className="alv-empty">
         <p>Couldn't load the log. Check your connection.</p>
@@ -171,14 +214,17 @@ export default function ActivityLogView({ companyId, companyName, onClose }) {
         </thead>
         <tbody>
           {shown.map(r => (
-            <tr key={r.e.id} className={`alv-row${rowClass(r)}`} data-type={r.e.type}>
+            <tr key={r.e.id} className={`alv-row${rowClass(r)}${r.e.id === selectedId ? ' is-selected' : ''}`} data-type={r.e.type}
+              onClick={ev => openRow(r, ev.currentTarget.querySelector('.alv-open'))}>
               <td className="alv-time"><time dateTime={Number.isFinite(r.at) ? new Date(r.at).toISOString() : undefined}>{eventTime(r.at)}</time></td>
               <td className="alv-game">{r.game.label}</td>
               <td className="alv-warrior">{names(r)}</td>
               <td className="alv-event">
                 <span className="alv-tag" data-kind={r.kind}>{r.tag}</span>
-                <span className="alv-text">{r.text}</span>
+                <button type="button" className="alv-open alv-text" aria-expanded={r.e.id === selectedId}
+                  onClick={ev => { ev.stopPropagation(); openRow(r, ev.currentTarget) }}>{r.text}</button>
                 <Tags r={r} />
+                <Note r={r} />
               </td>
               <td className="alv-details">{details(r)}</td>
             </tr>
@@ -190,18 +236,21 @@ export default function ActivityLogView({ companyId, companyName, onClose }) {
     body = (
       <ol className="alv-list">
         {shown.map(r => (
-          <li key={r.e.id} className={`alv-item${rowClass(r)}`} data-type={r.e.type}>
-            <div className="alv-item-main">
-              <span className="alv-tag" data-kind={r.kind}>{r.tag}</span>
-              <span className="alv-text">{r.text}</span>
-              <Tags r={r} />
-              {details(r) && <span className="alv-item-details">{details(r)}</span>}
-            </div>
-            <div className="alv-item-meta">
-              <time dateTime={Number.isFinite(r.at) ? new Date(r.at).toISOString() : undefined}>{eventTime(r.at)}</time>
-              <span>{r.game.label}</span>
-              {r.warriors.length > 0 && <span>{names(r)}</span>}
-            </div>
+          <li key={r.e.id} className={`alv-item${rowClass(r)}${r.e.id === selectedId ? ' is-selected' : ''}`} data-type={r.e.type}>
+            <button type="button" className="alv-open alv-item-btn" onClick={ev => openRow(r, ev.currentTarget)}>
+              <span className="alv-item-main">
+                <span className="alv-tag" data-kind={r.kind}>{r.tag}</span>
+                <span className="alv-text">{r.text}</span>
+                <Tags r={r} />
+                {details(r) && <span className="alv-item-details">{details(r)}</span>}
+              </span>
+              <Note r={r} />
+              <span className="alv-item-meta">
+                <time dateTime={Number.isFinite(r.at) ? new Date(r.at).toISOString() : undefined}>{eventTime(r.at)}</time>
+                <span>{r.game.label}</span>
+                {r.warriors.length > 0 && <span>{names(r)}</span>}
+              </span>
+            </button>
           </li>
         ))}
       </ol>
@@ -214,14 +263,27 @@ export default function ActivityLogView({ companyId, companyName, onClose }) {
         <h2 className="alv-title" id={titleId}>
           Campaign log <span className="alv-title-co">· {companyName || 'Unnamed company'}</span>
         </h2>
-        <button type="button" className="alv-btn alv-export" onClick={() => downloadCsv(shown, companyName)}
-          disabled={!shown.length} title="Download the entries shown as a CSV file" aria-label="Export the entries shown as CSV">
-          <IconDownload /><span>Export</span>
-        </button>
+        <div className="alv-views" role="group" aria-label="View">
+          {VIEWS.map(([id, label]) => (
+            <button key={id} type="button" className="alv-view" aria-pressed={view === id} onClick={() => setView(id)}>{label}</button>
+          ))}
+        </div>
+        {view === 'games' ? (
+          <button type="button" className="alv-btn alv-export" title="Download the roster and every game as a text file"
+            aria-label="Export the games as text"
+            onClick={() => download(campaignLogText({ companyName, slots, campaign, completed, total }), 'text/plain', `${slug(companyName)}-campaign.txt`)}>
+            <IconDownload /><span>Export</span>
+          </button>
+        ) : (
+          <button type="button" className="alv-btn alv-export" onClick={() => download(rowsToCsv(shown), 'text/csv', `${slug(companyName)}-campaign-log.csv`)}
+            disabled={!shown.length} title="Download the entries shown as a CSV file" aria-label="Export the entries shown as CSV">
+            <IconDownload /><span>Export</span>
+          </button>
+        )}
         <button type="button" className="alv-close" onClick={onClose} aria-label="Close the campaign log" data-autofocus>✕</button>
       </header>
 
-      <div className="alv-controls">
+      {view === 'entries' && <div className="alv-controls">
         {wide ? (
           <div className="alv-controls-row">{search}{filters}</div>
         ) : (
@@ -249,9 +311,32 @@ export default function ActivityLogView({ companyId, companyName, onClose }) {
             </button>
           )}
         </div>
-      </div>
+      </div>}
 
-      <div className="alv-body" tabIndex={-1}>{body}</div>
+      <div className={`alv-main${view === 'entries' && selected && wide ? ' has-detail' : ''}`}>
+        <div className="alv-body" tabIndex={-1}>{body}</div>
+        {view === 'entries' && selected && wide && (
+          <aside className="alv-detail" aria-labelledby={`${titleId}-entry`}>
+            <div className="alv-detail-bar">
+              <h3 className="alv-detail-title" id={`${titleId}-entry`}>Log entry</h3>
+              <button type="button" className="alv-close" onClick={closeDetail} aria-label="Close the entry">✕</button>
+            </div>
+            <LogEntryDetail row={selected} onAsk={setAsk} onChanged={refresh} headingRef={detailHeading} />
+          </aside>
+        )}
+      </div>
+      {view === 'entries' && selected && !wide && (
+        <BottomSheet title="LOG ENTRY" onClose={closeDetail} zIndex={1100} className="alv-entry-sheet"
+          footer={<button type="button" className="co-sheet-done" onClick={closeDetail}>Done</button>}>
+          <LogEntryDetail row={selected} onAsk={setAsk} onChanged={refresh} headingRef={detailHeading} />
+        </BottomSheet>
+      )}
+      {ask && selected && (
+        <ConfirmModal zIndex={1200} {...confirmFor(ask, {
+          company: { slots, campaign, companyMode, campaignGame }, row: selected,
+          onDone: () => { setAsk(null); refresh() },
+        })} onCancel={() => setAsk(null)} />
+      )}
     </div>,
     document.body
   )

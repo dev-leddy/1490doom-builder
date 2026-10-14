@@ -81,9 +81,8 @@ test.describe('campaign activity log', () => {
     await page.locator('.pk-stat-apply').click()
     await expect(page.getByRole('button', { name: /^Stat Improve/ })).toContainText('Skill')
 
-    // Campaign settings -> Campaign log opens the full-screen table
-    await page.locator('.ch-camp-gear').click()
-    await page.locator('.cmp-set-row', { hasText: 'Campaign log' }).click()
+    // The panel's Log button opens the full-screen log on All entries
+    await page.locator('.ch-camp-log-btn').click()
     const view = page.getByRole('dialog', { name: /campaign log/i })
     await expect(view.locator('table.alv-table')).toBeVisible()
     const row = view.locator('tbody tr', { hasText: 'Fighter improved Skill' })
@@ -108,6 +107,35 @@ test.describe('campaign activity log', () => {
     await expect(view.getByRole('button', { name: /^Filters · 1 active/ })).toBeVisible()
     await page.keyboard.press('Escape')
     await expect(view).toHaveCount(0)
+  })
+
+  test('a log entry opens; a note added to it shows under its row', async ({ page }) => {
+    await createCompanyViaApi(page, {
+      name: 'Note Co', mode: 'campaign', ipLimit: 0,
+      slots: [{ type: 'Fighter', weapon1: 'Light Weapon', earnedIP: 1 }, { type: 'Scout', weapon1: 'Bow' }],
+    })
+    await page.getByRole('button', { name: 'Add stat' }).first().click()
+    await page.locator('button.pk-stat', { hasText: 'SKL' }).click()
+    await page.locator('.pk-stat-apply').click()
+    await expect(page.getByRole('button', { name: /^Stat Improve/ })).toContainText('Skill')
+
+    await page.locator('.ch-camp-log-btn').click()
+    const view = page.getByRole('dialog', { name: /campaign log/i })
+    const item = view.locator('.alv-item', { hasText: 'Fighter improved Skill' })
+    await item.locator('.alv-item-btn').click()
+
+    // Phone: the entry opens in a sheet with its note and its actions
+    const entry = page.locator('.alv-entry-sheet')
+    await expect(entry.locator('.led-title')).toHaveText('Fighter improved Skill')
+    await expect(entry.getByRole('button', { name: 'Undo this upgrade' })).toBeVisible()
+    await entry.getByLabel('Note').fill('Rolled a 6 for it')
+    await entry.getByRole('button', { name: 'Save note' }).click()
+    await entry.getByRole('button', { name: 'Done' }).click()
+
+    // The note sits under its row; notes are never rows of their own
+    await expect(item.locator('.alv-note')).toContainText('Rolled a 6 for it')
+    await expect(view.locator('.alv-item', { hasText: 'entry.noted' })).toHaveCount(0)
+    await expect(view.locator('.alv-item', { hasText: /^Note/ })).toHaveCount(0)
   })
 
   test("another account can't read the log", async ({ page, browser }) => {

@@ -1,59 +1,4 @@
-/* ── Campaign activity log (ActivityLogSheet) ─────────────────────────────── */
-
-.al-filters { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.9rem; }
-.al-chip {
-  font-family: 'Oswald', sans-serif; font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase;
-  padding: 0.35rem 0.8rem; min-height: 36px; border-radius: 999px; position: relative; touch-action: manipulation;
-  border: 1px solid #3a3a3a; background: transparent; color: var(--bone); cursor: pointer;
-}
-.al-chip::after { content: ''; position: absolute; inset: -4px 0; } /* 44px tap height */
-.al-chip:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
-.al-chip.is-active { border-color: var(--blood); background: var(--rust); color: var(--parchment); }
-
-.al-empty { color: #a8a8a8; font-size: 0.92rem; margin: 0.5rem 0; }
-.al-retry { background: none; border: none; padding: 0.6rem 0; min-height: 44px; color: var(--parchment); text-decoration: underline; cursor: pointer; font: inherit; }
-
-.al-group { margin-bottom: 1rem; }
-.al-group-title {
-  position: sticky; top: -1.25rem; z-index: 1; margin: 0; padding: 0.45rem 0; background: var(--ash);
-  border-bottom: 1px solid #2c2c2c; font-family: 'Oswald', sans-serif; font-weight: 400; font-size: 0.78rem;
-  letter-spacing: 0.14em; text-transform: uppercase; color: var(--parchment);
-}
-.al-rows { list-style: none; margin: 0; padding: 0; }
-
-.al-row {
-  display: grid; grid-template-columns: 28px 1fr auto; align-items: start; gap: 0.6rem;
-  padding: 0.5rem 0; border-bottom: 1px solid #1a1a1a;
-}
-.al-icon {
-  width: 28px; height: 28px; box-sizing: border-box; border-radius: 50%; border: 1px solid #333; display: grid; place-items: center;
-  font-size: 0.85rem; line-height: 1; color: #cfcfcf; background: #1c1c1c; font-variant-emoji: text;
-}
-/* Colour by kind: games rust, upgrades amber, roster green, captain red, undos dashed */
-.al-row[data-type^="game."] .al-icon { background: var(--rust); border-color: var(--blood); color: #ffd6cc; }
-.al-row[data-type^="upgrade."] .al-icon, .al-row[data-type="ip.edited"] .al-icon { color: #f0c27a; border-color: #5a4521; }
-.al-row[data-type^="warrior."] .al-icon { color: #9fd49f; border-color: #2f4a2f; }
-.al-row[data-type="captain.changed"] .al-icon { color: var(--blood-text); border-color: var(--blood); }
-.al-row[data-type$="ndone"] .al-icon { background: #1c1c1c; border: 1px dashed #777; color: #cfcfcf; }
-.al-main { display: grid; gap: 0.15rem; min-width: 0; }
-.al-text { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.4rem; color: var(--bone); font-size: 0.93rem; line-height: 1.3; }
-.al-text-body { overflow-wrap: anywhere; }
-.al-sub { color: #a8a8a8; font-size: 0.82rem; line-height: 1.3; overflow-wrap: anywhere; }
-.al-sub--warn { color: #ff9a85; }
-.al-time {
-  font-size: 0.8rem; color: #a8a8a8; white-space: nowrap; padding-top: 0.15rem; text-align: right;
-}
-
-.al-tag {
-  font-family: 'Oswald', sans-serif; font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase;
-  padding: 0.05rem 0.4rem; border: 1px dashed #777; border-radius: 3px; color: #cfcfcf;
-}
-.al-row.is-undone .al-text-body { text-decoration: line-through; text-decoration-color: #777; color: #9a9a9a; }
-.al-row.is-undone .al-sub { color: #8a8a8a; }
-.al-row.is-rejected .al-text-body { color: #8a8a8a; }
-.al-row.is-rejected .al-icon { border-style: dashed; }
-
-/* ── Campaign log, full screen (ActivityLogView) ───────────────────────────── */
+/* ── Campaign log (ActivityLogView, GameLogCards) ─────────────────────────── */
 
 .alv {
   position: fixed; inset: 0; z-index: 1050; display: flex; flex-direction: column;
@@ -76,6 +21,24 @@
   border-radius: 4px; color: #bdbdbd; font-size: 1.25rem; cursor: pointer;
 }
 .alv-close:hover { color: var(--parchment); border-color: #3a3a3a; }
+
+/* View toggle: All entries / By game */
+.alv-views { display: inline-grid; grid-auto-flow: column; grid-auto-columns: 1fr; flex: none; border: 1px solid #3a3a3a; border-radius: 6px; overflow: hidden; }
+.alv-view {
+  min-height: 44px; padding: 0 1rem; background: none; border: 0; color: #bdbdbd; cursor: pointer; touch-action: manipulation; white-space: nowrap;
+  font-family: 'Oswald', sans-serif; font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase;
+}
+.alv-view + .alv-view { border-left: 1px solid #3a3a3a; }
+.alv-view[aria-pressed="true"] { background: rgba(190, 65, 39, 0.18); color: var(--parchment); box-shadow: inset 0 -2px 0 var(--blood); }
+.alv-view:focus-visible { outline: 2px solid var(--blood); outline-offset: -2px; }
+@media (hover: hover) { .alv-view[aria-pressed="false"]:hover { color: var(--parchment); } }
+
+/* By game: the game cards, full width; two columns on wide screens */
+.alv-cards { box-sizing: border-box; max-width: 1240px; margin: 0 auto; padding: 1rem; }
+@media (min-width: 900px) {
+  .alv-cards { padding: 1.25rem 1.5rem; }
+  .alv-cards .cmp-log { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+}
 
 .alv-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; min-height: 44px; padding: 0 0.9rem;
@@ -131,7 +94,8 @@
 .alv-sort-phone { margin-left: auto; color: var(--bone); }
 
 /* Body */
-.alv-body { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; padding-bottom: env(safe-area-inset-bottom, 0); }
+.alv-main { flex: 1; min-height: 0; display: flex; }
+.alv-body { flex: 1; min-width: 0; min-height: 0; overflow: auto; overscroll-behavior: contain; padding-bottom: env(safe-area-inset-bottom, 0); }
 .alv-body:focus { outline: none; }
 .alv-empty { display: grid; justify-items: start; gap: 0.6rem; padding: 1.25rem 1rem; color: #a8a8a8; font-size: 0.95rem; margin: 0; }
 .alv-empty p { margin: 0; }
@@ -171,6 +135,9 @@
 .alv-table td { padding: 0.55rem 0.75rem; border-bottom: 1px solid #1c1c1c; vertical-align: top; line-height: 1.4; }
 .alv-table tbody tr:nth-child(even) td { background: rgba(255, 255, 255, 0.025); }
 @media (hover: hover) { .alv-table tbody tr:hover td { background: rgba(190, 65, 39, 0.1); } }
+.alv-table tbody tr { cursor: pointer; }
+.alv-table tbody tr.is-selected td { background: rgba(190, 65, 39, 0.16); }
+.alv-table tbody tr.is-selected td:first-child { box-shadow: inset 3px 0 0 var(--blood); }
 .alv-col-time { width: 6.5rem; }
 .alv-col-game { width: 6.5rem; }
 .alv-col-warrior { width: 8rem; }
@@ -190,8 +157,13 @@
 
 /* Rows (phones) */
 .alv-list { list-style: none; margin: 0; padding: 0; }
-.alv-item { padding: 0.6rem 1rem; border-bottom: 1px solid #1c1c1c; }
+.alv-item { border-bottom: 1px solid #1c1c1c; }
+.alv-item.is-selected { background: rgba(190, 65, 39, 0.16); box-shadow: inset 3px 0 0 var(--blood); }
 .alv-item:nth-child(even) { background: rgba(255, 255, 255, 0.025); }
+.alv-item-btn { display: block; width: 100%; min-height: 44px; padding: 0.6rem 1rem; box-sizing: border-box; background: none; border: 0;
+  color: inherit; font: inherit; text-align: left; cursor: pointer; touch-action: manipulation; }
+.alv-item-btn:focus-visible { outline: 2px solid var(--blood); outline-offset: -2px; }
+.alv-item-btn > span { display: flex; }
 .alv-item-main { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 0.45rem; font-size: 0.93rem; line-height: 1.35; }
 .alv-item-details { flex-basis: 100%; color: #a8a8a8; font-size: 0.84rem; }
 .alv-item-meta { display: flex; flex-wrap: wrap; gap: 0 0.5rem; margin-top: 0.25rem; font-size: 0.8rem; color: #a8a8a8; }
@@ -210,6 +182,63 @@
   .alv-field, .alv-select { width: 100%; max-width: none; }
   .alv-field--kinds { width: 100%; }
   .alv-export span { display: none; }
+  .alv-bar { flex-wrap: wrap; }
+  .alv-views { order: 5; flex-basis: 100%; }
   .alv-title { font-size: 0.92rem; letter-spacing: 0.08em; }
   .alv-export { padding: 0; width: 44px; }
 }
+
+/* Rows open their entry: the event text is the button in the table */
+.alv-open.alv-text { padding: 0; background: none; border: 0; color: var(--bone); font: inherit; text-align: left; cursor: pointer;
+  text-decoration: none; text-underline-offset: 3px; }
+.alv-row:hover .alv-open.alv-text, .alv-open.alv-text:focus-visible { text-decoration: underline; text-decoration-color: var(--blood-text); }
+.alv-open.alv-text:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
+.is-undone .alv-open.alv-text { text-decoration: line-through; text-decoration-color: #888; color: #a0a0a0; }
+
+/* A note under the row it is about */
+.alv-note { display: flex; align-items: flex-start; gap: 0.35rem; margin-top: 0.3rem; font-size: 0.85rem; line-height: 1.35; color: #e8d9b5; font-style: italic; }
+.alv-note svg { flex: none; margin-top: 0.15rem; color: #c9a86a; }
+.alv-item-btn > .alv-note { display: flex; }
+
+/* Entry detail: a side panel on wide screens (a bottom sheet on phones) */
+/* With an entry open, the table drops Details (the panel shows them) to keep Event readable */
+.alv-main.has-detail .alv-col-details, .alv-main.has-detail .alv-details { display: none; }
+.alv-detail { flex: none; width: 380px; max-width: 45%; overflow: auto; overscroll-behavior: contain; border-left: 1px solid #2c2c2c; background: var(--fog); }
+.alv-detail-bar { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; gap: 0.5rem; padding: 0.25rem 0.5rem 0.25rem 1.25rem;
+  background: var(--fog); border-bottom: 1px solid #2c2c2c; }
+.alv-detail-title { flex: 1; margin: 0; font-family: 'Oswald', sans-serif; font-weight: 400; font-size: 0.78rem; letter-spacing: 0.16em; text-transform: uppercase; color: #bdbdbd; }
+.alv-detail .led { padding: 1rem 1.25rem 1.5rem; }
+
+.led-head { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.5rem; }
+.led-title { flex-basis: 100%; margin: 0.2rem 0 0; font-family: 'Oswald', sans-serif; font-weight: 400; font-size: 1.05rem; letter-spacing: 0.04em; line-height: 1.3; color: var(--parchment); }
+.led-title:focus { outline: none; }
+.led-head .alv-flag { order: 3; }
+.led-details { margin: 0.4rem 0 0; font-size: 0.9rem; line-height: 1.4; color: #bdbdbd; }
+.led-facts { margin: 0.75rem 0 0; display: grid; gap: 0.2rem; }
+.led-facts div { display: grid; grid-template-columns: 4.5rem 1fr; gap: 0.5rem; }
+.led-facts dt { font-family: 'Oswald', sans-serif; font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: #a8a8a8; padding-top: 0.15rem; }
+.led-facts dd { margin: 0; font-size: 0.9rem; color: var(--bone); }
+.led-section { margin-top: 1.1rem; padding-top: 1rem; border-top: 1px solid #262626; display: grid; gap: 0.5rem; }
+.led-label { margin: 0; font-family: 'Oswald', sans-serif; font-weight: 400; font-size: 0.75rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--parchment); }
+.led-sublabel { font-family: 'Oswald', sans-serif; font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: #a8a8a8; }
+.led-note-input { width: 100%; box-sizing: border-box; min-height: 5rem; padding: 0.6rem 0.75rem; resize: vertical;
+  background: var(--ash); border: 1px solid #444; border-radius: 4px; color: var(--parchment); font: inherit; font-size: 0.95rem; line-height: 1.4; }
+.led-note-input::placeholder { color: #8a8a8a; }
+.led-note-input:focus-visible { outline: 2px solid var(--blood); outline-offset: 1px; }
+.led-row { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+.led-row--input { flex-wrap: nowrap; }
+.led-row--input .alv-search { flex: 1; background: var(--ash); }
+.led-count { font-size: 0.8rem; color: #a8a8a8; margin-right: auto; }
+.led-primary:not(:disabled) { background: var(--blood); border-color: var(--rust); color: #fff; }
+.led-rename, .led-ip { display: grid; gap: 0.4rem; }
+.led-ip-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.35rem 0.5rem 0.35rem 0.75rem; border: 1px solid #2c2c2c; border-radius: 6px; background: var(--ash); }
+.led-ip-name { flex: 1; min-width: 0; display: grid; font-family: 'Oswald', sans-serif; font-size: 0.88rem; letter-spacing: 0.04em; color: var(--parchment); }
+.led-ip-name small { font-family: 'Caslon Antique', serif; font-size: 0.8rem; letter-spacing: 0; color: #a8a8a8; }
+.led-stepper { display: flex; align-items: center; gap: 0.35rem; }
+.led-step { width: 44px; padding: 0; font-size: 1.2rem; }
+.led-step-val { min-width: 2rem; text-align: center; font-family: 'Oswald', sans-serif; font-size: 1.2rem; color: #fff; }
+.led-undos { display: grid; gap: 0.5rem; }
+.led-undos:empty { display: none; }
+.led-danger { justify-content: flex-start; border-color: rgba(190, 65, 39, 0.6); color: var(--blood-text); }
+@media (hover: hover) { .led-danger:hover { background: rgba(190, 65, 39, 0.12); } }
+.led-none { margin: 1rem 0 0; font-size: 0.88rem; color: #a8a8a8; }
