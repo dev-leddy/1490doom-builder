@@ -10,7 +10,19 @@ export const CLIENT_EVENT_TYPES = new Set([
   'upgrade.bought', 'upgrade.changed', 'upgrade.undone',
   'warrior.hired', 'warrior.recruitUndone', 'warrior.removed', 'warrior.renamed',
   'captain.changed', 'ip.edited', 'company.renamed', 'mark.changed',
+  'entry.noted',
 ])
+
+export const MAX_NOTE_LENGTH = 500
+
+// Type-specific rules on top of the general ones
+function fitsType(e) {
+  if (e.type === 'entry.noted') {
+    // A note is about another event (ref) and is text; '' removes it
+    return typeof e.ref === 'string' && typeof e.payload?.text === 'string' && e.payload.text.length <= MAX_NOTE_LENGTH
+  }
+  return true
+}
 
 export const MAX_EVENTS = 50          // per request
 export const MAX_PAYLOAD_BYTES = 4096 // JSON of one event's payload
@@ -31,7 +43,8 @@ export function validateEvents(events) {
       Number.isInteger(e.afterGame) && e.afterGame >= 0 && e.afterGame <= 1000 &&
       (e.ref == null || (typeof e.ref === 'string' && UUID.test(e.ref))) &&
       Number.isFinite(e.at) &&
-      (e.payload == null || (typeof e.payload === 'object' && !Array.isArray(e.payload)))
+      (e.payload == null || (typeof e.payload === 'object' && !Array.isArray(e.payload))) &&
+      fitsType(e)
     const payload = ok ? JSON.stringify(e.payload ?? {}) : ''
     if (!ok || new TextEncoder().encode(payload).length > MAX_PAYLOAD_BYTES) { dropped++; continue }
     seen.add(e.id)

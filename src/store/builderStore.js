@@ -20,7 +20,7 @@ import {
 import { encodeCompany, decodeCompany } from './builderEncoding'
 import { fetchCloudSaves, removeCloudCompany, createSaver, migrateLocalData, snapshotCompany } from './builderPersistence'
 import { useAuthStore } from './authStore'
-import { makeEvent, newEventId } from './campaignEvents'
+import { makeEvent, newEventId, MAX_NOTE_LENGTH } from './campaignEvents'
 
 // Weapon rules live in utils/loadout (pure); re-exported for the UI
 export { getAllowedWeapons, getSecondWeaponOptions }
@@ -857,7 +857,17 @@ export const useBuilderStore = create((set, get) => {
       if (!next) { get()._toast('There is no such game in the log.'); return false }
       set({ campaign: next.campaign })
       const to = next.campaign.log.find(r => r.gameNumber === gameNumber).scenario
-      if (from !== to) get()._logEvent('game.renamed', { gameNumber, from, to })
+      const eventId = next.campaign.log.find(r => r.gameNumber === gameNumber).eventId ?? null
+      if (from !== to) get()._logEvent('game.renamed', { gameNumber, from, to }, { ref: eventId })
+      get()._autoDraft()
+      return true
+    },
+    // A note on an activity-log row (eventId = the event it is about). '' removes the note.
+    // Only logs an event; the company itself doesn't change. Returns true when queued.
+    noteLogEntry(eventId, text, { afterGame } = {}) {
+      if (!eventId || !get()._canLogEvents()) return false
+      const note = String(text ?? '').trim().slice(0, MAX_NOTE_LENGTH)
+      get()._logEvent('entry.noted', { text: note }, { ref: eventId, afterGame })
       get()._autoDraft()
       return true
     },

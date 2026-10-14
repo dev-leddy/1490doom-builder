@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { makeEvent, coalesce, newEventId, CLIENT_EVENT_TYPES } from '../../src/store/campaignEvents.js'
+import { makeEvent, coalesce, newEventId, CLIENT_EVENT_TYPES, notesFor, rowActions } from '../../src/store/campaignEvents.js'
+import { normalizeCampaign, applyEndOfGame, logUpgrade, hireIntoVacancy } from '../../src/store/campaign.js'
 import { createSaver, MAX_EVENTS } from '../../src/store/builderPersistence.js'
 import {
   validateEvents, unloggedEvent, CLIENT_EVENT_TYPES as SERVER_TYPES, MAX_PAYLOAD_BYTES,
@@ -196,5 +197,82 @@ describe('activity log display', () => {
     expect(groups[1].events.map(e => e.type)).toEqual(['game.recorded', 'warrior.hired'])
     expect(matchesFilter(list[2], 'upgrades')).toBe(true)
     expect(matchesFilter(list[2], 'roster')).toBe(false)
+  })
+})
+
+describe('notes on log entries', () => {
+  const target = ev('game.recorded', { gameNumber: 1 })
+  const note = (text, extra = {}) => ({ ...ev('entry.noted', { text }), ref: target.id, ...extra })
+
+  it('the latest note wins and an empty one removes it', () => {
+    expect(notesFor([target], target.id)).toBeNull()
+    expect(notesFor([target, note('Won on the last roll'), note('Won on the very last roll')], target.id)).toBe('Won on the very last roll')
+    expect(notesFor([target, note('Something'), note('')], target.id)).toBeNull()
+    expect(notesFor([target, note('Kept'), note('Lost to another device', { status: 'rejected' })], target.id)).toBe('Kept')
+    expect(notesFor([target, { ...note('Elsewhere'), ref: newEventId() }], target.id)).toBeNull()
+  })
+
+  it('the server takes notes about an event, up to 500 characters', () => {
+    const good = { ...note('A fine note'), at: 1 }
+    expect(validateEvents([good]).valid).toHaveLength(1)
+    expect(validateEvents([{ ...good, id: newEventId(), payload: { text: '' } }]).valid).toHaveLength(1)
+    expect(validateEvents([{ ...good, id: newEventId(), ref: null }]).valid).toHaveLength(0)
+    expect(validateEvents([{ ...good, id: newEventId(), payload: { text: 'x'.repeat(501) } }]).valid).toHaveLength(0)
+    expect(validateEvents([{ ...good, id: newEventId(), payload: { text: 42 } }]).valid).toHaveLength(0)
+  })
+})
+
+describe('rowActions', () => {
+  const warrior = (type, extra = {}) => ({
+    type, weapon1: 'Light Weapon', weapon2: null, consumable: null, climbing: null,
+    ip: [], isCaptain: false, notes: [], customName: null, earnedIP: 0, statImproves: [], ...extra,
+  })
+  const base = () => normalizeCampaign({
+    companyMode: 'campaign', campaignGame: 0, companyId: 'c1',
+    slots: [warrior('Fighter', { isCaptain: true, earnedIP: 2 }), warrior('Scout', { weapon1: 'Bow' })],
+  })
+  const loss = { result: 'loss', fallenIndices: [], newCaptainIndex: null, survivorPick: 0, bonus: [] }
+  const recordedEvent = (c, id, n) => ({ id, type: 'game.recorded', payload: { gameNumber: n, awards: [{ uid: c.slots[0].uid, ip: 1 }] } })
+  const buy = (c, i, patch, ipId, eventId) => {
+    const next = { ...c, slots: c.slots.map((s, k) => (k === i ? { ...s, ...patch } : s)) }
+    return { ...next, campaign: logUpgrade(next, i, ipId, { eventId }) }
+  }
+
+  it('the latest game can be undone and renamed; an older one only renamed', () => {
+    const [e1, e2] = [newEventId(), newEventId()]
+    const g1 = applyEndOfGame(base(), loss, { eventId: e1 }).company
+    expect(rowActions(g1, recordedEvent(g1, e1, 1))).toMatchObject({ undoGame: true, renameGame: 1, fixIP: [0] })
+    const g2 = applyEndOfGame(g1, loss, { eventId: e2 }).company
+    expect(rowActions(g2, recordedEvent(g2, e1, 1))).toMatchObject({ undoGame: false, renameGame: 1 })
+    expect(rowActions(g2, recordedEvent(g2, e2, 2)).undoGame).toBe(true)
+  })
+
+  it("an upgrade can be undone only while it is that warrior's latest", () => {
+    const [u1, u2] = [newEventId(), newEventId()]
+    let c = buy(base(), 0, { statImproves: ['COM'], ip: ['stat_0'] }, 'stat_0', u1)
+    const bought1 = { id: u1, type: 'upgrade.bought', payload: { uid: c.slots[0].uid, id: 'stat_0' } }
+    expect(rowActions(c, bought1).undoUpgrade).toEqual({ slotIndex: 0 })
+    expect(rowActions(c, bought1).fixIP).toEqual([0])
+    c = buy(c, 0, { climbing: 'Ladder', ip: ['stat_0', 'climbing'] }, 'climbing', u2)
+    expect(rowActions(c, bought1).undoUpgrade).toBeNull()
+    expect(rowActions(c, { id: u2, type: 'upgrade.bought', payload: { uid: c.slots[0].uid, id: 'climbing' } }).undoUpgrade).toEqual({ slotIndex: 0 })
+  })
+
+  it('a recruit can be undone while present and without upgrades', () => {
+    const h = newEventId()
+    const fell = applyEndOfGame(base(), { ...loss, fallenIndices: [1] }).company
+    let c = hireIntoVacancy(fell, 1, 'Knight', { startIP: 1, eventId: h })
+    const hired = { id: h, type: 'warrior.hired', payload: { uid: c.slots[1].uid } }
+    expect(rowActions(c, hired).undoRecruit).toEqual({ slotIndex: 1 })
+    c = buy(c, 1, { climbing: 'Ladder', ip: ['climbing'] }, 'climbing', newEventId())
+    expect(rowActions(c, hired).undoRecruit).toBeNull()
+  })
+
+  it('rejected events offer nothing, and fixIP only names living warriors', () => {
+    const c = base()
+    const e = { id: newEventId(), type: 'ip.edited', payload: { uid: c.slots[1].uid, from: 0, to: 1 } }
+    expect(rowActions(c, e)).toEqual({ undoGame: false, undoUpgrade: null, undoRecruit: null, renameGame: null, fixIP: [1] })
+    expect(rowActions(c, { ...e, status: 'rejected' }).fixIP).toEqual([])
+    expect(rowActions(c, { ...e, payload: { uid: 'gone' } }).fixIP).toEqual([])
   })
 })

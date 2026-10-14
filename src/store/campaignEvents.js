@@ -6,7 +6,10 @@
 // Event: { id, type, v, at, afterGame, ref, payload }
 //   id        client uuid (the server ignores a repeat)
 //   afterGame games played when it happened (0 = the starting company)
-//   ref       for an undo: the id of the event it takes back
+//   ref       for an undo: the id of the event it takes back; for entry.noted and
+//             game.renamed: the event it is about
+
+import { canUndoLastGame, lastUpgrade, undoRecruitBlock } from './campaign.js'
 
 // Types a client may send. 'system.unlogged' is written by the server only.
 export const CLIENT_EVENT_TYPES = [
@@ -16,7 +19,11 @@ export const CLIENT_EVENT_TYPES = [
   'upgrade.bought', 'upgrade.changed', 'upgrade.undone',
   'warrior.hired', 'warrior.recruitUndone', 'warrior.removed', 'warrior.renamed',
   'captain.changed', 'ip.edited', 'company.renamed', 'mark.changed',
+  'entry.noted',
 ]
+
+// entry.noted: { text } on the event `ref` points at; the latest note wins, '' removes it
+export const MAX_NOTE_LENGTH = 500
 
 // iOS Safari <15.4 doesn't have crypto.randomUUID; the fallback still has the uuid shape
 export const newEventId = () =>
@@ -58,4 +65,55 @@ export function coalesce(events = []) {
     out[i] = { ...first, at: e.at, afterGame: e.afterGame, payload: { ...first.payload, ...e.payload, from: first.payload?.from, to: e.payload?.to } }
   }
   return out.filter(e => editKey(e) == null || e.payload?.from !== e.payload?.to)
+}
+
+// ── Row helpers for the activity log UI ───────────────────────────────────────
+
+// The note on an event (latest entry.noted for it wins), or null if none / removed
+export function notesFor(events = [], eventId) {
+  let text = null
+  for (const e of events) {
+    if (e.type === 'entry.noted' && e.ref === eventId && e.status !== 'rejected') text = e.payload?.text || null
+  }
+  return text
+}
+
+// Living warriors' slot indices for the uids an event names
+function slotsNamedIn(company, event) {
+  const p = event.payload || {}
+  const uids = new Set([p.uid, ...(p.awards || []).map(a => a.uid), ...(p.roster || []).map(r => r.uid)].filter(Boolean))
+  return (company?.slots || []).map((s, i) => (s.type && uids.has(s.uid) ? i : -1)).filter(i => i >= 0)
+}
+
+// What a tapped log row can still do, given the company as it is now:
+//   undoGame     the event is the latest recorded game and it can be undone
+//   undoUpgrade  { slotIndex } when it is that warrior's most recent upgrade
+//   undoRecruit  { slotIndex } when the recruit is still there and can be taken back
+//   renameGame   the game number, for a recorded game still in the log
+//   fixIP        slot indices of living warriors the event names (to correct IP by hand)
+export function rowActions(company, event) {
+  const p = event?.payload || {}
+  const slots = company?.slots || []
+  const log = company?.campaign?.log || []
+  const slotOf = uid => slots.findIndex(s => s.type && s.uid === uid)
+  const out = { undoGame: false, undoUpgrade: null, undoRecruit: null, renameGame: null, fixIP: event ? slotsNamedIn(company, event) : [] }
+  if (!event || event.status === 'rejected') return { ...out, fixIP: [] }
+
+  if (event.type === 'game.recorded') {
+    out.undoGame = log.at(-1)?.eventId === event.id && canUndoLastGame(company)
+  }
+  if (event.type === 'game.recorded' || event.type === 'game.renamed') {
+    if (log.some(r => r.gameNumber === p.gameNumber)) out.renameGame = p.gameNumber
+  }
+  if (event.type === 'upgrade.bought') {
+    const i = slotOf(p.uid)
+    const last = i >= 0 ? lastUpgrade(slots[i]) : null
+    const entry = [...(company.campaign?.upgrades || [])].reverse().find(e => e.uid === p.uid)
+    if (last && last.id === p.id && entry?.eventId === event.id) out.undoUpgrade = { slotIndex: i }
+  }
+  if (event.type === 'warrior.hired') {
+    const i = slotOf(p.uid)
+    if (i >= 0 && !undoRecruitBlock(slots[i])) out.undoRecruit = { slotIndex: i }
+  }
+  return out
 }
