@@ -1564,48 +1564,65 @@ button.eq-slot:focus-visible { outline: 2px solid var(--blood); outline-offset: 
 .cmp-pip.is-now { border-color: var(--blood); box-shadow: 0 0 0 1px var(--blood); color: var(--parchment); }
 
 /* ── Builder: campaign panel in the company header ────────────────────────── */
-.ch-camp { display: grid; gap: 0.5rem; border-top: 1px solid rgba(190, 65, 39, 0.2); padding: 0.6rem 0.7rem 0.15rem; }
-.ch-camp-head { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
-.ch-camp-title { font-family: 'Oswald', sans-serif; font-size: 0.85rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--parchment); }
-.ch-camp-title span { color: #a8a8a8; }
-.ch-camp-todo { display: flex; align-items: center; gap: 0.6rem; min-height: 44px; padding: 0.35rem 0.7rem; width: 100%; box-sizing: border-box;
-  background: #160b08; border: 1px solid rgba(190, 65, 39, 0.45); border-radius: 6px; color: var(--bone); text-align: left; cursor: pointer;
-  font-family: 'Oswald', sans-serif; font-size: 0.82rem; letter-spacing: 0.08em; text-transform: uppercase;
+/* Phone: "GAME N" + track, then the to-dos, then [Log] [End game N] [gear].
+   Type: no caps under 0.8rem, letter-spacing <= 0.06em under 1rem. Only End game is filled. */
+.ch-camp {
+  --camp-muted: #b4b4b4; /* secondary text, ~9:1 on --fog */
+  --camp-line: #3a3a3a;
+  --camp-tap: 48px;
+  display: grid; gap: 0.6rem; border-top: 1px solid rgba(190, 65, 39, 0.2); padding: 0.75rem 0.7rem 0.6rem;
+}
+.ch-camp-head { display: flex; align-items: center; gap: 0.9rem; flex-wrap: wrap; min-width: 0; }
+.ch-camp-title { margin: 0; font-family: 'Oswald', sans-serif; font-weight: 500; font-size: 1.15rem; line-height: 1.2;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--parchment); white-space: nowrap; }
+.ch-camp .cmp-track { gap: 5px; }
+.ch-camp .cmp-pip { width: 28px; height: 28px; border-radius: 4px; font-size: 0.85rem; }
+.ch-camp .cmp-track { flex-wrap: nowrap; white-space: nowrap; }
+.cmp-track-more { font-family: 'Oswald', sans-serif; font-size: 0.85rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--camp-muted, #b4b4b4); padding: 0 0.15rem; }
+
+/* To-dos: neutral rows; the count and chevron carry the accent */
+.ch-camp-todo { display: flex; align-items: center; gap: 0.75rem; min-height: 56px; padding: 0.5rem 0.8rem; width: 100%; box-sizing: border-box;
+  background: #151515; border: 1px solid var(--camp-line); border-radius: 6px; color: var(--parchment); text-align: left; cursor: pointer;
   -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
-.ch-camp-todo .n { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--blood); color: #fff; font-size: 0.75rem; flex: none; }
-.ch-camp-todo .go { margin-left: auto; color: var(--blood-text); font-size: 1.1rem; }
-.ch-camp-todo.is-done { background: none; border-color: #2c2c2c; color: #a8a8a8; cursor: default; }
-.ch-camp-todo.is-done .n { background: #1d2a1d; color: #9fd49f; }
-.ch-camp-todo:focus-visible, .ch-camp-ghost:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
+@media (hover: hover) { .ch-camp-todo:hover { border-color: #5a5a5a; } }
+.ch-camp-todo .n { display: grid; place-items: center; width: 28px; height: 28px; flex: none; border: 1px solid var(--blood-text); border-radius: 50%;
+  font-family: 'Oswald', sans-serif; font-size: 0.9rem; line-height: 1; color: var(--blood-text); }
+.ch-camp-todo-text { display: grid; gap: 0.1rem; min-width: 0; flex: 1; }
+.ch-camp-todo-label { font-family: 'Oswald', sans-serif; font-size: 0.95rem; line-height: 1.2; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; }
+.ch-camp-todo-sub { font-size: 0.92rem; line-height: 1.3; color: var(--camp-muted); }
+.ch-camp-todo .go { flex: none; margin-left: auto; color: var(--camp-muted); font-size: 1.3rem; line-height: 1; }
+.ch-camp-note { display: flex; align-items: center; gap: 0.5rem; margin: 0; min-height: 28px; font-family: 'Oswald', sans-serif; font-size: 0.9rem;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--camp-muted); }
+.ch-camp-check { color: #9fd49f; }
+
+/* Buttons: one height, one radius. Log and the gear are quiet outlines; End game is the filled primary */
 .ch-camp-actions { display: flex; gap: 0.5rem; }
-.ch-camp-actions > button { flex: 1; min-height: 44px; padding: 0 0.6rem; }
-.ch-camp-ghost { background: none; border: 1px solid #3a3a3a; border-radius: 4px; color: var(--bone); font-family: 'Oswald', sans-serif;
-  font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; touch-action: manipulation; }
-@media (hover: hover) { .ch-camp-ghost:hover { border-color: #666; color: var(--parchment); } }
-.ch-camp-eog-btn:disabled { opacity: 0.6; cursor: not-allowed; background: none; border-color: #3a3a3a; color: #a8a8a8; }
+.ch-camp-btn { display: inline-flex; align-items: center; justify-content: center; flex: 1 1 0; min-height: var(--camp-tap); padding: 0 1rem;
+  background: none; border: 1px solid var(--camp-line); border-radius: 6px; color: var(--bone);
+  font-family: 'Oswald', sans-serif; font-size: 0.9rem; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap;
+  cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; transition: border-color 0.15s, background 0.15s; }
+@media (hover: hover) { .ch-camp-btn:hover { border-color: #666; color: var(--parchment); } }
+.ch-camp-btn--primary { flex-grow: 2; background: var(--blood); border-color: var(--blood); color: #fff; font-weight: 500; }
+@media (hover: hover) { .ch-camp-btn--primary:hover { background: var(--blood); border-color: var(--blood); color: #fff; filter: brightness(1.12); } }
+.ch-camp-actions > .ch-camp-gear { flex: 0 0 var(--camp-tap); width: var(--camp-tap); padding: 0; }
+.ch-camp-gear svg { width: 20px; height: 20px; }
+.ch-camp-todo:focus-visible, .ch-camp-btn:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
+
 /* Stacked header (<=1024px): same divider and spacing as the Mark / Share rows above */
 @media (max-width: 1024px) {
-  .ch-camp { border-top-color: rgba(255, 255, 255, 0.14); padding: 0.6rem 0.6rem 0; margin-top: 0.5rem; }
+  .ch-camp { border-top-color: rgba(255, 255, 255, 0.14); padding: 0.75rem 0.6rem 0.25rem; margin-top: 0.5rem; }
 }
-/* Narrow phones: never squeeze the labels; wrap instead */
-@media (max-width: 399px) {
-  .ch-camp-actions { flex-wrap: wrap; }
-  .ch-camp-actions > button { white-space: nowrap; }
-}
-/* Wider: to-dos and buttons share rows and wrap as whole items (never overlap). Two to-dos sit
-   side by side; the buttons join their row when there's room, else take the next row in full */
-@media (min-width: 600px) {
-  .ch-camp { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
-  .ch-camp-head { flex: 1 1 100%; }
-  .ch-camp-todo { width: auto; flex: 1 1 12rem; min-width: 0; }
-  .ch-camp-todo.is-done { flex-basis: 17rem; }
-  .ch-camp-actions { flex: 1 1 auto; justify-content: flex-end; }
-  .ch-camp-actions > button { flex: 1 0 auto; padding: 0 1rem; white-space: nowrap; }
-}
-/* Full-width header: keep the buttons compact at the right of the to-dos */
+/* Full-width header: to-dos and buttons share the row under the title, wrapping as whole items.
+   Narrower (stacked header, phones): to-dos stack, then the full-width button row */
 @media (min-width: 1025px) {
-  .ch-camp-actions { flex-grow: 0; }
-  .ch-camp-actions > button { flex: 0 0 auto; min-width: 8.5rem; }
+  .ch-camp { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
+  .ch-camp-head { flex: 1 1 100%; }
+  .ch-camp-todo { width: auto; flex: 1 1 15rem; min-width: 0; }
+  .ch-camp-note { flex: 1 1 12rem; }
+  .ch-camp-actions { flex: 0 0 auto; margin-left: auto; }
+  .ch-camp-btn { flex: 0 0 auto; min-width: 7rem; }
+  .ch-camp-btn--primary { min-width: 10rem; }
+  .ch-camp-actions > .ch-camp-gear { min-width: 0; }
 }
 
 /* Game log sheet */
@@ -1633,9 +1650,7 @@ button.eq-slot:focus-visible { outline: 2px solid var(--blood); outline-offset: 
 .cmp-fallen-roll li { display: flex; justify-content: space-between; gap: 0.75rem; padding: 0.35rem 0; border-top: 1px solid #1c1c1c; font-size: 0.9rem; color: var(--bone); }
 .cmp-fallen-roll li span:last-child { font-family: 'Oswald', sans-serif; font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: #a8a8a8; white-space: nowrap; }
 
-/* Campaign settings: the gear in the panel, then the sheet's four rows */
-.ch-camp-actions > .ch-camp-gear { flex: 0 0 44px; width: 44px; min-width: 44px; padding: 0; display: grid; place-items: center; }
-.ch-camp-gear svg { width: 20px; height: 20px; }
+/* Campaign settings sheet: a few plain rows */
 .cmp-set-list { border: 1px solid #2c2c2c; border-radius: 6px; overflow: hidden; }
 .cmp-set-row { display: flex; align-items: center; gap: 0.9rem; width: 100%; min-height: 52px; padding: 0.5rem 1rem; box-sizing: border-box;
   background: var(--fog); border: 0; border-top: 1px solid #222; color: var(--bone); text-align: left; cursor: pointer; touch-action: manipulation; }
@@ -1650,6 +1665,23 @@ button.eq-slot:focus-visible { outline: 2px solid var(--blood); outline-offset: 
 .cmp-set-row.is-danger .cmp-set-label, .cmp-set-row.is-danger .cmp-set-icon { color: var(--blood-text); }
 .cmp-set-row[aria-disabled] { cursor: default; }
 .cmp-set-row[aria-disabled] .cmp-set-label, .cmp-set-row[aria-disabled] .cmp-set-icon { color: #8a8a8a; }
+/* Campaign length: label + stepper, "No limit" toggle below (not a button row) */
+.cmp-set-length { display: grid; grid-template-columns: 20px 1fr auto; align-items: center; gap: 0.5rem 0.9rem; padding: 0.6rem 1rem 0.75rem;
+  background: var(--fog); border-top: 1px solid #222; }
+.cmp-set-list > .cmp-set-length:first-child { border-top: 0; }
+.cmp-set-length .cmp-set-reason { grid-column: 2 / -1; }
+.cmp-set-length .co-settings-stepper { gap: 0.35rem; }
+.cmp-set-length .co-settings-step-btn { width: 44px; height: 44px; border-radius: 6px; color: var(--parchment); }
+.cmp-set-length .co-settings-step-btn:disabled { color: #6a6a6a; cursor: not-allowed; }
+.cmp-set-length .co-settings-step-val { min-width: 2.2rem; text-align: center; font-family: 'Oswald', sans-serif; }
+.cmp-set-nolimit { grid-column: 2 / -1; justify-self: start; display: inline-flex; align-items: center; gap: 0.55rem; min-height: 44px; padding: 0 0.9rem 0 0.7rem;
+  background: none; border: 1px solid #3a3a3a; border-radius: 6px; color: var(--bone); cursor: pointer; touch-action: manipulation;
+  font-family: 'Oswald', sans-serif; font-size: 0.9rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.cmp-set-nolimit-box { width: 18px; height: 18px; border: 2px solid #8a8a8a; border-radius: 3px; display: grid; place-items: center; box-sizing: border-box;
+  font-size: 0.75rem; line-height: 1; color: #fff; }
+.cmp-set-nolimit[aria-pressed="true"] { border-color: var(--blood); color: var(--parchment); }
+.cmp-set-nolimit[aria-pressed="true"] .cmp-set-nolimit-box { background: var(--blood); border-color: var(--blood); }
+.cmp-set-nolimit:focus-visible, .cmp-set-length .co-settings-step-btn:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
 
 /* Vacancy slot: say why it is empty */
 .slot-fallen-note { margin: 0.25rem 0 0.75rem; font-size: 0.95rem; line-height: 1.45; color: var(--bone); }

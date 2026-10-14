@@ -79,7 +79,7 @@ test.describe('New Company wizard', () => {
     await page.locator('.eog-scenario-input').fill('The Ascent')
     await page.locator('.eog-record-btn').click()
     const panel = page.locator('[data-testid="campaign-panel"]')
-    await expect(panel).toContainText('Before game 2')
+    await expect(panel.locator('.ch-camp-title')).toHaveText('Game 2')
     await expect(panel.locator('.cmp-pip.is-win')).toHaveCount(1)
     // Log opens the full-screen campaign log; By game shows the game cards
     await panel.locator('.ch-camp-log-btn').click()

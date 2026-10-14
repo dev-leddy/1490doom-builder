@@ -19,6 +19,14 @@ export function resultTally(log = []) {
   return Object.entries(n).filter(([, c]) => c).map(([k, c]) => `${c}${RESULT_LETTER[k]}`).join(' ')
 }
 
+// The same tally in words: "3 wins · 1 loss · 1 draw"
+const RESULT_WORDS = { win: ['win', 'wins'], loss: ['loss', 'losses'], draw: ['draw', 'draws'], retreat: ['retreat', 'retreats'] }
+export function resultWords(log = []) {
+  const n = { win: 0, loss: 0, draw: 0, retreat: 0 }
+  for (const r of log) if (n[r.result] != null) n[r.result]++
+  return Object.entries(n).filter(([, c]) => c).map(([k, c]) => `${c} ${RESULT_WORDS[k][c === 1 ? 0 : 1]}`).join(' · ')
+}
+
 // A fallen warrior's name: "Brother Aldric (Warrior Priest)" with a custom name, else the class
 export const fallenName = nameWithClass
 
