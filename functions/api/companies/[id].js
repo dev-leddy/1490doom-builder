@@ -27,9 +27,10 @@ export async function onRequestDelete(context) {
 
   if (result.meta?.changes === 0) return json({ error: 'Not found' }, 404)
 
-  // Its in-progress game goes with it
-  await context.env.DB.prepare(
-    `DELETE FROM game_sessions WHERE company_id = ? AND user_id = ?`
-  ).bind(id, user.id).run()
+  // Its in-progress game and its activity log go with it
+  await context.env.DB.batch([
+    context.env.DB.prepare(`DELETE FROM game_sessions WHERE company_id = ? AND user_id = ?`).bind(id, user.id),
+    context.env.DB.prepare(`DELETE FROM campaign_events WHERE company_id = ? AND user_id = ?`).bind(id, user.id),
+  ])
   return json({ ok: true })
 }

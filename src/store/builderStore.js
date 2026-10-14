@@ -14,15 +14,20 @@ import {
   canUndoLastGame, undoLastGame, hireIntoVacancy, permanenceBlock, isPermanentUpgrade,
   minEarnedIP, removeSlotBlock, logUpgrade, PERMANENT_GEAR, syncUpgradeItem, unlogLastUpgrade,
   undoLastUpgrade as undoLastUpgradeOf, undoRecruit as undoRecruitOf, undoRecruitBlock,
+  nameWithClass, upgradeLabel, setGameScenario as setGameScenarioOf,
+  endCampaignEarly as endCampaignEarlyOf, reopenCampaign as reopenCampaignOf,
 } from './campaign'
 import { encodeCompany, decodeCompany } from './builderEncoding'
 import { fetchCloudSaves, removeCloudCompany, createSaver, migrateLocalData, snapshotCompany } from './builderPersistence'
 import { useAuthStore } from './authStore'
+import { makeEvent, newEventId } from './campaignEvents'
 
 // Weapon rules live in utils/loadout (pure); re-exported for the UI
 export { getAllowedWeapons, getSecondWeaponOptions }
 
 function getUser() { return useAuthStore.getState().user }
+
+const nameOfSlot = s => (s?.customName && s.customName.trim()) || s?.type || null
 
 // ── HELPERS ──────────────────────────────────────────────────────────────────
 
@@ -158,6 +163,11 @@ export const useBuilderStore = create((set, get) => {
     }
   })
 
+  // ── Campaign activity events ───────────────────────────────────────────────
+  // companyId → events not yet handed to the save queue (see _logEvent / _autoDraft).
+  // Memory only: they reach the server with the company's next save.
+  const unsentEvents = new Map()
+
   // ── Cloud auto-save ─────────────────────────────────────────────────────────
   const upsertSave = (save) => {
     const saves = get().saves.filter(s => s.companyId !== save.companyId)
@@ -185,6 +195,10 @@ export const useBuilderStore = create((set, get) => {
     onForbidden: (snapshot) => {
       // Id already used by another account — keep the company under a new id
       const moved = { ...snapshot, companyId: randomUUID() }
+      if (unsentEvents.has(snapshot.companyId)) {
+        unsentEvents.set(moved.companyId, unsentEvents.get(snapshot.companyId))
+        unsentEvents.delete(snapshot.companyId)
+      }
       set({ saves: get().saves.map(s => s.companyId === snapshot.companyId ? { ...s, companyId: moved.companyId } : s) })
       if (get().companyId === snapshot.companyId) set({ companyId: moved.companyId })
       return moved
@@ -215,11 +229,17 @@ export const useBuilderStore = create((set, get) => {
 
     // ── ACTIONS ────────────────────────────────────────────────────────────────
     setMark(mark) {
+      const from = get().mark
       set({ mark })
+      if (from !== mark) get()._logEvent('mark.changed', { from: from || null, to: mark || null })
       get()._autoDraft()
     },
     setCompanyName(name) {
+      const from = get().companyName
       set({ companyName: name })
+      // Naming a company that has no warriors yet (the new-company wizard) isn't a rename;
+      // keystrokes coalesce in the save queue
+      if (from !== name && get().slots.some(x => x.type)) get()._logEvent('company.renamed', { from, to: name })
       get()._autoDraft()
     },
     setCompanyAvatar(avatar) {
@@ -230,7 +250,9 @@ export const useBuilderStore = create((set, get) => {
       const { slots } = get()
       // Campaign: never below what a warrior has already spent
       const floor = slot => (get().companyMode === 'campaign' ? minEarnedIP(slot) : 0)
-      set({ slots: slots.map(slot => ({ ...slot, earnedIP: Math.max(floor(slot), ip) })) })
+      const next = slots.map(slot => ({ ...slot, earnedIP: Math.max(floor(slot), ip) }))
+      set({ slots: next })
+      next.forEach((s, i) => get()._logIPEdit(slots[i], s))
       get()._autoDraft()
     },
     setEarnedIP(slotIndex, ip) {
@@ -238,6 +260,7 @@ export const useBuilderStore = create((set, get) => {
       const floor = slot => (get().companyMode === 'campaign' ? minEarnedIP(slot) : 0)
       const newSlots = slots.map((slot, i) => i === slotIndex ? { ...slot, earnedIP: Math.max(0, floor(slot), ip) } : slot)
       set({ slots: newSlots })
+      get()._logIPEdit(slots[slotIndex], newSlots[slotIndex])
       get()._autoDraft()
     },
     addSlot() {
@@ -257,6 +280,8 @@ export const useBuilderStore = create((set, get) => {
       const blocked = get().companyMode === 'campaign' && removeSlotBlock(slots[removeIdx])
       if (blocked) { get()._toast(blocked); return }
       set({ slots: slots.filter((_, i) => i !== removeIdx) })
+      const gone = slots[removeIdx]
+      if (gone?.type) get()._logEvent('warrior.removed', { uid: gone.uid, name: nameWithClass(gone), type: gone.type })
       get()._autoDraft()
     },
     changeIPLimit(delta) {
@@ -434,7 +459,8 @@ export const useBuilderStore = create((set, get) => {
       get()._toast(randomToasts[Math.floor(Math.random() * randomToasts.length)])
     },
     setWarriorProp(slotIndex, prop, value) {
-      const slots = [...get().slots]
+      const allSlotsBefore = get().slots
+      const slots = [...allSlotsBefore]
       const prevIP = slots[slotIndex]?.ip || []
       if (get().companyMode === 'campaign') {
         const current = slots[slotIndex]
@@ -489,8 +515,23 @@ export const useBuilderStore = create((set, get) => {
         const ip = slots[slotIndex].ip || []
         // The one-handed polearm's Shield was just bought: log it. A bought item that
         // changed: update its log entry rather than adding one.
-        if (ip.includes('weapon2') && !prevIP.includes('weapon2')) set({ campaign: logUpgrade(get(), slotIndex, 'weapon2') })
-        else if (PERMANENT_GEAR.includes(prop) && ip.includes(prop)) set({ campaign: syncUpgradeItem(get(), slotIndex, prop) })
+        if (ip.includes('weapon2') && !prevIP.includes('weapon2')) get()._logUpgradeBought(slotIndex, 'weapon2')
+        else if (PERMANENT_GEAR.includes(prop) && ip.includes(prop)) {
+          const before = get().campaign?.upgrades || []
+          const uid = slots[slotIndex].uid
+          let at = before.length - 1
+          while (at >= 0 && !(before[at].uid === uid && before[at].id === prop)) at--
+          set({ campaign: syncUpgradeItem(get(), slotIndex, prop) })
+          const now = get().campaign?.upgrades?.[at]
+          if (at >= 0 && now && now.label !== before[at].label) {
+            get()._logEvent('upgrade.changed', { uid, name: now.name, id: prop, from: before[at].label, to: now.label })
+          }
+        }
+        if (prop === 'customName') {
+          const from = nameOfSlot(allSlotsBefore[slotIndex])
+          const to = nameOfSlot(slots[slotIndex])
+          if (allSlotsBefore[slotIndex]?.type && from !== to) get()._logEvent('warrior.renamed', { uid: slots[slotIndex].uid, from, to, type: slots[slotIndex].type })
+        }
       }
       get()._autoDraft()
     },
@@ -536,7 +577,7 @@ export const useBuilderStore = create((set, get) => {
       set({ slots })
       // Campaign: log the purchase (what and for whom) for the game log
       if (checked && companyMode === 'campaign' && PERMANENT_GEAR.includes(optId)) {
-        set({ campaign: logUpgrade(get(), slotIndex, optId) })
+        get()._logUpgradeBought(slotIndex, optId)
       }
       get()._autoDraft()
     },
@@ -554,8 +595,12 @@ export const useBuilderStore = create((set, get) => {
 
       // Campaign: a Captain picked among the recruits fills the place left when everyone fell
       const { campaign } = get()
+      const was = get().slots.find(s => s.type && s.isCaptain)
       if (campaign?.needsCaptain && slots[0]?.type) set({ campaign: { ...campaign, needsCaptain: false } })
       set({ slots })
+      if (slots[0]?.type && was?.uid !== slots[0].uid) {
+        get()._logEvent('captain.changed', { uid: slots[0].uid, to: nameWithClass(slots[0]), from: was ? nameWithClass(was) : null })
+      }
       get()._autoDraft()
     },
     setNotes(slotIndex, notes) {
@@ -612,6 +657,7 @@ export const useBuilderStore = create((set, get) => {
     // Signed out: forget everything belonging to the previous account
     resetForSignOut() {
       saver.cancel()
+      unsentEvents.clear()
       get().clearBuilder()
       set({ saves: [], savesLoaded: false, saveStatus: 'idle' })
     },
@@ -741,10 +787,13 @@ export const useBuilderStore = create((set, get) => {
     // Apply a pre-built random result to the store
     applyRandomResult(result) {
       // A new company: game 0 and a fresh campaign, never the previous one's log
+      get()._dropUnsavedEvents()
       set(normalizeCampaign({ companyMode: get().companyMode, ...result, companyId: randomUUID(), campaignGame: 0, campaign: null }))
+      get()._logNewCampaign()
       get()._autoDraft()
     },
     applyQuizCompany({ mark, companyName, warriors }) {
+      get()._dropUnsavedEvents()
       const slots = Array.from({ length: 3 }, (_, i) => emptySlot(i, i === 0))
 
       if (warriors) {
@@ -782,6 +831,7 @@ export const useBuilderStore = create((set, get) => {
         campaignGame: 0,
         campaign: null,
       }))
+      get()._logNewCampaign()
       get()._autoDraft()
     },
     rollRandom({ warriors = 3, ipLimit = 3 } = {}) {
@@ -791,9 +841,43 @@ export const useBuilderStore = create((set, get) => {
 
     // ── CAMPAIGN ───────────────────────────────────────────────────────────────
     setCompanyMode(mode) {
-      const { slots, campaign, campaignGame } = get()
+      const { slots, campaign, campaignGame, companyMode: was } = get()
+      if (was === 'campaign' && mode !== 'campaign') get()._logEvent('campaign.left', { completed: campaignProgress(get()).completed })
       set({ ...normalizeCampaign({ companyMode: mode, slots, campaign, campaignGame }), ipLimit: mode === 'campaign' ? 0 : 3 })
+      if (mode === 'campaign' && was !== 'campaign') {
+        get()._logEvent(campaign ? 'campaign.resumed' : 'campaign.started', { games: campaignProgress(get()).total })
+      }
       get()._autoDraft()
+    },
+    // ── Campaign settings ──
+    // Each returns true when done; otherwise the reason is toasted
+    setGameScenario(gameNumber, name) {
+      const from = get().campaign?.log?.find(r => r.gameNumber === gameNumber)?.scenario ?? null
+      const next = setGameScenarioOf(get(), gameNumber, name)
+      if (!next) { get()._toast('There is no such game in the log.'); return false }
+      set({ campaign: next.campaign })
+      const to = next.campaign.log.find(r => r.gameNumber === gameNumber).scenario
+      if (from !== to) get()._logEvent('game.renamed', { gameNumber, from, to })
+      get()._autoDraft()
+      return true
+    },
+    endCampaignEarly() {
+      let next
+      try { next = endCampaignEarlyOf(get()) } catch (err) { get()._toast(err.message); return false }
+      set({ campaign: next.campaign })
+      get()._logEvent('campaign.endedEarly', { completed: campaignProgress(next).completed })
+      get()._autoDraft()
+      get()._toast('Campaign ended.')
+      return true
+    },
+    reopenCampaign() {
+      let next
+      try { next = reopenCampaignOf(get()) } catch (err) { get()._toast(err.message); return false }
+      set({ campaign: next.campaign })
+      get()._logEvent('campaign.reopened', { completed: campaignProgress(next).completed })
+      get()._autoDraft()
+      get()._toast('Campaign reopened.')
+      return true
     },
     getCampaignProgress() {
       return campaignProgress(get())
@@ -813,10 +897,24 @@ export const useBuilderStore = create((set, get) => {
         get()._toast(errors[0])
         return { ok: false, errors, record: null }
       }
-      const { company, record } = applyEndOfGame(get(), draft)
+      const eventId = newEventId()
+      const { company, record } = applyEndOfGame(get(), draft, { eventId })
       set({ slots: company.slots, campaignGame: company.campaignGame, campaign: company.campaign })
-      get()._autoDraft()
       const n = record.gameNumber
+      const nameOfUid = uid => {
+        const f = record.fallen.find(x => x.uid === uid)
+        return f ? nameWithClass(f) : record.roster.find(x => x.uid === uid)?.name || null
+      }
+      get()._logEvent('game.recorded', {
+        gameNumber: n, result: record.result, scenario: record.scenario,
+        awards: record.awards.map(a => ({ uid: a.uid, name: nameOfUid(a.uid), ip: a.ip, reason: a.reason })),
+        fallen: record.fallen.map(nameWithClass),
+        captainChange: record.captainChange
+          ? { from: nameOfUid(record.captainChange.from), to: record.captainChange.to ? nameOfUid(record.captainChange.to) : null }
+          : null,
+      }, { id: eventId, afterGame: n - 1 })
+      if (company.campaign.completedAt) get()._logEvent('campaign.completed', { games: n })
+      get()._autoDraft()
       get()._toast(
         company.campaign.completedAt ? `Game ${n} recorded. The campaign is complete.`
           : company.campaign.needsCaptain ? `Game ${n} recorded. Recruit new warriors and choose a Captain.`
@@ -835,9 +933,12 @@ export const useBuilderStore = create((set, get) => {
     },
     // Puts the company back as it was before the latest game (only that one)
     undoLastCampaignGame() {
+      const last = get().campaign?.log?.at(-1)
       const restored = undoLastGame(get())
       if (!restored) { get()._toast('There is no game to undo.'); return false }
-      set({ slots: restored.slots, campaignGame: restored.campaignGame, campaign: restored.campaign })
+      // The activity log already started stays started (the snapshot may predate it)
+      set({ slots: restored.slots, campaignGame: restored.campaignGame, campaign: { ...restored.campaign, eventLog: get().campaign?.eventLog } })
+      get()._logEvent('game.undone', { gameNumber: last.gameNumber, result: last.result }, { ref: last.eventId ?? null })
       get()._autoDraft()
       get()._toast(`Game ${restored.campaignGame + 1} undone.`)
       return true
@@ -846,13 +947,20 @@ export const useBuilderStore = create((set, get) => {
     // makeCaptain: the recruit becomes Captain (when the company has no living Captain).
     hireWarrior(slotIndex, type, { startIP = 0, makeCaptain = false } = {}) {
       let company
+      const eventId = newEventId()
+      const target = get().slots[slotIndex]
       try {
-        company = hireIntoVacancy(get(), slotIndex, type, { startIP, makeCaptain })
+        company = hireIntoVacancy(get(), slotIndex, type, { startIP, makeCaptain, eventId })
       } catch (err) {
         get()._toast(err.message)
         return false
       }
       set({ slots: company.slots, ...(company.campaign ? { campaign: company.campaign } : {}) })
+      const hired = company.slots[slotIndex]
+      get()._logEvent('warrior.hired', {
+        uid: hired.uid, name: nameWithClass(hired), type, startIP: hired.earnedIP || 0,
+        replaced: target?.fallen ? nameWithClass(target.fallen) : null, captain: !!hired.isCaptain,
+      }, { id: eventId })
       get()._autoDraft()
       return true
     },
@@ -861,8 +969,11 @@ export const useBuilderStore = create((set, get) => {
     undoRecruit(slotIndex) {
       const reason = undoRecruitBlock(get().slots[slotIndex])
       if (reason) { get()._toast(reason); return reason }
+      const slot = get().slots[slotIndex]
+      const hire = [...(get().campaign?.roster || [])].reverse().find(e => e.uid === slot.uid && e.action === 'recruited')
       const company = undoRecruitOf(get(), slotIndex)
       set({ slots: company.slots, ...(company.campaign ? { campaign: company.campaign } : {}) })
+      get()._logEvent('warrior.recruitUndone', { uid: slot.uid, name: nameWithClass(slot), type: slot.type }, { ref: hire?.eventId ?? null })
       get()._autoDraft()
       get()._toast('Recruit undone. Noted in the campaign log.')
       return null
@@ -872,6 +983,7 @@ export const useBuilderStore = create((set, get) => {
       const slot = get().slots[slotIndex]
       const next = slot && undoLastUpgradeOf(slot)
       if (!next) return false
+      get()._logUpgradeUndone(slot)
       set({ slots: get().slots.map((s, i) => (i === slotIndex ? next : s)), campaign: unlogLastUpgrade(get(), slot) })
       get()._autoDraft()
       return true
@@ -886,7 +998,7 @@ export const useBuilderStore = create((set, get) => {
       slot.ip = [...(slot.ip || []), statKey]
       slots[slotIndex] = slot
       set({ slots })
-      if (get().companyMode === 'campaign') set({ campaign: logUpgrade(get(), slotIndex, statKey) })
+      if (get().companyMode === 'campaign') get()._logUpgradeBought(slotIndex, statKey)
       get()._autoDraft()
     },
     removeStatImprove(slotIndex, stat) {
@@ -900,7 +1012,10 @@ export const useBuilderStore = create((set, get) => {
         return
       }
       // Campaign: this is an undo of the last upgrade, so its log entry goes too
-      if (get().companyMode === 'campaign') set({ campaign: unlogLastUpgrade(get(), slots[slotIndex]) })
+      if (get().companyMode === 'campaign') {
+        get()._logUpgradeUndone(slots[slotIndex])
+        set({ campaign: unlogLastUpgrade(get(), slots[slotIndex]) })
+      }
       // Renumber stat keys in place: slot.ip's order is the purchase order (see store/campaign.js)
       let n = 0
       slot.ip = (slot.ip || [])
@@ -918,9 +1033,74 @@ export const useBuilderStore = create((set, get) => {
       const timer = setTimeout(() => set({ toast: null, _toastTimer: null }), 2500)
       set({ toast: msg, _toastTimer: timer })
     },
+    // ── Activity log (campaign companies, signed in, not a shared link) ──
+    _canLogEvents() {
+      const s = get()
+      return s.companyMode === 'campaign' && !!s.campaign && !!getUser() && !s.viewingShare
+    },
+    // The first event of a campaign that predates the activity log is a baseline: games
+    // played so far and who is in the company. A brand new campaign starts with campaign.started.
+    _ensureEventLog(startingNow = false) {
+      const s = get()
+      if (!get()._canLogEvents() || s.campaign.eventLog) return
+      set({ campaign: { ...s.campaign, eventLog: 1 } })
+      if (startingNow) return
+      const { completed } = campaignProgress(s)
+      const roster = s.slots.filter(x => x.type)
+      if (!roster.length && !completed) return
+      const ev = makeEvent('campaign.baseline', {
+        completed,
+        roster: roster.map(x => ({ uid: x.uid, name: nameWithClass(x), type: x.type, earnedIP: x.earnedIP || 0, spent: x.ip?.length || 0, captain: !!x.isCaptain })),
+      }, { afterGame: completed })
+      unsentEvents.set(s.companyId, [...(unsentEvents.get(s.companyId) || []), ev])
+    },
+    // Queue an activity event for the next save. opts: { ref, id, afterGame }
+    _logEvent(type, payload = {}, { ref = null, id, afterGame } = {}) {
+      if (!get()._canLogEvents()) return
+      get()._ensureEventLog(type === 'campaign.started')
+      const s = get()
+      const ev = makeEvent(type, payload, { afterGame: afterGame ?? campaignProgress(s).completed, ref, id })
+      unsentEvents.set(s.companyId, [...(unsentEvents.get(s.companyId) || []), ev])
+    },
+    _logIPEdit(before, after) {
+      if (!after?.type || (before?.earnedIP || 0) === (after.earnedIP || 0)) return
+      get()._logEvent('ip.edited', { uid: after.uid, name: nameWithClass(after), from: before?.earnedIP || 0, to: after.earnedIP || 0 })
+    },
+    // Logs a purchase twice over: campaign.upgrades (the game log) and the activity log
+    _logUpgradeBought(slotIndex, id) {
+      const eventId = newEventId()
+      set({ campaign: logUpgrade(get(), slotIndex, id, { eventId }) })
+      const e = get().campaign?.upgrades?.at(-1)
+      if (!e || e.eventId !== eventId) return
+      get()._logEvent('upgrade.bought', { uid: e.uid, name: e.name, id, kind: e.kind, stat: e.stat ?? null, item: e.item ?? null, label: e.label }, { id: eventId })
+    },
+    // Call before the slot loses the upgrade: finds the entry undoLastUpgrade takes back
+    _logUpgradeUndone(slot) {
+      const ups = get().campaign?.upgrades || []
+      const lastId = (slot.ip || []).at(-1)
+      let at = ups.length - 1
+      while (at >= 0 && !(ups[at].uid === slot.uid && ups[at].id === lastId)) at--
+      const entry = ups[at]
+      const label = entry?.label || upgradeLabel(slot, lastId).label
+      get()._logEvent('upgrade.undone', { uid: slot.uid, name: nameWithClass(slot), id: lastId, label }, { ref: entry?.eventId ?? null })
+    },
+    // A brand new company in campaign mode (random / quiz): its log starts here
+    _logNewCampaign() {
+      if (get().companyMode !== 'campaign') return
+      get()._logEvent('campaign.started', { games: campaignProgress(get()).total })
+      get().slots.forEach(x => {
+        if (x.type) get()._logEvent('warrior.hired', { uid: x.uid, name: nameWithClass(x), type: x.type, startIP: x.earnedIP || 0, replaced: null, captain: !!x.isCaptain })
+      })
+    },
+    // The open company was never saved (no warriors): its queued events go nowhere
+    _dropUnsavedEvents() {
+      const { companyId, slots } = get()
+      if (!slots.some(x => x.type)) unsentEvents.delete(companyId)
+    },
     // Called after every edit: queue a cloud save (signed-in users only).
     _autoDraft() {
       if (!getUser() || get().viewingShare) return
+      get()._ensureEventLog()
       const snapshot = snapshotCompany(get())
       // Don't save empty companies, except a campaign that has played (a game where everyone fell must be kept)
       if (!snapshot.slots.some(s => s.type) && !snapshot.campaign?.log?.length) return
@@ -928,7 +1108,9 @@ export const useBuilderStore = create((set, get) => {
       const existing = saves.findIndex(s => s.companyId === snapshot.companyId)
       const entry = { ...snapshot, savedAt: Date.now() }
       set({ saves: existing >= 0 ? saves.map((s, i) => i === existing ? entry : s) : [entry, ...saves] })
-      saver.schedule(snapshot)
+      const events = unsentEvents.get(snapshot.companyId) || []
+      unsentEvents.delete(snapshot.companyId)
+      saver.schedule(snapshot, events)
     },
     _validate() {
       const { slots } = get()

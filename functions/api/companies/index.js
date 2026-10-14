@@ -8,7 +8,13 @@
 //
 // Campaign log guard: clients from before the campaign log don't send `campaign` at all.
 // If such a save arrives for a company that has one stored, the stored log is kept.
+//
+// Campaign activity events (`events`, optional) are stored in campaign_events in the same
+// batch as the save. With a conflict they are kept as 'rejected' (the UI shows them as not
+// saved). A campaign save without events that changes the number of games gets a
+// 'system.unlogged' event, so the activity log shows that something happened.
 import { json } from '../../_middleware.js'
+import { validateEvents, insertEventStatements, unloggedEvent } from '../../lib/campaignEvents.js'
 
 export async function onRequestGet(context) {
   const user = context.data.user
@@ -38,6 +44,8 @@ export async function onRequestPost(context) {
   const { id, name, mode, baseSavedAt } = body
   let { data } = body
   if (!id || !name || !data) return json({ error: 'Missing required fields' }, 400)
+  const { valid: events } = validateEvents(body.events)
+  const db = context.env.DB
 
   const existing = await context.env.DB.prepare(
     `SELECT user_id, name, mode, saved_at, data FROM companies WHERE id = ?`
@@ -47,20 +55,24 @@ export async function onRequestPost(context) {
   if (existing && existing.user_id !== user.id) return json({ error: 'forbidden' }, 403)
 
   if (existing && typeof baseSavedAt === 'number' && existing.saved_at > baseSavedAt) {
+    if (events.length) await db.batch(insertEventStatements(db, { companyId: id, userId: user.id, events, status: 'rejected' }))
     return json({
       error: 'conflict',
       company: { id, name: existing.name, mode: existing.mode, saved_at: existing.saved_at, data: JSON.parse(existing.data) },
     }, 409)
   }
 
-  if (existing && typeof data === 'object' && !('campaign' in data)) {
-    let stored = null
-    try { stored = JSON.parse(existing.data)?.campaign ?? null } catch { /* unreadable row: nothing to keep */ }
-    if (stored) data = { ...data, campaign: stored }
+  let storedData = null
+  if (existing) {
+    try { storedData = JSON.parse(existing.data) } catch { /* unreadable row: nothing to keep */ }
+  }
+  if (existing && typeof data === 'object' && !('campaign' in data) && storedData?.campaign) {
+    data = { ...data, campaign: storedData.campaign }
   }
 
   const savedAt = Date.now()
-  await context.env.DB.prepare(
+  const logged = events.length ? events : [unloggedEvent(storedData, data, { now: savedAt })].filter(Boolean)
+  const upsert = db.prepare(
     `INSERT INTO companies (id, user_id, name, mode, saved_at, data)
      VALUES (?, ?, ?, ?, ?, ?)
      ON CONFLICT(id) DO UPDATE SET
@@ -69,7 +81,8 @@ export async function onRequestPost(context) {
        saved_at = excluded.saved_at,
        data = excluded.data
      WHERE companies.user_id = ?`
-  ).bind(id, user.id, name, mode || 'standard', savedAt, JSON.stringify(data), user.id).run()
+  ).bind(id, user.id, name, mode || 'standard', savedAt, JSON.stringify(data), user.id)
+  await db.batch([upsert, ...insertEventStatements(db, { companyId: id, userId: user.id, events: logged, now: savedAt })])
 
   return json({ ok: true, savedAt })
 }

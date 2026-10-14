@@ -60,6 +60,8 @@ Apply a migration to production:
 npx wrangler d1 execute doom-builder --remote --file=db/migrations/<file>.sql
 ```
 
+The same with `--local` instead of `--remote` updates the local database used by `wrangler pages dev` and the e2e tests.
+
 ## Project structure
 
 ```

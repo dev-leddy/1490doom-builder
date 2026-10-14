@@ -6,12 +6,18 @@
 // Stale-save guard: every save sends the saved_at we last read or wrote for that
 // company. If another tab/device saved since, the server answers 409 with its
 // copy and we adopt it rather than overwrite it.
+//
+// Campaign activity events (store/campaignEvents.js) ride along with the saves:
+// queued per company in order, at most MAX_EVENTS per request, kept (in memory
+// only) until the server has them.
 
 import { listCompanies, saveCompany, deleteCompany } from '../api/companies.js'
 import { saveGame } from '../api/games.js'
+import { coalesce } from './campaignEvents.js'
 
 const DEBOUNCE_MS = 1500
 const RETRY_MS = 5000
+export const MAX_EVENTS = 50
 
 // companyId → saved_at of the copy last read from / written to the server
 const baseSavedAt = new Map()
@@ -27,13 +33,14 @@ function rowToSave(row) {
   return { ...row.data, companyId: row.id, companyName: row.data?.companyName ?? row.name, savedAt: row.saved_at }
 }
 
-function payloadFor(snapshot) {
+function payloadFor(snapshot, events = []) {
   return {
     id: snapshot.companyId,
     name: snapshot.companyName?.trim() || 'Unnamed Company',
     mode: snapshot.companyMode || 'standard',
     data: snapshot,
     baseSavedAt: baseSavedAt.get(snapshot.companyId) ?? null,
+    ...(events.length ? { events } : {}),
   }
 }
 
@@ -54,13 +61,25 @@ export async function removeCloudCompany(companyId) {
 // onSaved(snapshot, savedAt) — server accepted the save
 // onConflict(save)            — server had a newer copy; adopt it
 // onForbidden(snapshot)       — id belongs to another account; return a new id
-export function createSaver({ onStatus, onSaved, onConflict, onForbidden }) {
-  const pending = new Map() // companyId → latest snapshot not yet saved
+// save(payload, opts)         — the request (tests pass a fake; defaults to saveCompany)
+//
+// pending: companyId → { snapshot, events } not yet saved. A request takes the entry
+// out; edits made meanwhile start a new one. Events go back in front of newer ones
+// if the request fails, so their order never changes.
+export function createSaver({ onStatus, onSaved, onConflict, onForbidden, save = saveCompany }) {
+  const pending = new Map()
   let timer = null
   let running = null        // promise of the current flush loop
 
-  function schedule(snapshot) {
-    pending.set(snapshot.companyId, snapshot)
+  // Put events back in front of whatever was queued for the company since
+  function requeue(id, snapshot, events) {
+    const newer = pending.get(id)
+    pending.set(id, { snapshot: newer?.snapshot ?? snapshot, events: [...events, ...(newer?.events || [])] })
+  }
+
+  function schedule(snapshot, events = []) {
+    const entry = pending.get(snapshot.companyId)
+    pending.set(snapshot.companyId, { snapshot, events: coalesce([...(entry?.events || []), ...events]) })
     onStatus('saving')
     clearTimeout(timer)
     timer = setTimeout(flush, DEBOUNCE_MS)
@@ -74,24 +93,33 @@ export function createSaver({ onStatus, onSaved, onConflict, onForbidden }) {
 
   async function run() {
     while (pending.size) {
-      const [id, snapshot] = pending.entries().next().value
+      const [id, { snapshot, events }] = pending.entries().next().value
       pending.delete(id)
+      const sent = events.slice(0, MAX_EVENTS)
+      const rest = events.slice(MAX_EVENTS)
       try {
-        const result = await saveCompany(payloadFor(snapshot))
+        const result = await save(payloadFor(snapshot, sent))
         if (result.status === 'ok') {
           baseSavedAt.set(id, result.savedAt)
+          if (rest.length) requeue(id, snapshot, rest) // the rest go with the next request
           onSaved(snapshot, result.savedAt)
         } else if (result.status === 'conflict') {
+          // The server kept the sent events as rejected; the rest and edits made meanwhile
+          // were based on the stale copy too
           baseSavedAt.set(id, result.company.saved_at)
-          pending.delete(id) // edits made meanwhile were based on the stale copy too
+          pending.delete(id)
           onConflict(rowToSave(result.company))
         } else if (result.status === 'forbidden') {
           const moved = onForbidden(snapshot)
-          if (moved) pending.set(moved.companyId, moved)
+          if (moved) {
+            const newer = pending.get(id)
+            pending.delete(id)
+            pending.set(moved.companyId, { snapshot: newer ? { ...newer.snapshot, companyId: moved.companyId } : moved, events: [...events, ...(newer?.events || [])] })
+          }
         }
       } catch (err) {
         console.warn('[cloud save] failed, will retry:', err)
-        if (!pending.has(id)) pending.set(id, snapshot)
+        requeue(id, snapshot, events)
         onStatus('offline')
         timer = setTimeout(flush, RETRY_MS)
         return
@@ -103,8 +131,8 @@ export function createSaver({ onStatus, onSaved, onConflict, onForbidden }) {
   // Page is closing: send whatever is still queued without waiting.
   function flushOnUnload() {
     clearTimeout(timer)
-    for (const snapshot of pending.values()) {
-      saveCompany(payloadFor(snapshot), { keepalive: true }).catch(() => {})
+    for (const { snapshot, events } of pending.values()) {
+      save(payloadFor(snapshot, events.slice(0, MAX_EVENTS)), { keepalive: true }).catch(() => {})
     }
     pending.clear()
   }

@@ -69,8 +69,37 @@ export function normalizeCampaign(company) {
 export function campaignProgress(company) {
   const completed = Math.max(company?.campaignGame || 0, company?.campaign?.log?.length || 0)
   const total = CAMPAIGN_RULES.games
-  const isComplete = completed >= total || !!company?.campaign?.completedAt
-  return { completed, total, isComplete, nextGame: isComplete ? null : completed + 1 }
+  const endedEarly = !!company?.campaign?.endedEarly
+  const isComplete = completed >= total || !!company?.campaign?.completedAt || endedEarly
+  return { completed, total, isComplete, endedEarly, nextGame: isComplete ? null : completed + 1 }
+}
+
+// ── Campaign settings ─────────────────────────────────────────────────────────
+
+// Edits a recorded game's scenario name. Returns the new company, or null if no such game.
+export function setGameScenario(company, gameNumber, name) {
+  const log = company?.campaign?.log || []
+  const at = log.findIndex(r => r.gameNumber === gameNumber)
+  if (at < 0) return null
+  const scenario = (name || '').trim().slice(0, 80) || null
+  const next = log.map((r, i) => (i === at ? { ...r, scenario } : r))
+  return { ...company, campaign: { ...company.campaign, log: next } }
+}
+
+// Ends the campaign before all games are played. Throws if it is already complete.
+export function endCampaignEarly(company, { now = Date.now() } = {}) {
+  const c = normalizeCampaign(company)
+  if (campaignProgress(c).isComplete) throw new Error('The campaign is already complete.')
+  return { ...c, campaign: { ...c.campaign, completedAt: now, endedEarly: true } }
+}
+
+// Undoes endCampaignEarly. A campaign that played all its games can't be reopened.
+export function reopenCampaign(company) {
+  const c = normalizeCampaign(company)
+  const { completed, total, isComplete } = campaignProgress(c)
+  if (!isComplete) throw new Error('The campaign is not complete.')
+  if (!c.campaign.endedEarly && completed >= total) throw new Error(`All ${total} games are played. The campaign can't be reopened.`)
+  return { ...c, campaign: { ...c.campaign, completedAt: null, endedEarly: false } }
 }
 
 // ── Upgrade capacity ──────────────────────────────────────────────────────────
@@ -214,7 +243,8 @@ const withoutBefore = ({ before: _b, ...record }) => record
 
 // Records a finished game. Returns { company, record }; throws if validateEndOfGame objects.
 // Atomic: awards, deaths (slot -> vacancy), captain change and the log entry together.
-export function applyEndOfGame(company, draft, { now = Date.now() } = {}) {
+// eventId: the activity-log event for this game, kept on the record so an undo can refer to it
+export function applyEndOfGame(company, draft, { now = Date.now(), eventId = null } = {}) {
   const errors = validateEndOfGame(company, draft)
   if (errors.length) throw new Error(errors.join(' '))
 
@@ -259,6 +289,7 @@ export function applyEndOfGame(company, draft, { now = Date.now() } = {}) {
 
   const record = {
     id: newId(),
+    eventId,
     gameNumber,
     scenario: (draft.scenario || '').trim().slice(0, 80) || null,
     result: draft.result,
@@ -316,7 +347,7 @@ export function vacancies(company) {
 // Throws with a player-facing message if the hire isn't possible.
 // In a campaign the hire is logged in campaign.roster ('recruited'), remembering the fallen
 // record it replaced so undoRecruit can put it back.
-export function hireIntoVacancy(company, slotIndex, type, { startIP = 0, makeCaptain = false, now = Date.now() } = {}) {
+export function hireIntoVacancy(company, slotIndex, type, { startIP = 0, makeCaptain = false, now = Date.now(), eventId = null } = {}) {
   const c = normalizeCampaign(company)
   let slots = [...(c.slots || [])]
   const target = slots[slotIndex]
@@ -360,6 +391,7 @@ export function hireIntoVacancy(company, slotIndex, type, { startIP = 0, makeCap
     uid: hired.uid, name: nameWithClass(hired), type, action: 'recruited',
     startIP: hired.earnedIP,
     ...(target.fallen ? { replaced: target.fallen } : {}),
+    ...(eventId ? { eventId } : {}),
     at: now,
   }
   return { ...c, slots, campaign: { ...c.campaign, needsCaptain, roster: [...(c.campaign.roster || []), entry] } }
@@ -477,13 +509,14 @@ export function upgradeLabel(slot, id) {
 
 // The campaign with the purchase of slot.ip entry `id` by this slot logged.
 // Non-campaign companies get their campaign back unchanged.
-export function logUpgrade(company, slotIndex, id, { now = Date.now() } = {}) {
+export function logUpgrade(company, slotIndex, id, { now = Date.now(), eventId = null } = {}) {
   const slot = company?.slots?.[slotIndex]
   if (company?.companyMode !== 'campaign' || !slot?.type || !company.campaign) return company?.campaign ?? null
   const entry = {
     afterGame: campaignProgress(company).completed,
     uid: slot.uid, name: nameOf(slot), id,
     ...upgradeLabel(slot, id),
+    ...(eventId ? { eventId } : {}),
     at: now,
   }
   return { ...company.campaign, upgrades: [...(company.campaign.upgrades || []), entry] }

@@ -7,6 +7,7 @@ import {
   endOfGameWarnings, minEarnedIP, removeSlotBlock,
   logUpgrade, syncUpgradeItem, unlogLastUpgrade, upgradeLabel,
   undoRecruit, undoRecruitBlock, nameWithClass,
+  setGameScenario, endCampaignEarly, reopenCampaign,
 } from '../../src/store/campaign.js'
 
 const warrior = (type, extra = {}) => ({
@@ -191,7 +192,7 @@ describe('campaign length', () => {
       c = applyEndOfGame(c, draft({ scenario: `Scenario ${g}` }), { now: 1000 + g }).company
     }
     expect(c.campaign.completedAt).toBe(1000 + CAMPAIGN_RULES.games)
-    expect(campaignProgress(c)).toEqual({ completed: CAMPAIGN_RULES.games, total: CAMPAIGN_RULES.games, isComplete: true, nextGame: null })
+    expect(campaignProgress(c)).toEqual({ completed: CAMPAIGN_RULES.games, total: CAMPAIGN_RULES.games, isComplete: true, endedEarly: false, nextGame: null })
     expect(c.campaign.log.map(r => r.scenario)).toEqual(Array.from({ length: CAMPAIGN_RULES.games }, (_, i) => `Scenario ${i + 1}`))
     expect(validateEndOfGame(c, draft()).length).toBeGreaterThan(0)
     expect(() => applyEndOfGame(c, draft())).toThrow()
@@ -415,5 +416,43 @@ describe('recruits and the roster log', () => {
     const back = undoLastGame(c)
     expect(back.campaign.roster.map(e => e.type)).toEqual(['Scout'])
     expect(back.slots[1].type).toBe('Scout')
+  })
+})
+
+describe('campaign settings', () => {
+  it('renames a recorded game, and clears the name when empty', () => {
+    const c = applyEndOfGame(trio(), draft({ scenario: 'The Bell Tower' })).company
+    expect(setGameScenario(c, 1, '  The Drowned Chapel ').campaign.log[0].scenario).toBe('The Drowned Chapel')
+    expect(setGameScenario(c, 1, '   ').campaign.log[0].scenario).toBeNull()
+    expect(setGameScenario(c, 2, 'Nope')).toBeNull()
+  })
+
+  it('ending early completes the campaign; it can be reopened', () => {
+    const c = applyEndOfGame(trio(), draft()).company
+    const ended = endCampaignEarly(c, { now: 50 })
+    expect(ended.campaign).toMatchObject({ completedAt: 50, endedEarly: true })
+    expect(campaignProgress(ended)).toMatchObject({ completed: 1, isComplete: true, endedEarly: true, nextGame: null })
+    expect(validateEndOfGame(ended, draft()).length).toBeGreaterThan(0)
+    expect(() => endCampaignEarly(ended)).toThrow()
+    const open = reopenCampaign(ended)
+    expect(open.campaign).toMatchObject({ completedAt: null, endedEarly: false })
+    expect(campaignProgress(open)).toMatchObject({ isComplete: false, nextGame: 2 })
+  })
+
+  it('an early end counts as complete even without completedAt', () => {
+    const c = { ...trio(), campaign: { ...trio().campaign, endedEarly: true } }
+    expect(campaignProgress(c).isComplete).toBe(true)
+  })
+
+  it("a campaign that played every game can't be reopened, and an open one has nothing to reopen", () => {
+    let c = trio()
+    expect(() => reopenCampaign(c)).toThrow()
+    for (let g = 0; g < CAMPAIGN_RULES.games; g++) c = applyEndOfGame(c, draft()).company
+    expect(() => reopenCampaign(c)).toThrow()
+  })
+
+  it('a game records the activity event it was logged with', () => {
+    const { record } = applyEndOfGame(trio(), draft(), { eventId: 'e-1' })
+    expect(record.eventId).toBe('e-1')
   })
 })

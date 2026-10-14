@@ -14,12 +14,13 @@ export async function listCompanies() {
 // Returns { status: 'ok', savedAt } | { status: 'conflict', company } | { status: 'forbidden' }.
 // Throws on network errors and unexpected responses (caller retries).
 // keepalive lets the request finish while the page is unloading.
-export async function saveCompany({ id, name, mode, data, baseSavedAt }, { keepalive = false } = {}) {
+// events: campaign activity events to store with this save (see store/campaignEvents.js).
+export async function saveCompany({ id, name, mode, data, baseSavedAt, events }, { keepalive = false } = {}) {
   const res = await fetch(BASE, {
     ...OPTS,
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id, name, mode, data, baseSavedAt }),
+    body: JSON.stringify({ id, name, mode, data, baseSavedAt, ...(events?.length ? { events } : {}) }),
     keepalive,
   })
   if (res.status === 409) return { status: 'conflict', company: (await res.json()).company }
@@ -27,6 +28,14 @@ export async function saveCompany({ id, name, mode, data, baseSavedAt }, { keepa
   if (!res.ok) throw new Error(`saveCompany: ${res.status}`)
   const { savedAt } = await res.json()
   return { status: 'ok', savedAt }
+}
+
+// A page of a company's campaign activity log, oldest first: { events, nextAfter }.
+// Pass nextAfter back as `after` for the next page (null when there are no more).
+export async function fetchCompanyEvents(id, { after = 0, limit = 200 } = {}) {
+  const res = await fetch(`${BASE}/${encodeURIComponent(id)}/events?after=${after}&limit=${limit}`, OPTS)
+  if (!res.ok) throw new Error(`fetchCompanyEvents: ${res.status}`)
+  return res.json()
 }
 
 export async function deleteCompany(id) {
