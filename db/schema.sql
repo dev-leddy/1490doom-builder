@@ -57,8 +57,31 @@ CREATE TABLE IF NOT EXISTS campaign_events (
   status     TEXT    NOT NULL DEFAULT 'ok'       -- 'ok' | 'rejected'
 );
 
+-- Campaign groups: companies playing a campaign together (007)
+CREATE TABLE IF NOT EXISTS campaign_groups (
+  id              TEXT    PRIMARY KEY,
+  name            TEXT,
+  invite_code     TEXT    NOT NULL UNIQUE,            -- 8 chars of unambiguous base32, shown XXXX-XXXX
+  code_expires_at INTEGER NOT NULL,                   -- unix ms
+  created_by      TEXT    REFERENCES users(id) ON DELETE SET NULL,
+  created_at      INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS campaign_group_members (
+  group_id     TEXT    NOT NULL REFERENCES campaign_groups(id) ON DELETE CASCADE,
+  company_id   TEXT    NOT NULL,
+  user_id      TEXT    NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  company_name TEXT,
+  joined_at    INTEGER NOT NULL,
+  left_at      INTEGER,                               -- NULL while a member
+  left_reason  TEXT,                                  -- 'left' | 'deleted'
+  PRIMARY KEY (group_id, company_id)
+);
+
 CREATE UNIQUE INDEX IF NOT EXISTS idx_short_links_encoded ON short_links(encoded);
 CREATE INDEX IF NOT EXISTS idx_campaign_events_company ON campaign_events(company_id, seq);
 CREATE INDEX IF NOT EXISTS idx_game_sessions_user ON game_sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_companies_user ON companies(user_id);
 CREATE INDEX IF NOT EXISTS idx_sessions_user  ON sessions(user_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_group_members_active_company ON campaign_group_members(company_id) WHERE left_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_group_members_user ON campaign_group_members(user_id);

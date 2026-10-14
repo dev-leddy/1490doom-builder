@@ -19,6 +19,7 @@ import NewCompanyPage from './NewCompanyPage'
 import LandingPage, { RefContent } from './LandingPage'
 import AuthSheet from './AuthSheet'
 import AvatarPicker from './AvatarPicker'
+import JoinCampaignSheet from './JoinCampaignSheet'
 import { useAuthStore } from '../store/authStore'
 import { encodeCompany, decodeCompany } from '../store/builderEncoding'
 import { loadGame } from '../api/games'
@@ -57,6 +58,7 @@ export default function BuilderPage({ initialView = null }) {
   const [authSheetState, setAuthSheetState] = useState('providers')
   const [authReason, setAuthReason] = useState(null)
   const [resetToken, setResetToken] = useState(null)
+  const [joinCode, setJoinCode] = useState(null) // invite code of a shared campaign to join (/j/<code>)
   useEffect(() => { fetchMe() }, []) // eslint-disable-line
 
   // Building, saving and playing need an account. Asks a guest to sign in and
@@ -92,18 +94,45 @@ export default function BuilderPage({ initialView = null }) {
     if (pending?.type === 'quiz') applyQuizPayload(pending.payload)
     else if (pending?.type === 'share' && useBuilderStore.getState().viewingShare) saveSharedCopy()
     else if (pending?.type === 'new') setView('new-company')
+    else if (pending?.type === 'join' && pending.code) setJoinCode(pending.code)
   }, [userId]) // eslint-disable-line
 
   // Quiz finished in the standalone /quiz page while signed out: ask to sign in
   const quizFromUrl = useRef(false)
+  const joinFromUrl = useRef(false)
   useEffect(() => {
-    if (authStatus === 'guest' && quizFromUrl.current) {
+    if (authStatus === 'guest' && (quizFromUrl.current || joinFromUrl.current)) {
+      setAuthReason(joinFromUrl.current ? 'Sign in to join this shared campaign.' : 'Sign in to build and save your company.')
       quizFromUrl.current = false
-      setAuthReason('Sign in to build and save your company.')
+      joinFromUrl.current = false
       setAuthSheetState('providers')
       setAuthSheetOpen(true)
     }
   }, [authStatus])
+
+  // Invite link to a shared campaign: /j/<code> redirects to /?join=<code>. Kept as a pending
+  // action, so it is finished after signing in (or right away when already signed in).
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const code = params.get('join')
+    if (!code) return
+    try { sessionStorage.setItem(PENDING_KEY, JSON.stringify({ type: 'join', code })) } catch { /* storage unavailable */ }
+    joinFromUrl.current = true
+    if (useAuthStore.getState().user) { joinFromUrl.current = false; setJoinCode(takePending()?.code || code) }
+    params.delete('join')
+    const rest = params.toString()
+    window.history.replaceState({}, '', `${window.location.pathname}${rest ? `?${rest}` : ''}${window.location.hash}`)
+  }, [])
+
+  // Joined a shared campaign: open the company that joined
+  function handleJoined(companyId) {
+    setJoinCode(null)
+    const s = useBuilderStore.getState()
+    const index = s.saves.findIndex(x => x.companyId === companyId)
+    if (index >= 0 && s.companyId !== companyId) s.loadCompany(index)
+    setView('builder')
+    s._toast('You joined the shared campaign.')
+  }
 
   async function handleLogout() {
     await logout()
@@ -398,6 +427,9 @@ export default function BuilderPage({ initialView = null }) {
           resetToken={resetToken}
           reason={authReason}
         />
+      )}
+      {joinCode && user && (
+        <JoinCampaignSheet code={joinCode} onClose={() => setJoinCode(null)} onJoined={handleJoined} />
       )}
       {modeSelectOpen && (
         <ModeSelectModal

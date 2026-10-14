@@ -6,6 +6,7 @@ import ConfirmModal from '../shared/ConfirmModal'
 import { RESULT_NAME, resultTally, undoGameRules } from './campaignUi'
 import { IconUndo, IconCoin, IconEnd } from './icons'
 import { CAMPAIGN_RULES } from '../data/campaign'
+import CampaignGroupSheet, { IconTogether } from './CampaignGroupSheet'
 
 // ── Campaign settings: the tools behind the gear in the campaign panel ────────
 // Campaign length (games, or no limit), undo the latest game, fix IP by hand,
@@ -70,7 +71,7 @@ export default function CampaignSettingsSheet({ onClose }) {
     slots, companyMode, campaignGame, campaign,
     undoLastCampaignGame, setEarnedIP, endCampaignEarly, reopenCampaign, getCampaignProgress, setCampaignLength,
   } = useBuilderStore()
-  const [view, setView] = useState('menu') // menu | ip
+  const [view, setView] = useState('menu') // menu | ip | group
   const [confirm, setConfirm] = useState(null) // 'game' | 'end'
 
   const company = { companyMode, slots, campaignGame, campaign }
@@ -106,6 +107,8 @@ export default function CampaignSettingsSheet({ onClose }) {
       />
     )
   }
+
+  if (view === 'group') return <CampaignGroupSheet onClose={onClose} onBack={() => setView('menu')} />
 
   const back = <button type="button" className="co-sheet-randomize" onClick={() => setView('menu')}>Back</button>
 
@@ -151,6 +154,7 @@ export default function CampaignSettingsSheet({ onClose }) {
           reason={canUndoGame ? null : log.length ? 'Only the latest game can be undone.' : noGames}
           onClick={() => setConfirm('game')} />
         <Row icon={<IconCoin />} label="Fix IP" reason={living.length ? null : 'No warriors yet.'} onClick={() => setView('ip')} />
+        <Row icon={<IconTogether />} label="Play together" testId="cmp-set-play-together" onClick={() => setView('group')} />
         {endedEarly ? (
           <Row icon={<IconEnd />} label="Reopen campaign" onClick={() => { if (reopenCampaign()) onClose() }} />
         ) : (

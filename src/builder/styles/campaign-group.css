@@ -1,0 +1,120 @@
+/* ── Shared campaigns (CampaignGroupSheet, JoinCampaignSheet, MemberCampaignView, CampaignGroupStrip) ── */
+
+.cg-stack { display: flex; flex-direction: column; gap: 1rem; }
+.cg-lead { margin: 0; color: var(--parchment); font-size: 1rem; line-height: 1.5; }
+.cg-help { margin: 0; color: #b0b0b0; font-size: 0.9rem; line-height: 1.45; }
+.cg-error { margin: 0.75rem 0 0; color: var(--blood-text, #e0573a); font-size: 0.95rem; }
+.cg-notice {
+  margin: 0.5rem 0 0; padding: 0.6rem 0.75rem; border-left: 3px solid var(--blood);
+  background: rgba(190, 65, 39, 0.1); color: var(--bone); font-size: 0.92rem; line-height: 1.45;
+}
+.cg-section-title {
+  display: block; margin: 0 0 0.5rem; padding: 0;
+  font-family: 'Oswald', sans-serif; font-weight: 400; font-size: 0.8rem; letter-spacing: 0.14em; text-transform: uppercase; color: #bdbdbd;
+}
+
+/* Buttons: 44px+ targets */
+.cg-btn {
+  min-height: 44px; padding: 0 1rem; border: 1px solid #4a4a4a; border-radius: 6px; background: var(--fog);
+  color: var(--parchment); font-family: 'Oswald', sans-serif; font-size: 0.9rem; letter-spacing: 0.08em; text-transform: uppercase;
+  cursor: pointer; touch-action: manipulation;
+}
+.cg-btn:disabled { opacity: 0.5; cursor: default; }
+.cg-btn:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
+.cg-btn--primary { min-height: 52px; background: var(--blood); border-color: var(--blood); color: #fff; font-size: 1rem; }
+.cg-btn--quiet { background: none; align-self: center; }
+.cg-btn--danger { background: none; border-color: rgba(190, 65, 39, 0.6); color: var(--blood-text, #e0573a); }
+@media (hover: hover) { .cg-btn:not(:disabled):hover { border-color: var(--bone); } }
+.cg-btn-row { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; }
+
+/* Join with a code */
+.cg-join { margin: 0; }
+.cg-join-row { display: flex; gap: 0.5rem; }
+.cg-code-input {
+  flex: 1; min-width: 0; min-height: 44px; box-sizing: border-box;
+  font-family: 'Oswald', monospace; font-size: 1.15rem; letter-spacing: 0.15em; text-transform: uppercase;
+}
+
+/* Invite: the code big, the link, QR */
+.cg-invite { display: flex; flex-direction: column; align-items: center; gap: 0.6rem; padding: 1rem; border: 1px solid #333; border-radius: 8px; background: rgba(255, 255, 255, 0.03); }
+.cg-invite .cg-section-title { align-self: flex-start; }
+.cg-code {
+  margin: 0; font-family: 'Oswald', monospace; font-size: 2.2rem; line-height: 1.1; letter-spacing: 0.18em;
+  color: var(--parchment); user-select: all;
+}
+.cg-code.is-expired { color: #777; text-decoration: line-through; }
+.cg-expiry { margin: 0; color: #b0b0b0; font-size: 0.9rem; }
+.cg-expiry.is-expired { color: var(--blood-text, #e0573a); }
+.cg-qr { width: 180px; height: 180px; border-radius: 6px; background: #fff; image-rendering: pixelated; }
+.cg-qr--blank { background: rgba(255, 255, 255, 0.08); }
+.cg-link { margin: 0; max-width: 100%; overflow-wrap: anywhere; text-align: center; color: var(--bone); font-size: 0.92rem; user-select: all; }
+
+/* Members */
+.cg-members { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.4rem; }
+.cg-member {
+  width: 100%; min-height: 56px; box-sizing: border-box; display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.6rem 0.75rem; border: 1px solid #333; border-radius: 6px; background: var(--fog);
+  color: var(--bone); text-align: left; font: inherit; cursor: pointer;
+}
+.cg-member.is-mine, .cg-member.is-static { cursor: default; }
+.cg-member:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
+@media (hover: hover) { button.cg-member:hover { border-color: #5a5a5a; } }
+.cg-member-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.1rem; }
+.cg-member-name { color: var(--parchment); font-size: 1rem; overflow-wrap: anywhere; }
+.cg-member-sub { color: #b0b0b0; font-size: 0.88rem; }
+.cg-member-you {
+  flex: none; padding: 0.15rem 0.5rem; border-radius: 999px; border: 1px solid #555; color: #ccc;
+  font-family: 'Oswald', sans-serif; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase;
+}
+.cg-member-go { flex: none; color: #999; font-size: 1.4rem; line-height: 1; }
+
+/* Join: which company */
+.cg-pick { margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 0.4rem; }
+.cg-pick-row {
+  min-height: 56px; display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0.75rem;
+  border: 1px solid #333; border-radius: 6px; background: var(--fog); cursor: pointer;
+}
+.cg-pick-row input { width: 22px; height: 22px; flex: none; accent-color: var(--blood); }
+.cg-pick-row.is-picked { border-color: var(--blood); box-shadow: inset 3px 0 0 var(--blood); }
+.cg-pick-row.is-disabled { opacity: 0.55; cursor: default; }
+.cg-pick-row:focus-within { outline: 2px solid var(--blood); outline-offset: 2px; }
+
+/* Campaign panel: members row */
+.cg-strip {
+  width: 100%; min-height: 44px; box-sizing: border-box; display: flex; align-items: center; gap: 0.6rem;
+  margin-top: 0.5rem; padding: 0.4rem 0.6rem; border: 1px solid #333; border-radius: 6px; background: rgba(255, 255, 255, 0.03);
+  color: var(--bone); font: inherit; font-size: 0.92rem; text-align: left; cursor: pointer;
+}
+.cg-strip:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
+.cg-strip-icon { flex: none; display: grid; place-items: center; color: #bdbdbd; }
+.cg-strip-faces { display: flex; flex: none; }
+.cg-face {
+  width: 26px; height: 26px; display: grid; place-items: center; margin-left: -6px; border-radius: 50%;
+  border: 2px solid var(--fog); background: var(--rust); color: #fff; font-size: 0.75rem; font-weight: 600;
+}
+.cg-face:first-child { margin-left: 0; }
+.cg-strip-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Member view (full screen, on the campaign log's frame) */
+.mcv-sub {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex: none;
+  padding: 0.5rem 1rem; color: #b0b0b0; font-size: 0.92rem;
+}
+.mcv-readonly {
+  flex: none; padding: 0.15rem 0.5rem; border: 1px solid #555; border-radius: 999px;
+  font-family: 'Oswald', sans-serif; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase;
+}
+.mcv-tabs { margin: 0 1rem 0.5rem; align-self: flex-start; }
+.mcv-roster { box-sizing: border-box; max-width: 760px; margin: 0 auto; padding: 1rem; display: flex; flex-direction: column; gap: 1rem; }
+.mcv-track { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; }
+.mcv-warriors { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+.mcv-warrior { display: flex; flex-direction: column; gap: 0.2rem; padding: 0.75rem; border: 1px solid #333; border-radius: 6px; background: var(--fog); }
+.mcv-warrior.is-fallen { opacity: 0.75; border-style: dashed; }
+.mcv-warrior-name { color: var(--parchment); font-size: 1.02rem; }
+.mcv-captain {
+  margin-left: 0.5rem; padding: 0.05rem 0.4rem; border-radius: 3px; background: var(--rust); color: #fff;
+  font-family: 'Oswald', sans-serif; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; vertical-align: middle;
+}
+.mcv-line { color: var(--bone); font-size: 0.92rem; line-height: 1.4; }
+.mcv-label { color: #999; font-family: 'Oswald', sans-serif; font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; margin-right: 0.35rem; }
+.mcv-item { cursor: default; }
