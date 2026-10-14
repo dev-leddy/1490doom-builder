@@ -422,14 +422,15 @@ function awardDeltas(fromAwards = [], toAwards = []) {
 }
 
 // The company with its latest game entered again from `draft` (same rules as recording).
-// Same game number, record id and activity event; the scenario stays unless the draft
-// gives one. Throws with the reasons if it can't be done.
+// Same game number, record id and activity event; the scenario stays when the draft leaves
+// it out (undefined) and is cleared by ''. Throws with the reasons if it can't be done.
 // → { company, record, previous, deltas }
 export function reRecordLatestGame(company, draft, { now = Date.now() } = {}) {
   const previous = company?.campaign?.log?.at(-1)
   if (!previous?.before) throw new Error('Only the result and the survivor point of this game can be changed.')
   const restored = undoLastGame(company)
-  const full = { ...draft, scenario: draft.scenario ?? previous.scenario ?? '' }
+  // scenario left out (undefined) keeps the recorded one; '' (or null) clears it
+  const full = { ...draft, scenario: draft.scenario === undefined ? previous.scenario ?? '' : draft.scenario }
   const errors = validateEndOfGame(restored, full)
   if (errors.length) throw new Error(errors.join(' '))
   const { company: next, record: fresh } = applyEndOfGame(restored, full, { now, eventId: previous.eventId ?? null })

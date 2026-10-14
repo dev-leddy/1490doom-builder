@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { makeEvent, coalesce, newEventId, CLIENT_EVENT_TYPES, notesFor, rowActions } from '../../src/store/campaignEvents.js'
+import { makeEvent, coalesce, newEventId, CLIENT_EVENT_TYPES, notesFor, rowActions, makeBaselineEvent } from '../../src/store/campaignEvents.js'
 import { normalizeCampaign, applyEndOfGame, logUpgrade, hireIntoVacancy } from '../../src/store/campaign.js'
 import { createSaver, MAX_EVENTS } from '../../src/store/builderPersistence.js'
 import {
@@ -288,5 +288,24 @@ describe('rowActions', () => {
     expect(rowActions(c, e)).toEqual({ undoGame: false, undoUpgrade: null, undoRecruit: null, renameGame: null, editOutcome: null, fixIP: [1] })
     expect(rowActions(c, { ...e, status: 'rejected' }).fixIP).toEqual([])
     expect(rowActions(c, { ...e, payload: { uid: 'gone' } }).fixIP).toEqual([])
+  })
+})
+
+describe('baseline event', () => {
+  const company = (campaignGame, slots) => normalizeCampaign({ companyMode: 'campaign', campaignGame, companyId: 'c1', slots })
+  const fighter = { type: 'Fighter', customName: 'Jo', isCaptain: true, earnedIP: 3, ip: ['climbing'], statImproves: [] }
+
+  it('sits under the last game played and sorts before what follows it', () => {
+    const e = makeBaselineEvent(company(3, [fighter, { type: null }]), { now: 1000 })
+    expect(e).toMatchObject({ type: 'campaign.baseline', afterGame: 2, at: 999 })
+    expect(e.payload.completed).toBe(3)
+    expect(e.payload.roster).toEqual([{ uid: expect.any(String), name: 'Jo (Fighter)', type: 'Fighter', earnedIP: 3, spent: 1, captain: true }])
+    const next = makeEvent('upgrade.bought', {}, { now: 1000 })
+    expect(e.at).toBeLessThan(next.at)
+  })
+
+  it('a company with no games yet starts at 0; an empty one gets none', () => {
+    expect(makeBaselineEvent(company(0, [fighter])).afterGame).toBe(0)
+    expect(makeBaselineEvent(company(0, [{ type: null }]))).toBeNull()
   })
 })

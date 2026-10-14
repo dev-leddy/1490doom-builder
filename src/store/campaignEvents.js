@@ -9,7 +9,7 @@
 //   ref       for an undo: the id of the event it takes back; for entry.noted,
 //             game.renamed and game.edited: the event it is about
 
-import { canUndoLastGame, lastUpgrade, undoRecruitBlock } from './campaign.js'
+import { canUndoLastGame, lastUpgrade, undoRecruitBlock, campaignProgress, nameWithClass } from './campaign.js'
 
 // Types a client may send. 'system.unlogged' is written by the server only.
 export const CLIENT_EVENT_TYPES = [
@@ -121,4 +121,20 @@ export function rowActions(company, event) {
     if (i >= 0 && !undoRecruitBlock(slots[i])) out.undoRecruit = { slotIndex: i }
   }
   return out
+}
+
+// campaign.baseline: the first event of a campaign that predates the activity log, saying
+// how many games were already played and who is in the company. null for an empty, unplayed one.
+//   afterGame = games played - 1, so the log's game column (afterGame + 1) shows the last
+//   game played, e.g. "Log started after game 3" sits under game 3 (0 when none played yet).
+//   payload.completed is the actual number of games played.
+//   at is 1 ms earlier than now, so it sorts before whatever is logged in the same moment.
+export function makeBaselineEvent(company, { now = Date.now(), id } = {}) {
+  const { completed } = campaignProgress(company)
+  const roster = (company?.slots || []).filter(x => x.type)
+  if (!roster.length && !completed) return null
+  return makeEvent('campaign.baseline', {
+    completed,
+    roster: roster.map(x => ({ uid: x.uid, name: nameWithClass(x), type: x.type, earnedIP: x.earnedIP || 0, spent: x.ip?.length || 0, captain: !!x.isCaptain })),
+  }, { afterGame: Math.max(0, completed - 1), now: now - 1, id })
 }

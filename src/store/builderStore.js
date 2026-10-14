@@ -22,7 +22,7 @@ import {
 import { encodeCompany, decodeCompany } from './builderEncoding'
 import { fetchCloudSaves, removeCloudCompany, createSaver, migrateLocalData, snapshotCompany } from './builderPersistence'
 import { useAuthStore } from './authStore'
-import { makeEvent, newEventId, MAX_NOTE_LENGTH } from './campaignEvents'
+import { makeEvent, makeBaselineEvent, newEventId, MAX_NOTE_LENGTH } from './campaignEvents'
 
 // Weapon rules live in utils/loadout (pure); re-exported for the UI
 export { getAllowedWeapons, getSecondWeaponOptions }
@@ -636,7 +636,6 @@ export const useBuilderStore = create((set, get) => {
       // Every saved field must be listed here, or the next auto-save drops it (campaign holds the game log)
       const loaded = normalizeCampaign({ companyMode: cm, campaignGame: cg, campaign: cp, slots: sl })
       set({ mark: m, companyName: n, companyAvatar: a, ipLimit: ip, companyId: cid || randomUUID(), ...loaded, viewingShare: false })
-      get()._toast('Company loaded!')
     },
     async deleteCompany(index) {
       const removed = get().saves[index]
@@ -1120,13 +1119,8 @@ export const useBuilderStore = create((set, get) => {
       if (!get()._canLogEvents() || s.campaign.eventLog) return
       set({ campaign: { ...s.campaign, eventLog: 1 } })
       if (startingNow) return
-      const { completed } = campaignProgress(s)
-      const roster = s.slots.filter(x => x.type)
-      if (!roster.length && !completed) return
-      const ev = makeEvent('campaign.baseline', {
-        completed,
-        roster: roster.map(x => ({ uid: x.uid, name: nameWithClass(x), type: x.type, earnedIP: x.earnedIP || 0, spent: x.ip?.length || 0, captain: !!x.isCaptain })),
-      }, { afterGame: completed })
+      const ev = makeBaselineEvent(s)
+      if (!ev) return
       unsentEvents.set(s.companyId, [...(unsentEvents.get(s.companyId) || []), ev])
     },
     // Queue an activity event for the next save. opts: { ref, id, afterGame }

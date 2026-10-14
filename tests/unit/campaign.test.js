@@ -598,6 +598,14 @@ describe('editing the latest game in full', () => {
     expect(canUndoLastGame(e)).toBe(true)
   })
 
+  it('keeps the scenario when the draft leaves it out, clears it when emptied', () => {
+    const c = applyEndOfGame(trio(), draft({ scenario: 'Bell Tower' })).company
+    const { scenario: _s, ...rest } = draftFromRecord(c)
+    expect(reRecordLatestGame(c, rest).record.scenario).toBe('Bell Tower')
+    expect(reRecordLatestGame(c, { ...rest, scenario: '' }).record.scenario).toBeNull()
+    expect(reRecordLatestGame(c, { ...rest, scenario: 'Moor' }).record.scenario).toBe('Moor')
+  })
+
   it('uses the same checks as recording a game', () => {
     const c = applyEndOfGame(trio(), draft()).company
     expect(() => reRecordLatestGame(c, { ...draftFromRecord(c), survivorPick: null })).toThrow()
