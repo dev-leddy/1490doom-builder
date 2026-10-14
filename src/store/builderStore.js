@@ -16,6 +16,8 @@ import {
   undoLastUpgrade as undoLastUpgradeOf, undoRecruit as undoRecruitOf, undoRecruitBlock,
   nameWithClass, upgradeLabel, setGameScenario as setGameScenarioOf,
   endCampaignEarly as endCampaignEarlyOf, reopenCampaign as reopenCampaignOf,
+  reRecordLatestGame, editOutcome,
+  setCampaignLength as setCampaignLengthOf, keepPlaying as keepPlayingOf, campaignLength,
 } from './campaign'
 import { encodeCompany, decodeCompany } from './builderEncoding'
 import { fetchCloudSaves, removeCloudCompany, createSaver, migrateLocalData, snapshotCompany } from './builderPersistence'
@@ -871,6 +873,27 @@ export const useBuilderStore = create((set, get) => {
       get()._autoDraft()
       return true
     },
+    // Planned number of games (null = no limit); at least the games already played
+    setCampaignLength(length) {
+      const from = campaignLength(get())
+      let next
+      try { next = setCampaignLengthOf(get(), length) } catch (err) { get()._toast(err.message); return false }
+      set({ campaign: next.campaign })
+      if (from !== length) get()._logEvent('campaign.lengthChanged', { from, to: length })
+      get()._autoDraft()
+      return true
+    },
+    // The campaign is complete but the players want more: room for one more game
+    keepPlaying() {
+      const from = campaignLength(get())
+      let next
+      try { next = keepPlayingOf(get()) } catch (err) { get()._toast(err.message); return false }
+      set({ campaign: next.campaign })
+      const to = next.campaign.length
+      get()._logEvent(from !== to ? 'campaign.lengthChanged' : 'campaign.reopened', from !== to ? { from, to } : { completed: campaignProgress(next).completed })
+      get()._autoDraft()
+      return true
+    },
     endCampaignEarly() {
       let next
       try { next = endCampaignEarlyOf(get()) } catch (err) { get()._toast(err.message); return false }
@@ -908,6 +931,8 @@ export const useBuilderStore = create((set, get) => {
         return { ok: false, errors, record: null }
       }
       const eventId = newEventId()
+      const lengthBefore = campaignLength(get())
+      const wasComplete = !!get().campaign?.completedAt
       const { company, record } = applyEndOfGame(get(), draft, { eventId })
       set({ slots: company.slots, campaignGame: company.campaignGame, campaign: company.campaign })
       const n = record.gameNumber
@@ -923,15 +948,55 @@ export const useBuilderStore = create((set, get) => {
           ? { from: nameOfUid(record.captainChange.from), to: record.captainChange.to ? nameOfUid(record.captainChange.to) : null }
           : null,
       }, { id: eventId, afterGame: n - 1 })
-      if (company.campaign.completedAt) get()._logEvent('campaign.completed', { games: n })
+      // Played past the planned length: it grew to fit this game
+      if (company.campaign.length !== lengthBefore) get()._logEvent('campaign.lengthChanged', { from: lengthBefore, to: company.campaign.length }, { afterGame: n - 1 })
+      else if (company.campaign.completedAt && !wasComplete) get()._logEvent('campaign.completed', { games: n })
       get()._autoDraft()
       get()._toast(
-        company.campaign.completedAt ? `Game ${n} recorded. The campaign is complete.`
+        company.campaign.completedAt && company.campaign.length === lengthBefore ? `Game ${n} recorded. The campaign is complete.`
           : company.campaign.needsCaptain ? `Game ${n} recorded. Recruit new warriors and choose a Captain.`
           : record.result === 'retreat' ? `Game ${n} recorded. No IP for a retreat.`
           : `Game ${n} recorded.`
       )
       return { ok: true, errors: [], record }
+    },
+    // Enter the latest game again from a new End of Game draft (prefill: draftFromRecord).
+    // Like an undo + record, so upgrades bought and recruits hired since are lost
+    // (editLatestGameLosses). Returns { ok, errors, record }; fallback: true means this game
+    // has no snapshot, so only editGameOutcome can change it.
+    editLatestGame(draft) {
+      const last = get().campaign?.log?.at(-1)
+      if (!last?.before) {
+        const msg = 'Only the result and the survivor point of this game can be changed.'
+        get()._toast(msg)
+        return { ok: false, errors: [msg], record: null, fallback: true }
+      }
+      let res
+      try { res = reRecordLatestGame(get(), draft) } catch (err) {
+        get()._toast(err.message)
+        return { ok: false, errors: [err.message], record: null, fallback: false }
+      }
+      const { company, record, previous, deltas } = res
+      set({ slots: company.slots, campaignGame: company.campaignGame, campaign: company.campaign })
+      get()._logGameEdited(previous, record, deltas)
+      get()._autoDraft()
+      get()._toast(`Game ${record.gameNumber} updated.`)
+      return { ok: true, errors: [], record, fallback: false }
+    },
+    // Any recorded game: change the result and/or the survivor point (change.survivorPick is
+    // a warrior uid). Returns { ok, reason, deltas, warnings }.
+    editGameOutcome(gameNumber, change) {
+      let res
+      try { res = editOutcome(get(), gameNumber, change) } catch (err) {
+        get()._toast(err.message)
+        return { ok: false, reason: err.message, deltas: [], warnings: [] }
+      }
+      const { company, record, previous, deltas, warnings } = res
+      set({ slots: company.slots, campaign: company.campaign })
+      get()._logGameEdited(previous, record, deltas)
+      get()._autoDraft()
+      get()._toast(warnings[0] || `Game ${gameNumber} updated.`)
+      return { ok: true, reason: null, deltas, warnings }
     },
     // Older entry point (pooled IP allocation); maps onto recordCampaignGame
     awardEndOfGame({ survivorIndices, ipAllocations = {}, newCaptainIndex = null, retreat = false, result, scenario = null }) {
@@ -1071,6 +1136,16 @@ export const useBuilderStore = create((set, get) => {
       const s = get()
       const ev = makeEvent(type, payload, { afterGame: afterGame ?? campaignProgress(s).completed, ref, id })
       unsentEvents.set(s.companyId, [...(unsentEvents.get(s.companyId) || []), ev])
+    },
+    // game.edited: what the game's result and awards were and became, and the IP moved
+    _logGameEdited(previous, record, deltas) {
+      const nameOf = (r, uid) => r.fallen?.find(f => f.uid === uid) ? nameWithClass(r.fallen.find(f => f.uid === uid))
+        : r.roster?.find(x => x.uid === uid)?.name || null
+      const side = r => ({ result: r.result, awards: (r.awards || []).map(a => ({ uid: a.uid, name: nameOf(r, a.uid), ip: a.ip, reason: a.reason })) })
+      get()._logEvent('game.edited', {
+        gameNumber: record.gameNumber, from: side(previous), to: side(record),
+        deltas: deltas.map(d => ({ uid: d.uid, name: d.name || nameOf(record, d.uid) || nameOf(previous, d.uid), ip: d.ip })),
+      }, { ref: record.eventId ?? previous.eventId ?? null, afterGame: record.gameNumber - 1 })
     },
     _logIPEdit(before, after) {
       if (!after?.type || (before?.earnedIP || 0) === (after.earnedIP || 0)) return

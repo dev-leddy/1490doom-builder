@@ -4,7 +4,9 @@
 // A campaign company carries, besides campaignGame (games played):
 //   slot.uid         stable id of the warrior in that slot (a new recruit gets a new one)
 //   slot.fallen      on an empty slot: { uid, type, name, game } of the warrior who died there
-//   campaign         { v, log, upgrades, roster, completedAt, needsCaptain }
+//   campaign         { v, length, log, upgrades, roster, completedAt, endedEarly, needsCaptain }
+//   campaign.length  games planned (default CAMPAIGN_RULES.games), null = no limit. Never a
+//                    hard stop: recording past it extends it (see applyEndOfGame)
 //   campaign.upgrades[] every upgrade bought, when and by whom (see logUpgrade)
 //   campaign.roster[]   recruits hired and recruits undone (see hireIntoVacancy / undoRecruit)
 //   campaign.log[]   one record per game, see applyEndOfGame. Only the latest record keeps
@@ -56,7 +58,7 @@ export function normalizeCampaign(company) {
   const slots = (company.slots || []).map(s => (s.uid ? s : { ...s, uid: newId() }))
   const c = company.campaign || {}
   const campaign = {
-    v: 1, completedAt: null, needsCaptain: false,
+    v: 1, length: CAMPAIGN_RULES.games, completedAt: null, needsCaptain: false,
     ...c,
     log: Array.isArray(c.log) ? c.log : [],
     upgrades: Array.isArray(c.upgrades) ? c.upgrades : [],
@@ -65,13 +67,52 @@ export function normalizeCampaign(company) {
   return { ...company, slots, campaign, campaignGame: company.campaignGame || 0 }
 }
 
-// completed counts campaignGame too, so companies from before the log keep their count
+export const MAX_CAMPAIGN_LENGTH = 99
+
+// The planned number of games: campaign.length, the default when missing, null = no limit
+export function campaignLength(company) {
+  const c = company?.campaign
+  return c && 'length' in c ? c.length : CAMPAIGN_RULES.games
+}
+
+// completed counts campaignGame too, so companies from before the log keep their count.
+// total is the planned length (null = no limit). Complete = the planned games are played,
+// or it was ended early. Being complete never stops another game: nextGame is always set.
 export function campaignProgress(company) {
   const completed = Math.max(company?.campaignGame || 0, company?.campaign?.log?.length || 0)
-  const total = CAMPAIGN_RULES.games
+  const total = campaignLength(company)
+  const unlimited = total == null
   const endedEarly = !!company?.campaign?.endedEarly
-  const isComplete = completed >= total || !!company?.campaign?.completedAt || endedEarly
-  return { completed, total, isComplete, endedEarly, nextGame: isComplete ? null : completed + 1 }
+  const isComplete = endedEarly || (!unlimited && completed >= total)
+  return { completed, total, isComplete, endedEarly, unlimited, nextGame: completed + 1 }
+}
+
+// completedAt for a campaign of this length with this many games played
+function completedAtFor(campaign, completed, length, now) {
+  if (campaign.endedEarly) return campaign.completedAt ?? now
+  return length != null && completed >= length ? (campaign.completedAt ?? now) : null
+}
+
+// Sets the planned number of games: at least the games already played (and 1), at most
+// MAX_CAMPAIGN_LENGTH, or null for no limit. Throws with the reason otherwise.
+export function setCampaignLength(company, length, { now = Date.now() } = {}) {
+  const c = normalizeCampaign(company)
+  const { completed } = campaignProgress(c)
+  if (length !== null) {
+    if (!Number.isInteger(length) || length < 1 || length > MAX_CAMPAIGN_LENGTH) throw new Error(`Choose between 1 and ${MAX_CAMPAIGN_LENGTH} games, or no limit.`)
+    if (length < completed) throw new Error(`${completed} games are already played.`)
+  }
+  return { ...c, campaign: { ...c.campaign, length, completedAt: completedAtFor(c.campaign, completed, length, now) } }
+}
+
+// After the campaign is complete: carry on. The planned length grows to fit one more game
+// (an early end is simply taken back) and the campaign is no longer complete.
+export function keepPlaying(company) {
+  const c = normalizeCampaign(company)
+  const { completed, total, isComplete } = campaignProgress(c)
+  if (!isComplete) throw new Error('The campaign is not complete.')
+  const length = total == null ? null : Math.max(total, completed + 1)
+  return { ...c, campaign: { ...c.campaign, length, completedAt: null, endedEarly: false } }
 }
 
 // ── Campaign settings ─────────────────────────────────────────────────────────
@@ -98,7 +139,7 @@ export function reopenCampaign(company) {
   const c = normalizeCampaign(company)
   const { completed, total, isComplete } = campaignProgress(c)
   if (!isComplete) throw new Error('The campaign is not complete.')
-  if (!c.campaign.endedEarly && completed >= total) throw new Error(`All ${total} games are played. The campaign can't be reopened.`)
+  if (!c.campaign.endedEarly && total != null && completed >= total) throw new Error(`All ${total} games are played. Use Keep playing to add more.`)
   return { ...c, campaign: { ...c.campaign, completedAt: null, endedEarly: false } }
 }
 
@@ -172,7 +213,6 @@ function planGame(company, draft) {
 // Every reason the draft can't be recorded yet (empty = OK)
 export function validateEndOfGame(company, draft = {}) {
   if (company?.companyMode !== 'campaign') return ['This company is not playing a campaign.']
-  if (campaignProgress(company).isComplete) return ['The campaign is complete. No more games can be recorded.']
 
   const errors = []
   const slots = company.slots || []
@@ -306,10 +346,16 @@ export function applyEndOfGame(company, draft, { now = Date.now(), eventId = nul
 
   // Only the newest record can be undone, so older ones drop their snapshot
   const log = c.campaign.log.map((r, i, all) => (i === all.length - 1 ? withoutBefore(r) : r))
+  // Playing on is always allowed: past the planned length it grows to this game, and a game
+  // after an early end takes the early end back
+  const planned = campaignLength(c)
+  const length = planned != null && gameNumber > planned ? gameNumber : planned
+  const base = { ...c.campaign, endedEarly: false, completedAt: null } // complete again (if so) as of this game
   const campaign = {
-    ...c.campaign,
+    ...base,
     needsCaptain,
-    completedAt: gameNumber >= CAMPAIGN_RULES.games ? now : c.campaign.completedAt,
+    length,
+    completedAt: completedAtFor(base, gameNumber, length, now),
     log: [...log, record],
   }
   return { company: { ...c, slots, campaignGame: gameNumber, campaign }, record }
@@ -330,6 +376,132 @@ export function undoLastGame(company) {
   const upgrades = (company.campaign.upgrades || []).filter(e => e.afterGame < last.gameNumber)
   const roster = (company.campaign.roster || []).filter(e => e.afterGame < last.gameNumber)
   return { ...company, slots, campaignGame, campaign: { ...campaign, log: log.slice(0, -1), upgrades, roster } }
+}
+
+// ── Editing a recorded game ───────────────────────────────────────────────────
+// Latest game (with its `before` snapshot): re-enter it completely. draftFromRecord prefills
+// the End of Game sheet, editLatestGameLosses says what the re-record throws away (the same
+// as an undo), reRecordLatestGame does it. Any game: editOutcome changes only the result
+// and who got the survivor point, and moves the IP difference.
+
+// What re-recording (or undoing) the latest game would throw away: upgrades bought and
+// roster changes made since. { upgrades, roster, any }
+export function editLatestGameLosses(company) {
+  const last = company?.campaign?.log?.at(-1)
+  if (!last) return { upgrades: [], roster: [], any: false }
+  const upgrades = (company.campaign.upgrades || []).filter(e => e.afterGame >= last.gameNumber)
+  const roster = (company.campaign.roster || []).filter(e => e.afterGame >= last.gameNumber)
+  return { upgrades, roster, any: upgrades.length > 0 || roster.length > 0 }
+}
+
+// The End of Game draft that produced the latest record, in the indices of its `before`
+// snapshot (the company as it was when the game was entered). null without `before`.
+export function draftFromRecord(company, record = company?.campaign?.log?.at(-1)) {
+  const slots = record?.before?.slots
+  if (!slots) return null
+  const indexOf = uid => slots.findIndex(s => s.uid === uid)
+  const valid = i => i >= 0
+  const award = reason => (record.awards || []).filter(a => a.reason === reason)
+  const survivor = award('survivor')[0]
+  return {
+    result: record.result,
+    scenario: record.scenario || '',
+    fallenIndices: (record.fallen || []).map(f => indexOf(f.uid)).filter(valid),
+    newCaptainIndex: record.captainChange?.reason === 'promoted' && valid(indexOf(record.captainChange.to)) ? indexOf(record.captainChange.to) : null,
+    survivorPick: survivor && valid(indexOf(survivor.uid)) ? indexOf(survivor.uid) : null,
+    bonus: award('bonus').map(a => ({ index: indexOf(a.uid), ip: a.ip })).filter(b => valid(b.index)),
+  }
+}
+
+// IP change per warrior between two award lists: [{ uid, ip }] (non-zero only)
+function awardDeltas(fromAwards = [], toAwards = []) {
+  const sum = new Map()
+  for (const a of fromAwards) sum.set(a.uid, (sum.get(a.uid) || 0) - a.ip)
+  for (const a of toAwards) sum.set(a.uid, (sum.get(a.uid) || 0) + a.ip)
+  return [...sum.entries()].filter(([, ip]) => ip !== 0).map(([uid, ip]) => ({ uid, ip }))
+}
+
+// The company with its latest game entered again from `draft` (same rules as recording).
+// Same game number, record id and activity event; the scenario stays unless the draft
+// gives one. Throws with the reasons if it can't be done.
+// → { company, record, previous, deltas }
+export function reRecordLatestGame(company, draft, { now = Date.now() } = {}) {
+  const previous = company?.campaign?.log?.at(-1)
+  if (!previous?.before) throw new Error('Only the result and the survivor point of this game can be changed.')
+  const restored = undoLastGame(company)
+  const full = { ...draft, scenario: draft.scenario ?? previous.scenario ?? '' }
+  const errors = validateEndOfGame(restored, full)
+  if (errors.length) throw new Error(errors.join(' '))
+  const { company: next, record: fresh } = applyEndOfGame(restored, full, { now, eventId: previous.eventId ?? null })
+  const record = { ...fresh, id: previous.id, finishedAt: previous.finishedAt, editedAt: now }
+  const log = [...next.campaign.log.slice(0, -1), record]
+  const campaign = { ...next.campaign, log, ...(company.campaign.eventLog ? { eventLog: company.campaign.eventLog } : {}) }
+  return { company: { ...next, campaign }, record, previous, deltas: awardDeltas(previous.awards, record.awards) }
+}
+
+// Changes the result and/or the survivor point (change.survivorPick is a uid) of any
+// recorded game. Who fell and the Captain stay as recorded. The game's awards are worked
+// out again under the same rules and the difference goes to the warriors still in the
+// company; one who has fallen since is skipped (see warnings). Throws with the reason if
+// it can't be done (e.g. the IP is already spent).
+// → { company, record, previous, deltas: [{ uid, name, ip }], warnings: string[] }
+export function editOutcome(company, gameNumber, change = {}, { now = Date.now() } = {}) {
+  const log = company?.campaign?.log || []
+  const at = log.findIndex(r => r.gameNumber === gameNumber)
+  if (at < 0) throw new Error('There is no such game in the log.')
+  const previous = log[at]
+  const result = change.result ?? previous.result
+  if (!GAME_RESULTS.includes(result)) throw new Error('Choose how the game ended.')
+
+  const roster = previous.roster || []
+  const survivors = roster.filter(r => r.survived)
+  const captain = roster.find(r => r.wasCaptain)
+  const earns = result !== 'retreat' || CAMPAIGN_RULES.retreatGivesIP
+  const oldPick = (previous.awards || []).find(a => a.reason === 'survivor')?.uid ?? null
+  const pick = change.survivorPick !== undefined ? change.survivorPick : oldPick
+
+  const awards = []
+  if (earns && survivors.length && CAMPAIGN_RULES.survivorIP > 0) {
+    if (pick == null) throw new Error('Choose a surviving warrior to receive the survivor IP.')
+    if (!survivors.some(r => r.uid === pick)) throw new Error('The survivor IP must go to a warrior who survived that game.')
+    awards.push({ uid: pick, ip: CAMPAIGN_RULES.survivorIP, reason: 'survivor' })
+  }
+  if (earns && result === 'win' && captain?.survived && CAMPAIGN_RULES.winnerCaptainIP > 0) {
+    awards.push({ uid: captain.uid, ip: CAMPAIGN_RULES.winnerCaptainIP, reason: 'captain' })
+  }
+  // Bonus IP stays as recorded (a retreat takes it away)
+  if (earns) awards.push(...(previous.awards || []).filter(a => a.reason === 'bonus'))
+
+  const nameIn = uid => roster.find(r => r.uid === uid)?.name || 'A warrior'
+  const warnings = []
+  const deltas = []
+  let slots = company.slots
+  for (const d of awardDeltas(previous.awards, awards)) {
+    const i = slots.findIndex(s => s.type && s.uid === d.uid)
+    if (i < 0) {
+      warnings.push(`${nameIn(d.uid)} is no longer in the company, so their IP is not changed.`)
+      continue
+    }
+    const slot = slots[i]
+    const earned = (slot.earnedIP || 0) + d.ip
+    if (earned < minEarnedIP(slot)) throw new Error(`${nameOf(slot)} has spent that IP. Undo one of their upgrades first.`)
+    slots = slots.map((s, k) => (k === i ? { ...s, earnedIP: earned } : s))
+    deltas.push({ uid: d.uid, name: nameIn(d.uid), ip: d.ip })
+  }
+
+  const record = { ...previous, result, awards, editedAt: now }
+  const campaign = { ...company.campaign, log: log.map((r, k) => (k === at ? record : r)) }
+  return { company: { ...company, slots, campaign }, record, previous, deltas, warnings }
+}
+
+// Why editOutcome would refuse this change, or null (for the UI while the player chooses)
+export function outcomeEditBlock(company, gameNumber, change) {
+  try {
+    editOutcome(company, gameNumber, change)
+    return null
+  } catch (err) {
+    return err.message
+  }
 }
 
 // ── Recruiting ────────────────────────────────────────────────────────────────

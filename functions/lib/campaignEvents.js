@@ -6,7 +6,8 @@
 export const CLIENT_EVENT_TYPES = new Set([
   'campaign.started', 'campaign.baseline', 'campaign.left', 'campaign.resumed',
   'game.recorded', 'campaign.completed', 'campaign.endedEarly', 'campaign.reopened',
-  'game.undone', 'game.renamed',
+  'campaign.lengthChanged',
+  'game.undone', 'game.renamed', 'game.edited',
   'upgrade.bought', 'upgrade.changed', 'upgrade.undone',
   'warrior.hired', 'warrior.recruitUndone', 'warrior.removed', 'warrior.renamed',
   'captain.changed', 'ip.edited', 'company.renamed', 'mark.changed',

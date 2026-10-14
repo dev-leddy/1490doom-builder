@@ -6,8 +6,8 @@
 // Event: { id, type, v, at, afterGame, ref, payload }
 //   id        client uuid (the server ignores a repeat)
 //   afterGame games played when it happened (0 = the starting company)
-//   ref       for an undo: the id of the event it takes back; for entry.noted and
-//             game.renamed: the event it is about
+//   ref       for an undo: the id of the event it takes back; for entry.noted,
+//             game.renamed and game.edited: the event it is about
 
 import { canUndoLastGame, lastUpgrade, undoRecruitBlock } from './campaign.js'
 
@@ -15,7 +15,8 @@ import { canUndoLastGame, lastUpgrade, undoRecruitBlock } from './campaign.js'
 export const CLIENT_EVENT_TYPES = [
   'campaign.started', 'campaign.baseline', 'campaign.left', 'campaign.resumed',
   'game.recorded', 'campaign.completed', 'campaign.endedEarly', 'campaign.reopened',
-  'game.undone', 'game.renamed',
+  'campaign.lengthChanged',
+  'game.undone', 'game.renamed', 'game.edited',
   'upgrade.bought', 'upgrade.changed', 'upgrade.undone',
   'warrior.hired', 'warrior.recruitUndone', 'warrior.removed', 'warrior.renamed',
   'captain.changed', 'ip.edited', 'company.renamed', 'mark.changed',
@@ -90,17 +91,21 @@ function slotsNamedIn(company, event) {
 //   undoUpgrade  { slotIndex } when it is that warrior's most recent upgrade
 //   undoRecruit  { slotIndex } when the recruit is still there and can be taken back
 //   renameGame   the game number, for a recorded game still in the log
+//   editOutcome  { gameNumber, latest } for a recorded game still in the log; latest = it can
+//                be entered again in full (reRecordLatestGame), else only result + survivor point
 //   fixIP        slot indices of living warriors the event names (to correct IP by hand)
 export function rowActions(company, event) {
   const p = event?.payload || {}
   const slots = company?.slots || []
   const log = company?.campaign?.log || []
   const slotOf = uid => slots.findIndex(s => s.type && s.uid === uid)
-  const out = { undoGame: false, undoUpgrade: null, undoRecruit: null, renameGame: null, fixIP: event ? slotsNamedIn(company, event) : [] }
+  const out = { undoGame: false, undoUpgrade: null, undoRecruit: null, renameGame: null, editOutcome: null, fixIP: event ? slotsNamedIn(company, event) : [] }
   if (!event || event.status === 'rejected') return { ...out, fixIP: [] }
 
   if (event.type === 'game.recorded') {
     out.undoGame = log.at(-1)?.eventId === event.id && canUndoLastGame(company)
+    const record = log.find(r => r.gameNumber === p.gameNumber)
+    if (record) out.editOutcome = { gameNumber: p.gameNumber, latest: record === log.at(-1) && !!record.before }
   }
   if (event.type === 'game.recorded' || event.type === 'game.renamed') {
     if (log.some(r => r.gameNumber === p.gameNumber)) out.renameGame = p.gameNumber

@@ -247,6 +247,20 @@ describe('rowActions', () => {
     expect(rowActions(g2, recordedEvent(g2, e2, 2)).undoGame).toBe(true)
   })
 
+  it('a recorded game can have its outcome edited: in full when it is the latest', () => {
+    const [e1, e2] = [newEventId(), newEventId()]
+    const g1 = applyEndOfGame(base(), loss, { eventId: e1 }).company
+    const g2 = applyEndOfGame(g1, loss, { eventId: e2 }).company
+    expect(rowActions(g2, recordedEvent(g2, e1, 1)).editOutcome).toEqual({ gameNumber: 1, latest: false })
+    expect(rowActions(g2, recordedEvent(g2, e2, 2)).editOutcome).toEqual({ gameNumber: 2, latest: true })
+    expect(rowActions(g1, recordedEvent(g1, e2, 2)).editOutcome).toBeNull() // not in the log
+  })
+
+  it('the server accepts game.edited events', () => {
+    const e = { ...ev('game.edited', { gameNumber: 1, from: { result: 'win', awards: [] }, to: { result: 'loss', awards: [] }, deltas: [] }), ref: newEventId() }
+    expect(validateEvents([e]).valid).toHaveLength(1)
+  })
+
   it("an upgrade can be undone only while it is that warrior's latest", () => {
     const [u1, u2] = [newEventId(), newEventId()]
     let c = buy(base(), 0, { statImproves: ['COM'], ip: ['stat_0'] }, 'stat_0', u1)
@@ -271,7 +285,7 @@ describe('rowActions', () => {
   it('rejected events offer nothing, and fixIP only names living warriors', () => {
     const c = base()
     const e = { id: newEventId(), type: 'ip.edited', payload: { uid: c.slots[1].uid, from: 0, to: 1 } }
-    expect(rowActions(c, e)).toEqual({ undoGame: false, undoUpgrade: null, undoRecruit: null, renameGame: null, fixIP: [1] })
+    expect(rowActions(c, e)).toEqual({ undoGame: false, undoUpgrade: null, undoRecruit: null, renameGame: null, editOutcome: null, fixIP: [1] })
     expect(rowActions(c, { ...e, status: 'rejected' }).fixIP).toEqual([])
     expect(rowActions(c, { ...e, payload: { uid: 'gone' } }).fixIP).toEqual([])
   })
