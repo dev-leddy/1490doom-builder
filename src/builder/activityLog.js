@@ -113,3 +113,139 @@ export function eventTime(at) {
   const d = new Date(at)
   return `${d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}, ${d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}`
 }
+
+// ── Activity log table (ActivityLogView) ──────────────────────────────────────
+// Rows with a game, warriors, a kind and searchable text, plus the filters over them.
+
+// Event kinds: the type tag and the multi-select filter chips
+export const KINDS = [
+  { id: 'games', label: 'Games' },
+  { id: 'upgrades', label: 'Upgrades' },
+  { id: 'roster', label: 'Roster' },
+  { id: 'captain', label: 'Captain' },
+  { id: 'ip', label: 'IP edits' },
+  { id: 'campaign', label: 'Campaign' },
+]
+const KIND_TAG = { games: 'Game', upgrades: 'Upgrade', roster: 'Roster', captain: 'Captain', ip: 'IP edit', campaign: 'Campaign' }
+
+export function eventKind(type) {
+  if (type.startsWith('game.')) return 'games'
+  if (type.startsWith('upgrade.')) return 'upgrades'
+  if (type.startsWith('warrior.')) return 'roster'
+  if (type === 'captain.changed') return 'captain'
+  if (type === 'ip.edited') return 'ip'
+  return 'campaign'
+}
+
+const eventAt = e => (Number.isFinite(e.at) ? e.at : e.serverAt)
+
+// Which game an event belongs to: a game's own events, and the changes made before it.
+// key: 'start' (the starting company), 'g3' (game 3 and what was done before it), 'end'
+export function gameOf(e, total = CAMPAIGN_RULES.games) {
+  const p = e.payload || {}
+  if (e.type.startsWith('game.') && Number.isFinite(p.gameNumber)) return { key: `g${p.gameNumber}`, label: `Game ${p.gameNumber}` }
+  const k = e.afterGame || 0
+  if (k === 0) return { key: 'start', label: 'Starting company' }
+  if (k >= total) return { key: 'end', label: `After game ${k}` }
+  return { key: `g${k + 1}`, label: `Before game ${k + 1}` }
+}
+
+// The game filter's options, in campaign order, for the games that appear in the log
+export function gameOptions(events, total = CAMPAIGN_RULES.games) {
+  const keys = new Set(events.map(e => gameOf(e, total).key))
+  const opts = []
+  if (keys.has('start')) opts.push({ id: 'start', label: 'Starting company' })
+  for (let n = 1; n <= total; n++) if (keys.has(`g${n}`)) opts.push({ id: `g${n}`, label: `Game ${n}` })
+  if (keys.has('end')) opts.push({ id: 'end', label: 'After the last game' })
+  return opts
+}
+
+const withClass = (name, type) => (name && type && name !== type && !name.endsWith(`(${type})`) ? `${name} (${type})` : name || type)
+
+// Warriors an event is about: [{ uid, name }]. The fallen are listed by name in game
+// records, so names are matched back to uids seen elsewhere in the log (nameToUid).
+export function eventWarriors(e, nameToUid = new Map()) {
+  const p = e.payload || {}
+  const byName = name => ({ uid: nameToUid.get(name) || `name:${name}`, name })
+  switch (e.type) {
+    case 'campaign.baseline': return (p.roster || []).map(r => ({ uid: r.uid, name: r.name }))
+    case 'game.recorded': {
+      const out = (p.awards || []).filter(a => a.uid).map(a => ({ uid: a.uid, name: a.name }))
+      for (const f of p.fallen || []) out.push(byName(f))
+      if (p.captainChange?.to) out.push(byName(p.captainChange.to))
+      const seen = new Set()
+      return out.filter(w => !seen.has(w.uid) && seen.add(w.uid))
+    }
+    case 'warrior.renamed': return p.uid ? [{ uid: p.uid, name: withClass(p.to, p.type) }] : []
+    case 'captain.changed': return p.uid ? [{ uid: p.uid, name: p.to }] : []
+    default: return p.uid ? [{ uid: p.uid, name: p.name }] : []
+  }
+}
+
+// Table rows, oldest first: { e, at, kind, tag, game, warriors, text, sub, undone, isUndo, rejected, haystack }
+export function buildRows(events = [], total = CAMPAIGN_RULES.games) {
+  const sorted = [...events].sort((a, b) => (eventAt(a) || 0) - (eventAt(b) || 0))
+  const nameToUid = new Map()
+  for (const e of sorted) {
+    const p = e.payload || {}
+    if (p.uid && p.name) nameToUid.set(p.name, p.uid)
+    for (const r of p.roster || []) if (r.uid && r.name) nameToUid.set(r.name, r.uid)
+    for (const a of p.awards || []) if (a.uid && a.name) nameToUid.set(a.name, a.uid)
+  }
+  const undone = undoneIds(sorted)
+  return sorted.map(e => {
+    const kind = eventKind(e.type)
+    const game = gameOf(e, total)
+    const warriors = eventWarriors(e, nameToUid)
+    const { text, sub } = describeEvent(e)
+    return {
+      e, at: eventAt(e), kind, tag: KIND_TAG[kind], game, warriors, text, sub,
+      undone: undone.has(e.id), isUndo: UNDO_TYPES.has(e.type) && !!e.ref && e.status !== 'rejected',
+      rejected: e.status === 'rejected',
+      haystack: [text, sub, game.label, KIND_TAG[kind], ...warriors.map(w => w.name)].filter(Boolean).join(' ').toLowerCase(),
+    }
+  })
+}
+
+// Warrior filter options: everyone who appears, by their latest name, with the fallen marked
+export function warriorOptions(rows) {
+  const byUid = new Map()
+  for (const r of rows) for (const w of r.warriors) if (w.name) byUid.set(w.uid, { uid: w.uid, name: w.name, fell: byUid.get(w.uid)?.fell || null })
+  for (const r of rows) {
+    if (r.e.type !== 'game.recorded' || r.undone || r.rejected) continue
+    for (const f of r.e.payload?.fallen || []) {
+      const w = [...byUid.values()].find(x => x.name === f)
+      if (w) w.fell = r.e.payload.gameNumber
+    }
+  }
+  return [...byUid.values()].sort((a, b) => a.name.localeCompare(b.name))
+}
+
+export const DEFAULT_LOG_FILTERS = { game: 'all', warrior: 'all', kinds: [], q: '', showUndone: true }
+
+// How many filters differ from the defaults (search included)
+export function activeFilterCount(f) {
+  return (f.game !== 'all') + (f.warrior !== 'all') + (f.kinds.length > 0) + (f.q.trim() !== '') + (!f.showUndone)
+}
+
+export function filterRows(rows, f, { newestFirst = true } = {}) {
+  const q = f.q.trim().toLowerCase()
+  const out = rows.filter(r =>
+    (f.game === 'all' || r.game.key === f.game) &&
+    (f.warrior === 'all' || r.warriors.some(w => w.uid === f.warrior)) &&
+    (!f.kinds.length || f.kinds.includes(r.kind)) &&
+    (f.showUndone || !(r.undone || r.isUndo)) &&
+    (!q || r.haystack.includes(q)))
+  return newestFirst ? out.reverse() : out
+}
+
+// The rows shown, as CSV (Export)
+export function rowsToCsv(rows) {
+  const cell = v => `"${String(v ?? '').replace(/"/g, '""')}"`
+  const head = ['Time', 'Game', 'Warrior', 'Event type', 'Event', 'Details', 'Status']
+  const lines = rows.map(r => [
+    Number.isFinite(r.at) ? new Date(r.at).toISOString() : '', r.game.label, r.warriors.map(w => w.name).join('; '),
+    r.tag, r.text, r.sub, r.rejected ? 'Not saved' : r.undone ? 'Undone' : '',
+  ].map(cell).join(','))
+  return [head.map(cell).join(','), ...lines].join('\r\n') + '\r\n'
+}

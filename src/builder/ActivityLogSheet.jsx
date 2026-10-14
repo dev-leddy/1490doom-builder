@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react'
-import { useBuilderStore } from '../store/builderStore'
-import { fetchCompanyEvents } from '../api/companies'
+import { useState } from 'react'
+import { useActivityLog } from './useActivityLog'
 import BottomSheet from '../shared/BottomSheet'
 import { FILTERS, matchesFilter, undoneIds, groupEvents, describeEvent, eventTime } from './activityLog'
 import './styles/activity-log.css'
@@ -10,36 +9,10 @@ import './styles/activity-log.css'
 // "Before game N" (newest first), with filter chips. Undone entries are struck through,
 // and events sent with a save that lost to another device are marked as not saved.
 
-const MAX_PAGES = 25 // 200 events each
-
-// The log itself (filters, groups, rows). Also the "All activity" tab of the campaign log.
+// The log itself (filters, groups, rows) as a compact list
 export function ActivityLogBody({ companyId }) {
-  const [events, setEvents] = useState(null)   // null = loading
-  const [error, setError] = useState(false)
+  const { events, error, retry } = useActivityLog(companyId)
   const [filter, setFilter] = useState('all')
-  const [reload, setReload] = useState(0)
-
-  useEffect(() => {
-    let live = true
-    setError(false)
-    ;(async () => {
-      try {
-        // Send anything still queued first, so the newest changes are in the log
-        await useBuilderStore.getState().flushSaves()
-        const all = []
-        let after = 0
-        for (let page = 0; page < MAX_PAGES && after != null; page++) {
-          const res = await fetchCompanyEvents(companyId, { after })
-          all.push(...res.events)
-          after = res.nextAfter
-        }
-        if (live) setEvents(all)
-      } catch {
-        if (live) setError(true)
-      }
-    })()
-    return () => { live = false }
-  }, [companyId, reload])
 
   const undone = events ? undoneIds(events) : new Set()
   const groups = events ? groupEvents(events.filter(e => matchesFilter(e, filter))) : []
@@ -56,7 +29,7 @@ export function ActivityLogBody({ companyId }) {
       {error && (
         <p className="al-empty">
           Couldn't load the log. Check your connection.{' '}
-          <button type="button" className="al-retry" onClick={() => { setEvents(null); setReload(n => n + 1) }}>Try again</button>
+          <button type="button" className="al-retry" onClick={retry}>Try again</button>
         </p>
       )}
       {!error && events == null && <p className="al-empty">Loading…</p>}

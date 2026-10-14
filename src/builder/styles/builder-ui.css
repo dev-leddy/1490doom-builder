@@ -1659,16 +1659,8 @@ button.eq-slot:focus-visible { outline: 2px solid var(--blood); outline-offset: 
   font-family: ui-monospace, Consolas, monospace; font-size: 0.8rem; line-height: 1.45; color: var(--bone); white-space: pre-wrap; word-break: break-word; }
 .cmp-set-export:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
 
-/* Campaign log tabs: By game / All activity */
-.cmp-log-tabs { display: grid; grid-template-columns: 1fr 1fr; margin-bottom: 0.9rem; border: 1px solid #3a3a3a; border-radius: 6px; overflow: hidden; }
-.cmp-log-tab { min-height: 44px; background: none; border: 0; color: #bdbdbd; font-family: 'Oswald', sans-serif; font-size: 0.82rem;
-  letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; touch-action: manipulation; }
-.cmp-log-tab + .cmp-log-tab { border-left: 1px solid #3a3a3a; }
-.cmp-log-tab[aria-selected="true"] { background: rgba(190, 65, 39, 0.18); color: var(--parchment); box-shadow: inset 0 -2px 0 var(--blood); }
-.cmp-log-tab:focus-visible { outline: 2px solid var(--blood); outline-offset: -2px; }
-@media (hover: hover) { .cmp-log-tab[aria-selected="false"]:hover { color: var(--parchment); } }
-/* Phones: a steady height, so switching tabs or filters doesn't make the sheet jump */
-@media (max-width: 600px) { .co-settings-sheet.cmp-log-sheet { height: 85vh; height: 85dvh; } }
+/* Game log: the way into the full log, above the game cards */
+.cmp-log-full { margin-bottom: 0.9rem; }
 
 /* Vacancy slot: say why it is empty */
 .slot-fallen-note { margin: 0.25rem 0 0.75rem; font-size: 0.95rem; line-height: 1.45; color: var(--bone); }

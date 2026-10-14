@@ -70,6 +70,46 @@ test.describe('campaign activity log', () => {
     expect(events.every(e => e.status === 'ok')).toBe(true)
   })
 
+  test('the full log opens as a table and filters by warrior', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 })
+    await createCompanyViaApi(page, {
+      name: 'Table Co', mode: 'campaign', ipLimit: 0,
+      slots: [{ type: 'Fighter', weapon1: 'Light Weapon', earnedIP: 1 }, { type: 'Scout', weapon1: 'Bow' }],
+    })
+    await page.getByRole('button', { name: 'Add stat' }).first().click()
+    await page.locator('button.pk-stat', { hasText: 'SKL' }).click()
+    await page.locator('.pk-stat-apply').click()
+    await expect(page.getByRole('button', { name: /^Stat Improve/ })).toContainText('Skill')
+
+    // Campaign settings -> Campaign log opens the full-screen table
+    await page.locator('.ch-camp-gear').click()
+    await page.locator('.cmp-set-row', { hasText: 'Campaign log' }).click()
+    const view = page.getByRole('dialog', { name: /campaign log/i })
+    await expect(view.locator('table.alv-table')).toBeVisible()
+    const row = view.locator('tbody tr', { hasText: 'Fighter improved Skill' })
+    await expect(row).toHaveCount(1)
+    await expect(row.locator('.alv-tag')).toHaveText('Upgrade')
+
+    // Only the Scout: the Fighter's upgrade goes, and the count says so
+    await view.getByLabel('Warrior', { exact: true }).selectOption({ label: 'Scout' })
+    await expect(row).toHaveCount(0)
+    await expect(view.locator('.alv-count')).toContainText(/^\d+ of \d+ entr/)
+    await view.getByLabel('Warrior', { exact: true }).selectOption({ label: 'Fighter' })
+    await expect(row).toHaveCount(1)
+    await view.getByRole('button', { name: 'Clear filters' }).click()
+    await expect(view.getByLabel('Warrior', { exact: true })).toHaveValue('all')
+
+    // Phones: rows instead of a table, filters behind a toggle; Escape closes
+    await page.setViewportSize({ width: 420, height: 900 })
+    await expect(view.locator('table')).toHaveCount(0)
+    await expect(view.locator('.alv-item', { hasText: 'Fighter improved Skill' })).toHaveCount(1)
+    await view.getByRole('button', { name: /^Filters/ }).click()
+    await view.getByLabel('Warrior', { exact: true }).selectOption({ label: 'Scout' })
+    await expect(view.getByRole('button', { name: /^Filters · 1 active/ })).toBeVisible()
+    await page.keyboard.press('Escape')
+    await expect(view).toHaveCount(0)
+  })
+
   test("another account can't read the log", async ({ page, browser }) => {
     const name = 'Private Log Co'
     await createCompanyViaApi(page, { name, mode: 'campaign', ipLimit: 0, slots: [{ type: 'Fighter', weapon1: 'Light Weapon' }] })

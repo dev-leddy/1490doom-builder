@@ -3,8 +3,8 @@ import { useBuilderStore } from '../store/builderStore'
 import { campaignProgress, vacancies } from '../store/campaign'
 import BottomSheet from '../shared/BottomSheet'
 import CampaignSettingsSheet from './CampaignSettingsSheet'
-import { SvgGear } from './icons'
-import { ActivityLogBody } from './ActivityLogSheet'
+import { SvgGear, IconList } from './icons'
+import ActivityLogView from './ActivityLogView'
 import { RESULT_LETTER, RESULT_NAME, AWARD_REASON, spendableNow, resultTally, nameInRecord, fallenName, upgradesAfter, rosterLinesAfter } from './campaignUi'
 
 // ── Campaign panel in the company header ──────────────────────────────────────
@@ -48,21 +48,22 @@ function UpgradeGroup({ title, groups, roster = [] }) {
   )
 }
 
-// Campaign log: "By game" (one card per recorded game) and "All activity" (every change, from the server)
-function CampaignLogSheet({ tab, onTab, companyId, onClose, ...games }) {
-  const tabs = [['games', 'By game'], ['activity', 'All activity']]
+// Game log: one card per recorded game, and a way into the full log (every change, as a table)
+function GameLogSheet({ onFullLog, onClose, ...games }) {
   return (
-    <BottomSheet title="CAMPAIGN LOG" onClose={onClose} className="cmp-log-sheet"
+    <BottomSheet title="GAME LOG" onClose={onClose} className="cmp-log-sheet"
       footer={<button className="co-sheet-done" onClick={onClose}>Done</button>}>
-      <div className="cmp-log-tabs" role="tablist" aria-label="Campaign log">
-        {tabs.map(([id, label]) => (
-          <button key={id} type="button" role="tab" id={`cmp-log-tab-${id}`} aria-selected={tab === id}
-            aria-controls="cmp-log-panel" className="cmp-log-tab" onClick={() => onTab(id)}>{label}</button>
-        ))}
+      <div className="cmp-set-list cmp-log-full">
+        <button type="button" className="cmp-set-row" onClick={onFullLog}>
+          <span className="cmp-set-icon"><IconList /></span>
+          <span className="cmp-set-text">
+            <span className="cmp-set-label">Full log</span>
+            <span className="cmp-set-sub">Every change, with times. Filter by game, warrior or type.</span>
+          </span>
+          <span className="cmp-set-go" aria-hidden="true">›</span>
+        </button>
       </div>
-      <div id="cmp-log-panel" role="tabpanel" aria-labelledby={`cmp-log-tab-${tab}`}>
-        {tab === 'activity' ? <ActivityLogBody companyId={companyId} /> : <GameLogBody {...games} />}
-      </div>
+      <GameLogBody {...games} />
     </BottomSheet>
   )
 }
@@ -129,8 +130,8 @@ function GameLogBody({ log, legacyGames, campaign }) {
 }
 
 export default function CampaignPanel({ onEndOfGame }) {
-  const { slots, companyMode, campaignGame, campaign, companyId } = useBuilderStore()
-  const [logOpen, setLogOpen] = useState(null) // null | 'games' | 'activity'
+  const { slots, companyMode, campaignGame, campaign, companyId, companyName } = useBuilderStore()
+  const [logOpen, setLogOpen] = useState(null) // null | 'games' (cards sheet) | 'full' (full-screen table)
   const [settingsOpen, setSettingsOpen] = useState(false)
 
   const company = { companyMode, slots, campaignGame, campaign }
@@ -185,13 +186,14 @@ export default function CampaignPanel({ onEndOfGame }) {
         </button>
       </div>
 
-      {logOpen && (
-        <CampaignLogSheet tab={logOpen} onTab={setLogOpen} companyId={companyId} onClose={() => setLogOpen(null)}
+      {logOpen === 'games' && (
+        <GameLogSheet onFullLog={() => setLogOpen('full')} onClose={() => setLogOpen(null)}
           log={log} legacyGames={legacyGames} campaign={campaign} />
       )}
+      {logOpen === 'full' && <ActivityLogView companyId={companyId} companyName={companyName} onClose={() => setLogOpen(null)} />}
       {settingsOpen && (
         <CampaignSettingsSheet onClose={() => setSettingsOpen(false)}
-          onOpenLog={() => { setSettingsOpen(false); setLogOpen('activity') }} />
+          onOpenLog={() => { setSettingsOpen(false); setLogOpen('full') }} />
       )}
     </div>
   )
