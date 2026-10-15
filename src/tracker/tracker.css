@@ -161,95 +161,81 @@
   flex-shrink: 0;
 }
 
-/* Campaign: game number over the End of Game button */
-/* Campaign chip: GAME N/6 with the six-game track; opens the campaign sheet (End game / Retreat) */
+/* Campaign: a raised GAME N button with a caret; opens the campaign sheet (End game / Retreat) */
 .tk-campaign-chip {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  justify-content: center;
-  gap: 5px;
-  min-height: 44px;
-  padding: 0 0.65rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  height: 44px;
+  padding: 0 0.6rem 0 0.8rem;
   flex-shrink: 0;
-  background: none;
-  border: 1px solid #333;
-  border-radius: 6px;
+  background: #1f1f1f;
+  border: 1px solid #4a4a4a;
+  border-radius: 8px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 2px 6px rgba(0, 0, 0, 0.45);
+  color: #dcdcdc;
   cursor: pointer;
+  white-space: nowrap;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
-.tk-campaign-chip:active { background: #151515; }
-@media (hover: hover) { .tk-campaign-chip:hover { border-color: #555; } }
+.tk-campaign-chip:active { background: #161616; border-color: #5a5a5a; transform: scale(0.98); }
+@media (hover: hover) { .tk-campaign-chip:hover { background: #262626; border-color: #5a5a5a; color: #fff; } }
+.tk-campaign-chip[aria-expanded="true"] { border-color: #6a6a6a; }
 .tk-campaign-chip:focus-visible { outline: 2px solid var(--blood, #be4127); outline-offset: 2px; }
 .tk-campaign-chip-label {
   font-family: 'Oswald', sans-serif;
-  font-size: 0.74rem;
-  letter-spacing: 0.14em;
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #c8c8c8;
   line-height: 1;
 }
-.tk-campaign-chip-label b { color: #fff; font-weight: 500; }
-.tk-campaign-chip .cmp-pip { width: 10px; height: 6px; border-radius: 1px; font-size: 0; box-shadow: none; }
-.tk-campaign-chip .cmp-pip.is-now { background: transparent; border-color: #dcdcdc; }
-.tk-campaign-chip .cmp-pip.is-win { background: var(--res-win, #3f8f4f); border-color: var(--res-win, #3f8f4f); }
-.tk-campaign-chip .cmp-pip.is-loss { background: var(--res-loss, #be4127); border-color: var(--res-loss, #be4127); }
-.tk-campaign-chip .cmp-pip.is-draw { background: var(--res-draw, #b08a2e); border-color: var(--res-draw, #b08a2e); }
-.tk-campaign-chip .cmp-pip.is-retreat { background: var(--res-retreat, #5a5a5a); border-color: var(--res-retreat, #5a5a5a); }
+.tk-campaign-chip-label b { margin-left: 0.1em; font-size: 1.1rem; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
+.tk-campaign-chip-caret { flex-shrink: 0; color: #a8a8a8; }
+/* Narrow phones: give the company name a little more room */
+@media (max-width: 380px) {
+  .tk-campaign-chip { gap: 0.2rem; padding: 0 0.4rem 0 0.6rem; }
+  .tk-campaign-chip-label { font-size: 0.85rem; letter-spacing: 0.04em; }
+  .tk-campaign-chip-caret { width: 14px; height: 14px; }
+}
+
+/* Campaign sheet: this game and the last few results, above End game / Retreat */
 .tk-campaign-status {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.75rem;
   flex-wrap: wrap;
-  padding: 0 0.2rem 0.8rem;
-  margin-bottom: 0.4rem;
-  border-bottom: 1px solid #1c1c1c;
-  font-family: 'Oswald', sans-serif;
-  font-size: 0.8rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: #b0b0b0;
+  gap: 0.75rem 1.5rem;
+  margin: 0 0 0.9rem;
+  padding: 0.75rem 0.9rem;
+  background: #141414;
+  border: 1px solid #2c2c2c;
+  border-radius: 8px;
 }
-.tk-retreat-when { margin: 0 0 0.25rem; font-size: 1rem; line-height: 1.5; color: #e6e6e6; }
-
-.tk-topbar-campaign {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.2rem;
-  flex-shrink: 0;
-}
-.tk-topbar-game-label {
+.tk-campaign-stat { display: flex; flex-direction: column; gap: 0.4rem; min-width: 0; }
+.tk-campaign-stat--recent { margin-left: auto; align-items: flex-end; }
+.tk-campaign-stat-lbl {
   font-family: 'Oswald', sans-serif;
-  font-size: 0.62rem;
-  letter-spacing: 0.18em;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #8a8a8a;
+  color: #a8a8a8;
   line-height: 1;
 }
-.tk-topbar-eog-btn {
-  position: relative;
-  min-height: 30px;
-  padding: 0 0.7rem;
-  background: rgba(190, 65, 39, 0.1);
-  border: 1px solid rgba(190, 65, 39, 0.55);
-  border-radius: 6px;
-  color: #ec7a5e;
+.tk-campaign-stat-val {
+  display: flex;
+  align-items: center;
+  min-height: 28px;
+  margin: 0;
   font-family: 'Oswald', sans-serif;
-  font-size: 0.64rem;
-  letter-spacing: 0.14em;
+  font-size: 1rem;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-  -webkit-tap-highlight-color: transparent;
+  color: #fff;
 }
-.tk-topbar-eog-btn::before { content: ''; position: absolute; inset: -7px -4px; } /* 44px tap target */
-.tk-topbar-eog-btn:active { background: rgba(190, 65, 39, 0.28); color: #fff; }
-@media (hover: hover) { .tk-topbar-eog-btn:hover { background: rgba(190, 65, 39, 0.22); color: #fff; } }
+.tk-campaign-stat-val .cmp-track { gap: 5px; }
+.tk-campaign-stat-val .cmp-pip { width: 28px; height: 28px; border-radius: 4px; font-size: 0.85rem; }
+.tk-campaign-stat-none { color: #a8a8a8; }
 
 /* Round plaque: − | round (focal, centred) + quiet activation line | Next */
 .tk-round-bar {

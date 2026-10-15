@@ -7,7 +7,7 @@ import ConfirmModal from '../shared/ConfirmModal'
 import BottomSheet from '../shared/BottomSheet'
 import EndOfGameModal from '../builder/EndOfGameModal'
 import { campaignProgress } from '../store/campaign'
-import { RESULT_LETTER } from '../builder/campaignUi'
+import { RESULT_LETTER, RESULT_NAME } from '../builder/campaignUi'
 
 export default function TrackerTopbar() {
   const { mark, companyName, companyAvatar, round, changeRound, warriors, resetTracker, closeTracker, openMarkPopup, refOpen, openRef, closeRef } = useTrackerStore()
@@ -17,12 +17,11 @@ export default function TrackerTopbar() {
   const progress = campaignProgress({ companyMode, campaignGame, campaign, slots })
   const gameNumber = trackerCampaign?.gameNumber ?? progress.nextGame ?? progress.completed
   const campaignLog = campaign?.log || []
-  // The last few games plus this one (campaigns have no set length)
-  const recentGames = Array.from({ length: Math.min(gameNumber, 6) }, (_, i) => {
-    const n = gameNumber - Math.min(gameNumber, 6) + 1 + i
-    const r = campaignLog.find(x => x.gameNumber === n)
-    return { n, r, cls: r ? ` is-${r.result}` : n < gameNumber ? ' is-played' : ' is-now' }
-  })
+  // The last few results, oldest first (campaigns have no set length); shown in the campaign sheet
+  const recentResults = campaignLog
+    .filter(x => x.gameNumber < gameNumber && RESULT_LETTER[x.result])
+    .sort((a, b) => a.gameNumber - b.gameNumber)
+    .slice(-5)
   const [campaignOpen, setCampaignOpen] = useState(false)
   const [confirmRetreat, setConfirmRetreat] = useState(false)
   const [eogResult, setEogResult] = useState(null)
@@ -84,12 +83,12 @@ export default function TrackerTopbar() {
             <button
               className="tk-campaign-chip"
               onClick={() => setCampaignOpen(true)}
-              aria-label={`Campaign, game ${gameNumber}. End game or retreat`}
+              aria-haspopup="dialog"
+              aria-expanded={campaignOpen}
+              aria-label={`Game ${gameNumber}: end game or retreat`}
             >
               <span className="tk-campaign-chip-label">Game <b>{gameNumber}</b></span>
-              <span className="cmp-track" aria-hidden="true">
-                {recentGames.map(g => <span key={g.n} className={`cmp-pip${g.cls}`} />)}
-              </span>
+              <svg className="tk-campaign-chip-caret" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
             </button>
           )}
         </div>
@@ -172,15 +171,29 @@ export default function TrackerTopbar() {
         </BottomSheet>
       )}
 
-      {/* Campaign sheet: opened from the GAME N/6 chip */}
+      {/* Campaign sheet: opened from the GAME N button */}
       {campaignOpen && (
         <BottomSheet title={`CAMPAIGN · GAME ${gameNumber}`} onClose={() => setCampaignOpen(false)} className="tk-sheet tk-sheet--menu tk-campaign-sheet">
-          <div className="tk-campaign-status">
-            <span>Round {round} · {standing.length} of {warriors.length} standing</span>
-            <span className="cmp-track" aria-hidden="true">
-              {recentGames.map(g => <span key={g.n} className={`cmp-pip${g.cls}`}>{g.r ? RESULT_LETTER[g.r.result] : g.n}</span>)}
-            </span>
-          </div>
+          <dl className="tk-campaign-status">
+            <div className="tk-campaign-stat">
+              <dt className="tk-campaign-stat-lbl">This game</dt>
+              <dd className="tk-campaign-stat-val">Round {round} · {standing.length} of {warriors.length} standing</dd>
+            </div>
+            <div className="tk-campaign-stat tk-campaign-stat--recent">
+              <dt className="tk-campaign-stat-lbl">{recentResults.length > 1 ? `Last ${recentResults.length} games` : 'Last game'}</dt>
+              <dd className="tk-campaign-stat-val">
+                {recentResults.length ? (
+                  <span className="cmp-track">
+                    {recentResults.map(g => (
+                      <span key={g.gameNumber} role="img" className={`cmp-pip is-${g.result}`} title={`Game ${g.gameNumber}: ${RESULT_NAME[g.result]}`} aria-label={`Game ${g.gameNumber}: ${RESULT_NAME[g.result]}`}>
+                        {RESULT_LETTER[g.result]}
+                      </span>
+                    ))}
+                  </span>
+                ) : <span className="tk-campaign-stat-none">First game</span>}
+              </dd>
+            </div>
+          </dl>
           <div className="tk-menu-list">
             <CampaignMenuRows onEnd={() => openEndOfGame()} onRetreat={() => { setCampaignOpen(false); setConfirmRetreat(true) }} />
           </div>
@@ -199,13 +212,21 @@ export default function TrackerTopbar() {
             </>
           }
         >
-          <p className="tk-retreat-when">You may retreat at the start of any model's activation.</p>
-          <div className="eog-callout">
-            <strong>What it costs</strong><br />
-            Your opponent takes all victory points.<br />
-            Your company earns no IP this game.<br />
-            Warriors still standing survive. The fallen are still lost.
-          </div>
+          <p className="confirm-modal-text">Your company quits the field. You may retreat at the start of any model's activation.</p>
+          <dl className="tk-rule-list tk-confirm-rules">
+            <div className="tk-rule-row tk-rule-row--limit">
+              <dt className="tk-rule-lbl">Victory points</dt>
+              <dd className="tk-rule-text">All go to your opponent.</dd>
+            </div>
+            <div className="tk-rule-row tk-rule-row--limit">
+              <dt className="tk-rule-lbl">IP</dt>
+              <dd className="tk-rule-text">Your company earns none this game.</dd>
+            </div>
+            <div className="tk-rule-row">
+              <dt className="tk-rule-lbl">Warriors</dt>
+              <dd className="tk-rule-text">Those still standing survive. The fallen are still lost.</dd>
+            </div>
+          </dl>
         </BottomSheet>
       )}
 
