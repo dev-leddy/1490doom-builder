@@ -395,7 +395,7 @@ export default function EndOfGameModal({ onClose, onConfirm, initialResult = nul
               <><strong>An extra game</strong><br />Recording game {gameNumber} adds it to the campaign.</>
             ) : (
               <>
-                <strong>Before game {gameNumber + 1}</strong><br />
+                <strong>Before your next game</strong><br />
                 {fallen.size > 0 && <>Replace {fallen.size} fallen {fallen.size === 1 ? 'warrior' : 'warriors'} (new warriors start with 0 IP).<br /></>}
                 {survivors.length === 0 && <>Choose a Captain when you recruit.<br /></>}
                 {totalGain > 0 && <>Spend {totalGain} new IP. Upgrades are permanent.</>}

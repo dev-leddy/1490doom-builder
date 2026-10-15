@@ -8,7 +8,7 @@ import { IconDownload } from './icons'
 import { useBuilderStore } from '../store/builderStore'
 import { campaignProgress } from '../store/campaign'
 import { campaignLogText } from './campaignUi'
-import GameLogCards from './GameLogCards'
+import GameLogCards, { ResurrectSheet } from './GameLogCards'
 import LogEntryDetail, { confirmFor } from './LogEntryDetail'
 import EditOutcomeFlow from './OutcomeEditor'
 import BottomSheet from '../shared/BottomSheet'
@@ -119,10 +119,11 @@ export default function ActivityLogView({ companyId, companyName, onClose }) {
   const [selectedId, setSelectedId] = useState(null)
   const [ask, setAsk] = useState(null) // a confirm asked for by the entry detail
   const [editing, setEditing] = useState(null) // { gameNumber, latest }: the outcome editor
+  const [resurrecting, setResurrecting] = useState(null) // a fallen warrior (By game tile)
   const opener = useRef(null)          // the row button that opened the detail, for focus on close
   const detailHeading = useRef(null)
   const closeDetail = () => { setSelectedId(null); setAsk(null); opener.current?.focus?.({ preventScroll: true }) }
-  useModal(ref, () => (editing ? setEditing(null) : ask ? setAsk(null) : selectedId ? closeDetail() : onClose()))
+  useModal(ref, () => (resurrecting ? setResurrecting(null) : editing ? setEditing(null) : ask ? setAsk(null) : selectedId ? closeDetail() : onClose()))
 
   const { events, error, retry, refresh } = useActivityLog(companyId)
   const { slots, campaign, companyMode, campaignGame } = useBuilderStore()
@@ -202,7 +203,7 @@ export default function ActivityLogView({ companyId, companyName, onClose }) {
   if (view === 'games') {
     body = (
       <div className="alv-cards">
-        <GameLogCards log={log} legacyGames={Math.max(0, completed - log.length)} campaign={campaign} onEditGame={setEditing} />
+        <GameLogCards log={log} legacyGames={Math.max(0, completed - log.length)} campaign={campaign} onEditGame={setEditing} onResurrect={setResurrecting} />
       </div>
     )
   } else if (error) {
@@ -358,6 +359,7 @@ export default function ActivityLogView({ companyId, companyName, onClose }) {
           <LogEntryDetail row={selected} onAsk={setAsk} onChanged={refresh} onEditGame={setEditing} headingRef={detailHeading} />
         </BottomSheet>
       )}
+      {resurrecting && <ResurrectSheet fallen={resurrecting} onClose={() => setResurrecting(null)} onDone={refresh} />}
       {editing && <EditOutcomeFlow editing={editing} onClose={() => setEditing(null)} onSaved={refresh} />}
       {ask && selected && (
         <ConfirmModal zIndex={1200} {...confirmFor(ask, {

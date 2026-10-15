@@ -46,6 +46,39 @@ export function rosterLinesAfter(campaign, afterGame) {
       : `Recruit undone: ${e.name}`)
 }
 
+// What happened after a game (afterGame = games played; 0 = before the first game), as plain
+// sentences: who joined or left, who came back from the dead, then each warrior's purchases
+// in one sentence ("Brute improved Combat and Skill and bought a Shield.")
+const article = w => (/^[aeiou]/i.test(w) ? 'an' : 'a')
+const andList = xs => (xs.length < 2 ? xs.join('') : `${xs.slice(0, -1).join(', ')} and ${xs.at(-1)}`)
+export function afterGameLines(campaign, afterGame) {
+  const lines = []
+  for (const e of campaign?.roster || []) {
+    if (e.afterGame !== afterGame) continue
+    if (e.action === 'recruited') lines.push(e.startIP ? `${e.name} joined with ${e.startIP} IP.` : `${e.name} joined the company.`)
+    else lines.push(`${e.name}'s recruitment was undone.`)
+  }
+  for (const r of campaign?.log || []) {
+    for (const f of r.fallen || []) {
+      if (f.resurrected && (f.resurrected.afterGame ?? -1) === afterGame) lines.push(`${fallenName(f)} returned from the dead.`)
+    }
+  }
+  const per = []
+  for (const e of campaign?.upgrades || []) {
+    if (e.afterGame !== afterGame) continue
+    let g = per.find(x => x.uid === e.uid)
+    if (!g) per.push(g = { uid: e.uid, name: e.name, stats: [], gear: [] })
+    const label = e.label || e.item || e.stat
+    if (e.kind === 'stat') g.stats.push(label)
+    else g.gear.push(`${article(label)} ${label}`)
+  }
+  for (const g of per) {
+    const parts = [g.stats.length ? `improved ${andList(g.stats)}` : null, g.gear.length ? `bought ${andList(g.gear)}` : null].filter(Boolean)
+    lines.push(`${g.name} ${parts.join(' and ')}.`)
+  }
+  return lines
+}
+
 // Upgrades bought between games, grouped per warrior in purchase order:
 // [{ uid, name, labels: ['Combat', 'Grappling Hook'] }] for those bought after `afterGame` games
 export function upgradesAfter(campaign, afterGame) {
@@ -79,7 +112,7 @@ export function campaignLogText({ companyName, slots = [], campaign, completed =
   const tally = resultTally(log)
   const lines = [
     (companyName || 'Unnamed company').toUpperCase(),
-    `Campaign: ${done ? `complete after ${completed} game${completed === 1 ? '' : 's'}` : `before game ${completed + 1} of ${total}`}${tally ? ` (${tally})` : ''}`,
+    `Campaign: ${done ? `complete after ${completed} game${completed === 1 ? '' : 's'}` : `before game ${completed + 1}${total != null ? ` of ${total}` : ''}`}${tally ? ` (${tally})` : ''}`,
     `Exported ${new Date(now).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`,
     '',
     'ROSTER',
@@ -92,26 +125,24 @@ export function campaignLogText({ companyName, slots = [], campaign, completed =
     lines.push(`- ${nameWithClass(s)}${s.isCaptain ? ', Captain' : ''}: ${s.earnedIP || 0} IP earned, ${spent} spent${bought.length ? `. ${bought.join(', ')}` : ''}`)
   }
   const between = (afterGame, title) => {
-    const roster = rosterLinesAfter(campaign, afterGame)
-    const groups = upgradesAfter(campaign, afterGame)
-    if (!roster.length && !groups.length) return
+    const said = afterGameLines(campaign, afterGame)
+    if (!said.length) return
     lines.push(`  ${title}:`)
-    for (const r of roster) lines.push(`    ${r}`)
-    for (const g of groups) lines.push(`    ${g.name}: ${g.labels.join(', ')}`)
+    for (const l of said) lines.push(`    ${l}`)
   }
   const legacy = Math.max(0, completed - log.length)
   lines.push('', 'GAMES')
   if (legacy) lines.push(`  ${legacy === 1 ? 'Game 1 was' : `Games 1 to ${legacy} were`} played before the log was kept.`)
   if (!log.length && !legacy) lines.push('  No games recorded yet.')
-  between(0, 'Starting company')
+  between(0, 'Before the first game')
   for (const r of log) {
-    lines.push(`Game ${r.gameNumber}: ${RESULT_NAME[r.result] || r.result}${r.scenario ? `. ${r.scenario}` : ''}`)
+    lines.push(`Game ${r.gameNumber}: ${RESULT_NAME[r.result] || r.result}${r.scenario ? `, ${r.scenario}` : ''}`)
     lines.push(`  Fell: ${r.fallen?.length ? r.fallen.map(fallenName).join(', ') : 'No one'}`)
     const awards = (r.awards || []).map(a => `${nameInRecord(r, a.uid)} +${a.ip} (${AWARD_REASON[a.reason] || a.reason})`)
     lines.push(`  IP: ${awards.length ? awards.join(', ') : r.result === 'retreat' ? 'None (retreated)' : 'None'}`)
     const cc = r.captainChange
     if (cc) lines.push(`  Captain: ${cc.to ? `${nameInRecord(r, cc.to)} took command from ${nameInRecord(r, cc.from)}` : `${nameInRecord(r, cc.from)} fell with the whole company`}`)
-    between(r.gameNumber, `Before game ${r.gameNumber + 1}`)
+    between(r.gameNumber, 'After the battle')
   }
   const fallen = log.flatMap(r => (r.fallen || []).map(f => ({ ...f, game: r.gameNumber })))
   if (fallen.length) {

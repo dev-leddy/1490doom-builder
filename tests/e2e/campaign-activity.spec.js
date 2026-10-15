@@ -255,6 +255,41 @@ test.describe('campaign activity log', () => {
     await expect(sort).toHaveValue('warrior')
   })
 
+  test('a fallen warrior can be resurrected from the By game view', async ({ page }) => {
+    await createCompanyViaApi(page, {
+      name: 'Return Co', mode: 'campaign', ipLimit: 0,
+      slots: [{ type: 'Fighter', weapon1: 'Light Weapon' }, { type: 'Scout', weapon1: 'Bow' }],
+    })
+    // Game 1: the Scout falls; survivor point to the Fighter
+    await page.locator('.ch-camp-eog-btn').click()
+    await page.locator('[data-result="loss"]').click()
+    await page.locator('.eog-next-btn').click()
+    await page.locator('.eog-fate-row[data-slot="1"] .is-fell').click()
+    await page.locator('.eog-next-btn').click()
+    await page.locator('.eog-pick[data-slot="0"]').first().click()
+    await page.locator('.eog-next-btn').click()
+    await page.locator('.eog-record-btn').click()
+    await expect(page.locator('.warrior-slot.is-vacancy')).toHaveCount(1)
+
+    // Log -> By game -> the Scout's tile -> Resurrect
+    await page.locator('.ch-camp-log-btn').click()
+    const view = page.getByRole('dialog', { name: /campaign log/i })
+    await view.getByRole('button', { name: 'By game' }).click()
+    await view.getByRole('button', { name: /^Scout, fell in game 1/ }).click()
+    const sheet = page.locator('.res-sheet')
+    await expect(sheet.locator('.res-q')).toHaveText('Resurrect Scout?')
+    await sheet.getByRole('button', { name: 'Resurrect' }).click()
+    await expect(sheet).toHaveCount(0)
+    await expect(view.locator('.cmp-fallen-tile.is-back')).toContainText('Back in the company')
+
+    // Logged, and back on the builder
+    await view.getByRole('button', { name: 'All entries' }).click()
+    await expect(view.locator('.alv-item', { hasText: 'Scout resurrected' })).toHaveCount(1)
+    await page.keyboard.press('Escape')
+    await expect(page.locator('.warrior-slot.is-vacancy')).toHaveCount(0)
+    await expect(page.locator('.warrior-slot[data-slot="1"]')).toContainText(/Scout/i)
+  })
+
   test("another account can't read the log", async ({ page, browser }) => {
     const name = 'Private Log Co'
     await createCompanyViaApi(page, { name, mode: 'campaign', ipLimit: 0, slots: [{ type: 'Fighter', weapon1: 'Light Weapon' }] })

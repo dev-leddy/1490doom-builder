@@ -113,6 +113,10 @@ export function describeEvent(e) {
       icon: '+', text: `${p.name} recruited`,
       sub: list([`Starting IP ${p.startIP || 0}`, p.replaced ? `Replaces ${p.replaced}` : null, p.captain ? 'Captain' : null]),
     }
+    case 'warrior.resurrected': return {
+      icon: '+', text: `${p.name || 'A warrior'} resurrected`,
+      sub: list([p.fromGame != null ? `Fell in game ${p.fromGame}` : null, `${p.earnedIP || 0} IP`]).replace(', ', ' · '),
+    }
     case 'warrior.recruitUndone': return { icon: '↶', text: `Recruit undone: ${p.name}`, sub: null }
     case 'warrior.removed': return { icon: '−', text: `${p.name} removed from the company`, sub: null }
     case 'warrior.renamed': return { icon: '✎', text: `${p.from} renamed to ${p.to}`, sub: p.type && p.to !== p.type ? p.type : null }
