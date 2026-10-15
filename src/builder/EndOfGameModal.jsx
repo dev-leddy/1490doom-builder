@@ -104,7 +104,8 @@ export default function EndOfGameModal({ onClose, onConfirm, initialResult = nul
 
   const draft = {
     result,
-    scenario: scenario.trim() || undefined,
+    // Editing: an empty name clears it; recording: no name
+    scenario: edit ? scenario.trim() : (scenario.trim() || undefined),
     fallenIndices: [...fallen],
     newCaptainIndex: captainFell && survivors.length ? newCaptainIndex : null,
     survivorPick: earns && survivors.length ? survivorPick : null,

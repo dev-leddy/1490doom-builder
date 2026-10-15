@@ -153,11 +153,11 @@ test.describe('campaign activity log', () => {
     await page.locator('.eog-next-btn').click()
     await page.locator('.eog-record-btn').click()
 
-    // Log -> the game's entry -> Edit outcome (latest game: the full sheet, prefilled)
+    // Log -> the game's entry -> Edit game (latest game: the full sheet, prefilled)
     await page.locator('.ch-camp-log-btn').click()
     const view = page.getByRole('dialog', { name: /campaign log/i })
     await view.locator('.alv-item', { hasText: 'Game 1 recorded: Defeat' }).locator('.alv-item-btn').click()
-    await page.locator('.alv-entry-sheet').getByRole('button', { name: 'Edit outcome' }).click()
+    await page.locator('.alv-entry-sheet').getByRole('button', { name: 'Edit game 1' }).click()
     const edit = page.locator('.eog-sheet').last()
     await expect(edit.locator('.co-sheet-title')).toHaveText('EDIT GAME 1')
     await expect(edit.locator('[data-result="loss"]')).toHaveAttribute('aria-checked', 'true')
@@ -216,6 +216,43 @@ test.describe('campaign activity log', () => {
     }, name)
     expect(campaign.log.at(-1).gameNumber).toBe(7)
     expect(campaign.length).toBe(7)
+  })
+
+  test('the log sorts by warrior from the table header and the phone menu', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 })
+    await createCompanyViaApi(page, {
+      name: 'Sort Co', mode: 'campaign', ipLimit: 0,
+      slots: [{ type: 'Scout', weapon1: 'Bow', earnedIP: 1 }, { type: 'Brute', weapon1: 'Heavy Weapon', earnedIP: 1 }],
+    })
+    // Upgrades for the Scout, then the Brute, so newest first puts the Brute on top
+    for (const slot of [0, 1]) {
+      await page.locator(`.warrior-slot[data-slot="${slot}"]`).getByRole('button', { name: 'Add stat' }).click()
+      await page.locator('button.pk-stat:not(:disabled)').first().click()
+      await page.locator('.pk-stat-apply').click()
+    }
+    await page.locator('.ch-camp-log-btn').click()
+    const view = page.getByRole('dialog', { name: /campaign log/i })
+    const upgrades = view.locator('tbody tr[data-type="upgrade.bought"] .alv-warrior')
+    await expect(upgrades).toHaveText(['Brute', 'Scout'])
+
+    // Warrior header: A to Z, then Z to A; only the active column shows aria-sort
+    const warriorTh = view.locator('th', { hasText: 'Warrior' })
+    await warriorTh.getByRole('button').click()
+    await expect(warriorTh).toHaveAttribute('aria-sort', 'ascending')
+    await expect(view.locator('th', { hasText: 'Time' })).toHaveAttribute('aria-sort', 'none')
+    await expect(upgrades).toHaveText(['Brute', 'Scout'])
+    await warriorTh.getByRole('button').click()
+    await expect(warriorTh).toHaveAttribute('aria-sort', 'descending')
+    await expect(upgrades).toHaveText(['Scout', 'Brute'])
+
+    // Phones: a Sort menu; the choice is kept
+    await page.setViewportSize({ width: 420, height: 900 })
+    const sort = view.getByLabel('Sort')
+    await sort.selectOption('newest')
+    await expect(view.locator('.alv-item[data-type="upgrade.bought"]').first()).toContainText('Brute')
+    await sort.selectOption('warrior')
+    await expect(view.locator('.alv-item[data-type="upgrade.bought"]').first()).toContainText('Brute')
+    await expect(sort).toHaveValue('warrior')
   })
 
   test("another account can't read the log", async ({ page, browser }) => {

@@ -6,11 +6,13 @@ import BottomSheet from '../shared/BottomSheet'
 import EndOfGameModal, { RESULTS } from './EndOfGameModal'
 import './styles/activity-log.css'
 
-// ── Edit a recorded game's outcome ────────────────────────────────────────────
+// ── Edit a recorded game: one editor for its outcome and scenario name ────────
 // From the campaign log (an entry's panel, or a By game card).
 // latest (it has a snapshot): first say what re-entering it undoes, then either the full
-// End of Game sheet prefilled (editLatestGame) or just result + survivor point.
-// Older games: result + survivor point only (editGameOutcome), with a live IP preview.
+// End of Game sheet prefilled (editLatestGame; its review has the scenario name) or the
+// simple editor. Older games: the simple editor: scenario name, result and survivor point,
+// with a live IP preview. One Save: setGameScenario if the name changed, editGameOutcome if
+// the result or survivor point changed (each logs its own entry).
 
 const Z = 1200 // above the full-screen log and its entry sheet
 
@@ -24,18 +26,26 @@ function SimpleOutcomeEditor({ gameNumber, onClose, onSaved }) {
   const survivors = (record?.roster || []).filter(r => r.survived)
   const [result, setResult] = useState(record?.result || null)
   const [pick, setPick] = useState(() => (record?.awards || []).find(a => a.reason === 'survivor')?.uid ?? null)
+  const [scenario, setScenario] = useState(record?.scenario || '')
   if (!record) return null
 
   const earns = result !== 'retreat' || CAMPAIGN_RULES.retreatGivesIP
   const change = { result, survivorPick: earns ? pick : null }
-  const block = outcomeEditBlock(company, gameNumber, change)
+  const outcomeSame = result === record.result && (!earns || pick === ((record.awards || []).find(a => a.reason === 'survivor')?.uid ?? null))
+  const nameChanged = scenario.trim() !== (record.scenario || '')
+  const block = outcomeSame ? null : outcomeEditBlock(company, gameNumber, change)
   let preview = null
-  if (!block) { try { preview = editOutcome(company, gameNumber, change) } catch { preview = null } }
-  const unchanged = result === record.result && (!earns || pick === ((record.awards || []).find(a => a.reason === 'survivor')?.uid ?? null))
+  if (!block && !outcomeSame) { try { preview = editOutcome(company, gameNumber, change) } catch { preview = null } }
+  const unchanged = outcomeSame && !nameChanged
 
   function save() {
-    const res = store.editGameOutcome(gameNumber, change)
-    if (res.ok) { onSaved?.(); onClose() }
+    if (!outcomeSame) {
+      const res = store.editGameOutcome(gameNumber, change)
+      if (!res.ok) return
+    }
+    if (nameChanged) store.setGameScenario(gameNumber, scenario.trim())
+    onSaved?.()
+    onClose()
   }
 
   return (
@@ -44,7 +54,12 @@ function SimpleOutcomeEditor({ gameNumber, onClose, onSaved }) {
         <button type="button" className="co-sheet-randomize" onClick={onClose}>Cancel</button>
         <button type="button" className="co-sheet-done oe-save" disabled={!!block || unchanged} onClick={save}>Save changes</button>
       </>}>
-      <p className="eog-lede" id="oe-result-q">How did game {gameNumber} end?</p>
+      <label className="eog-field oe-name">
+        <span className="eog-field-label">Scenario <span>(optional)</span></span>
+        <input className="co-settings-input eog-scenario-input" type="text" maxLength={80} autoComplete="off"
+          placeholder="Name of the scenario you played" value={scenario} onChange={e => setScenario(e.target.value)} />
+      </label>
+      <p className="eog-lede oe-gap" id="oe-result-q">How did game {gameNumber} end?</p>
       <div className="eog-result-grid" role="radiogroup" aria-labelledby="oe-result-q">
         {RESULTS.map(r => (
           <button key={r.id} type="button" role="radio" aria-checked={result === r.id}
@@ -75,7 +90,7 @@ function SimpleOutcomeEditor({ gameNumber, onClose, onSaved }) {
       <div className="oe-preview" aria-live="polite">
         <span className="oe-preview-label">IP after saving</span>
         {block ? <span className="oe-block">{block}</span>
-          : unchanged ? <span className="oe-preview-text">Nothing changes yet.</span>
+          : outcomeSame ? <span className="oe-preview-text">{nameChanged ? 'No IP changes. Only the name changes.' : 'Nothing changes yet.'}</span>
             : preview?.deltas?.length ? <span className="oe-preview-text">{preview.deltas.map(d => `${d.name} ${signed(d.ip)}`).join(', ')}</span>
               : <span className="oe-preview-text">No IP changes.</span>}
         {preview?.warnings?.map(w => <span key={w} className="oe-warn">{w}</span>)}
@@ -108,7 +123,7 @@ export default function EditOutcomeFlow({ editing, onClose, onSaved }) {
       </>}>
       <p className="eog-help">Upgrades bought and recruits made since this game will be undone if you edit everything:</p>
       <ul className="oe-losses">{lines.map(l => <li key={l}>{l}</li>)}</ul>
-      <p className="eog-help">To keep them, change only the result and the survivor point.</p>
+      <p className="eog-help">To keep them, change only the name, the result and the survivor point.</p>
     </BottomSheet>
   )
 }

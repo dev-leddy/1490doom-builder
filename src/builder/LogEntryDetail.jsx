@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useBuilderStore } from '../store/builderStore'
 import { minEarnedIP, nameWithClass, lastUpgrade } from '../store/campaign'
+import { IconPencil } from './icons'
 import { rowActions, MAX_NOTE_LENGTH } from '../store/campaignEvents'
 import { STAT_IMPROVEMENT } from '../data/warriors'
 import { undoGameRules } from './campaignUi'
@@ -8,7 +9,8 @@ import { eventTime } from './activityLog'
 
 // ── One campaign log entry, opened from the full-screen log ───────────────────
 // The full entry, its note (add, change, remove) and what can still be done about it:
-// rename the game, undo the game / upgrade / recruit, fix the IP of the warriors it names.
+// edit the game (one editor for outcome and scenario name), undo the game / upgrade /
+// recruit, fix the IP of the warriors it names.
 // Every change goes through the store, which logs it. Confirms are lifted to the parent
 // (ActivityLogView) so Escape can close them first.
 
@@ -45,17 +47,20 @@ export function confirmFor(kind, { company, row, onDone }) {
   }
 }
 
-export default function LogEntryDetail({ row, onAsk, onChanged, onEditOutcome, headingRef }) {
-  const { slots, companyMode, campaignGame, campaign, noteLogEntry, setGameScenario, setEarnedIP } = useBuilderStore()
+export default function LogEntryDetail({ row, onAsk, onChanged, onEditGame, headingRef }) {
+  const { slots, companyMode, campaignGame, campaign, noteLogEntry, setEarnedIP } = useBuilderStore()
   const company = { slots, companyMode, campaignGame, campaign }
   const e = row.e
   const actions = rowActions(company, e)
 
   const [note, setNote] = useState(row.note || '')
-  const [scenario, setScenario] = useState('')
-  const record = actions.renameGame ? (campaign?.log || []).find(r => r.gameNumber === actions.renameGame) : null
   useEffect(() => { setNote(row.note || '') }, [e.id, row.note])
-  useEffect(() => { setScenario(record?.scenario || '') }, [e.id, record?.scenario])
+
+  // The game this entry is about, if it can still be edited (a record, or a rename of one)
+  const log = campaign?.log || []
+  const gameNo = actions.editOutcome?.gameNumber ?? actions.renameGame
+  const record = gameNo != null ? log.find(r => r.gameNumber === gameNo) : null
+  const editGame = record ? (actions.editOutcome || { gameNumber: gameNo, latest: record === log.at(-1) && !!record.before }) : null
 
   // IP steppers: refresh the log a moment after the last tap, not on every tap
   const ipTimer = useRef(null)
@@ -68,17 +73,22 @@ export default function LogEntryDetail({ row, onAsk, onChanged, onEditOutcome, h
 
   const saveNote = text => { if (noteLogEntry(e.id, text, { afterGame: e.afterGame })) onChanged() }
   const noteChanged = note.trim() !== (row.note || '')
-  const scenarioChanged = record && scenario.trim() !== (record.scenario || '')
-  const hasActions = actions.editOutcome || actions.undoGame || actions.undoUpgrade || actions.undoRecruit || actions.renameGame || actions.fixIP.length
+  const hasActions = actions.undoGame || actions.undoUpgrade || actions.undoRecruit || actions.fixIP.length
 
   return (
     <div className="led">
       <div className="led-head">
-        <span className="alv-tag" data-kind={row.kind}>{row.tag}</span>
+        <span className="alv-tag" data-kind={row.kind} data-result={row.result || undefined}>{row.tag}</span>
         <h3 className="led-title" ref={headingRef} tabIndex={-1}>{row.text}</h3>
         {row.undone && <span className="alv-flag">Undone</span>}
         {row.edited && <span className="alv-flag alv-flag--edited">Edited</span>}
         {row.rejected && <span className="alv-flag alv-flag--warn">Not saved</span>}
+        {editGame && (
+          <button type="button" className="cmp-log-edit led-edit" aria-label={`Edit game ${editGame.gameNumber}`}
+            onClick={() => onEditGame?.(editGame)}>
+            <IconPencil /><span aria-hidden="true">Edit game</span>
+          </button>
+        )}
       </div>
       {(row.rejected || row.sub) && (
         <p className="led-details">{row.rejected ? 'Replaced by changes from another device, so it never happened.' : row.sub}</p>
@@ -103,22 +113,6 @@ export default function LogEntryDetail({ row, onAsk, onChanged, onEditOutcome, h
       {hasActions ? (
         <section className="led-section">
           <h4 className="led-label">Change it</h4>
-          {actions.editOutcome && (
-            <button type="button" className="alv-btn led-edit" onClick={() => onEditOutcome?.(actions.editOutcome)}>
-              Edit outcome
-            </button>
-          )}
-          {record && (
-            <div className="led-rename">
-              <label className="led-sublabel" htmlFor={`led-scn-${e.id}`}>Game {record.gameNumber} scenario</label>
-              <div className="led-row led-row--input">
-                <input id={`led-scn-${e.id}`} className="alv-search" type="text" maxLength={80} autoComplete="off"
-                  placeholder="Name of the scenario" value={scenario} onChange={ev => setScenario(ev.target.value)} />
-                <button type="button" className="alv-btn" disabled={!scenarioChanged}
-                  onClick={() => { if (setGameScenario(record.gameNumber, scenario.trim())) onChanged() }}>Rename</button>
-              </div>
-            </div>
-          )}
           {actions.fixIP.length > 0 && (
             <div className="led-ip">
               <span className="led-sublabel">Fix IP</span>
@@ -160,7 +154,7 @@ export default function LogEntryDetail({ row, onAsk, onChanged, onEditOutcome, h
           </div>
         </section>
       ) : (
-        <p className="led-none">Nothing on this entry can be changed now. You can still add a note.</p>
+        !editGame && <p className="led-none">Nothing on this entry can be changed now. You can still add a note.</p>
       )}
     </div>
   )

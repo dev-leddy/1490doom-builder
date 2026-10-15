@@ -224,6 +224,7 @@ export function buildRows(events = [], total = CAMPAIGN_RULES.games) {
     const note = noted.length ? notesFor(noted, e.id) : null
     return {
       e, at: eventAt(e), kind, tag: KIND_TAG[kind], game, warriors, text, sub, note,
+      result: e.type === 'game.recorded' ? e.payload?.result ?? null : e.type === 'game.edited' ? e.payload?.to?.result ?? null : null,
       undone: undone.has(e.id), edited: edited.has(e.id), isUndo: UNDO_TYPES.has(e.type) && !!e.ref && e.status !== 'rejected',
       rejected: e.status === 'rejected',
       haystack: [text, sub, note, game.label, KIND_TAG[kind], ...warriors.map(w => w.name)].filter(Boolean).join(' ').toLowerCase(),
@@ -252,7 +253,30 @@ export function activeFilterCount(f) {
   return (f.game !== 'all') + (f.warrior !== 'all') + (f.kinds.length > 0) + (f.q.trim() !== '') + (!f.showUndone)
 }
 
-export function filterRows(rows, f, { newestFirst = true } = {}) {
+// sort: { key: 'time' | 'game' | 'warrior', dir: 'asc' | 'desc' } (newest first by default)
+export const DEFAULT_LOG_SORT = { key: 'time', dir: 'desc' }
+
+// rows come in oldest first (buildRows). Game: by game number, then time. Warrior: by the
+// first warrior named, A to Z (rows naming no one go last either way), then time.
+export function sortRows(rows, sort = DEFAULT_LOG_SORT) {
+  const sign = sort.dir === 'desc' ? -1 : 1
+  const time = (a, b) => (a.at || 0) - (b.at || 0) || a.i - b.i
+  const gameNo = r => Number(r.game.key.slice(1)) || 0
+  const firstName = r => r.warriors[0]?.name || null
+  const indexed = rows.map((r, i) => ({ r, i, at: r.at }))
+  const cmp = {
+    time: (a, b) => sign * time(a, b),
+    game: (a, b) => sign * (gameNo(a.r) - gameNo(b.r) || time(a, b)),
+    warrior: (a, b) => {
+      const x = firstName(a.r), y = firstName(b.r)
+      if (!x !== !y) return x ? -1 : 1
+      return sign * ((x && y ? x.localeCompare(y) : 0) || time(a, b))
+    },
+  }[sort.key] || ((a, b) => sign * time(a, b))
+  return indexed.sort(cmp).map(x => x.r)
+}
+
+export function filterRows(rows, f, { sort = DEFAULT_LOG_SORT, newestFirst } = {}) {
   const q = f.q.trim().toLowerCase()
   const out = rows.filter(r =>
     (f.game === 'all' || r.game.key === f.game) &&
@@ -260,7 +284,8 @@ export function filterRows(rows, f, { newestFirst = true } = {}) {
     (!f.kinds.length || f.kinds.includes(r.kind)) &&
     (f.showUndone || !(r.undone || r.isUndo)) &&
     (!q || r.haystack.includes(q)))
-  return newestFirst ? out.reverse() : out
+  const by = newestFirst === undefined ? sort : { key: 'time', dir: newestFirst ? 'desc' : 'asc' }
+  return sortRows(out, by)
 }
 
 // The rows shown, as CSV (Export)

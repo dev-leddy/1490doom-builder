@@ -1,3 +1,11 @@
+/* Result colours (log tags, game cards, result tiles); the campaign panel's pips use the same */
+:root {
+  --res-win: #3f8f4f; --res-win-text: #8fd19e;
+  --res-loss: var(--blood); --res-loss-text: var(--blood-text);
+  --res-draw: #b08a2e; --res-draw-text: #e6c46a;
+  --res-retreat: #5a5a5a; --res-retreat-text: #cfcfcf;
+}
+
 /* ── Campaign log (ActivityLogView, GameLogCards) ─────────────────────────── */
 
 .alv {
@@ -37,7 +45,7 @@
 .alv-cards { box-sizing: border-box; max-width: 1240px; margin: 0 auto; padding: 1rem; }
 @media (min-width: 900px) {
   .alv-cards { padding: 1.25rem 1.5rem; }
-  .alv-cards .cmp-log { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+  .alv-cards .cmp-log { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: stretch; }
 }
 
 .alv-btn {
@@ -92,7 +100,9 @@
   min-height: 44px; padding: 0; background: none; border: 0; cursor: pointer; color: var(--blood-text);
   font-family: 'Oswald', sans-serif; font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase;
 }
-.alv-sort-phone { margin-left: auto; color: var(--bone); }
+.alv-sort-phone { margin-left: auto; display: inline-flex; align-items: center; gap: 0.5rem; }
+.alv-sort-phone-label { font-family: 'Oswald', sans-serif; font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase; color: #a8a8a8; }
+.alv-select.alv-sort-select { min-width: 0; width: auto; max-width: none; padding-right: 0.4rem; background: #1f1f1f; border-color: #4a4a4a; }
 
 /* Body */
 .alv-main { flex: 1; min-height: 0; display: flex; }
@@ -133,6 +143,8 @@
   color: var(--parchment); font: inherit; letter-spacing: inherit; text-transform: inherit;
 }
 .alv-sort span { font-size: 0.6rem; color: var(--blood-text); }
+.alv-sort:not(.is-active) { color: #bdbdbd; }
+@media (hover: hover) { .alv-sort:not(.is-active):hover { color: var(--parchment); text-decoration: underline; text-underline-offset: 3px; } }
 .alv-table td { padding: 0.55rem 0.75rem; border-bottom: 1px solid #1c1c1c; vertical-align: top; line-height: 1.4; }
 .alv-table tbody tr:nth-child(even) td { background: rgba(255, 255, 255, 0.025); }
 @media (hover: hover) { .alv-table tbody tr:hover td { background: rgba(190, 65, 39, 0.1); } }
@@ -214,6 +226,9 @@
 .led-title { flex-basis: 100%; margin: 0.2rem 0 0; font-family: 'Oswald', sans-serif; font-weight: 400; font-size: 1.05rem; letter-spacing: 0.04em; line-height: 1.3; color: var(--parchment); }
 .led-title:focus { outline: none; }
 .led-head .alv-flag { order: 3; }
+.led-head .alv-tag { order: 0; }
+.led-head .led-edit { order: 1; margin-left: auto; }
+.led-head .led-title { order: 2; }
 .led-details { margin: 0.4rem 0 0; font-size: 0.9rem; line-height: 1.4; color: #bdbdbd; }
 .led-facts { margin: 0.75rem 0 0; display: grid; gap: 0.2rem; }
 .led-facts div { display: grid; grid-template-columns: 4.5rem 1fr; gap: 0.5rem; }
@@ -227,11 +242,9 @@
 .led-note-input::placeholder { color: #8a8a8a; }
 .led-note-input:focus-visible { outline: 2px solid var(--blood); outline-offset: 1px; }
 .led-row { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
-.led-row--input { flex-wrap: nowrap; }
-.led-row--input .alv-search { flex: 1; background: var(--ash); }
 .led-count { font-size: 0.8rem; color: #a8a8a8; margin-right: auto; }
 .led-primary:not(:disabled) { background: var(--blood); border-color: var(--rust); color: #fff; }
-.led-rename, .led-ip { display: grid; gap: 0.4rem; }
+.led-ip { display: grid; gap: 0.4rem; }
 .led-ip-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.35rem 0.5rem 0.35rem 0.75rem; border: 1px solid #2c2c2c; border-radius: 6px; background: var(--ash); }
 .led-ip-name { flex: 1; min-width: 0; display: grid; font-family: 'Oswald', sans-serif; font-size: 0.88rem; letter-spacing: 0.04em; color: var(--parchment); }
 .led-ip-name small { font-family: 'Caslon Antique', serif; font-size: 0.8rem; letter-spacing: 0; color: #a8a8a8; }
@@ -244,26 +257,11 @@
 @media (hover: hover) { .led-danger:hover { background: rgba(190, 65, 39, 0.12); } }
 .led-none { margin: 1rem 0 0; font-size: 0.88rem; color: #a8a8a8; }
 
-/* By game: rename a game in place (pencil, then an input with Save / Cancel) */
-.cmp-log-scenario-row { display: flex; align-items: center; gap: 0.5rem; margin: 0.1rem -0.4rem 0 0; min-height: 44px; }
-.cmp-log-scenario-row .cmp-log-scenario { flex: 1; min-width: 0; margin: 0; }
-.cmp-log-scenario.is-empty { font-style: italic; color: #a8a8a8; }
-.cmp-log-pencil { flex: none; width: 44px; height: 44px; display: grid; place-items: center; background: none; border: 1px solid transparent;
-  border-radius: 4px; color: #bdbdbd; cursor: pointer; touch-action: manipulation; }
-.cmp-log-pencil svg { width: 18px; height: 18px; }
-@media (hover: hover) { .cmp-log-pencil:hover { color: var(--parchment); border-color: #3a3a3a; } }
-.cmp-log-pencil:focus-visible { outline: 2px solid var(--blood); outline-offset: 0; }
-.cmp-log-rename { display: grid; gap: 0.5rem; margin-top: 0.5rem; }
-.cmp-log-rename-input { width: 100%; box-sizing: border-box; min-height: 44px; }
-.cmp-log-rename-btns { display: flex; justify-content: flex-end; gap: 0.5rem; }
 
 /* Edited games: a tag on the original record row */
 .alv-flag--edited { border-style: solid; border-color: #6a5226; color: #f0c27a; }
 
 /* Edit outcome: from the entry panel and the By game cards */
-.led-edit { justify-content: flex-start; }
-.cmp-log-actions { display: flex; justify-content: flex-end; margin-top: 0.6rem; }
-.cmp-log-edit { min-height: 44px; }
 
 /* End of Game: playing past the planned length, and editing a game */
 .eog-beyond { margin: 0 0 0.9rem; padding: 0.55rem 0.75rem; border-left: 3px solid #8a6a2a; background: rgba(138, 106, 42, 0.12);
@@ -289,3 +287,86 @@
 .eog-sheet .eog-result[aria-checked="true"], .eog-sheet .eog-pick[aria-checked="true"] { background: #2a1510; border-color: var(--blood); }
 .eog-sheet .eog-pick:disabled { background: #141414; }
 .eog-sheet .eog-fate { background: #1f1f1f; border-color: #4a4a4a; }
+
+/* Edit game: a compact secondary button, top right of a card header or the entry panel */
+.cmp-log-edit {
+  position: relative; flex: none; margin-left: auto; display: inline-flex; align-items: center; gap: 0.35rem;
+  min-height: 36px; padding: 0 0.7rem; background: #1f1f1f; border: 1px solid #4a4a4a; border-radius: 4px;
+  color: var(--bone); cursor: pointer; touch-action: manipulation;
+  font-family: 'Oswald', sans-serif; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase;
+}
+.cmp-log-edit::after { content: ''; position: absolute; inset: -4px 0; }
+.cmp-log-edit svg { width: 14px; height: 14px; }
+@media (hover: hover) { .cmp-log-edit:hover { background: #262626; border-color: #6a6a6a; color: var(--parchment); } }
+.cmp-log-edit:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
+
+/* By game cards: a raised surface, rows that line up, cards in a row the same height */
+.alv-cards .cmp-log-game { display: flex; flex-direction: column; background: #171717; border-color: #3a3a3a; }
+.alv-cards .cmp-log-game[data-result] { border-left-width: 3px; }
+.alv-cards .cmp-log-game[data-result="win"] { border-left-color: var(--res-win); }
+.alv-cards .cmp-log-game[data-result="loss"] { border-left-color: var(--res-loss); }
+.alv-cards .cmp-log-game[data-result="draw"] { border-left-color: var(--res-draw); }
+.alv-cards .cmp-log-game[data-result="retreat"] { border-left-color: var(--res-retreat); }
+.alv-cards .cmp-log-head { min-height: 36px; }
+.alv-cards .cmp-log-scenario { color: var(--bone); }
+.alv-cards .cmp-log-scenario.is-empty { font-style: italic; color: #a8a8a8; }
+.alv-cards .cmp-log-facts { margin-bottom: 0.6rem; }
+.alv-cards .cmp-log-facts dt, .alv-cards .cmp-log-upgrades-title { color: #b4b4b4; }
+.alv-cards .cmp-log-facts dd, .alv-cards .cmp-log-upgrades li { color: var(--parchment); }
+.alv-cards .cmp-log-upgrades { margin-top: auto; border-top-color: #2e2e2e; }
+.cmp-log-more { min-height: 44px; padding: 0; background: none; border: 0; cursor: pointer; color: var(--blood-text);
+  font-family: 'Oswald', sans-serif; font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; }
+.cmp-log-more:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
+
+/* Result pips on the cards */
+.alv-cards .cmp-pip.is-win { background: var(--res-win); border-color: #5fb36f; color: #fff; }
+.alv-cards .cmp-pip.is-loss { background: var(--res-loss); border-color: var(--blood-text); color: #fff; }
+.alv-cards .cmp-pip.is-draw { background: var(--res-draw); border-color: #d2a845; color: #1a1205; }
+.alv-cards .cmp-pip.is-retreat { background: var(--res-retreat); border: 1px solid #7a7a7a; color: #f0f0f0; }
+
+/* Entry panel: a raised surface too */
+.alv-detail { background: #161616; border-left-color: #3a3a3a; }
+.alv-detail-bar { background: #161616; border-bottom-color: #3a3a3a; }
+.co-settings-sheet.alv-entry-sheet { background: #161616; }
+.led-facts dt, .led-sublabel, .led-count { color: #b4b4b4; }
+.led-facts dd { color: var(--parchment); }
+.led-section { border-top-color: #2e2e2e; }
+.led-note-input { background: #0f0f0f; }
+.led-ip-row { background: #1f1f1f; border-color: #3a3a3a; }
+
+/* Game tags take the result's colour: win green, defeat red, draw amber, retreat grey */
+.alv-tag[data-result="win"] { background: rgba(63, 143, 79, 0.2); border-color: var(--res-win); color: var(--res-win-text); }
+.alv-tag[data-result="loss"] { background: var(--rust); border-color: var(--res-loss); color: #ffd6cc; }
+.alv-tag[data-result="draw"] { background: rgba(176, 138, 46, 0.18); border-color: var(--res-draw); color: var(--res-draw-text); }
+.alv-tag[data-result="retreat"] { background: #262626; border-color: var(--res-retreat); color: var(--res-retreat-text); }
+
+/* Result tiles (End of Game, game editor) */
+.eog-sheet .eog-result--win .eog-result-ip { color: var(--res-win-text); }
+.eog-sheet .eog-result--loss .eog-result-ip { color: var(--res-loss-text); }
+.eog-sheet .eog-result--draw .eog-result-ip { color: var(--res-draw-text); }
+.eog-sheet .eog-result--retreat .eog-result-ip { color: #a8a8a8; }
+.eog-sheet .eog-result--win[aria-checked="true"] { border-color: var(--res-win); background: #142318; box-shadow: inset 3px 0 0 var(--res-win); }
+.eog-sheet .eog-result--loss[aria-checked="true"] { border-color: var(--res-loss); background: #2a1510; box-shadow: inset 3px 0 0 var(--res-loss); }
+.eog-sheet .eog-result--draw[aria-checked="true"] { border-color: var(--res-draw); background: #241d0d; box-shadow: inset 3px 0 0 var(--res-draw); }
+.eog-sheet .eog-result--retreat[aria-checked="true"] { border-color: #8a8a8a; background: #232323; box-shadow: inset 3px 0 0 #8a8a8a; }
+.oe-name { margin-top: 0; }
+
+/* The fallen: memorial tiles with the class portrait (3 across on phones, more on wide screens) */
+.cmp-fallen-roll .cmp-fallen-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.6rem; }
+@media (min-width: 600px) { .cmp-fallen-roll .cmp-fallen-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); } }
+.cmp-fallen-roll .cmp-fallen-tile {
+  display: flex; flex-direction: column; align-items: center; gap: 0.25rem; padding: 0.6rem 0.5rem 0.7rem; border: 1px solid #3a3a3a;
+  border-radius: 6px; background: #171717; text-align: center; font-size: 0.9rem; color: var(--parchment);
+}
+.cmp-fallen-roll .cmp-fallen-tile .cmp-fallen-portrait {
+  position: relative; display: block; width: 100%; max-width: 120px; aspect-ratio: 3 / 4; overflow: hidden; border-radius: 4px;
+  border: 1px solid #333; background: #0d0d0d; font: inherit; letter-spacing: 0; text-transform: none; color: inherit; white-space: normal;
+}
+.cmp-fallen-portrait img { width: 100%; height: 100%; object-fit: cover; object-position: top; filter: grayscale(0.85) brightness(0.72) contrast(1.05); }
+.cmp-fallen-roll .cmp-fallen-tile .cmp-fallen-captain {
+  position: absolute; left: 50%; bottom: 0.35rem; transform: translateX(-50%); padding: 0.05rem 0.4rem; border: 1px solid var(--blood);
+  border-radius: 2px; background: rgba(8, 8, 8, 0.85); font-family: 'Oswald', sans-serif; font-size: 0.62rem; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--blood-text); white-space: nowrap;
+}
+.cmp-fallen-roll .cmp-fallen-tile .cmp-fallen-name { margin-top: 0.2rem; font-family: 'Oswald', sans-serif; font-size: 0.86rem; letter-spacing: 0.04em; line-height: 1.25; color: var(--parchment); }
+.cmp-fallen-roll .cmp-fallen-tile .cmp-fallen-meta { font-family: inherit; font-size: 0.78rem; letter-spacing: 0; text-transform: none; line-height: 1.3; color: #b4b4b4; white-space: normal; }

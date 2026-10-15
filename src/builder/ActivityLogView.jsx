@@ -2,7 +2,7 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useActivityLog } from './useActivityLog'
 import {
-  KINDS, DEFAULT_LOG_FILTERS, buildRows, gameOptions, warriorOptions, filterRows, activeFilterCount, rowsToCsv, eventTime,
+  KINDS, DEFAULT_LOG_FILTERS, DEFAULT_LOG_SORT, buildRows, gameOptions, warriorOptions, filterRows, activeFilterCount, rowsToCsv, eventTime,
 } from './activityLog'
 import { IconDownload } from './icons'
 import { useBuilderStore } from '../store/builderStore'
@@ -23,6 +23,17 @@ import './styles/activity-log.css'
 
 const VIEWS = [['entries', 'All entries'], ['games', 'By game']]
 let lastView = 'entries' // the view the log reopens on, for this visit
+let lastSort = DEFAULT_LOG_SORT // and its sort
+
+// Phone sort menu: one value per choice (the table headers can also sort game / warrior Z to A)
+const PHONE_SORTS = [
+  ['newest', 'Newest', { key: 'time', dir: 'desc' }],
+  ['oldest', 'Oldest', { key: 'time', dir: 'asc' }],
+  ['game', 'Game', { key: 'game', dir: 'asc' }],
+  ['warrior', 'Warrior', { key: 'warrior', dir: 'asc' }],
+]
+const phoneSortOf = s => (s.key === 'time' ? (s.dir === 'desc' ? 'newest' : 'oldest') : s.key)
+const SORT_WORD = { time: 'time', game: 'game', warrior: 'warrior' }
 
 const WIDE = '(min-width: 768px)'
 
@@ -120,18 +131,33 @@ export default function ActivityLogView({ companyId, companyName, onClose }) {
   const [view, setViewState] = useState(lastView)
   const setView = v => { lastView = v; setViewState(v) }
   const [f, setF] = useState(DEFAULT_LOG_FILTERS)
-  const [newestFirst, setNewestFirst] = useState(true)
+  const [sort, setSortState] = useState(lastSort)
+  const setSort = v => { lastSort = v; setSortState(v) }
+  // Header click: a new column starts at its natural order (time newest, game / warrior ascending)
+  const sortBy = key => setSort(sort.key === key ? { key, dir: sort.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: key === 'time' ? 'desc' : 'asc' })
   const [filtersOpen, setFiltersOpen] = useState(false)
 
   const rows = useMemo(() => (events ? buildRows(events) : []), [events])
   const games = useMemo(() => (events ? gameOptions(events) : []), [events])
   const warriors = useMemo(() => warriorOptions(rows), [rows])
-  const shown = useMemo(() => filterRows(rows, f, { newestFirst }), [rows, f, newestFirst])
+  const shown = useMemo(() => filterRows(rows, f, { sort }), [rows, f, sort])
   const active = activeFilterCount(f)
   const panelActive = active - (f.q.trim() ? 1 : 0) // the search box is always on show
   const set = patch => setF(x => ({ ...x, ...patch }))
   const toggleKind = id => setF(x => ({ ...x, kinds: x.kinds.includes(id) ? x.kinds.filter(k => k !== id) : [...x.kinds, id] }))
-  const sortLabel = newestFirst ? 'Newest first' : 'Oldest first'
+  const sortLabel = `Sorted by ${SORT_WORD[sort.key]}, ${sort.key === 'time' ? (sort.dir === 'desc' ? 'newest first' : 'oldest first') : (sort.dir === 'asc' ? 'A to Z' : 'Z to A')}`
+  // A sortable column header (a plain function, so the button keeps focus across re-renders)
+  const sortTh = (k, label, className) => {
+    const on = sort.key === k
+    const ariaSort = on ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'
+    return (
+      <th scope="col" className={className} aria-sort={ariaSort} key={k}>
+        <button type="button" className={`alv-sort${on ? ' is-active' : ''}`} onClick={() => sortBy(k)}>
+          {label}{on && <span aria-hidden="true">{sort.dir === 'asc' ? '▲' : '▼'}</span>}
+        </button>
+      </th>
+    )
+  }
   const selected = selectedId ? rows.find(r => r.e.id === selectedId) : null
   const openRow = (r, button) => { opener.current = button; setSelectedId(r.e.id); setAsk(null) }
   useEffect(() => { if (selectedId) detailHeading.current?.focus({ preventScroll: true }) }, [selectedId])
@@ -176,7 +202,7 @@ export default function ActivityLogView({ companyId, companyName, onClose }) {
   if (view === 'games') {
     body = (
       <div className="alv-cards">
-        <GameLogCards log={log} legacyGames={Math.max(0, completed - log.length)} campaign={campaign} onRenamed={refresh} onEditOutcome={setEditing} />
+        <GameLogCards log={log} legacyGames={Math.max(0, completed - log.length)} campaign={campaign} onEditGame={setEditing} />
       </div>
     )
   } else if (error) {
@@ -200,17 +226,12 @@ export default function ActivityLogView({ companyId, companyName, onClose }) {
   } else if (wide) {
     body = (
       <table className="alv-table">
-        <caption className="alv-hidden">Campaign log, {sortLabel.toLowerCase()}</caption>
+        <caption className="alv-hidden">Campaign log. {sortLabel}. Sort by a column with its header button.</caption>
         <thead>
           <tr>
-            <th scope="col" className="alv-col-time" aria-sort={newestFirst ? 'descending' : 'ascending'}>
-              <button type="button" className="alv-sort" onClick={() => setNewestFirst(v => !v)}
-                title={newestFirst ? 'Show oldest first' : 'Show newest first'}>
-                Time <span aria-hidden="true">{newestFirst ? '▼' : '▲'}</span>
-              </button>
-            </th>
-            <th scope="col" className="alv-col-game">Game</th>
-            <th scope="col" className="alv-col-warrior">Warrior</th>
+            {sortTh('time', 'Time', 'alv-col-time')}
+            {sortTh('game', 'Game', 'alv-col-game')}
+            {sortTh('warrior', 'Warrior', 'alv-col-warrior')}
             <th scope="col" className="alv-col-event">Event</th>
             <th scope="col" className="alv-col-details">Details</th>
           </tr>
@@ -223,7 +244,7 @@ export default function ActivityLogView({ companyId, companyName, onClose }) {
               <td className="alv-game">{r.game.label}</td>
               <td className="alv-warrior">{names(r)}</td>
               <td className="alv-event">
-                <span className="alv-tag" data-kind={r.kind}>{r.tag}</span>
+                <span className="alv-tag" data-kind={r.kind} data-result={r.result || undefined}>{r.tag}</span>
                 <button type="button" className="alv-open alv-text" aria-expanded={r.e.id === selectedId}
                   onClick={ev => { ev.stopPropagation(); openRow(r, ev.currentTarget) }}>{r.text}</button>
                 <Tags r={r} />
@@ -242,7 +263,7 @@ export default function ActivityLogView({ companyId, companyName, onClose }) {
           <li key={r.e.id} className={`alv-item${rowClass(r)}${r.e.id === selectedId ? ' is-selected' : ''}`} data-type={r.e.type}>
             <button type="button" className="alv-open alv-item-btn" onClick={ev => openRow(r, ev.currentTarget)}>
               <span className="alv-item-main">
-                <span className="alv-tag" data-kind={r.kind}>{r.tag}</span>
+                <span className="alv-tag" data-kind={r.kind} data-result={r.result || undefined}>{r.tag}</span>
                 <span className="alv-text">{r.text}</span>
                 <Tags r={r} />
                 {details(r) && <span className="alv-item-details">{details(r)}</span>}
@@ -308,10 +329,13 @@ export default function ActivityLogView({ companyId, companyName, onClose }) {
           </span>
           {active > 0 && <button type="button" className="alv-link" onClick={() => setF(DEFAULT_LOG_FILTERS)}>Clear filters</button>}
           {!wide && events && rows.length > 0 && (
-            <button type="button" className="alv-link alv-sort-phone" onClick={() => setNewestFirst(v => !v)}
-              aria-label={`${sortLabel}. Tap to show ${newestFirst ? 'oldest' : 'newest'} first`}>
-              {sortLabel} <span aria-hidden="true">{newestFirst ? '▼' : '▲'}</span>
-            </button>
+            <label className="alv-sort-phone">
+              <span className="alv-sort-phone-label">Sort</span>
+              <select className="alv-select alv-sort-select" value={phoneSortOf(sort)}
+                onChange={e => setSort(PHONE_SORTS.find(x => x[0] === e.target.value)[2])}>
+                {PHONE_SORTS.map(([id, label]) => <option key={id} value={id}>{label}</option>)}
+              </select>
+            </label>
           )}
         </div>
       </div>}
@@ -324,14 +348,14 @@ export default function ActivityLogView({ companyId, companyName, onClose }) {
               <h3 className="alv-detail-title" id={`${titleId}-entry`}>Log entry</h3>
               <button type="button" className="alv-close" onClick={closeDetail} aria-label="Close the entry">✕</button>
             </div>
-            <LogEntryDetail row={selected} onAsk={setAsk} onChanged={refresh} onEditOutcome={setEditing} headingRef={detailHeading} />
+            <LogEntryDetail row={selected} onAsk={setAsk} onChanged={refresh} onEditGame={setEditing} headingRef={detailHeading} />
           </aside>
         )}
       </div>
       {view === 'entries' && selected && !wide && (
         <BottomSheet title="LOG ENTRY" onClose={closeDetail} zIndex={1100} className="alv-entry-sheet"
           footer={<button type="button" className="co-sheet-done" onClick={closeDetail}>Done</button>}>
-          <LogEntryDetail row={selected} onAsk={setAsk} onChanged={refresh} onEditOutcome={setEditing} headingRef={detailHeading} />
+          <LogEntryDetail row={selected} onAsk={setAsk} onChanged={refresh} onEditGame={setEditing} headingRef={detailHeading} />
         </BottomSheet>
       )}
       {editing && <EditOutcomeFlow editing={editing} onClose={() => setEditing(null)} onSaved={refresh} />}
