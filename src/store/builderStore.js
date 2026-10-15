@@ -1038,17 +1038,20 @@ export const useBuilderStore = create((set, get) => {
       return true
     },
     // Brings a warrior from The Fallen back (their own empty slot, else slotIndex or the
-    // first empty one), exactly as they fell. Returns true when done, else toasts the reason.
-    resurrectWarrior(gameNumber, uid, { slotIndex } = {}) {
+    // first empty one) with `ip` IP to spend (default: what they had; see resurrectDefaults)
+    // and nothing bought. Returns true when done, else toasts the reason.
+    resurrectWarrior(gameNumber, uid, { slotIndex, ip } = {}) {
+      const entry = get().campaign?.log?.find(r => r.gameNumber === gameNumber)?.fallen?.find(f => f.uid === uid)
       let res
-      try { res = resurrectWarriorOf(get(), { gameNumber, uid }, { slotIndex }) } catch (err) {
+      try { res = resurrectWarriorOf(get(), { gameNumber, uid }, { slotIndex, ip }) } catch (err) {
         get()._toast(err.message)
         return false
       }
       const { company, slotIndex: at, warnings } = res
       set({ slots: company.slots, campaign: company.campaign })
       const w = company.slots[at]
-      get()._logEvent('warrior.resurrected', { uid, name: nameWithClass(w), type: w.type, fromGame: gameNumber, slotIndex: at, earnedIP: w.earnedIP || 0 })
+      // earnedIP: what they had when they fell; ip: what they came back with
+      get()._logEvent('warrior.resurrected', { uid, name: nameWithClass(w), type: w.type, fromGame: gameNumber, slotIndex: at, earnedIP: entry?.earnedIP || 0, ip: w.earnedIP || 0 })
       get()._autoDraft()
       get()._toast(warnings[0] || `${nameWithClass(w)} is back.`)
       return true

@@ -738,54 +738,73 @@ export function unlogLastUpgrade(company, slot) {
 // ── Resurrection ──────────────────────────────────────────────────────────────
 // A warrior from The Fallen can be brought back into the company. Their fallen entry stays
 // in the game record (history), marked resurrected: { at, slotIndex, afterGame }.
+// They come back as themselves (uid, class, name, notes) with the IP the player chooses and
+// nothing bought: the class's default loadout, no upgrades. The player spends the IP again.
 
 export function isResurrected(entry) {
   return !!entry?.resurrected
 }
 
-// Brings warrior `uid`, who fell in game `gameNumber`, back: into their own vacancy if it is
-// still empty, else into opts.slotIndex or the first empty slot. Restored as they fell (gear,
-// upgrades, IP); entries from before full snapshots get the default loadout (see warnings).
-// Never restores Captaincy. Throws with the reason if it can't be done.
-// → { company, slotIndex, warnings }
-export function resurrectWarrior(company, { gameNumber, uid } = {}, { slotIndex = null, now = Date.now() } = {}) {
-  const c = normalizeCampaign(company)
+export const MAX_RESURRECT_IP = 99
+
+function findFallen(c, gameNumber, uid) {
   const log = c.campaign?.log || []
   const at = log.findIndex(r => r.gameNumber === gameNumber)
   const entry = at >= 0 ? (log[at].fallen || []).find(f => f.uid === uid) : null
+  return { log, at, entry }
+}
+
+// Where they would go: their own vacancy if still empty, else slotIndex, else the first
+// empty slot. -1 when there is none; throws if slotIndex is taken.
+function resurrectTarget(c, uid, slotIndex) {
+  const own = c.slots.findIndex(s => !s.type && s.fallen?.uid === uid)
+  if (own >= 0) return own
+  if (slotIndex != null) {
+    if (!c.slots[slotIndex] || c.slots[slotIndex].type) throw new Error('That slot already has a warrior.')
+    return slotIndex
+  }
+  return c.slots.findIndex(s => !s.type)
+}
+
+// For the resurrect sheet: { ip: the IP they had when they fell, slotIndex: where they'd go
+// (-1 = no empty slot) }, or null if no such fallen warrior
+export function resurrectDefaults(company, { gameNumber, uid } = {}) {
+  const c = normalizeCampaign(company)
+  const { entry } = findFallen(c, gameNumber, uid)
+  if (!entry) return null
+  return { ip: entry.earnedIP || 0, slotIndex: resurrectTarget(c, uid, null) }
+}
+
+// Brings warrior `uid`, who fell in game `gameNumber`, back with `ip` IP to spend (a whole
+// number 0 to MAX_RESURRECT_IP; default: what they had when they fell). Into their own
+// vacancy if it is still empty, else opts.slotIndex or the first empty slot. Never restores
+// Captaincy. Throws with the reason if it can't be done.
+// → { company, slotIndex, warnings }
+export function resurrectWarrior(company, { gameNumber, uid } = {}, { slotIndex = null, ip, now = Date.now() } = {}) {
+  const c = normalizeCampaign(company)
+  const { log, at, entry } = findFallen(c, gameNumber, uid)
   if (!entry) throw new Error('That warrior is not among the fallen of that game.')
   const name = nameWithClass(entry)
   if (entry.resurrected || c.slots.some(s => s.type && s.uid === uid)) throw new Error(`${name} is already back in the company.`)
   if (c.slots.some(s => s.type === entry.type)) throw new Error(`The company already has a ${entry.type}.`)
+  const earnedIP = ip === undefined ? entry.earnedIP || 0 : ip
+  if (!Number.isInteger(earnedIP) || earnedIP < 0 || earnedIP > MAX_RESURRECT_IP) throw new Error(`Choose between 0 and ${MAX_RESURRECT_IP} IP.`)
 
-  let target = c.slots.findIndex(s => !s.type && s.fallen?.uid === uid)
-  if (target < 0) {
-    if (slotIndex != null) {
-      if (!c.slots[slotIndex] || c.slots[slotIndex].type) throw new Error('That slot already has a warrior.')
-      target = slotIndex
-    } else {
-      target = c.slots.findIndex(s => !s.type)
-    }
-  }
+  const target = resurrectTarget(c, uid, slotIndex)
   if (target < 0) throw new Error('No empty slot. Remove or free a slot first.')
 
   const warnings = []
-  const full = 'weapon1' in entry
-  const loadout = full
-    ? { weapon1: entry.weapon1, weapon2: entry.weapon2, consumable: entry.consumable, climbing: entry.climbing }
-    : { ...defaultLoadout(entry.type), consumable: null, climbing: null }
-  if (!full) warnings.push(`${name}'s gear wasn't recorded, so they come back with the default weapons and their gear IP unspent.`)
   const vacancy = c.slots[target]
   const { fallen: _fallen, ...rest } = vacancy
   const warrior = {
     ...rest,
     type: entry.type,
-    customName: full ? entry.customName ?? null : (entry.name && entry.name !== entry.type ? entry.name : null),
-    ...loadout,
-    statImproves: [...(entry.statImproves || [])],
-    // Without the gear, only the stat purchases can be restored
-    ip: full ? [...(entry.ip || [])] : (entry.ip || []).filter(id => /^stat_\d+$/.test(id)),
-    earnedIP: entry.earnedIP || 0,
+    customName: 'customName' in entry ? entry.customName ?? null : (entry.name && entry.name !== entry.type ? entry.name : null),
+    // Only what the class itself carries: nothing bought comes back
+    ...defaultLoadout(entry.type),
+    consumable: null, climbing: null,
+    ip: [], statImproves: [],
+    earnedIP,
     notes: [...(entry.notes || vacancy.notes || [])],
     uid,
     isCaptain: false,

@@ -10,7 +10,7 @@ import {
   setGameScenario, endCampaignEarly, reopenCampaign,
   editOutcome, outcomeEditBlock, draftFromRecord, reRecordLatestGame, editLatestGameLosses,
   setCampaignLength, keepPlaying, campaignLength, MAX_CAMPAIGN_LENGTH,
-  resurrectWarrior, resurrectBlock, isResurrected,
+  resurrectWarrior, resurrectBlock, isResurrected, resurrectDefaults,
 } from '../../src/store/campaign.js'
 
 const warrior = (type, extra = {}) => ({
@@ -626,28 +626,30 @@ describe('resurrecting the fallen', () => {
   // Scout (slot 1) with gear and upgrades, named
   const geared = () => company([
     warrior('Fighter', { isCaptain: true }),
-    warrior('Scout', { customName: 'Joss', weapon1: 'Bow', climbing: 'Ladder', consumable: 'Fog of War Flask', statImproves: ['MOV'], ip: ['climbing', 'stat_0', 'consumable'], earnedIP: 4, notes: ['Sharp eyes'] }),
+    warrior('Scout', { customName: 'Joss', weapon1: 'Bow', weapon2: null, climbing: 'Ladder', consumable: 'Fog of War Flask', statImproves: ['MOV'], ip: ['climbing', 'stat_0', 'consumable'], earnedIP: 4, notes: ['Sharp eyes'] }),
     warrior('Assassin'),
   ])
   const scoutFalls = (c = geared()) => applyEndOfGame(c, draft({ fallenIndices: [1], survivorPick: 0 })).company
-  const pick = s => ({ type: s.type, customName: s.customName, weapon1: s.weapon1, weapon2: s.weapon2, climbing: s.climbing, consumable: s.consumable, statImproves: s.statImproves, ip: s.ip, earnedIP: s.earnedIP, notes: s.notes, uid: s.uid })
 
   it('the record keeps a full snapshot of each fallen warrior', () => {
     const before = geared()
     const entry = scoutFalls(before).campaign.log[0].fallen[0]
-    expect(entry).toMatchObject({ ...pick(before.slots[1]), name: 'Joss' })
+    expect(entry).toMatchObject({ uid: before.slots[1].uid, type: 'Scout', name: 'Joss', customName: 'Joss', weapon1: 'Bow', climbing: 'Ladder', earnedIP: 4, notes: ['Sharp eyes'] })
   })
 
-  it('brings them back into their own empty slot exactly as they fell, once', () => {
+  it('brings them back as themselves with their old IP to spend and nothing bought', () => {
     const before = geared()
     const c = scoutFalls(before)
     const uid = before.slots[1].uid
+    expect(resurrectDefaults(c, { gameNumber: 1, uid })).toEqual({ ip: 4, slotIndex: 1 })
     expect(resurrectBlock(c, { gameNumber: 1, uid })).toBeNull()
     const { company: back, slotIndex, warnings } = resurrectWarrior(c, { gameNumber: 1, uid }, { now: 77 })
     expect(slotIndex).toBe(1)
     expect(warnings).toEqual([])
-    expect(pick(back.slots[1])).toEqual(pick(before.slots[1]))
-    expect(back.slots[1].isCaptain).toBe(false)
+    expect(back.slots[1]).toMatchObject({
+      uid, type: 'Scout', customName: 'Joss', notes: ['Sharp eyes'], earnedIP: 4, isCaptain: false,
+      weapon1: 'Light Weapon', weapon2: null, climbing: null, consumable: null, ip: [], statImproves: [],
+    })
     expect('fallen' in back.slots[1]).toBe(false)
     const entry = back.campaign.log[0].fallen[0]
     expect(isResurrected(entry)).toBe(true)
@@ -656,25 +658,45 @@ describe('resurrecting the fallen', () => {
     expect(resurrectBlock(back, { gameNumber: 1, uid })).toMatch(/already back/)
   })
 
+  it('the player chooses how much IP they come back with', () => {
+    const c = scoutFalls()
+    const uid = c.campaign.log[0].fallen[0].uid
+    expect(resurrectWarrior(c, { gameNumber: 1, uid }, { ip: 0 }).company.slots[1].earnedIP).toBe(0)
+    expect(resurrectWarrior(c, { gameNumber: 1, uid }, { ip: 7 }).company.slots[1].earnedIP).toBe(7)
+    expect(() => resurrectWarrior(c, { gameNumber: 1, uid }, { ip: -1 })).toThrow(/between 0 and 99/)
+    expect(() => resurrectWarrior(c, { gameNumber: 1, uid }, { ip: 1.5 })).toThrow()
+    expect(resurrectBlock(c, { gameNumber: 1, uid }, { ip: 100 })).toBeTruthy()
+  })
+
+  it('class gear comes back, bought gear does not', () => {
+    const before = company([warrior('Fighter', { isCaptain: true }), warrior('Knight', { weapon2: 'Shield', climbing: 'Ladder', ip: ['climbing'], earnedIP: 1 })])
+    const c = applyEndOfGame(before, draft({ fallenIndices: [1], survivorPick: 0 })).company
+    const back = resurrectWarrior(c, { gameNumber: 1, uid: before.slots[1].uid }).company
+    expect(back.slots[1]).toMatchObject({ weapon1: 'Light Weapon', weapon2: 'Shield', climbing: null, ip: [], earnedIP: 1 })
+  })
+
   it('uses another empty slot when theirs is taken, and refuses with none or a duplicate class', () => {
     const before = company([...geared().slots, { ...warrior(null), type: null }])
     const uid = before.slots[1].uid
     const c = hireIntoVacancy(scoutFalls(before), 1, 'Knight')
+    expect(resurrectDefaults(c, { gameNumber: 1, uid })).toEqual({ ip: 4, slotIndex: 3 })
     expect(resurrectWarrior(c, { gameNumber: 1, uid }).slotIndex).toBe(3)
     const full = hireIntoVacancy(c, 3, 'Reaver')
+    expect(resurrectDefaults(full, { gameNumber: 1, uid }).slotIndex).toBe(-1)
     expect(() => resurrectWarrior(full, { gameNumber: 1, uid })).toThrow('No empty slot. Remove or free a slot first.')
     const sameClass = hireIntoVacancy(scoutFalls(before), 1, 'Scout')
     expect(() => resurrectWarrior(sameClass, { gameNumber: 1, uid })).toThrow(/already has a Scout/)
     expect(() => resurrectWarrior(c, { gameNumber: 2, uid })).toThrow(/not among the fallen/)
+    expect(resurrectDefaults(c, { gameNumber: 2, uid })).toBeNull()
   })
 
-  it('older fallen entries come back with the default loadout and their stat upgrades', () => {
+  it('older fallen entries (no snapshot) come back the same way, without a warning', () => {
     const c = scoutFalls()
     const legacyEntry = ({ weapon1: _a, weapon2: _b, consumable: _c, climbing: _d, customName: _e, notes: _f, ...rest }) => rest
     const legacy = { ...c, campaign: { ...c.campaign, log: c.campaign.log.map(r => ({ ...r, fallen: r.fallen.map(legacyEntry) })) } }
     const { company: back, warnings } = resurrectWarrior(legacy, { gameNumber: 1, uid: c.campaign.log[0].fallen[0].uid })
-    expect(back.slots[1]).toMatchObject({ type: 'Scout', customName: 'Joss', weapon1: 'Light Weapon', climbing: null, consumable: null, statImproves: ['MOV'], ip: ['stat_0'], earnedIP: 4 })
-    expect(warnings).toHaveLength(1)
+    expect(back.slots[1]).toMatchObject({ type: 'Scout', customName: 'Joss', weapon1: 'Light Weapon', climbing: null, consumable: null, statImproves: [], ip: [], earnedIP: 4 })
+    expect(warnings).toEqual([])
   })
 
   it('a fallen Captain comes back without the Captaincy', () => {
