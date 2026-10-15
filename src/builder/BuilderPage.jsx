@@ -20,6 +20,7 @@ import LandingPage, { RefContent } from './LandingPage'
 import AuthSheet from './AuthSheet'
 import AvatarPicker from './AvatarPicker'
 import JoinCampaignSheet from './JoinCampaignSheet'
+import UnspentIPSheet, { unspentIP, goToWarriorIP } from './UnspentIPSheet'
 import { useAuthStore } from '../store/authStore'
 import { encodeCompany, decodeCompany } from '../store/builderEncoding'
 import { loadGame } from '../api/games'
@@ -148,6 +149,7 @@ export default function BuilderPage({ initialView = null }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [modeSelectOpen, setModeSelectOpen] = useState(false)
   const [endOfGameOpen, setEndOfGameOpen] = useState(false)
+  const [unspentPrompt, setUnspentPrompt] = useState(null) // campaign: [{ index, name, ip }] before Play
   const [settingsOpen, setSettingsOpen] = useState(false)
 
   // Sync company header width to match warrior card width when only 1 card per row
@@ -256,7 +258,10 @@ export default function BuilderPage({ initialView = null }) {
     if (!requireLogin('Sign in to play. Your game is saved so you can pick it up on any device.')) return
     try {
       const saved = await loadGame(builderState.companyId)
-      if (saved?.data?.active) useTrackerStore.getState().promptRestore(saved)
+      if (saved?.data?.active) { useTrackerStore.getState().promptRestore(saved); return }
+      // Campaign: warriors with IP they could still spend get a reminder first (not when resuming)
+      const unspent = builderState.companyMode === 'campaign' ? unspentIP(builderState.slots) : []
+      if (unspent.length) setUnspentPrompt(unspent)
       else openTracker(builderState)
     } catch {
       useBuilderStore.getState()._toast("Couldn't reach the server. Check your connection.")
@@ -436,6 +441,12 @@ export default function BuilderPage({ initialView = null }) {
           onSelect={handleModeSelect}
           onCancel={() => setModeSelectOpen(false)}
         />
+      )}
+
+      {unspentPrompt && (
+        <UnspentIPSheet warriors={unspentPrompt} onClose={() => setUnspentPrompt(null)}
+          onPlay={() => { setUnspentPrompt(null); openTracker(useBuilderStore.getState()) }}
+          onSpend={() => { const first = unspentPrompt[0].index; setUnspentPrompt(null); setTimeout(() => goToWarriorIP(first), 50) }} />
       )}
 
       {endOfGameOpen && (

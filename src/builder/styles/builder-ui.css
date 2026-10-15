@@ -1557,10 +1557,10 @@ button.eq-slot:focus-visible { outline: 2px solid var(--blood); outline-offset: 
 .cmp-pip { width: 20px; height: 20px; border-radius: 3px; border: 1px solid #444; display: grid; place-items: center;
   font-family: 'Oswald', sans-serif; font-size: 0.62rem; line-height: 1; color: #bdbdbd; box-sizing: border-box; }
 /* Tinted fills with light text in the result colour (all >= 7:1); the next game stays outlined */
-.cmp-pip.is-win { background: #1d3a24; border-color: var(--res-win, #3f8f4f); color: #a8e6b5; }
+.cmp-pip.is-win { background: #1d3a24; border-color: var(--res-win, #3f8f4f); color: var(--res-win-text, #8fd19e); }
 .cmp-pip.is-loss { background: #3d130b; border-color: var(--res-loss, #be4127); color: #ffb8a8; }
-.cmp-pip.is-draw { background: #352a10; border-color: var(--res-draw, #b08a2e); color: #f0d68e; }
-.cmp-pip.is-retreat { background: #222; border-color: var(--res-retreat, #5a5a5a); color: #d0d0d0; }
+.cmp-pip.is-draw { background: #352a10; border-color: var(--res-draw, #b08a2e); color: var(--res-draw-text, #e6c46a); }
+.cmp-pip.is-retreat { background: #222; border-color: var(--res-retreat, #5a5a5a); color: var(--res-retreat-text, #cfcfcf); }
 .cmp-pip.is-played { background: #262626; border-color: #555; }
 .cmp-pip.is-now { border-color: var(--parchment); box-shadow: 0 0 0 1px var(--parchment); color: var(--parchment); }  /* next game: outlined, not red (red = loss) */
 
@@ -1603,6 +1603,17 @@ button.eq-slot:focus-visible { outline: 2px solid var(--blood); outline-offset: 
 @media (max-width: 1024px) {
   .ch-camp { border-top-color: rgba(255, 255, 255, 0.14); padding: 0.75rem 0.6rem 0.25rem; margin-top: 0.5rem; }
 }
+/* Before Play: "Unspent IP" reminder (UnspentIPSheet) */
+.unspent-ip-sheet .unspent-ip-play { flex: 1 0 auto; padding: 0.6rem 1rem; font-size: 0.9rem; letter-spacing: 0.06em; white-space: nowrap; }
+.unspent-ip-lede { margin: 0 0 0.75rem; font-size: 1rem; line-height: 1.45; color: var(--bone); }
+.unspent-ip-list { list-style: none; margin: 0; padding: 0; border: 1px solid #333; border-radius: 6px; overflow: hidden; }
+.unspent-ip-list li { display: flex; justify-content: space-between; align-items: center; gap: 1rem; min-height: 48px; padding: 0.4rem 0.9rem;
+  background: var(--fog); border-top: 1px solid #222; }
+.unspent-ip-list li:first-child { border-top: 0; }
+.unspent-ip-name { min-width: 0; overflow-wrap: anywhere; font-family: 'Oswald', sans-serif; font-size: 0.95rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--parchment); }
+.unspent-ip-n { flex: none; padding: 0.15rem 0.65rem; border: 1px solid var(--blood-text); border-radius: 999px; background: rgba(190, 65, 39, 0.14);
+  font-family: 'Oswald', sans-serif; font-size: 0.85rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--blood-text); white-space: nowrap; }
+
 /* Members row (shared campaign) under everything; hidden when the company isn't in one */
 .ch-camp-group:empty { display: none; }
 .ch-camp-group .cg-strip { margin-top: 0; }

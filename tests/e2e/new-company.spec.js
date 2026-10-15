@@ -107,6 +107,40 @@ test.describe('New Company wizard', () => {
     await expect(card.locator('.cmp-log-scenario')).toHaveText('The Long Night')
   })
 
+  test('campaign: Play warns about unspent IP; Spend IP stays in the builder, Play anyway starts', async ({ page }) => {
+    await openWizard(page)
+    await page.getByRole('button', { name: 'Campaign' }).click()
+    await pickWarrior(page, 0, 'Fighter')
+    await page.locator('.ncp-btn--primary').click()
+    await expect(page.getByLabel('Company Settings')).toBeVisible()
+    // A defeat: the survivor point gives the Fighter 1 IP to spend
+    await page.locator('.topbar-menu-btn').click()
+    await page.locator('.app-menu-row', { hasText: 'End of game' }).click()
+    await page.locator('.eog-result[data-result="loss"]').click()
+    await page.locator('.eog-next-btn').click()
+    await page.locator('.eog-next-btn').click()
+    await page.locator('.eog-pick').first().click()
+    await page.locator('.eog-next-btn').click()
+    await page.locator('.eog-record-btn').click()
+    await expect(page.locator('.lr-ip-summary.is-due')).toHaveText(/1 IP to spend/i)
+
+    await page.locator('.builder-play-pill').click()
+    const sheet = page.locator('.unspent-ip-sheet')
+    await expect(sheet.locator('.co-sheet-title')).toHaveText('UNSPENT IP')
+    await expect(sheet.locator('.unspent-ip-list li')).toHaveCount(1)
+    await expect(sheet.locator('.unspent-ip-list li')).toContainText(/Fighter/i)
+    await expect(sheet.locator('.unspent-ip-list li')).toContainText(/1 IP/i)
+    // Spend IP: back to the builder, nothing started
+    await sheet.getByRole('button', { name: 'Spend IP' }).click()
+    await expect(sheet).toHaveCount(0)
+    await expect(page.locator('[data-testid="campaign-panel"]')).toBeVisible()
+    await expect(page.locator('.tk-card')).toHaveCount(0)
+    // Play anyway: play mode as usual
+    await page.locator('.builder-play-pill').click()
+    await page.locator('.unspent-ip-sheet').getByRole('button', { name: 'Play anyway' }).click()
+    await expect(page.locator('.tk-card').first()).toBeVisible()
+  })
+
   test('campaign: undo the latest game from the campaign settings gear', async ({ page }) => {
     await openWizard(page)
     await page.getByRole('button', { name: 'Campaign' }).click()

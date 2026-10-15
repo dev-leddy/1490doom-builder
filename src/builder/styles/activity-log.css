@@ -1,10 +1,5 @@
-/* Result colours (log tags, game cards, result tiles); the campaign panel's pips use the same */
-:root {
-  --res-win: #3f8f4f; --res-win-text: #8fd19e;
-  --res-loss: var(--blood); --res-loss-text: var(--blood-text);
-  --res-draw: #b08a2e; --res-draw-text: #e6c46a;
-  --res-retreat: #5a5a5a; --res-retreat-text: #cfcfcf;
-}
+/* Result colours (--res-win / -loss / -draw / -retreat and their -text shades) are defined once,
+   in builder-layout.css :root */
 
 /* ── Campaign log (ActivityLogView, GameLogCards) ─────────────────────────── */
 

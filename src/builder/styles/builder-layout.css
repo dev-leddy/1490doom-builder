@@ -10,11 +10,12 @@
     --mist: #444444;
     --dim: #222222;
     --blood-text: #e0573a; /* accent for small text on dark grounds (5:1 on --fog); --blood is 3.6:1 */
-    /* Campaign results (pips, log): win green, loss red, draw amber, retreat grey */
-    --res-win: #3f8f4f;
-    --res-loss: var(--blood);
-    --res-draw: #b08a2e;
-    --res-retreat: #5a5a5a;
+    /* Campaign results (panel pips, log tags and cards, End of Game tiles): win green, loss red,
+       draw amber, retreat grey. The -text shades are for small text on dark grounds (AA) */
+    --res-win: #3f8f4f;     --res-win-text: #8fd19e;
+    --res-loss: var(--blood); --res-loss-text: var(--blood-text);
+    --res-draw: #b08a2e;    --res-draw-text: #e6c46a;
+    --res-retreat: #5a5a5a; --res-retreat-text: #cfcfcf;
   }
 
   [data-theme="light"] {
