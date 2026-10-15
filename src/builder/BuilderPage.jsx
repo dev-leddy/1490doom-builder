@@ -115,14 +115,18 @@ export default function BuilderPage({ initialView = null }) {
   // action, so it is finished after signing in (or right away when already signed in).
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    const code = params.get('join')
+    // The server redirects /j/<code> to /?join=<code>, but an older cached app (service worker)
+    // can answer /j/<code> itself, so read the code from the path too
+    const fromPath = window.location.pathname.match(/^\/j\/([^/?#]+)/)
+    const code = params.get('join') || (fromPath && decodeURIComponent(fromPath[1]))
     if (!code) return
     try { sessionStorage.setItem(PENDING_KEY, JSON.stringify({ type: 'join', code })) } catch { /* storage unavailable */ }
     joinFromUrl.current = true
     if (useAuthStore.getState().user) { joinFromUrl.current = false; setJoinCode(takePending()?.code || code) }
     params.delete('join')
     const rest = params.toString()
-    window.history.replaceState({}, '', `${window.location.pathname}${rest ? `?${rest}` : ''}${window.location.hash}`)
+    const path = fromPath ? '/' : window.location.pathname
+    window.history.replaceState({}, '', `${path}${rest ? `?${rest}` : ''}${window.location.hash}`)
   }, [])
 
   // Joined a shared campaign: open the company that joined
