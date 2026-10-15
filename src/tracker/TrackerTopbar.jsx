@@ -7,7 +7,6 @@ import ConfirmModal from '../shared/ConfirmModal'
 import BottomSheet from '../shared/BottomSheet'
 import EndOfGameModal from '../builder/EndOfGameModal'
 import { campaignProgress } from '../store/campaign'
-import { CAMPAIGN_RULES } from '../data/campaign'
 import { RESULT_LETTER } from '../builder/campaignUi'
 
 export default function TrackerTopbar() {
@@ -18,6 +17,12 @@ export default function TrackerTopbar() {
   const progress = campaignProgress({ companyMode, campaignGame, campaign, slots })
   const gameNumber = trackerCampaign?.gameNumber ?? progress.nextGame ?? progress.completed
   const campaignLog = campaign?.log || []
+  // The last few games plus this one (campaigns have no set length)
+  const recentGames = Array.from({ length: Math.min(gameNumber, 6) }, (_, i) => {
+    const n = gameNumber - Math.min(gameNumber, 6) + 1 + i
+    const r = campaignLog.find(x => x.gameNumber === n)
+    return { n, r, cls: r ? ` is-${r.result}` : n < gameNumber ? ' is-played' : ' is-now' }
+  })
   const [campaignOpen, setCampaignOpen] = useState(false)
   const [confirmRetreat, setConfirmRetreat] = useState(false)
   const [eogResult, setEogResult] = useState(null)
@@ -79,15 +84,11 @@ export default function TrackerTopbar() {
             <button
               className="tk-campaign-chip"
               onClick={() => setCampaignOpen(true)}
-              aria-label={`Campaign, game ${gameNumber} of ${CAMPAIGN_RULES.games}. End game or retreat`}
+              aria-label={`Campaign, game ${gameNumber}. End game or retreat`}
             >
-              <span className="tk-campaign-chip-label">Game <b>{gameNumber}</b>/{CAMPAIGN_RULES.games}</span>
+              <span className="tk-campaign-chip-label">Game <b>{gameNumber}</b></span>
               <span className="cmp-track" aria-hidden="true">
-                {Array.from({ length: CAMPAIGN_RULES.games }, (_, i) => {
-                  const r = campaignLog.find(x => x.gameNumber === i + 1)
-                  const cls = r ? ` is-${r.result}` : i < progress.completed ? ' is-played' : i === gameNumber - 1 ? ' is-now' : ''
-                  return <span key={i} className={`cmp-pip${cls}`} />
-                })}
+                {recentGames.map(g => <span key={g.n} className={`cmp-pip${g.cls}`} />)}
               </span>
             </button>
           )}
@@ -173,15 +174,11 @@ export default function TrackerTopbar() {
 
       {/* Campaign sheet: opened from the GAME N/6 chip */}
       {campaignOpen && (
-        <BottomSheet title={`CAMPAIGN · GAME ${gameNumber} OF ${CAMPAIGN_RULES.games}`} onClose={() => setCampaignOpen(false)} className="tk-sheet tk-sheet--menu tk-campaign-sheet">
+        <BottomSheet title={`CAMPAIGN · GAME ${gameNumber}`} onClose={() => setCampaignOpen(false)} className="tk-sheet tk-sheet--menu tk-campaign-sheet">
           <div className="tk-campaign-status">
             <span>Round {round} · {standing.length} of {warriors.length} standing</span>
             <span className="cmp-track" aria-hidden="true">
-              {Array.from({ length: CAMPAIGN_RULES.games }, (_, i) => {
-                const r = campaignLog.find(x => x.gameNumber === i + 1)
-                const cls = r ? ` is-${r.result}` : i < progress.completed ? ' is-played' : i === gameNumber - 1 ? ' is-now' : ''
-                return <span key={i} className={`cmp-pip${cls}`}>{r ? RESULT_LETTER[r.result] : i + 1}</span>
-              })}
+              {recentGames.map(g => <span key={g.n} className={`cmp-pip${g.cls}`}>{g.r ? RESULT_LETTER[g.r.result] : g.n}</span>)}
             </span>
           </div>
           <div className="tk-menu-list">
