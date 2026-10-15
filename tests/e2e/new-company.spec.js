@@ -91,8 +91,9 @@ test.describe('New Company wizard', () => {
     const panel = page.locator('[data-testid="campaign-panel"]')
     await expect(panel.locator('.ch-camp-title')).toHaveText('Game 2')
     await expect(panel.locator('.cmp-pip.is-win')).toHaveCount(1)
-    // Log opens the full-screen campaign log; By game shows the game cards
-    await panel.locator('.ch-camp-log-btn').click()
+    // Campaign menu -> Log opens the full-screen campaign log; By game shows the game cards
+    await panel.getByTestId('campaign-menu').click()
+    await page.getByTestId('cmp-set-log').click()
     const log = page.getByRole('dialog', { name: /campaign log/i })
     await log.getByRole('button', { name: 'By game' }).click()
     await expect(log.locator('.cmp-log-game[data-game="1"]')).toContainText('The Ascent')
@@ -167,9 +168,9 @@ test.describe('New Company wizard', () => {
     await page.locator('.eog-record-btn').click()
     const panel = page.locator('[data-testid="campaign-panel"]')
     await expect(panel.locator('.cmp-pip.is-win')).toHaveCount(1)
-    // No undo button in the panel any more: it lives behind the gear
+    // No undo button in the panel: it lives in the campaign menu
     await expect(panel.getByRole('button', { name: /undo game/i })).toHaveCount(0)
-    await panel.getByRole('button', { name: 'Campaign settings' }).click()
+    await panel.getByRole('button', { name: 'Campaign menu' }).click()
     await page.getByTestId('cmp-set-undo-game').click()
     await expect(page.locator('.co-sheet-title', { hasText: 'UNDO GAME 1?' })).toBeVisible()
     await page.getByRole('button', { name: 'Undo game 1', exact: true }).click()

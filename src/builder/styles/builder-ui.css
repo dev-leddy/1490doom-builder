@@ -1565,7 +1565,7 @@ button.eq-slot:focus-visible { outline: 2px solid var(--blood); outline-offset: 
 .cmp-pip.is-now { border-color: var(--parchment); box-shadow: 0 0 0 1px var(--parchment); color: var(--parchment); }  /* next game: outlined, not red (red = loss) */
 
 /* ── Builder: campaign panel in the company header ────────────────────────── */
-/* Phone: [gear] "GAME N" + track, then [Log] [End game N], then the members row (shared campaigns).
+/* Phone: "GAME N" + track, then [menu] [End game N], then the members row (shared campaigns).
    Type: no caps under 0.8rem, letter-spacing <= 0.06em under 1rem. Only End game is filled. */
 .ch-camp {
   --camp-muted: #b4b4b4; /* secondary text, ~9:1 on --fog */
@@ -1594,9 +1594,8 @@ button.eq-slot:focus-visible { outline: 2px solid var(--blood); outline-offset: 
 @media (hover: hover) { .ch-camp-btn:hover { background: #262626; border-color: #6a6a6a; color: var(--parchment); } }
 .ch-camp-btn--primary { flex-grow: 2; background: var(--blood); border-color: var(--blood); color: #fff; font-weight: 500; }
 @media (hover: hover) { .ch-camp-btn--primary:hover { background: var(--blood); border-color: var(--blood); color: #fff; filter: brightness(1.12); } }
-/* Gear: icon-only, left of the title */
-.ch-camp-head > .ch-camp-gear { flex: 0 0 44px; width: 44px; min-height: 44px; height: 44px; padding: 0; }
-.ch-camp-gear svg { width: 20px; height: 20px; }
+/* Campaign menu: icon-only, directly left of End game */
+.ch-camp-actions > .ch-camp-menu-btn { flex: 0 0 var(--camp-tap); width: var(--camp-tap); padding: 0; }
 .ch-camp-btn:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
 
 /* Stacked header (<=1024px): same divider and spacing as the Mark / Share rows above */
@@ -1618,14 +1617,14 @@ button.eq-slot:focus-visible { outline: 2px solid var(--blood); outline-offset: 
 .ch-camp-group:empty { display: none; }
 .ch-camp-group .cg-strip { margin-top: 0; }
 
-/* Full-width header: one row, [gear] title + track on the left, the buttons on the right */
+/* Full-width header: one row, title + track on the left, [menu] [End game N] on the right */
 @media (min-width: 1025px) {
   .ch-camp { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem 1.25rem; }
   .ch-camp-head { flex: 1 1 auto; }
   .ch-camp-actions { flex: 0 0 auto; margin-left: auto; }
   .ch-camp-btn { flex: 0 0 auto; min-width: 7rem; }
   .ch-camp-btn--primary { min-width: 10rem; }
-  .ch-camp-head > .ch-camp-gear { min-width: 0; }
+  .ch-camp-actions > .ch-camp-menu-btn { min-width: 0; }
   .ch-camp-group { flex: 1 1 100%; }
 }
 
@@ -1655,6 +1654,7 @@ button.eq-slot:focus-visible { outline: 2px solid var(--blood); outline-offset: 
 .cmp-fallen-roll li span:last-child { font-family: 'Oswald', sans-serif; font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: #a8a8a8; white-space: nowrap; }
 
 /* Campaign settings sheet: a few plain rows */
+.cmp-set-sheet .co-sheet-randomize { flex: 1 0 auto; padding: 0.6rem 1rem; font-size: 0.9rem; letter-spacing: 0.06em; white-space: nowrap; }
 .cmp-set-list { border: 1px solid #2c2c2c; border-radius: 6px; overflow: hidden; }
 .cmp-set-row { display: flex; align-items: center; gap: 0.9rem; width: 100%; min-height: 52px; padding: 0.5rem 1rem; box-sizing: border-box;
   background: var(--fog); border: 0; border-top: 1px solid #222; color: var(--bone); text-align: left; cursor: pointer; touch-action: manipulation; }
@@ -1669,23 +1669,6 @@ button.eq-slot:focus-visible { outline: 2px solid var(--blood); outline-offset: 
 .cmp-set-row.is-danger .cmp-set-label, .cmp-set-row.is-danger .cmp-set-icon { color: var(--blood-text); }
 .cmp-set-row[aria-disabled] { cursor: default; }
 .cmp-set-row[aria-disabled] .cmp-set-label, .cmp-set-row[aria-disabled] .cmp-set-icon { color: #8a8a8a; }
-/* Campaign length: label + stepper, "No limit" toggle below (not a button row) */
-.cmp-set-length { display: grid; grid-template-columns: 20px 1fr auto; align-items: center; gap: 0.5rem 0.9rem; padding: 0.6rem 1rem 0.75rem;
-  background: var(--fog); border-top: 1px solid #222; }
-.cmp-set-list > .cmp-set-length:first-child { border-top: 0; }
-.cmp-set-length .cmp-set-reason { grid-column: 2 / -1; }
-.cmp-set-length .co-settings-stepper { gap: 0.35rem; }
-.cmp-set-length .co-settings-step-btn { width: 44px; height: 44px; border-radius: 6px; color: var(--parchment); }
-.cmp-set-length .co-settings-step-btn:disabled { color: #6a6a6a; cursor: not-allowed; }
-.cmp-set-length .co-settings-step-val { min-width: 2.2rem; text-align: center; font-family: 'Oswald', sans-serif; }
-.cmp-set-nolimit { grid-column: 2 / -1; justify-self: start; display: inline-flex; align-items: center; gap: 0.55rem; min-height: 44px; padding: 0 0.9rem 0 0.7rem;
-  background: none; border: 1px solid #3a3a3a; border-radius: 6px; color: var(--bone); cursor: pointer; touch-action: manipulation;
-  font-family: 'Oswald', sans-serif; font-size: 0.9rem; letter-spacing: 0.06em; text-transform: uppercase; }
-.cmp-set-nolimit-box { width: 18px; height: 18px; border: 2px solid #8a8a8a; border-radius: 3px; display: grid; place-items: center; box-sizing: border-box;
-  font-size: 0.75rem; line-height: 1; color: #fff; }
-.cmp-set-nolimit[aria-pressed="true"] { border-color: var(--blood); color: var(--parchment); }
-.cmp-set-nolimit[aria-pressed="true"] .cmp-set-nolimit-box { background: var(--blood); border-color: var(--blood); }
-.cmp-set-nolimit:focus-visible, .cmp-set-length .co-settings-step-btn:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
 
 /* Vacancy slot: say why it is empty */
 .slot-fallen-note { margin: 0.25rem 0 0.75rem; font-size: 0.95rem; line-height: 1.45; color: var(--bone); }

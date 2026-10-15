@@ -27,6 +27,11 @@ export function resultWords(log = []) {
   return Object.entries(n).filter(([, c]) => c).map(([k, c]) => `${c} ${RESULT_WORDS[k][c === 1 ? 0 : 1]}`).join(' · ')
 }
 
+// Reopen an ended campaign so games can be recorded again (New game / Reopen campaign)
+export function reopenCampaignIn(store) {
+  return (store.reopenCampaign ?? store.keepPlaying)?.()
+}
+
 // A fallen warrior's name: "Brother Aldric (Warrior Priest)" with a custom name, else the class
 export const fallenName = nameWithClass
 

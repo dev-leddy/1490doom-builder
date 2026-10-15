@@ -29,7 +29,7 @@ test('two players share a campaign; outsiders and leavers are kept out', async (
   try {
     // Ann: a campaign company, then Play together -> Start a shared campaign
     await createCompanyViaApi(ann.page, { name: 'Ann Wolves', mode: 'campaign', ipLimit: 0, slots: SLOTS })
-    await ann.page.locator('.ch-camp-gear').click()
+    await ann.page.getByTestId('campaign-menu').click()
     await ann.page.getByTestId('cmp-set-play-together').click()
     await ann.page.getByTestId('cg-start').click()
     const codeEl = ann.page.getByTestId('cg-code')

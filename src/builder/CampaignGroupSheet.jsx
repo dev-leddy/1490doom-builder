@@ -7,13 +7,13 @@ import { useCampaignGroupStore, useCampaignGroupPolling } from '../store/campaig
 import { inviteLink } from '../api/campaignGroups'
 import JoinCampaignSheet from './JoinCampaignSheet'
 import MemberCampaignView from './MemberCampaignView'
-import { memberSummary, expiresIn } from './campaignGroupUi'
+import { expiresIn } from './campaignGroupUi'
 import './styles/campaign-group.css'
 
 // ── Play together: the shared campaign of the open company ────────────────────
 // Not in one: start a shared campaign (makes an invite code) or join with a code.
-// In one: the members (company, player, games played, W/L), the invite (code, link, QR,
-// copy / share, a new code) and Leave. Tapping another member opens their company read-only.
+// In one: the invite (the code big, Copy link / New code, the expiry, QR), the players
+// (company, player, games, W/L) and Leave. Tapping another player opens their company read-only.
 
 export const IconTogether = () => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
@@ -32,29 +32,24 @@ function Qr({ text }) {
       .catch(() => { if (live) setSrc(null) })
     return () => { live = false }
   }, [text])
-  return src ? <img className="cg-qr" src={src} width="180" height="180" alt="QR code for the invite link" /> : <div className="cg-qr cg-qr--blank" aria-hidden="true" />
+  return src ? <img className="cg-qr" src={src} width="168" height="168" alt="QR code for the invite link" /> : <div className="cg-qr cg-qr--blank" aria-hidden="true" />
 }
 
+// The code big (to read out or type), then Copy link / New code, the expiry, and the QR
 function Invite({ group, onRotate, busy }) {
   const link = inviteLink(group.codeDisplay)
   const expired = group.codeExpiresAt <= Date.now()
-  const [copied, setCopied] = useState(null)
+  const [copied, setCopied] = useState(false)
   const toast = useBuilderStore(s => s._toast)
 
-  async function copy(text, what) {
+  async function copyLink() {
     try {
-      await navigator.clipboard.writeText(text)
-      setCopied(what)
-      setTimeout(() => setCopied(c => (c === what ? null : c)), 2000)
+      await navigator.clipboard.writeText(link)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
     } catch {
-      toast?.("Couldn't copy. Select the text and copy it instead.")
+      toast?.("Couldn't copy. Select the link under the QR code and copy it instead.")
     }
-  }
-
-  async function share() {
-    try {
-      await navigator.share({ title: '1490 DOOM campaign', text: `Join my 1490 DOOM campaign with code ${group.codeDisplay}`, url: link })
-    } catch { /* closed or not allowed */ }
   }
 
   return (
@@ -63,25 +58,48 @@ function Invite({ group, onRotate, busy }) {
       <p className={`cg-code${expired ? ' is-expired' : ''}`} aria-label={`Invite code ${group.codeDisplay.split('').join(' ')}`} data-testid="cg-code">
         {group.codeDisplay}
       </p>
-      <p className={`cg-expiry${expired ? ' is-expired' : ''}`}>{expiresIn(group.codeExpiresAt)}</p>
+      <div className="cg-invite-actions">
+        {!expired && (
+          <button type="button" className="cg-btn cg-btn--primary" onClick={copyLink} data-testid="cg-copy-link">
+            {copied ? 'Link copied' : 'Copy link'}
+          </button>
+        )}
+        <button type="button" className={`cg-btn${expired ? ' cg-btn--primary' : ''}`} onClick={onRotate} disabled={busy} data-testid="cg-new-code">
+          New code
+        </button>
+      </div>
+      <p className={`cg-expiry${expired ? ' is-expired' : ''}`}>
+        {expiresIn(group.codeExpiresAt)}{expired ? '' : '. A new code stops the old one working.'}
+      </p>
       {!expired && (
-        <>
+        <div className="cg-qr-block">
           <Qr text={link} />
           <p className="cg-link" data-testid="cg-link">{link}</p>
-          <div className="cg-btn-row">
-            <button type="button" className="cg-btn" onClick={() => copy(link, 'link')}>{copied === 'link' ? 'Link copied' : 'Copy link'}</button>
-            <button type="button" className="cg-btn" onClick={() => copy(group.codeDisplay, 'code')}>{copied === 'code' ? 'Code copied' : 'Copy code'}</button>
-            {typeof navigator !== 'undefined' && navigator.share && (
-              <button type="button" className="cg-btn" onClick={share}>Share</button>
-            )}
-          </div>
-        </>
+        </div>
       )}
-      <button type="button" className="cg-btn cg-btn--quiet" onClick={onRotate} disabled={busy}>
-        {expired ? 'Make a new code' : 'New code'}
-      </button>
-      {!expired && <p className="cg-help">A new code stops the old one working.</p>}
     </section>
+  )
+}
+
+// "2 games" and the results in their colours ("1W 1L")
+function Record({ progress }) {
+  if (!progress) return null
+  const { completed = 0, tally = {} } = progress
+  const parts = [['win', 'W'], ['loss', 'L'], ['draw', 'D'], ['retreat', 'R']].filter(([k]) => tally[k])
+  return (
+    <span className="cg-record">
+      <span>{completed} {completed === 1 ? 'game' : 'games'}</span>
+      {parts.map(([k, l]) => <span key={k} className={`cg-res cg-res--${k}`}>{tally[k]}{l}</span>)}
+    </span>
+  )
+}
+
+function MemberRow({ m }) {
+  return (
+    <span className="cg-member-text">
+      <span className="cg-member-name">{m.companyName}</span>
+      <span className="cg-member-sub">{m.playerName}{m.mark ? ` · ${m.mark}` : ''}</span>
+    </span>
   )
 }
 
@@ -90,18 +108,20 @@ function Members({ members, onOpen }) {
   const left = members.filter(m => m.leftAt)
   return (
     <section aria-labelledby="cg-members-title">
-      <h3 className="cg-section-title" id="cg-members-title">Players ({active.length})</h3>
+      <h3 className="cg-section-title" id="cg-members-title">Players · {active.length}</h3>
       <ul className="cg-members" data-testid="cg-members">
         {active.map(m => (
           <li key={m.companyId}>
             {m.mine ? (
               <div className="cg-member is-mine">
-                <MemberText m={m} />
+                <MemberRow m={m} />
+                <Record progress={m.progress} />
                 <span className="cg-member-you">You</span>
               </div>
             ) : (
               <button type="button" className="cg-member" onClick={() => onOpen(m)} aria-label={`Open ${m.companyName}, ${m.playerName}`}>
-                <MemberText m={m} />
+                <MemberRow m={m} />
+                <Record progress={m.progress} />
                 <span className="cg-member-go" aria-hidden="true">›</span>
               </button>
             )}
@@ -109,19 +129,9 @@ function Members({ members, onOpen }) {
         ))}
       </ul>
       {left.length > 0 && (
-        <p className="cg-help">Left: {left.map(m => `${m.companyName} (${m.playerName})`).join(', ')}</p>
+        <p className="cg-help cg-left">Left: {left.map(m => `${m.companyName} (${m.playerName})`).join(', ')}</p>
       )}
     </section>
-  )
-}
-
-function MemberText({ m }) {
-  return (
-    <span className="cg-member-text">
-      <span className="cg-member-name">{m.companyName}</span>
-      <span className="cg-member-sub">{m.playerName}{m.mark ? ` · ${m.mark}` : ''}</span>
-      <span className="cg-member-sub">{memberSummary(m.progress)}</span>
-    </span>
   )
 }
 
@@ -202,9 +212,9 @@ export default function CampaignGroupSheet({ onClose, onBack }) {
           Start a shared campaign
         </button>
         <form className="cg-join" onSubmit={e => { e.preventDefault(); if (typed) setJoining(typed) }}>
-          <label className="cg-section-title" htmlFor="cg-join-code">Join with a code</label>
+          <label className="cg-section-title" htmlFor="cg-join-code">Have a code? Join a campaign</label>
           <div className="cg-join-row">
-            <input id="cg-join-code" className="co-settings-input cg-code-input" value={code} placeholder="XXXX-XXXX"
+            <input id="cg-join-code" className="cg-code-input" value={code} placeholder="XXXX-XXXX"
               autoComplete="off" autoCapitalize="characters" spellCheck={false} maxLength={12}
               onChange={e => setCode(e.target.value.toUpperCase())} />
             <button type="submit" className="cg-btn" disabled={!typed}>Join</button>
@@ -216,9 +226,9 @@ export default function CampaignGroupSheet({ onClose, onBack }) {
     body = (
       <div className="cg-stack">
         {group.name && <p className="cg-lead">{group.name}</p>}
-        <Members members={members} onOpen={setViewing} />
         <Invite group={group} busy={busy} onRotate={() => run(rotateCode)} />
-        <button type="button" className="cg-btn cg-btn--danger" onClick={() => setConfirmLeave(true)} disabled={busy} data-testid="cg-leave">
+        <Members members={members} onOpen={setViewing} />
+        <button type="button" className="cg-btn cg-btn--danger cg-leave" onClick={() => setConfirmLeave(true)} disabled={busy} data-testid="cg-leave">
           Leave the shared campaign
         </button>
       </div>

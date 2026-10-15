@@ -96,7 +96,7 @@ export default function JoinCampaignSheet({ code, preferCompanyId = null, onClos
   } else {
     body = (
       <div className="cg-stack">
-        <p className="cg-lead">{preview.group.name ? `${preview.group.name}: ` : ''}You're invited to a shared campaign.</p>
+        <p className="cg-lead">{preview.group.name ? `${preview.group.name}: ` : ''}You're invited to a shared campaign. Everyone keeps their own company.</p>
         <section aria-labelledby="cg-preview-title">
           <h3 className="cg-section-title" id="cg-preview-title">Playing now</h3>
           <ul className="cg-members">
@@ -105,8 +105,8 @@ export default function JoinCampaignSheet({ code, preferCompanyId = null, onClos
                 <span className="cg-member-text">
                   <span className="cg-member-name">{m.companyName}</span>
                   <span className="cg-member-sub">{m.playerName}{m.mark ? ` · ${m.mark}` : ''}</span>
-                  <span className="cg-member-sub">{m.gamesPlayed} {m.gamesPlayed === 1 ? 'game' : 'games'} played</span>
                 </span>
+                <span className="cg-record"><span>{m.gamesPlayed} {m.gamesPlayed === 1 ? 'game' : 'games'}</span></span>
               </li>
             ))}
           </ul>

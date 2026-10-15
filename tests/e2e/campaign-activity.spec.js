@@ -46,7 +46,7 @@ test.describe('campaign activity log', () => {
     await page.locator('.eog-record-btn').click()
 
     // Undo game 1 from campaign settings
-    await page.locator('.ch-camp-gear').click()
+    await page.getByTestId('campaign-menu').click()
     await page.getByTestId('cmp-set-undo-game').click()
     await page.locator('.co-sheet-done').click()          // confirm
 
@@ -81,8 +81,9 @@ test.describe('campaign activity log', () => {
     await page.locator('.pk-stat-apply').click()
     await expect(page.getByRole('button', { name: /^Stat Improve/ })).toContainText('Skill')
 
-    // The panel's Log button opens the full-screen log on All entries
-    await page.locator('.ch-camp-log-btn').click()
+    // Campaign menu -> Log opens the full-screen log on All entries
+    await page.getByTestId('campaign-menu').click()
+    await page.getByTestId('cmp-set-log').click()
     const view = page.getByRole('dialog', { name: /campaign log/i })
     await expect(view.locator('table.alv-table')).toBeVisible()
     const row = view.locator('tbody tr', { hasText: 'Fighter improved Skill' })
@@ -119,7 +120,8 @@ test.describe('campaign activity log', () => {
     await page.locator('.pk-stat-apply').click()
     await expect(page.getByRole('button', { name: /^Stat Improve/ })).toContainText('Skill')
 
-    await page.locator('.ch-camp-log-btn').click()
+    await page.getByTestId('campaign-menu').click()
+    await page.getByTestId('cmp-set-log').click()
     const view = page.getByRole('dialog', { name: /campaign log/i })
     const item = view.locator('.alv-item', { hasText: 'Fighter improved Skill' })
     await item.locator('.alv-item-btn').click()
@@ -154,7 +156,8 @@ test.describe('campaign activity log', () => {
     await page.locator('.eog-record-btn').click()
 
     // Log -> the game's entry -> Edit game (latest game: the full sheet, prefilled)
-    await page.locator('.ch-camp-log-btn').click()
+    await page.getByTestId('campaign-menu').click()
+    await page.getByTestId('cmp-set-log').click()
     const view = page.getByRole('dialog', { name: /campaign log/i })
     await view.locator('.alv-item', { hasText: 'Game 1 recorded: Defeat' }).locator('.alv-item-btn').click()
     await page.locator('.alv-entry-sheet').getByRole('button', { name: 'Edit game 1' }).click()
@@ -230,7 +233,8 @@ test.describe('campaign activity log', () => {
       await page.locator('button.pk-stat:not(:disabled)').first().click()
       await page.locator('.pk-stat-apply').click()
     }
-    await page.locator('.ch-camp-log-btn').click()
+    await page.getByTestId('campaign-menu').click()
+    await page.getByTestId('cmp-set-log').click()
     const view = page.getByRole('dialog', { name: /campaign log/i })
     const upgrades = view.locator('tbody tr[data-type="upgrade.bought"] .alv-warrior')
     await expect(upgrades).toHaveText(['Brute', 'Scout'])
@@ -272,7 +276,8 @@ test.describe('campaign activity log', () => {
     await expect(page.locator('.warrior-slot.is-vacancy')).toHaveCount(1)
 
     // Log -> By game -> the Scout's tile -> Resurrect
-    await page.locator('.ch-camp-log-btn').click()
+    await page.getByTestId('campaign-menu').click()
+    await page.getByTestId('cmp-set-log').click()
     const view = page.getByRole('dialog', { name: /campaign log/i })
     await view.getByRole('button', { name: 'By game' }).click()
     await view.getByRole('button', { name: /^Scout, fell in game 1/ }).click()
