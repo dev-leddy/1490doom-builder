@@ -234,7 +234,8 @@ export function validateEndOfGame(company, draft = {}) {
     else if (!survivors.includes(pick)) errors.push('The survivor IP must go to a warrior who survived.')
     else {
       // A point a warrior can't spend must go to someone who can (if anyone can)
-      const otherAwards = i => plan.awards.filter(a => a.index === i && a.reason !== 'survivor').reduce((n, a) => n + a.ip, 0)
+      // (bonus IP is unlimited and may be banked, so it doesn't use up a warrior's room)
+      const otherAwards = i => plan.awards.filter(a => a.index === i && a.reason !== 'survivor' && a.reason !== 'bonus').reduce((n, a) => n + a.ip, 0)
       const room = i => spendableCapacity(slots[i]) - otherAwards(i)
       if (room(pick) <= 0 && survivors.some(j => j !== pick && room(j) > 0)) {
         errors.push(`${nameOf(slots[pick])} has no upgrades left to buy. Give the survivor IP to another warrior.`)
