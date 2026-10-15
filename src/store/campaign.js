@@ -5,8 +5,9 @@
 //   slot.uid         stable id of the warrior in that slot (a new recruit gets a new one)
 //   slot.fallen      on an empty slot: { uid, type, name, game } of the warrior who died there
 //   campaign         { v, length, log, upgrades, roster, completedAt, endedEarly, needsCaptain }
-//   campaign.length  games planned (default CAMPAIGN_RULES.games), null = no limit. Never a
-//                    hard stop: recording past it extends it (see applyEndOfGame)
+//   campaign.length  always null: a campaign has no planned number of games
+//   endedEarly       true once the player ends the campaign (endCampaign); the name is kept
+//                    from when campaigns had a length. completedAt is when they ended it.
 //   campaign.upgrades[] every upgrade bought, when and by whom (see logUpgrade)
 //   campaign.roster[]   recruits hired and recruits undone (see hireIntoVacancy / undoRecruit)
 //   campaign.log[]   one record per game, see applyEndOfGame. Only the latest record keeps
@@ -58,8 +59,12 @@ export function normalizeCampaign(company) {
   const slots = (company.slots || []).map(s => (s.uid ? s : { ...s, uid: newId() }))
   const c = company.campaign || {}
   const campaign = {
-    v: 1, length: CAMPAIGN_RULES.games, completedAt: null, needsCaptain: false,
+    v: 1, needsCaptain: false,
     ...c,
+    // No planned length any more: only the player ends a campaign. Companies that used to be
+    // complete by reaching 6 games are open again; ones the player ended stay ended.
+    length: null,
+    completedAt: c.endedEarly ? c.completedAt ?? null : null,
     log: Array.isArray(c.log) ? c.log : [],
     upgrades: Array.isArray(c.upgrades) ? c.upgrades : [],
     roster: Array.isArray(c.roster) ? c.roster : [],
@@ -67,52 +72,28 @@ export function normalizeCampaign(company) {
   return { ...company, slots, campaign, campaignGame: company.campaignGame || 0 }
 }
 
-export const MAX_CAMPAIGN_LENGTH = 99
-
-// The planned number of games: campaign.length, the default when missing, null = no limit
-export function campaignLength(company) {
-  const c = company?.campaign
-  return c && 'length' in c ? c.length : CAMPAIGN_RULES.games
+// Campaigns have no planned length: always null (kept for older callers)
+export function campaignLength() {
+  return null
 }
 
 // completed counts campaignGame too, so companies from before the log keep their count.
-// total is the planned length (null = no limit). Complete = the planned games are played,
-// or it was ended early. Being complete never stops another game: nextGame is always set.
+// A campaign is complete only when the player ended it; games never complete it, and being
+// ended never stops another game (nextGame is always set).
 export function campaignProgress(company) {
   const completed = Math.max(company?.campaignGame || 0, company?.campaign?.log?.length || 0)
-  const total = campaignLength(company)
-  const unlimited = total == null
-  const endedEarly = !!company?.campaign?.endedEarly
-  const isComplete = endedEarly || (!unlimited && completed >= total)
-  return { completed, total, isComplete, endedEarly, unlimited, nextGame: completed + 1 }
+  const ended = !!company?.campaign?.endedEarly
+  return { completed, nextGame: completed + 1, isComplete: ended, ended, endedEarly: ended, unlimited: true, total: null }
 }
 
-// completedAt for a campaign of this length with this many games played
-function completedAtFor(campaign, completed, length, now) {
-  if (campaign.endedEarly) return campaign.completedAt ?? now
-  return length != null && completed >= length ? (campaign.completedAt ?? now) : null
+// Kept for older callers: there is no length to set any more (returns the company as is)
+export function setCampaignLength(company) {
+  return normalizeCampaign(company)
 }
 
-// Sets the planned number of games: at least the games already played (and 1), at most
-// MAX_CAMPAIGN_LENGTH, or null for no limit. Throws with the reason otherwise.
-export function setCampaignLength(company, length, { now = Date.now() } = {}) {
-  const c = normalizeCampaign(company)
-  const { completed } = campaignProgress(c)
-  if (length !== null) {
-    if (!Number.isInteger(length) || length < 1 || length > MAX_CAMPAIGN_LENGTH) throw new Error(`Choose between 1 and ${MAX_CAMPAIGN_LENGTH} games, or no limit.`)
-    if (length < completed) throw new Error(`${completed} games are already played.`)
-  }
-  return { ...c, campaign: { ...c.campaign, length, completedAt: completedAtFor(c.campaign, completed, length, now) } }
-}
-
-// After the campaign is complete: carry on. The planned length grows to fit one more game
-// (an early end is simply taken back) and the campaign is no longer complete.
+// Kept for older callers: same as reopenCampaign
 export function keepPlaying(company) {
-  const c = normalizeCampaign(company)
-  const { completed, total, isComplete } = campaignProgress(c)
-  if (!isComplete) throw new Error('The campaign is not complete.')
-  const length = total == null ? null : Math.max(total, completed + 1)
-  return { ...c, campaign: { ...c.campaign, length, completedAt: null, endedEarly: false } }
+  return reopenCampaign(company)
 }
 
 // ── Campaign settings ─────────────────────────────────────────────────────────
@@ -127,19 +108,21 @@ export function setGameScenario(company, gameNumber, name) {
   return { ...company, campaign: { ...company.campaign, log: next } }
 }
 
-// Ends the campaign before all games are played. Throws if it is already complete.
-export function endCampaignEarly(company, { now = Date.now() } = {}) {
+// The player ends the campaign. Throws if it has already ended. Another game can still be
+// recorded afterwards; that reopens it (see applyEndOfGame).
+export function endCampaign(company, { now = Date.now() } = {}) {
   const c = normalizeCampaign(company)
-  if (campaignProgress(c).isComplete) throw new Error('The campaign is already complete.')
+  if (campaignProgress(c).ended) throw new Error('The campaign has already ended.')
   return { ...c, campaign: { ...c.campaign, completedAt: now, endedEarly: true } }
 }
 
-// Undoes endCampaignEarly. A campaign that played all its games can't be reopened.
+// Older name
+export const endCampaignEarly = endCampaign
+
+// Undoes endCampaign. Throws if the campaign hasn't ended.
 export function reopenCampaign(company) {
   const c = normalizeCampaign(company)
-  const { completed, total, isComplete } = campaignProgress(c)
-  if (!isComplete) throw new Error('The campaign is not complete.')
-  if (!c.campaign.endedEarly && total != null && completed >= total) throw new Error(`All ${total} games are played. Use Keep playing to add more.`)
+  if (!campaignProgress(c).ended) throw new Error('The campaign is still going.')
   return { ...c, campaign: { ...c.campaign, completedAt: null, endedEarly: false } }
 }
 
@@ -343,16 +326,12 @@ export function applyEndOfGame(company, draft, { now = Date.now(), eventId = nul
 
   // Only the newest record can be undone, so older ones drop their snapshot
   const log = c.campaign.log.map((r, i, all) => (i === all.length - 1 ? withoutBefore(r) : r))
-  // Playing on is always allowed: past the planned length it grows to this game, and a game
-  // after an early end takes the early end back
-  const planned = campaignLength(c)
-  const length = planned != null && gameNumber > planned ? gameNumber : planned
-  const base = { ...c.campaign, endedEarly: false, completedAt: null } // complete again (if so) as of this game
+  // A game never completes a campaign; one played after the player ended it reopens it
   const campaign = {
-    ...base,
+    ...c.campaign,
     needsCaptain,
-    length,
-    completedAt: completedAtFor(base, gameNumber, length, now),
+    endedEarly: false,
+    completedAt: null,
     log: [...log, record],
   }
   return { company: { ...c, slots, campaignGame: gameNumber, campaign }, record }

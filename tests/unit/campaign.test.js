@@ -9,7 +9,7 @@ import {
   undoRecruit, undoRecruitBlock, nameWithClass,
   setGameScenario, endCampaignEarly, reopenCampaign,
   editOutcome, outcomeEditBlock, draftFromRecord, reRecordLatestGame, editLatestGameLosses,
-  setCampaignLength, keepPlaying, campaignLength, MAX_CAMPAIGN_LENGTH,
+  setCampaignLength, keepPlaying, campaignLength, endCampaign,
   resurrectWarrior, resurrectBlock, isResurrected, resurrectDefaults,
 } from '../../src/store/campaign.js'
 
@@ -174,67 +174,62 @@ describe('bonus IP', () => {
 })
 
 describe('campaign length', () => {
-  const G = CAMPAIGN_RULES.games
   const playTo = (c, n) => {
-    for (let g = campaignProgress(c).completed + 1; g <= n; g++) c = applyEndOfGame(c, draft({ scenario: `Scenario ${g}` }), { now: 1000 + g }).company
+    // The survivor point goes round, so nobody runs out of upgrades to buy
+    for (let g = campaignProgress(c).completed + 1; g <= n; g++) c = applyEndOfGame(c, draft({ scenario: `Scenario ${g}`, survivorPick: g % 3 }), { now: 1000 + g }).company
     return c
   }
 
-  it(`game ${G} completes the campaign, and a game ${G + 1} is still allowed: the length grows to fit`, () => {
+  it('games never complete a campaign: there is no planned number of games', () => {
     let c = trio()
-    expect(c.campaign.length).toBe(G)
-    for (let g = 1; g <= G; g++) {
+    expect(c.campaign.length).toBeNull()
+    for (let g = 1; g <= 9; g++) {
       expect(campaignProgress(c).nextGame).toBe(g)
+      expect(validateEndOfGame(c, draft({ survivorPick: g % 3 }))).toEqual([])
       c = playTo(c, g)
     }
-    expect(c.campaign.completedAt).toBe(1000 + G)
-    expect(campaignProgress(c)).toEqual({ completed: G, total: G, isComplete: true, endedEarly: false, unlimited: false, nextGame: G + 1 })
-    expect(c.campaign.log.map(r => r.scenario)).toEqual(Array.from({ length: G }, (_, i) => `Scenario ${i + 1}`))
-    expect(validateEndOfGame(c, draft())).toEqual([])
-    const more = applyEndOfGame(c, draft(), { now: 5000 }).company
-    expect(more.campaign).toMatchObject({ length: G + 1, completedAt: 5000 })
-    expect(campaignProgress(more)).toMatchObject({ completed: G + 1, total: G + 1, isComplete: true })
-    expect(undoLastGame(more).campaign).toMatchObject({ length: G, completedAt: 1000 + G })   // undo takes the growth back
-  })
-
-  it('keep playing makes room for one more game', () => {
-    const done = playTo(trio(), G)
-    const on = keepPlaying(done)
-    expect(on.campaign).toMatchObject({ length: G + 1, completedAt: null, endedEarly: false })
-    expect(campaignProgress(on)).toMatchObject({ isComplete: false, nextGame: G + 1 })
-    expect(() => keepPlaying(on)).toThrow()                                      // not complete
-    const after = applyEndOfGame(on, draft(), { now: 7000 }).company
-    expect(after.campaign).toMatchObject({ length: G + 1, completedAt: 7000 })
-  })
-
-  it('the length can be set, not below the games played, or removed', () => {
-    const c = playTo(trio(), 3)
-    expect(setCampaignLength(c, 8).campaign).toMatchObject({ length: 8, completedAt: null })
-    expect(setCampaignLength(c, 3, { now: 9 }).campaign).toMatchObject({ length: 3, completedAt: 9 })
-    expect(() => setCampaignLength(c, 2)).toThrow(/3 games are already played/)
-    expect(() => setCampaignLength(c, MAX_CAMPAIGN_LENGTH + 1)).toThrow()
-    expect(() => setCampaignLength(c, 2.5)).toThrow()
-    const open = setCampaignLength(c, null)
-    expect(campaignLength(open)).toBeNull()
-    expect(campaignProgress(open)).toMatchObject({ total: null, unlimited: true, isComplete: false, nextGame: 4 })
-    // Raising the length of a complete campaign reopens it
-    const done = playTo(trio(), G)
-    expect(setCampaignLength(done, G + 2).campaign).toMatchObject({ length: G + 2, completedAt: null })
-  })
-
-  it('with no limit the campaign never completes by itself', () => {
-    const c = playTo(setCampaignLength(trio(), null), G + 2)
     expect(c.campaign).toMatchObject({ length: null, completedAt: null })
-    expect(campaignProgress(c)).toMatchObject({ completed: G + 2, isComplete: false, unlimited: true })
+    expect(campaignProgress(c)).toEqual({ completed: 9, nextGame: 10, isComplete: false, ended: false, endedEarly: false, unlimited: true, total: null })
+    expect(c.campaign.log.map(r => r.scenario)).toEqual(Array.from({ length: 9 }, (_, i) => `Scenario ${i + 1}`))
   })
 
-  it('companies from before the length setting count as 6 games and can carry on', () => {
-    const legacy = { ...trio(), campaignGame: 8, campaign: { v: 1, log: [], completedAt: null, needsCaptain: false } }
-    expect(campaignLength(legacy)).toBe(G)
-    expect(campaignProgress(legacy)).toMatchObject({ completed: 8, isComplete: true, nextGame: 9 })
-    const { company, record } = applyEndOfGame(legacy, draft())
-    expect(record.gameNumber).toBe(9)
-    expect(company.campaign.length).toBe(9)
+  it('the player ends the campaign, and can reopen it', () => {
+    const c = playTo(trio(), 3)
+    const ended = endCampaign(c, { now: 50 })
+    expect(ended.campaign).toMatchObject({ completedAt: 50, endedEarly: true })
+    expect(campaignProgress(ended)).toMatchObject({ completed: 3, isComplete: true, ended: true, nextGame: 4 })
+    expect(() => endCampaign(ended)).toThrow(/already ended/)
+    expect(endCampaignEarly).toBe(endCampaign)                     // older name
+    const open = reopenCampaign(ended)
+    expect(open.campaign).toMatchObject({ completedAt: null, endedEarly: false })
+    expect(campaignProgress(open)).toMatchObject({ isComplete: false, ended: false })
+    expect(() => reopenCampaign(open)).toThrow(/still going/)
+    expect(keepPlaying(ended).campaign).toMatchObject({ completedAt: null, endedEarly: false })  // = reopen
+  })
+
+  it('a game recorded after the end reopens the campaign', () => {
+    const ended = endCampaign(playTo(trio(), 2))
+    expect(validateEndOfGame(ended, draft())).toEqual([])
+    const next = applyEndOfGame(ended, draft()).company
+    expect(next.campaign).toMatchObject({ endedEarly: false, completedAt: null })
+    expect(campaignProgress(next)).toMatchObject({ completed: 3, isComplete: false })
+  })
+
+  it('an older company that reached 6 games is open again; one the player ended stays ended', () => {
+    const old = { ...trio(), campaignGame: 6, campaign: { v: 1, length: 6, log: [], completedAt: 123, needsCaptain: false } }
+    const c = normalizeCampaign(old)
+    expect(c.campaign).toMatchObject({ length: null, completedAt: null })
+    expect(campaignProgress(c)).toMatchObject({ completed: 6, isComplete: false, nextGame: 7 })
+    const endedOld = normalizeCampaign({ ...old, campaign: { ...old.campaign, endedEarly: true } })
+    expect(endedOld.campaign).toMatchObject({ completedAt: 123, endedEarly: true })
+    expect(campaignProgress(endedOld).isComplete).toBe(true)
+    expect(applyEndOfGame(old, draft()).record.gameNumber).toBe(7)
+  })
+
+  it('the old length helpers do nothing', () => {
+    const c = trio()
+    expect(campaignLength(c)).toBeNull()
+    expect(setCampaignLength(c, 8)).toEqual(c)
   })
 })
 
@@ -268,7 +263,7 @@ describe('older companies', () => {
     }
     const c = normalizeCampaign(legacy)
     expect(c.slots.every(s => typeof s.uid === 'string' && s.uid)).toBe(true)
-    expect(c.campaign).toEqual({ v: 1, length: CAMPAIGN_RULES.games, log: [], upgrades: [], roster: [], completedAt: null, needsCaptain: false })
+    expect(c.campaign).toEqual({ v: 1, length: null, log: [], upgrades: [], roster: [], completedAt: null, needsCaptain: false })
     expect(campaignProgress(c)).toMatchObject({ completed: 3, nextGame: 4, isComplete: false })
     const { company: next, record } = applyEndOfGame(legacy, draft())
     expect(record.gameNumber).toBe(4)
@@ -464,33 +459,6 @@ describe('campaign settings', () => {
     expect(setGameScenario(c, 1, '  The Drowned Chapel ').campaign.log[0].scenario).toBe('The Drowned Chapel')
     expect(setGameScenario(c, 1, '   ').campaign.log[0].scenario).toBeNull()
     expect(setGameScenario(c, 2, 'Nope')).toBeNull()
-  })
-
-  it('ending early completes the campaign; it can be reopened', () => {
-    const c = applyEndOfGame(trio(), draft()).company
-    const ended = endCampaignEarly(c, { now: 50 })
-    expect(ended.campaign).toMatchObject({ completedAt: 50, endedEarly: true })
-    expect(campaignProgress(ended)).toMatchObject({ completed: 1, isComplete: true, endedEarly: true, nextGame: 2 })
-    // Another game is still allowed; it takes the early end back
-    expect(validateEndOfGame(ended, draft())).toEqual([])
-    expect(applyEndOfGame(ended, draft()).company.campaign).toMatchObject({ endedEarly: false, completedAt: null })
-    expect(keepPlaying(ended).campaign).toMatchObject({ endedEarly: false, completedAt: null, length: CAMPAIGN_RULES.games })
-    expect(() => endCampaignEarly(ended)).toThrow()
-    const open = reopenCampaign(ended)
-    expect(open.campaign).toMatchObject({ completedAt: null, endedEarly: false })
-    expect(campaignProgress(open)).toMatchObject({ isComplete: false, nextGame: 2 })
-  })
-
-  it('an early end counts as complete even without completedAt', () => {
-    const c = { ...trio(), campaign: { ...trio().campaign, endedEarly: true } }
-    expect(campaignProgress(c).isComplete).toBe(true)
-  })
-
-  it("a campaign that played every game can't be reopened, and an open one has nothing to reopen", () => {
-    let c = trio()
-    expect(() => reopenCampaign(c)).toThrow()
-    for (let g = 0; g < CAMPAIGN_RULES.games; g++) c = applyEndOfGame(c, draft()).company
-    expect(() => reopenCampaign(c)).toThrow()
   })
 
   it('a game records the activity event it was logged with', () => {

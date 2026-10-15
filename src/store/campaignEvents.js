@@ -14,6 +14,7 @@ import { canUndoLastGame, lastUpgrade, undoRecruitBlock, campaignProgress, nameW
 // Types a client may send. 'system.unlogged' is written by the server only.
 export const CLIENT_EVENT_TYPES = [
   'campaign.started', 'campaign.baseline', 'campaign.left', 'campaign.resumed',
+  // campaign.completed: the player ended the campaign. campaign.endedEarly is the older name
   'game.recorded', 'campaign.completed', 'campaign.endedEarly', 'campaign.reopened',
   'campaign.lengthChanged', // no longer sent; kept so older queued events still go through
   'game.undone', 'game.renamed', 'game.edited',

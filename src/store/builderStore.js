@@ -15,9 +15,8 @@ import {
   minEarnedIP, removeSlotBlock, logUpgrade, PERMANENT_GEAR, syncUpgradeItem, unlogLastUpgrade,
   undoLastUpgrade as undoLastUpgradeOf, undoRecruit as undoRecruitOf, undoRecruitBlock,
   nameWithClass, upgradeLabel, setGameScenario as setGameScenarioOf,
-  endCampaignEarly as endCampaignEarlyOf, reopenCampaign as reopenCampaignOf,
+  endCampaign as endCampaignOf, reopenCampaign as reopenCampaignOf,
   reRecordLatestGame, editOutcome, resurrectWarrior as resurrectWarriorOf,
-  setCampaignLength as setCampaignLengthOf, keepPlaying as keepPlayingOf, campaignLength,
 } from './campaign'
 import { encodeCompany, decodeCompany } from './builderEncoding'
 import { fetchCloudSaves, removeCloudCompany, createSaver, migrateLocalData, snapshotCompany } from './builderPersistence'
@@ -872,34 +871,27 @@ export const useBuilderStore = create((set, get) => {
       get()._autoDraft()
       return true
     },
-    // Planned number of games (null = no limit); at least the games already played.
-    // Not logged: the owner doesn't want length changes in the activity log.
-    setCampaignLength(length) {
-      let next
-      try { next = setCampaignLengthOf(get(), length) } catch (err) { get()._toast(err.message); return false }
-      set({ campaign: next.campaign })
-      get()._autoDraft()
+    // Kept for older callers: campaigns have no length any more (does nothing)
+    setCampaignLength() {
       return true
     },
-    // The campaign is complete but the players want more: room for one more game.
-    // Only taking back an early end is logged (campaign.reopened), not the length change.
+    // Kept for older callers: same as reopenCampaign
     keepPlaying() {
-      const wasEndedEarly = !!get().campaign?.endedEarly
-      let next
-      try { next = keepPlayingOf(get()) } catch (err) { get()._toast(err.message); return false }
-      set({ campaign: next.campaign })
-      if (wasEndedEarly) get()._logEvent('campaign.reopened', { completed: campaignProgress(next).completed })
-      get()._autoDraft()
-      return true
+      return get().reopenCampaign()
     },
-    endCampaignEarly() {
+    // The player ends the campaign (the only way it completes). Logged as campaign.completed.
+    endCampaign() {
       let next
-      try { next = endCampaignEarlyOf(get()) } catch (err) { get()._toast(err.message); return false }
+      try { next = endCampaignOf(get()) } catch (err) { get()._toast(err.message); return false }
       set({ campaign: next.campaign })
-      get()._logEvent('campaign.endedEarly', { completed: campaignProgress(next).completed })
+      get()._logEvent('campaign.completed', { games: campaignProgress(next).completed })
       get()._autoDraft()
       get()._toast('Campaign ended.')
       return true
+    },
+    // Older name
+    endCampaignEarly() {
+      return get().endCampaign()
     },
     reopenCampaign() {
       let next
@@ -929,8 +921,7 @@ export const useBuilderStore = create((set, get) => {
         return { ok: false, errors, record: null }
       }
       const eventId = newEventId()
-      const lengthBefore = campaignLength(get())
-      const wasComplete = !!get().campaign?.completedAt
+      const wasEnded = campaignProgress(get()).ended
       const { company, record } = applyEndOfGame(get(), draft, { eventId })
       set({ slots: company.slots, campaignGame: company.campaignGame, campaign: company.campaign })
       const n = record.gameNumber
@@ -946,13 +937,11 @@ export const useBuilderStore = create((set, get) => {
           ? { from: nameOfUid(record.captainChange.from), to: record.captainChange.to ? nameOfUid(record.captainChange.to) : null }
           : null,
       }, { id: eventId, afterGame: n - 1 })
-      // Played past the planned length: it grew to fit this game, quietly (not logged).
-      // Reaching the planned length is.
-      if (company.campaign.length === lengthBefore && company.campaign.completedAt && !wasComplete) get()._logEvent('campaign.completed', { games: n })
+      // A game after the player ended the campaign reopens it
+      if (wasEnded) get()._logEvent('campaign.reopened', { completed: n })
       get()._autoDraft()
       get()._toast(
-        company.campaign.completedAt && company.campaign.length === lengthBefore ? `Game ${n} recorded. The campaign is complete.`
-          : company.campaign.needsCaptain ? `Game ${n} recorded. Recruit new warriors and choose a Captain.`
+        company.campaign.needsCaptain ? `Game ${n} recorded. Recruit new warriors and choose a Captain.`
           : record.result === 'retreat' ? `Game ${n} recorded. No IP for a retreat.`
           : `Game ${n} recorded.`
       )
