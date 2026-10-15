@@ -33,7 +33,7 @@ test("another player's entries and fallen are in your log, read-only", async ({ 
 
     // Ann starts a shared campaign, Bo joins it (through the API: this test is about the log)
     const started = await post(ann.page, '/api/campaign-groups', { companyId: await companyId(ann.page, 'Ann Wolves') })
-    expect(started.status).toBe(200)
+    expect(started.status).toBe(201)
     const joined = await post(bo.page, '/api/campaign-groups/join', { code: started.data.group.code, companyId: await companyId(bo.page, 'Bo Ravens') })
     expect(joined.status).toBe(200)
 

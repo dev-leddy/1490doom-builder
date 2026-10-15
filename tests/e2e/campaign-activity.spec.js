@@ -187,7 +187,7 @@ test.describe('campaign activity log', () => {
     expect(fighter.earnedIP).toBe(2)
   })
 
-  test('a seventh game can be recorded after the sixth', async ({ page }) => {
+  test('campaigns have no set length: a seventh game is just the next game', async ({ page }) => {
     const name = 'Seven Games Co'
     const id = `e2e-${Date.now()}`
     const base = { weapon2: null, consumable: null, climbing: null, ip: [], notes: [], customName: null, statImproves: [], earnedIP: 0 }
@@ -203,7 +203,7 @@ test.describe('campaign activity log', () => {
 
     await page.locator('.topbar-menu-btn').click()
     await page.locator('.app-menu-row', { hasText: 'End of game' }).click()
-    await expect(page.locator('.eog-beyond')).toHaveText('Your campaign was set to 6 games. Recording this game adds one more.')
+    await expect(page.locator('.eog-beyond')).toHaveCount(0)
     await page.locator('[data-result="win"]').click()
     await page.locator('.eog-next-btn').click()
     await page.locator('.eog-next-btn').click()
@@ -218,7 +218,7 @@ test.describe('campaign activity log', () => {
       return companies.find(c => c.name === companyName).data.campaign
     }, name)
     expect(campaign.log.at(-1).gameNumber).toBe(7)
-    expect(campaign.length).toBe(7)
+    expect(campaign.length ?? null).toBe(null)
   })
 
   test('the log sorts by warrior from the table header and the phone menu', async ({ page }) => {
