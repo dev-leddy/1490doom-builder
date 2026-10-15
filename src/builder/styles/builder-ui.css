@@ -1556,15 +1556,16 @@ button.eq-slot:focus-visible { outline: 2px solid var(--blood); outline-offset: 
 .cmp-track { display: inline-flex; gap: 4px; align-items: center; flex: none; }
 .cmp-pip { width: 20px; height: 20px; border-radius: 3px; border: 1px solid #444; display: grid; place-items: center;
   font-family: 'Oswald', sans-serif; font-size: 0.62rem; line-height: 1; color: #bdbdbd; box-sizing: border-box; }
-.cmp-pip.is-win { background: var(--rust); border-color: var(--blood); color: #ffd6cc; }
-.cmp-pip.is-loss { background: #262626; border-color: #555; color: #e0e0e0; }
-.cmp-pip.is-draw { background: #1f2430; border-color: #4a5266; color: #d6dcea; }
-.cmp-pip.is-retreat { background: transparent; border-style: dashed; border-color: #666; color: #bdbdbd; }
+/* Tinted fills with light text in the result colour (all >= 7:1); the next game stays outlined */
+.cmp-pip.is-win { background: #1d3a24; border-color: var(--res-win, #3f8f4f); color: #a8e6b5; }
+.cmp-pip.is-loss { background: #3d130b; border-color: var(--res-loss, #be4127); color: #ffb8a8; }
+.cmp-pip.is-draw { background: #352a10; border-color: var(--res-draw, #b08a2e); color: #f0d68e; }
+.cmp-pip.is-retreat { background: #222; border-color: var(--res-retreat, #5a5a5a); color: #d0d0d0; }
 .cmp-pip.is-played { background: #262626; border-color: #555; }
-.cmp-pip.is-now { border-color: var(--blood); box-shadow: 0 0 0 1px var(--blood); color: var(--parchment); }
+.cmp-pip.is-now { border-color: var(--parchment); box-shadow: 0 0 0 1px var(--parchment); color: var(--parchment); }  /* next game: outlined, not red (red = loss) */
 
 /* ── Builder: campaign panel in the company header ────────────────────────── */
-/* Phone: "GAME N" + track, then the to-dos, then [Log] [End game N] [gear].
+/* Phone: [gear] "GAME N" + track, then [Log] [End game N], then the members row (shared campaigns).
    Type: no caps under 0.8rem, letter-spacing <= 0.06em under 1rem. Only End game is filled. */
 .ch-camp {
   --camp-muted: #b4b4b4; /* secondary text, ~9:1 on --fog */
@@ -1574,7 +1575,7 @@ button.eq-slot:focus-visible { outline: 2px solid var(--blood); outline-offset: 
   --camp-tap: 48px;
   display: grid; gap: 0.6rem; border-top: 1px solid rgba(190, 65, 39, 0.2); padding: 0.75rem 0.7rem 0.6rem;
 }
-.ch-camp-head { display: flex; align-items: center; gap: 0.9rem; flex-wrap: wrap; min-width: 0; }
+.ch-camp-head { display: flex; align-items: center; gap: 0.5rem 0.75rem; flex-wrap: wrap; min-width: 0; }
 .ch-camp-title { margin: 0; font-family: 'Oswald', sans-serif; font-weight: 500; font-size: 1.15rem; line-height: 1.2;
   letter-spacing: 0.08em; text-transform: uppercase; color: var(--parchment); white-space: nowrap; }
 .ch-camp .cmp-track { gap: 5px; }
@@ -1582,20 +1583,7 @@ button.eq-slot:focus-visible { outline: 2px solid var(--blood); outline-offset: 
 .ch-camp .cmp-track { flex-wrap: nowrap; white-space: nowrap; }
 .cmp-track-more { font-family: 'Oswald', sans-serif; font-size: 0.85rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--camp-muted, #b4b4b4); padding: 0 0.15rem; }
 
-/* To-dos: neutral rows; the count and chevron carry the accent */
-.ch-camp-todo { display: flex; align-items: center; gap: 0.75rem; min-height: 56px; padding: 0.5rem 0.8rem; width: 100%; box-sizing: border-box;
-  background: var(--camp-raised); border: 1px solid var(--camp-edge); border-radius: 6px; color: var(--parchment); text-align: left; cursor: pointer;
-  -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
-@media (hover: hover) { .ch-camp-todo:hover { background: #242424; border-color: #6a6a6a; } }
-.ch-camp-todo .n { display: grid; place-items: center; width: 28px; height: 28px; flex: none; border: 1px solid var(--blood-text); border-radius: 50%;
-  font-family: 'Oswald', sans-serif; font-size: 0.9rem; line-height: 1; color: var(--blood-text); }
-.ch-camp-todo-text { display: grid; gap: 0.1rem; min-width: 0; flex: 1; }
-.ch-camp-todo-label { font-family: 'Oswald', sans-serif; font-size: 0.95rem; line-height: 1.2; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; }
-.ch-camp-todo-sub { font-size: 0.92rem; line-height: 1.3; color: var(--camp-muted); }
-.ch-camp-todo .go { flex: none; margin-left: auto; color: var(--camp-muted); font-size: 1.3rem; line-height: 1; }
-.ch-camp-note { display: flex; align-items: center; gap: 0.5rem; margin: 0; min-height: 28px; font-family: 'Oswald', sans-serif; font-size: 0.9rem;
-  letter-spacing: 0.06em; text-transform: uppercase; color: var(--camp-muted); }
-.ch-camp-check { color: #9fd49f; }
+.ch-camp-note { margin: 0; flex-basis: 100%; font-family: 'Oswald', sans-serif; font-size: 0.9rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--camp-muted); }
 
 /* Buttons: one height, one radius. Log and the gear are quiet outlines; End game is the filled primary */
 .ch-camp-actions { display: flex; gap: 0.5rem; }
@@ -1606,25 +1594,28 @@ button.eq-slot:focus-visible { outline: 2px solid var(--blood); outline-offset: 
 @media (hover: hover) { .ch-camp-btn:hover { background: #262626; border-color: #6a6a6a; color: var(--parchment); } }
 .ch-camp-btn--primary { flex-grow: 2; background: var(--blood); border-color: var(--blood); color: #fff; font-weight: 500; }
 @media (hover: hover) { .ch-camp-btn--primary:hover { background: var(--blood); border-color: var(--blood); color: #fff; filter: brightness(1.12); } }
-.ch-camp-actions > .ch-camp-gear { flex: 0 0 var(--camp-tap); width: var(--camp-tap); padding: 0; }
+/* Gear: icon-only, left of the title */
+.ch-camp-head > .ch-camp-gear { flex: 0 0 44px; width: 44px; min-height: 44px; height: 44px; padding: 0; }
 .ch-camp-gear svg { width: 20px; height: 20px; }
-.ch-camp-todo:focus-visible, .ch-camp-btn:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
+.ch-camp-btn:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
 
 /* Stacked header (<=1024px): same divider and spacing as the Mark / Share rows above */
 @media (max-width: 1024px) {
   .ch-camp { border-top-color: rgba(255, 255, 255, 0.14); padding: 0.75rem 0.6rem 0.25rem; margin-top: 0.5rem; }
 }
-/* Full-width header: to-dos and buttons share the row under the title, wrapping as whole items.
-   Narrower (stacked header, phones): to-dos stack, then the full-width button row */
+/* Members row (shared campaign) under everything; hidden when the company isn't in one */
+.ch-camp-group:empty { display: none; }
+.ch-camp-group .cg-strip { margin-top: 0; }
+
+/* Full-width header: one row, [gear] title + track on the left, the buttons on the right */
 @media (min-width: 1025px) {
-  .ch-camp { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
-  .ch-camp-head { flex: 1 1 100%; }
-  .ch-camp-todo { width: auto; flex: 1 1 15rem; min-width: 0; }
-  .ch-camp-note { flex: 1 1 12rem; }
+  .ch-camp { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem 1.25rem; }
+  .ch-camp-head { flex: 1 1 auto; }
   .ch-camp-actions { flex: 0 0 auto; margin-left: auto; }
   .ch-camp-btn { flex: 0 0 auto; min-width: 7rem; }
   .ch-camp-btn--primary { min-width: 10rem; }
-  .ch-camp-actions > .ch-camp-gear { min-width: 0; }
+  .ch-camp-head > .ch-camp-gear { min-width: 0; }
+  .ch-camp-group { flex: 1 1 100%; }
 }
 
 /* Game log sheet */
@@ -4665,7 +4656,8 @@ button.eq-slot:focus-visible { outline: 2px solid var(--blood); outline-offset: 
 @media (min-width: 600px) { .ncp-markpick { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
 .ncp-markpick .ncp-tile { grid-column: 1; }
 .ncp-tile-portrait--mark { background: #fff; }
-.ncp-tile-portrait--mark img { object-fit: contain; padding: 10%; }
+/* Marks are square sigils: centre them in the tall portrait frame (warrior portraits pin to the top) */
+.ncp-tile-portrait--mark img { object-fit: contain; object-position: center; padding: 12%; box-sizing: border-box; }
 .ncp-markpick:not(.ncp-markpick--set) .ncp-tile-portrait--mark { background: var(--fog); }
 .ncp-markpick-text {
   grid-column: 2 / -1;

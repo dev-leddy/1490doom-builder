@@ -87,15 +87,22 @@ test.describe('New Company wizard', () => {
     await log.getByRole('button', { name: 'By game' }).click()
     await expect(log.locator('.cmp-log-game[data-game="1"]')).toContainText('The Ascent')
 
-    // Rename game 1 in place from its card
+    // Edit game 1 from its card: one editor for the whole game (the latest game, so the full
+    // End of Game sheet, prefilled); its review has the scenario name
     const card = log.locator('.cmp-log-game[data-game="1"]')
-    await card.getByRole('button', { name: 'Rename game 1' }).click()
-    await card.getByLabel('Game 1 scenario name').fill('The Long Night')
-    await card.getByRole('button', { name: 'Save' }).click()
+    await card.getByRole('button', { name: 'Edit game 1' }).click()
+    const edit = page.locator('.eog-sheet').last()
+    await expect(edit.locator('.co-sheet-title')).toHaveText('EDIT GAME 1')
+    await edit.locator('.eog-next-btn').click()                     // who fell
+    await edit.locator('.eog-next-btn').click()                     // award
+    await edit.locator('.eog-next-btn').click()                     // review
+    await edit.locator('.eog-scenario-input').fill('The Long Night')
+    await edit.getByRole('button', { name: 'Save changes' }).click()
     await expect(card.locator('.cmp-log-scenario')).toHaveText('The Long Night')
-    // Escape cancels an edit without closing the log
-    await card.getByRole('button', { name: 'Rename game 1' }).click()
+    // Escape closes the editor without closing the log
+    await card.getByRole('button', { name: 'Edit game 1' }).click()
     await page.keyboard.press('Escape')
+    await expect(page.locator('.eog-sheet')).toHaveCount(0)
     await expect(log).toBeVisible()
     await expect(card.locator('.cmp-log-scenario')).toHaveText('The Long Night')
   })

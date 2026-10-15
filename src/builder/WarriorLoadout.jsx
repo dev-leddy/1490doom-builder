@@ -5,6 +5,7 @@ import { WEAPONS, CLIMBING_ITEMS, CLIMBING_DESCS, CONSUMABLES } from '../data/we
 import { ITEM_ICONS } from '../data/images'
 import { SvgWeapon1, SvgOffhand, SvgClimbing, SvgConsumable, SvgStat } from './icons'
 import WarriorUpgradeModal from './WarriorUpgradeModal'
+import { spendableNow } from './campaignUi'
 
 const TWO_HANDED = new Set(['Heavy Weapon', 'Polearm (two-handed)', 'Crossbow', 'Bow'])
 const IP_ROW_IDS = ['weapon2', 'climbing', 'consumable', 'stat']
@@ -142,6 +143,8 @@ export default function WarriorLoadout({ slotIndex, slot, wdata, poolFull }) {
   const ipLeft = isCampaign
     ? Math.max(0, earnedIP - ipSpent)
     : Math.max(0, getMaxIPForSlot(slotIndex) - getTotalIPSpent())
+  // Campaign: IP this warrior has and could spend right now (nothing left to buy doesn't count)
+  const toSpend = isCampaign ? spendableNow(slot) : 0
 
   // Weapon meta line: damage, range, and how many hands it takes
   const weaponMeta = (name, d) => [
@@ -195,10 +198,16 @@ export default function WarriorLoadout({ slotIndex, slot, wdata, poolFull }) {
     <div className="lr-section">
       <div className="lr-section-header">
         <span className="lr-section-title">EQUIPMENT & UPGRADES</span>
-        <span className="lr-pips lr-ip-summary" title={isCampaign ? `${earnedIP} IP earned by this warrior` : `${ipSpent} IP spent on this warrior`}>
+        <span className={`lr-pips lr-ip-summary${toSpend ? ' is-due' : ''}`}
+          title={isCampaign ? `${earnedIP} IP earned, ${ipSpent} spent` : `${ipSpent} IP spent on this warrior`}>
           <span>
-            {/* Standard: IP is one company pool (left is in the header), so a warrior shows only its own spend */}
-            {isCampaign ? `${ipSpent} of ${earnedIP} IP spent · ${ipLeft} left` : ipSpent > 0 ? `${ipSpent} IP` : ''}
+            {/* Campaign: "2 IP to spend" (red pill) while there is IP and something to buy, else a quiet total.
+                Standard: IP is one company pool (left is in the header), so a warrior shows only its own spend */}
+            {isCampaign
+              ? toSpend ? <><b>{toSpend} IP</b> to spend</>
+                : !earnedIP ? 'No IP yet'
+                  : ipLeft ? `${ipLeft} IP banked` : `${earnedIP} IP · all spent`
+              : ipSpent > 0 ? `${ipSpent} IP` : ''}
           </span>
         </span>
       </div>

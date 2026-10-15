@@ -193,7 +193,11 @@
 }
 .tk-campaign-chip-label b { color: #fff; font-weight: 500; }
 .tk-campaign-chip .cmp-pip { width: 10px; height: 6px; border-radius: 1px; font-size: 0; box-shadow: none; }
-.tk-campaign-chip .cmp-pip.is-now { background: #be4127; border-color: #be4127; }
+.tk-campaign-chip .cmp-pip.is-now { background: transparent; border-color: #dcdcdc; }
+.tk-campaign-chip .cmp-pip.is-win { background: var(--res-win, #3f8f4f); border-color: var(--res-win, #3f8f4f); }
+.tk-campaign-chip .cmp-pip.is-loss { background: var(--res-loss, #be4127); border-color: var(--res-loss, #be4127); }
+.tk-campaign-chip .cmp-pip.is-draw { background: var(--res-draw, #b08a2e); border-color: var(--res-draw, #b08a2e); }
+.tk-campaign-chip .cmp-pip.is-retreat { background: var(--res-retreat, #5a5a5a); border-color: var(--res-retreat, #5a5a5a); }
 .tk-campaign-status {
   display: flex;
   justify-content: space-between;
