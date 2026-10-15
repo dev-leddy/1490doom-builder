@@ -172,7 +172,7 @@ export function gameOf(e, total = CAMPAIGN_RULES.games) {
 
 // The game filter's options, in order, for the games that appear in the log
 export function gameOptions(events, total = CAMPAIGN_RULES.games) {
-  const keys = new Set(events.filter(e => e.type !== 'entry.noted').map(e => gameOf(e, total).key))
+  const keys = new Set(events.filter(e => e.type !== 'entry.noted' && e.type !== 'campaign.lengthChanged').map(e => gameOf(e, total).key))
   const opts = []
   for (let n = 1; n <= total; n++) if (keys.has(`g${n}`)) opts.push({ id: `g${n}`, label: `Game ${n}` })
   return opts
@@ -216,7 +216,8 @@ export function buildRows(events = [], total = CAMPAIGN_RULES.games) {
   const undone = undoneIds(sorted)
   // Recorded games whose outcome was edited later (the record row stays, tagged Edited)
   const edited = new Set(sorted.filter(e => e.type === 'game.edited' && e.ref && e.status !== 'rejected').map(e => e.ref))
-  return sorted.filter(e => e.type !== 'entry.noted').map(e => {
+  // Campaign length changes are settings noise, not history: never shown
+  return sorted.filter(e => e.type !== 'entry.noted' && e.type !== 'campaign.lengthChanged').map(e => {
     const kind = eventKind(e.type)
     const game = gameOf(e, total)
     const warriors = eventWarriors(e, nameToUid)
