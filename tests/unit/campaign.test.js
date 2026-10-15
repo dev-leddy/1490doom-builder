@@ -10,6 +10,7 @@ import {
   setGameScenario, endCampaignEarly, reopenCampaign,
   editOutcome, outcomeEditBlock, draftFromRecord, reRecordLatestGame, editLatestGameLosses,
   setCampaignLength, keepPlaying, campaignLength, MAX_CAMPAIGN_LENGTH,
+  resurrectWarrior, resurrectBlock, isResurrected,
 } from '../../src/store/campaign.js'
 
 const warrior = (type, extra = {}) => ({
@@ -618,5 +619,90 @@ describe('editing the latest game in full', () => {
     const legacy = { ...g1, campaign: { ...g1.campaign, log: g1.campaign.log.map(({ before: _b, ...r }) => r) } }
     expect(() => reRecordLatestGame(legacy, draft())).toThrow()
     expect(ipOf(editOutcome(legacy, 1, { result: 'win' }).company)).toEqual([1, 1, 0])
+  })
+})
+
+describe('resurrecting the fallen', () => {
+  // Scout (slot 1) with gear and upgrades, named
+  const geared = () => company([
+    warrior('Fighter', { isCaptain: true }),
+    warrior('Scout', { customName: 'Joss', weapon1: 'Bow', climbing: 'Ladder', consumable: 'Fog of War Flask', statImproves: ['MOV'], ip: ['climbing', 'stat_0', 'consumable'], earnedIP: 4, notes: ['Sharp eyes'] }),
+    warrior('Assassin'),
+  ])
+  const scoutFalls = (c = geared()) => applyEndOfGame(c, draft({ fallenIndices: [1], survivorPick: 0 })).company
+  const pick = s => ({ type: s.type, customName: s.customName, weapon1: s.weapon1, weapon2: s.weapon2, climbing: s.climbing, consumable: s.consumable, statImproves: s.statImproves, ip: s.ip, earnedIP: s.earnedIP, notes: s.notes, uid: s.uid })
+
+  it('the record keeps a full snapshot of each fallen warrior', () => {
+    const before = geared()
+    const entry = scoutFalls(before).campaign.log[0].fallen[0]
+    expect(entry).toMatchObject({ ...pick(before.slots[1]), name: 'Joss' })
+  })
+
+  it('brings them back into their own empty slot exactly as they fell, once', () => {
+    const before = geared()
+    const c = scoutFalls(before)
+    const uid = before.slots[1].uid
+    expect(resurrectBlock(c, { gameNumber: 1, uid })).toBeNull()
+    const { company: back, slotIndex, warnings } = resurrectWarrior(c, { gameNumber: 1, uid }, { now: 77 })
+    expect(slotIndex).toBe(1)
+    expect(warnings).toEqual([])
+    expect(pick(back.slots[1])).toEqual(pick(before.slots[1]))
+    expect(back.slots[1].isCaptain).toBe(false)
+    expect('fallen' in back.slots[1]).toBe(false)
+    const entry = back.campaign.log[0].fallen[0]
+    expect(isResurrected(entry)).toBe(true)
+    expect(entry.resurrected).toEqual({ at: 77, slotIndex: 1, afterGame: 1 })
+    expect(() => resurrectWarrior(back, { gameNumber: 1, uid })).toThrow(/already back/)
+    expect(resurrectBlock(back, { gameNumber: 1, uid })).toMatch(/already back/)
+  })
+
+  it('uses another empty slot when theirs is taken, and refuses with none or a duplicate class', () => {
+    const before = company([...geared().slots, { ...warrior(null), type: null }])
+    const uid = before.slots[1].uid
+    const c = hireIntoVacancy(scoutFalls(before), 1, 'Knight')
+    expect(resurrectWarrior(c, { gameNumber: 1, uid }).slotIndex).toBe(3)
+    const full = hireIntoVacancy(c, 3, 'Reaver')
+    expect(() => resurrectWarrior(full, { gameNumber: 1, uid })).toThrow('No empty slot. Remove or free a slot first.')
+    const sameClass = hireIntoVacancy(scoutFalls(before), 1, 'Scout')
+    expect(() => resurrectWarrior(sameClass, { gameNumber: 1, uid })).toThrow(/already has a Scout/)
+    expect(() => resurrectWarrior(c, { gameNumber: 2, uid })).toThrow(/not among the fallen/)
+  })
+
+  it('older fallen entries come back with the default loadout and their stat upgrades', () => {
+    const c = scoutFalls()
+    const legacyEntry = ({ weapon1: _a, weapon2: _b, consumable: _c, climbing: _d, customName: _e, notes: _f, ...rest }) => rest
+    const legacy = { ...c, campaign: { ...c.campaign, log: c.campaign.log.map(r => ({ ...r, fallen: r.fallen.map(legacyEntry) })) } }
+    const { company: back, warnings } = resurrectWarrior(legacy, { gameNumber: 1, uid: c.campaign.log[0].fallen[0].uid })
+    expect(back.slots[1]).toMatchObject({ type: 'Scout', customName: 'Joss', weapon1: 'Light Weapon', climbing: null, consumable: null, statImproves: ['MOV'], ip: ['stat_0'], earnedIP: 4 })
+    expect(warnings).toHaveLength(1)
+  })
+
+  it('a fallen Captain comes back without the Captaincy', () => {
+    const before = trio()
+    const dead = applyEndOfGame(before, draft({ fallenIndices: [0, 1, 2], survivorPick: null })).company
+    const { company: back } = resurrectWarrior(dead, { gameNumber: 1, uid: before.slots[0].uid })
+    expect(back.slots[0]).toMatchObject({ type: 'Fighter', isCaptain: false })
+    expect(back.campaign.needsCaptain).toBe(true)
+    expect(back.slots[1].isCaptain).toBe(true)       // the Captain's place moved to another empty slot
+  })
+
+  it('undoing the game they fell in never makes a second copy', () => {
+    const c = scoutFalls()
+    const uid = c.campaign.log[0].fallen[0].uid
+    const back = resurrectWarrior(c, { gameNumber: 1, uid }).company
+    const undone = undoLastGame(back)
+    expect(undone.slots.filter(s => s.uid === uid)).toHaveLength(1)
+    expect(undone.campaign.log).toHaveLength(0)
+  })
+
+  it('undoing a later game also undoes a resurrection made after it', () => {
+    const g1 = scoutFalls()
+    const uid = g1.campaign.log[0].fallen[0].uid
+    const g2 = applyEndOfGame(g1, draft({ survivorPick: 0 })).company
+    const back = resurrectWarrior(g2, { gameNumber: 1, uid }).company
+    const undone = undoLastGame(back)
+    expect(undone.slots[1].type).toBeNull()
+    expect(isResurrected(undone.campaign.log[0].fallen[0])).toBe(false)
+    expect(resurrectBlock(undone, { gameNumber: 1, uid })).toBeNull()
   })
 })

@@ -6,10 +6,11 @@
 export const CLIENT_EVENT_TYPES = new Set([
   'campaign.started', 'campaign.baseline', 'campaign.left', 'campaign.resumed',
   'game.recorded', 'campaign.completed', 'campaign.endedEarly', 'campaign.reopened',
-  'campaign.lengthChanged',
+  'campaign.lengthChanged', // no longer sent by the app; accepted so older events still store
   'game.undone', 'game.renamed', 'game.edited',
   'upgrade.bought', 'upgrade.changed', 'upgrade.undone',
   'warrior.hired', 'warrior.recruitUndone', 'warrior.removed', 'warrior.renamed',
+  'warrior.resurrected',
   'captain.changed', 'ip.edited', 'company.renamed', 'mark.changed',
   'entry.noted',
 ])

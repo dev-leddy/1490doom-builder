@@ -16,7 +16,7 @@ import {
   undoLastUpgrade as undoLastUpgradeOf, undoRecruit as undoRecruitOf, undoRecruitBlock,
   nameWithClass, upgradeLabel, setGameScenario as setGameScenarioOf,
   endCampaignEarly as endCampaignEarlyOf, reopenCampaign as reopenCampaignOf,
-  reRecordLatestGame, editOutcome,
+  reRecordLatestGame, editOutcome, resurrectWarrior as resurrectWarriorOf,
   setCampaignLength as setCampaignLengthOf, keepPlaying as keepPlayingOf, campaignLength,
 } from './campaign'
 import { encodeCompany, decodeCompany } from './builderEncoding'
@@ -872,24 +872,23 @@ export const useBuilderStore = create((set, get) => {
       get()._autoDraft()
       return true
     },
-    // Planned number of games (null = no limit); at least the games already played
+    // Planned number of games (null = no limit); at least the games already played.
+    // Not logged: the owner doesn't want length changes in the activity log.
     setCampaignLength(length) {
-      const from = campaignLength(get())
       let next
       try { next = setCampaignLengthOf(get(), length) } catch (err) { get()._toast(err.message); return false }
       set({ campaign: next.campaign })
-      if (from !== length) get()._logEvent('campaign.lengthChanged', { from, to: length })
       get()._autoDraft()
       return true
     },
-    // The campaign is complete but the players want more: room for one more game
+    // The campaign is complete but the players want more: room for one more game.
+    // Only taking back an early end is logged (campaign.reopened), not the length change.
     keepPlaying() {
-      const from = campaignLength(get())
+      const wasEndedEarly = !!get().campaign?.endedEarly
       let next
       try { next = keepPlayingOf(get()) } catch (err) { get()._toast(err.message); return false }
       set({ campaign: next.campaign })
-      const to = next.campaign.length
-      get()._logEvent(from !== to ? 'campaign.lengthChanged' : 'campaign.reopened', from !== to ? { from, to } : { completed: campaignProgress(next).completed })
+      if (wasEndedEarly) get()._logEvent('campaign.reopened', { completed: campaignProgress(next).completed })
       get()._autoDraft()
       return true
     },
@@ -947,9 +946,9 @@ export const useBuilderStore = create((set, get) => {
           ? { from: nameOfUid(record.captainChange.from), to: record.captainChange.to ? nameOfUid(record.captainChange.to) : null }
           : null,
       }, { id: eventId, afterGame: n - 1 })
-      // Played past the planned length: it grew to fit this game
-      if (company.campaign.length !== lengthBefore) get()._logEvent('campaign.lengthChanged', { from: lengthBefore, to: company.campaign.length }, { afterGame: n - 1 })
-      else if (company.campaign.completedAt && !wasComplete) get()._logEvent('campaign.completed', { games: n })
+      // Played past the planned length: it grew to fit this game, quietly (not logged).
+      // Reaching the planned length is.
+      if (company.campaign.length === lengthBefore && company.campaign.completedAt && !wasComplete) get()._logEvent('campaign.completed', { games: n })
       get()._autoDraft()
       get()._toast(
         company.campaign.completedAt && company.campaign.length === lengthBefore ? `Game ${n} recorded. The campaign is complete.`
@@ -1036,6 +1035,22 @@ export const useBuilderStore = create((set, get) => {
         replaced: target?.fallen ? nameWithClass(target.fallen) : null, captain: !!hired.isCaptain,
       }, { id: eventId })
       get()._autoDraft()
+      return true
+    },
+    // Brings a warrior from The Fallen back (their own empty slot, else slotIndex or the
+    // first empty one), exactly as they fell. Returns true when done, else toasts the reason.
+    resurrectWarrior(gameNumber, uid, { slotIndex } = {}) {
+      let res
+      try { res = resurrectWarriorOf(get(), { gameNumber, uid }, { slotIndex }) } catch (err) {
+        get()._toast(err.message)
+        return false
+      }
+      const { company, slotIndex: at, warnings } = res
+      set({ slots: company.slots, campaign: company.campaign })
+      const w = company.slots[at]
+      get()._logEvent('warrior.resurrected', { uid, name: nameWithClass(w), type: w.type, fromGame: gameNumber, slotIndex: at, earnedIP: w.earnedIP || 0 })
+      get()._autoDraft()
+      get()._toast(warnings[0] || `${nameWithClass(w)} is back.`)
       return true
     },
     // Campaign: takes a recruit back out (only with no upgrades bought). Returns null when

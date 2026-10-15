@@ -302,9 +302,15 @@ export function applyEndOfGame(company, draft, { now = Date.now(), eventId = nul
 
   // Deaths: the slot becomes a vacancy that remembers who fell there
   const fallenIdx = [...plan.fallen].sort((a, b) => a - b)
+  // A full snapshot of each fallen warrior, so resurrectWarrior can bring them back exactly
   const fallen = fallenIdx.map(i => {
     const s = c.slots[i]
-    return { uid: s.uid, type: s.type, name: nameOf(s), earnedIP: s.earnedIP || 0, statImproves: [...(s.statImproves || [])], ip: [...(s.ip || [])] }
+    return {
+      uid: s.uid, type: s.type, name: nameOf(s), customName: s.customName ?? null,
+      earnedIP: s.earnedIP || 0, statImproves: [...(s.statImproves || [])], ip: [...(s.ip || [])],
+      weapon1: s.weapon1 ?? null, weapon2: s.weapon2 ?? null, consumable: s.consumable ?? null, climbing: s.climbing ?? null,
+      notes: [...(s.notes || [])],
+    }
   })
   fallenIdx.forEach((i, n) => {
     slots[i] = vacantSlot({ uid: fallen[n].uid, type: fallen[n].type, name: fallen[n].name, game: gameNumber })
@@ -375,8 +381,14 @@ export function undoLastGame(company) {
   const { slots, campaignGame, campaign } = last.before
   const upgrades = (company.campaign.upgrades || []).filter(e => e.afterGame < last.gameNumber)
   const roster = (company.campaign.roster || []).filter(e => e.afterGame < last.gameNumber)
-  return { ...company, slots, campaignGame, campaign: { ...campaign, log: log.slice(0, -1), upgrades, roster } }
+  // Resurrections made after that game are undone with it (the restored slots predate them)
+  const kept = log.slice(0, -1).map(r => (r.fallen || []).some(f => f.resurrected?.afterGame >= last.gameNumber)
+    ? { ...r, fallen: r.fallen.map(f => (f.resurrected?.afterGame >= last.gameNumber ? withoutResurrected(f) : f)) }
+    : r)
+  return { ...company, slots, campaignGame, campaign: { ...campaign, log: kept, upgrades, roster } }
 }
+
+const withoutResurrected = ({ resurrected: _r, ...f }) => f
 
 // ── Editing a recorded game ───────────────────────────────────────────────────
 // Latest game (with its `before` snapshot): re-enter it completely. draftFromRecord prefills
@@ -721,4 +733,90 @@ export function unlogLastUpgrade(company, slot) {
   if (at < 0) at = latestEntryIndex(upgrades, slot.uid)
   if (at < 0) return company.campaign ?? null
   return { ...company.campaign, upgrades: upgrades.filter((_, i) => i !== at) }
+}
+
+// ── Resurrection ──────────────────────────────────────────────────────────────
+// A warrior from The Fallen can be brought back into the company. Their fallen entry stays
+// in the game record (history), marked resurrected: { at, slotIndex, afterGame }.
+
+export function isResurrected(entry) {
+  return !!entry?.resurrected
+}
+
+// Brings warrior `uid`, who fell in game `gameNumber`, back: into their own vacancy if it is
+// still empty, else into opts.slotIndex or the first empty slot. Restored as they fell (gear,
+// upgrades, IP); entries from before full snapshots get the default loadout (see warnings).
+// Never restores Captaincy. Throws with the reason if it can't be done.
+// → { company, slotIndex, warnings }
+export function resurrectWarrior(company, { gameNumber, uid } = {}, { slotIndex = null, now = Date.now() } = {}) {
+  const c = normalizeCampaign(company)
+  const log = c.campaign?.log || []
+  const at = log.findIndex(r => r.gameNumber === gameNumber)
+  const entry = at >= 0 ? (log[at].fallen || []).find(f => f.uid === uid) : null
+  if (!entry) throw new Error('That warrior is not among the fallen of that game.')
+  const name = nameWithClass(entry)
+  if (entry.resurrected || c.slots.some(s => s.type && s.uid === uid)) throw new Error(`${name} is already back in the company.`)
+  if (c.slots.some(s => s.type === entry.type)) throw new Error(`The company already has a ${entry.type}.`)
+
+  let target = c.slots.findIndex(s => !s.type && s.fallen?.uid === uid)
+  if (target < 0) {
+    if (slotIndex != null) {
+      if (!c.slots[slotIndex] || c.slots[slotIndex].type) throw new Error('That slot already has a warrior.')
+      target = slotIndex
+    } else {
+      target = c.slots.findIndex(s => !s.type)
+    }
+  }
+  if (target < 0) throw new Error('No empty slot. Remove or free a slot first.')
+
+  const warnings = []
+  const full = 'weapon1' in entry
+  const loadout = full
+    ? { weapon1: entry.weapon1, weapon2: entry.weapon2, consumable: entry.consumable, climbing: entry.climbing }
+    : { ...defaultLoadout(entry.type), consumable: null, climbing: null }
+  if (!full) warnings.push(`${name}'s gear wasn't recorded, so they come back with the default weapons and their gear IP unspent.`)
+  const vacancy = c.slots[target]
+  const { fallen: _fallen, ...rest } = vacancy
+  const warrior = {
+    ...rest,
+    type: entry.type,
+    customName: full ? entry.customName ?? null : (entry.name && entry.name !== entry.type ? entry.name : null),
+    ...loadout,
+    statImproves: [...(entry.statImproves || [])],
+    // Without the gear, only the stat purchases can be restored
+    ip: full ? [...(entry.ip || [])] : (entry.ip || []).filter(id => /^stat_\d+$/.test(id)),
+    earnedIP: entry.earnedIP || 0,
+    notes: [...(entry.notes || vacancy.notes || [])],
+    uid,
+    isCaptain: false,
+  }
+
+  let slots = c.slots.map((s, i) => {
+    if (i === target) return warrior
+    // Their own vacancy elsewhere no longer needs the "fell in game N" note
+    if (!s.type && s.fallen?.uid === uid) return withoutFallen(s)
+    return s
+  })
+  // The Captain's place stays with an empty slot (or, with none left, the player picks a Captain)
+  if (c.campaign.needsCaptain && vacancy.isCaptain) {
+    const other = slots.findIndex((s, i) => i !== target && !s.type)
+    if (other >= 0) slots = slots.map((s, i) => (i === other ? { ...s, isCaptain: true } : s))
+  }
+
+  const { completed } = campaignProgress(c)
+  const record = { ...log[at], fallen: log[at].fallen.map(f => (f.uid === uid ? { ...f, resurrected: { at: now, slotIndex: target, afterGame: completed } } : f)) }
+  const campaign = { ...c.campaign, log: log.map((r, i) => (i === at ? record : r)) }
+  return { company: { ...c, slots, campaign }, slotIndex: target, warnings }
+}
+
+const withoutFallen = ({ fallen: _f, ...s }) => s
+
+// Why resurrectWarrior would refuse, or null (ref: { gameNumber, uid })
+export function resurrectBlock(company, ref, opts) {
+  try {
+    resurrectWarrior(company, ref, opts)
+    return null
+  } catch (err) {
+    return err.message
+  }
 }
