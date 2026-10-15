@@ -6,7 +6,7 @@ export const CAMPAIGN_RULES = {
   games: 6,               // scenarios in a campaign; after the last one it is complete
   survivorIP: 1,          // each game: 1 IP to one surviving model
   winnerCaptainIP: 1,     // winner: 1 more IP to the Captain, if the Captain survived
-  maxBonusIP: 3,          // scenario / objective bonus IP per game, all warriors together
+  maxBonusIP: null,       // scenario / objective bonus IP per game: null = no limit
   retreatGivesIP: false,  // a company that retreats earns no IP in a campaign
 }
 

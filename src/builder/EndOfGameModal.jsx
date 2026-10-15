@@ -119,6 +119,8 @@ export default function EndOfGameModal({ onClose, onConfirm, initialResult = nul
   const room = s => spendableCapacity(s) - (captainPoint && s.index === captain.index ? CAMPAIGN_RULES.winnerCaptainIP : 0) - bonusOf(s.index)
   const anyRoom = survivors.some(s => room(s) > 0)
   const bonusTotal = survivors.reduce((n, s) => n + bonusOf(s.index), 0)
+  // Bonus IP has no limit unless the rules set one
+  const atBonusMax = CAMPAIGN_RULES.maxBonusIP != null && bonusTotal >= CAMPAIGN_RULES.maxBonusIP
 
   const gainOf = i => {
     if (!earns || fallen.has(i)) return 0
@@ -143,7 +145,7 @@ export default function EndOfGameModal({ onClose, onConfirm, initialResult = nul
     setBonus(prev => {
       const cur = prev[i] || 0
       const next = Math.max(0, cur + delta)
-      if (delta > 0 && bonusTotal >= CAMPAIGN_RULES.maxBonusIP) return prev
+      if (delta > 0 && atBonusMax) return prev
       return { ...prev, [i]: next }
     })
   }
@@ -331,14 +333,14 @@ export default function EndOfGameModal({ onClose, onConfirm, initialResult = nul
             </button>
             {bonusOpen && (
               <div className="eog-bonus-body">
-                <p className="eog-help eog-help--tight">Only if the scenario awards extra IP. Up to {CAMPAIGN_RULES.maxBonusIP} per game, to survivors.</p>
+                <p className="eog-help eog-help--tight">Only if the scenario awards extra IP. Give survivors as much as it says.</p>
                 {survivors.map(s => (
                   <div key={s.index} className="eog-bonus-row" data-slot={s.index}>
                     <span className="eog-name">{nameOf(s)}</span>
                     <span className="eog-stepper">
                       <button type="button" className="eog-stepper-btn" aria-label={`Less bonus IP for ${nameOf(s)}`} disabled={!bonusOf(s.index)} onClick={() => stepBonus(s.index, -1)}>−</button>
                       <span className="eog-stepper-val">{bonusOf(s.index)}</span>
-                      <button type="button" className="eog-stepper-btn" aria-label={`More bonus IP for ${nameOf(s)}`} disabled={bonusTotal >= CAMPAIGN_RULES.maxBonusIP} onClick={() => stepBonus(s.index, 1)}>+</button>
+                      <button type="button" className="eog-stepper-btn" aria-label={`More bonus IP for ${nameOf(s)}`} disabled={atBonusMax} onClick={() => stepBonus(s.index, 1)}>+</button>
                     </span>
                   </div>
                 ))}

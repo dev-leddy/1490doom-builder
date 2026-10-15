@@ -115,24 +115,10 @@ describe('IP someone can use: Captain point and bonus', () => {
     expect(endOfGameWarnings(c, draft({ result: 'loss' }))).toEqual({ captainCantSpend: false }) // no Captain point
   })
 
-  it('refuses bonus IP for a warrior with nothing left to buy while another survivor can use it', () => {
+  it('bonus IP may go to any survivor, even one with nothing left to buy (it is banked)', () => {
     const c = company([maxedFighter({ isCaptain: true }), warrior('Scout', { weapon1: 'Bow' })])
-    expect(validateEndOfGame(c, draft({ bonus: [{ index: 0, ip: 1 }] })).length).toBeGreaterThan(0)
-    expect(validateEndOfGame(c, draft({ bonus: [{ index: 1, ip: 1 }] }))).toEqual([])
-  })
-
-  it('allows it when no survivor can use it', () => {
-    const c = company([maxedFighter({ isCaptain: true }), warrior('Scout', { weapon1: 'Bow' })])
-    expect(validateEndOfGame(c, draft({ fallenIndices: [1], survivorPick: 0, bonus: [{ index: 0, ip: 1 }] }))).toEqual([])
-  })
-
-  it('counts the other points already going to that warrior', () => {
-    // Scout with 1 upgrade left: the survivor point fills it, so bonus on top is refused
-    const nearlyDone = warrior('Scout', { weapon1: 'Bow', earnedIP: 7 })
-    const c = company([warrior('Fighter', { isCaptain: true }), nearlyDone])
-    expect(spendableCapacity(nearlyDone)).toBe(1)
-    expect(validateEndOfGame(c, draft({ survivorPick: 1, bonus: [{ index: 1, ip: 1 }] })).length).toBeGreaterThan(0)
-    expect(validateEndOfGame(c, draft({ survivorPick: 1, bonus: [{ index: 0, ip: 1 }] }))).toEqual([])
+    expect(validateEndOfGame(c, draft({ bonus: [{ index: 0, ip: 5 }] }))).toEqual([])
+    expect(spendableCapacity(warrior('Scout', { weapon1: 'Bow', earnedIP: 7 }))).toBe(1)
   })
 })
 
@@ -177,9 +163,9 @@ describe('everyone dies', () => {
 })
 
 describe('bonus IP', () => {
-  it(`is capped at ${CAMPAIGN_RULES.maxBonusIP} per game and goes to survivors only`, () => {
+  it('has no limit per game and goes to survivors only', () => {
     expect(validateEndOfGame(trio(), draft({ bonus: [{ index: 1, ip: 2 }, { index: 2, ip: 1 }] }))).toEqual([])
-    expect(validateEndOfGame(trio(), draft({ bonus: [{ index: 1, ip: 2 }, { index: 2, ip: 2 }] })).length).toBeGreaterThan(0)
+    expect(validateEndOfGame(trio(), draft({ bonus: [{ index: 1, ip: 10 }, { index: 2, ip: 12 }] }))).toEqual([])
     expect(validateEndOfGame(trio(), draft({ fallenIndices: [2], bonus: [{ index: 2, ip: 1 }] })).length).toBeGreaterThan(0)
     const { company: c, record } = applyEndOfGame(trio(), draft({ bonus: [{ index: 2, ip: 2 }] }))
     expect(ipOf(c)).toEqual([0, 1, 2])

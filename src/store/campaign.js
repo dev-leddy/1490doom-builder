@@ -182,7 +182,7 @@ export function spendableCapacity(slot) {
 //   fallenIndices:   slot indices of warriors that died
 //   newCaptainIndex: surviving slot index to promote when the Captain fell (and someone survived)
 //   survivorPick:    slot index of the survivor who gets the survivor IP (null if nobody survived / retreat)
-//   bonus:           [{ index, ip }] scenario / objective IP to survivors (total <= maxBonusIP)
+//   bonus:           [{ index, ip }] scenario / objective IP to survivors (any amount)
 // }
 
 function planGame(company, draft) {
@@ -250,19 +250,9 @@ export function validateEndOfGame(company, draft = {}) {
       else if (b.ip > 0 && !survivors.includes(b.index)) errors.push('Bonus IP can only go to warriors who survived.')
       else total += b.ip
     }
-    if (total > CAMPAIGN_RULES.maxBonusIP) errors.push(`At most ${CAMPAIGN_RULES.maxBonusIP} bonus IP can be awarded in one game.`)
-
-    // Bonus IP a warrior can't spend must go to someone who can (if anyone can)
-    const awardedTo = (i, keep = () => true) => plan.awards.filter(a => a.index === i && keep(a)).reduce((n, a) => n + a.ip, 0)
-    const bonusIdx = [...new Set(plan.awards.filter(a => a.reason === 'bonus').map(a => a.index))]
-    for (const i of bonusIdx) {
-      if (!survivors.includes(i)) continue
-      const room = spendableCapacity(slots[i]) - awardedTo(i, a => a.reason !== 'bonus')
-      const others = survivors.some(j => j !== i && spendableCapacity(slots[j]) - awardedTo(j) > 0)
-      if (awardedTo(i, a => a.reason === 'bonus') > room && others) {
-        errors.push(`${nameOf(slots[i])} can't use that much bonus IP. Give it to another warrior.`)
-      }
-    }
+    // No limit by default (players decide); bonus IP a warrior can't spend yet stays banked
+    const max = CAMPAIGN_RULES.maxBonusIP
+    if (max != null && total > max) errors.push(`At most ${max} bonus IP can be awarded in one game.`)
   }
   return errors
 }
