@@ -174,26 +174,19 @@ export default function TrackerTopbar() {
       {/* Campaign sheet: opened from the GAME N button */}
       {campaignOpen && (
         <BottomSheet title={`CAMPAIGN · GAME ${gameNumber}`} onClose={() => setCampaignOpen(false)} className="tk-sheet tk-sheet--menu tk-campaign-sheet">
-          <dl className="tk-campaign-status">
-            <div className="tk-campaign-stat">
-              <dt className="tk-campaign-stat-lbl">This game</dt>
-              <dd className="tk-campaign-stat-val">Round {round} · {standing.length} of {warriors.length} standing</dd>
-            </div>
-            <div className="tk-campaign-stat tk-campaign-stat--recent">
-              <dt className="tk-campaign-stat-lbl">{recentResults.length > 1 ? `Last ${recentResults.length} games` : 'Last game'}</dt>
-              <dd className="tk-campaign-stat-val">
-                {recentResults.length ? (
-                  <span className="cmp-track">
-                    {recentResults.map(g => (
-                      <span key={g.gameNumber} role="img" className={`cmp-pip is-${g.result}`} title={`Game ${g.gameNumber}: ${RESULT_NAME[g.result]}`} aria-label={`Game ${g.gameNumber}: ${RESULT_NAME[g.result]}`}>
-                        {RESULT_LETTER[g.result]}
-                      </span>
-                    ))}
+          {/* One quiet line: this game, plus the last few results when there are any */}
+          <p className="tk-campaign-line">
+            <span>Round {round} · {standing.length} of {warriors.length} standing</span>
+            {recentResults.length > 0 && (
+              <span className="cmp-track">
+                {recentResults.map(g => (
+                  <span key={g.gameNumber} role="img" className={`cmp-pip is-${g.result}`} title={`Game ${g.gameNumber}: ${RESULT_NAME[g.result]}`} aria-label={`Game ${g.gameNumber}: ${RESULT_NAME[g.result]}`}>
+                    {RESULT_LETTER[g.result]}
                   </span>
-                ) : <span className="tk-campaign-stat-none">First game</span>}
-              </dd>
-            </div>
-          </dl>
+                ))}
+              </span>
+            )}
+          </p>
           <div className="tk-menu-list">
             <CampaignMenuRows onEnd={() => openEndOfGame()} onRetreat={() => { setCampaignOpen(false); setConfirmRetreat(true) }} />
           </div>

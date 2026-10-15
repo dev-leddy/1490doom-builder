@@ -201,41 +201,11 @@
   .tk-campaign-chip-caret { width: 14px; height: 14px; }
 }
 
-/* Campaign sheet: this game and the last few results, above End game / Retreat */
-.tk-campaign-status {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem 1.5rem;
-  margin: 0 0 0.9rem;
-  padding: 0.75rem 0.9rem;
-  background: #141414;
-  border: 1px solid #2c2c2c;
-  border-radius: 8px;
-}
-.tk-campaign-stat { display: flex; flex-direction: column; gap: 0.4rem; min-width: 0; }
-.tk-campaign-stat--recent { margin-left: auto; align-items: flex-end; }
-.tk-campaign-stat-lbl {
-  font-family: 'Oswald', sans-serif;
-  font-size: 0.75rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: #a8a8a8;
-  line-height: 1;
-}
-.tk-campaign-stat-val {
-  display: flex;
-  align-items: center;
-  min-height: 28px;
-  margin: 0;
-  font-family: 'Oswald', sans-serif;
-  font-size: 1rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: #fff;
-}
-.tk-campaign-stat-val .cmp-track { gap: 5px; }
-.tk-campaign-stat-val .cmp-pip { width: 28px; height: 28px; border-radius: 4px; font-size: 0.85rem; }
-.tk-campaign-stat-none { color: #a8a8a8; }
+/* Campaign sheet: one quiet line above End game / Retreat */
+.tk-campaign-line { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin: 0 0 0.9rem;
+  font-family: 'Oswald', sans-serif; font-size: 0.95rem; letter-spacing: 0.04em; text-transform: uppercase; color: #cfcfcf; }
+.tk-campaign-line .cmp-track { gap: 4px; }
+.tk-campaign-line .cmp-pip { width: 24px; height: 24px; border-radius: 4px; font-size: 0.78rem; }
 
 /* Round plaque: − | round (focal, centred) + quiet activation line | Next */
 .tk-round-bar {

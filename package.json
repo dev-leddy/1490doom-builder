@@ -1,7 +1,7 @@
 {
   "name": "1490doom-builder",
   "private": true,
-  "version": "0.9.191",
+  "version": "0.9.192",
   "type": "module",
   "scripts": {
     "dev": "vite",
