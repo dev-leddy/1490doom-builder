@@ -58,6 +58,17 @@ export default function QuickRef({ onBack }) {
         </p>
       </div>
 
+      {/* Optional rule */}
+      <div className="qr-section">
+        <div className="qr-section-title">Doom Mound: Treacherous Ground</div>
+        <p className="qr-fall-note">
+          Optional rule. A Doom Mound is unstable terrain, shifting bodies underfoot, desperate hands still grasping at the living.
+        </p>
+        <p className="qr-fall-note">
+          Anytime a model ends an action on or crosses a Doom Mound, they must pass a SKILL Check. If they fail, they become <strong>HINDERED</strong>.
+        </p>
+      </div>
+
       <div className="qr-section">
         <div className="qr-section-title">Resource Caches (D6)</div>
         <table className="qr-table">
