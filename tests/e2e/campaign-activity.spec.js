@@ -278,16 +278,31 @@ test.describe('campaign activity log', () => {
     await view.getByRole('button', { name: /^Scout, fell in game 1/ }).click()
     const sheet = page.locator('.res-sheet')
     await expect(sheet.locator('.res-q')).toHaveText('Resurrect Scout?')
+    // Comes back with: their old IP (0) by default; give them 2 to spend
+    await expect(sheet.locator('.res-ip-hint')).toHaveText('They had 0 IP when they fell.')
+    await sheet.getByRole('button', { name: 'More IP' }).click()
+    await sheet.getByRole('button', { name: 'More IP' }).click()
+    await expect(sheet.locator('.res-ip-val')).toContainText('2')
+    await expect(sheet).toContainText("Upgrades and gear aren't restored.")
     await sheet.getByRole('button', { name: 'Resurrect' }).click()
     await expect(sheet).toHaveCount(0)
     await expect(view.locator('.cmp-fallen-tile.is-back')).toContainText('Back in the company')
 
     // Logged, and back on the builder
     await view.getByRole('button', { name: 'All entries' }).click()
-    await expect(view.locator('.alv-item', { hasText: 'Scout resurrected' })).toHaveCount(1)
+    const row = view.locator('.alv-item', { hasText: 'Scout resurrected' })
+    await expect(row).toHaveCount(1)
+    await expect(row).toContainText('Fell in game 1 · back with 2 IP')
     await page.keyboard.press('Escape')
     await expect(page.locator('.warrior-slot.is-vacancy')).toHaveCount(0)
     await expect(page.locator('.warrior-slot[data-slot="1"]')).toContainText(/Scout/i)
+    await waitForSaved(page)
+    const scout = await page.evaluate(async () => {
+      const { companies } = await (await fetch('/api/companies', { credentials: 'include' })).json()
+      return companies.find(c => c.name === 'Return Co').data.slots.find(s => s.type === 'Scout')
+    })
+    expect(scout.earnedIP).toBe(2)
+    expect(scout.ip || []).toEqual([])
   })
 
   test("another account can't read the log", async ({ page, browser }) => {

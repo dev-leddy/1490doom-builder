@@ -115,7 +115,7 @@ export function describeEvent(e) {
     }
     case 'warrior.resurrected': return {
       icon: '+', text: `${p.name || 'A warrior'} resurrected`,
-      sub: list([p.fromGame != null ? `Fell in game ${p.fromGame}` : null, `${p.earnedIP || 0} IP`]).replace(', ', ' · '),
+      sub: [p.fromGame != null ? `Fell in game ${p.fromGame}` : null, `back with ${p.ip ?? p.earnedIP ?? 0} IP`].filter(Boolean).join(' · '),
     }
     case 'warrior.recruitUndone': return { icon: '↶', text: `Recruit undone: ${p.name}`, sub: null }
     case 'warrior.removed': return { icon: '−', text: `${p.name} removed from the company`, sub: null }

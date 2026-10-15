@@ -384,3 +384,12 @@
 .res-meta { margin: 0.2rem 0 0; font-size: 0.86rem; color: #b4b4b4; }
 .res-warn { margin: 0 0 0.75rem; }
 .cmp-fallen-roll .cmp-fallen-tile { height: 100%; box-sizing: border-box; }
+
+/* Resurrect: the IP they come back with */
+.res-ip { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.9rem; padding: 0.6rem 0.6rem 0.6rem 0.8rem;
+  border: 1px solid #3a3a3a; border-radius: 6px; background: #1a1a1a; }
+.res-ip-text { flex: 1; min-width: 0; display: grid; gap: 0.15rem; }
+.res-ip-label { font-family: 'Oswald', sans-serif; font-size: 0.82rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--parchment); }
+.res-ip-hint { font-size: 0.84rem; color: #b4b4b4; }
+.res-ip-val { min-width: 3.2rem; }
+.res-ip-val small { font-size: 0.7rem; color: #b4b4b4; }

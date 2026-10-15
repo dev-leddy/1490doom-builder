@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useBuilderStore } from '../store/builderStore'
-import { resurrectWarrior as previewResurrect, isResurrected } from '../store/campaign'
+import * as campaignRules from '../store/campaign'
 import BottomSheet from '../shared/BottomSheet'
 import { IconPencil } from './icons'
 import { WARRIOR_IMAGES } from '../data/images'
@@ -37,7 +37,7 @@ function AfterGame({ title, lines, cap = Infinity }) {
 
 export default function GameLogCards({ log, legacyGames, campaign, onEditGame, onResurrect, readOnly = false }) {
   const fallenRoll = log.flatMap(r => (r.fallen || []).map(f => ({
-    ...f, game: r.gameNumber, captain: !!r.roster?.find(x => x.uid === f.uid)?.wasCaptain, back: isResurrected(f),
+    ...f, game: r.gameNumber, captain: !!r.roster?.find(x => x.uid === f.uid)?.wasCaptain, back: campaignRules.isResurrected(f),
   })))
   const starting = afterGameLines(campaign, 0)
   const editable = !!onEditGame && !readOnly
@@ -122,20 +122,27 @@ export default function GameLogCards({ log, legacyGames, campaign, onEditGame, o
   )
 }
 
-// Bring a fallen warrior back: who, where to, and why not (if the engine says no)
+// Bring a fallen warrior back: who, the IP they come back with, where to, and why not (if
+// the engine says no). Upgrades and gear aren't restored.
+const MAX_RES_IP = 99
 export function ResurrectSheet({ fallen, onClose, onDone, zIndex = 1200 }) {
   const store = useBuilderStore()
   const company = { companyMode: store.companyMode, slots: store.slots, campaignGame: store.campaignGame, campaign: store.campaign }
   const ref = { gameNumber: fallen.game, uid: fallen.uid }
+  const oldIP = fallen.earnedIP || 0
+  // resurrectDefaults is newer than this sheet in some builds; fall back to their old IP
+  const [ip, setIp] = useState(() => {
+    try { return campaignRules.resurrectDefaults?.(company, ref)?.ip ?? oldIP } catch { return oldIP }
+  })
   let preview = null
   let reason = null
-  try { preview = previewResurrect(company, ref) } catch (err) { reason = err.message }
+  try { preview = campaignRules.resurrectWarrior(company, ref, { ip }) } catch (err) { reason = err.message }
   const name = fallenName(fallen)
   const ownSlot = store.slots.some(s => !s.type && s.fallen?.uid === fallen.uid)
   const where = !preview ? null : ownSlot ? 'their old slot' : `slot ${preview.slotIndex + 1}`
 
   function resurrect() {
-    if (store.resurrectWarrior(fallen.game, fallen.uid)) { onDone?.(); onClose() }
+    if (store.resurrectWarrior(fallen.game, fallen.uid, { ip })) { onDone?.(); onClose() }
   }
   return (
     <BottomSheet title="RESURRECT" onClose={onClose} zIndex={zIndex} className="res-sheet"
@@ -154,8 +161,22 @@ export function ResurrectSheet({ fallen, onClose, onDone, zIndex = 1200 }) {
         <p className="eog-error" role="alert">{reason}</p>
       ) : (
         <>
-          <p className="eog-help">They return with their gear, upgrades and {fallen.earnedIP || 0} IP, into {where}. They won&apos;t be Captain.</p>
-          {preview.warnings.map(w => <p key={w} className="oe-warn res-warn">{w}</p>)}
+          <div className="res-ip">
+            <div className="res-ip-text">
+              <span className="res-ip-label" id={`res-ip-${fallen.uid}`}>Comes back with</span>
+              <span className="res-ip-hint">They had {oldIP} IP when they fell.</span>
+            </div>
+            <span className="led-stepper" role="group" aria-labelledby={`res-ip-${fallen.uid}`}>
+              <button type="button" className="alv-btn led-step" aria-label="Less IP" disabled={ip <= 0}
+                onClick={() => setIp(v => Math.max(0, v - 1))}>−</button>
+              <span className="led-step-val res-ip-val" aria-live="polite">{ip} <small>IP</small></span>
+              <button type="button" className="alv-btn led-step" aria-label="More IP" disabled={ip >= MAX_RES_IP}
+                onClick={() => setIp(v => Math.min(MAX_RES_IP, v + 1))}>+</button>
+            </span>
+          </div>
+          <p className="eog-help">
+            They return as a {fallen.type} with their name and {ip} IP to spend, into {where}. Upgrades and gear aren&apos;t restored. They won&apos;t be Captain.
+          </p>
           <p className="eog-perm">This is noted in the campaign log.</p>
         </>
       )}
