@@ -9,7 +9,6 @@ export const CODE_ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ'
 export const CODE_LENGTH = 8
 export const CODE_TTL_MS = 7 * 24 * 60 * 60 * 1000
 export const MAX_GROUP_NAME = 60
-const DEFAULT_GAMES = 6 // CAMPAIGN_RULES.games (src/data/campaign.js); Functions don't import from src/
 
 // random(n) -> n random bytes (injectable for tests)
 export function generateInviteCode(random = n => crypto.getRandomValues(new Uint8Array(n))) {
@@ -81,9 +80,9 @@ export function progressOf(data) {
   for (const r of log) if (tally[r?.result] != null) tally[r.result]++
   return {
     completed: Math.max(Number(data?.campaignGame) || 0, log.length),
-    total: 'length' in c ? c.length : DEFAULT_GAMES,
+    total: null, // campaigns have no planned length; they end when the player ends them
     tally,
-    completedAt: c.completedAt ?? null,
+    completedAt: c.endedEarly ? (c.completedAt ?? null) : null,
   }
 }
 

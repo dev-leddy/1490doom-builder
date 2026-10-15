@@ -134,7 +134,7 @@ describe('progress and display', () => {
   it('counts games and results from the stored company', () => {
     const p = progressOf({ campaignGame: 1, campaign: { length: null, completedAt: null, log: [{ result: 'win' }, { result: 'loss' }, { result: 'win' }] } })
     expect(p).toEqual({ completed: 3, total: null, tally: { win: 2, loss: 1, draw: 0, retreat: 0 }, completedAt: null })
-    expect(progressOf({ campaignGame: 2 }).total).toBe(6)
+    expect(progressOf({ campaignGame: 2 }).total).toBe(null)
   })
 
   it('summarises a member and the code expiry for the player', () => {
