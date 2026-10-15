@@ -47,7 +47,46 @@ export function confirmFor(kind, { company, row, onDone }) {
   }
 }
 
-export default function LogEntryDetail({ row, onAsk, onChanged, onEditGame, headingRef }) {
+// readOnly: another player's entry (shared campaign): the details only, and whose it is
+export default function LogEntryDetail({ row, onAsk, onChanged, onEditGame, headingRef, readOnly = null }) {
+  if (readOnly) return <ReadOnlyEntry row={row} headingRef={headingRef} owner={readOnly} />
+  return <OwnEntry row={row} onAsk={onAsk} onChanged={onChanged} onEditGame={onEditGame} headingRef={headingRef} />
+}
+
+// The facts every entry panel shows
+function EntryFacts({ row, playerLabel }) {
+  return (
+    <>
+      {(row.rejected || row.sub) && (
+        <p className="led-details">{row.rejected ? 'Replaced by changes from another device, so it never happened.' : row.sub}</p>
+      )}
+      <dl className="led-facts">
+        <div><dt>When</dt><dd>{eventTime(row.at)}</dd></div>
+        {playerLabel && <div><dt>Player</dt><dd>{playerLabel}</dd></div>}
+        <div><dt>Game</dt><dd>{row.game.label}</dd></div>
+        {row.warriors.length > 0 && <div><dt>Warrior</dt><dd>{row.warriors.map(w => w.name).join(', ')}</dd></div>}
+      </dl>
+    </>
+  )
+}
+
+// owner: { playerName, companyName }
+function ReadOnlyEntry({ row, headingRef, owner }) {
+  return (
+    <div className="led led--readonly">
+      <div className="led-head">
+        <span className="alv-tag" data-kind={row.kind} data-result={row.result || undefined}>{row.tag}</span>
+        <h3 className="led-title" ref={headingRef} tabIndex={-1}>{row.text}</h3>
+        {row.undone && <span className="alv-flag">Undone</span>}
+        {row.edited && <span className="alv-flag alv-flag--edited">Edited</span>}
+      </div>
+      <EntryFacts row={row} playerLabel={`${owner.companyName} · ${owner.playerName}`} />
+      <p className="led-owner">{owner.playerName}&apos;s company. Only {owner.playerName} can change it.</p>
+    </div>
+  )
+}
+
+function OwnEntry({ row, onAsk, onChanged, onEditGame, headingRef }) {
   const { slots, companyMode, campaignGame, campaign, noteLogEntry, setEarnedIP } = useBuilderStore()
   const company = { slots, companyMode, campaignGame, campaign }
   const e = row.e
@@ -90,14 +129,7 @@ export default function LogEntryDetail({ row, onAsk, onChanged, onEditGame, head
           </button>
         )}
       </div>
-      {(row.rejected || row.sub) && (
-        <p className="led-details">{row.rejected ? 'Replaced by changes from another device, so it never happened.' : row.sub}</p>
-      )}
-      <dl className="led-facts">
-        <div><dt>When</dt><dd>{eventTime(row.at)}</dd></div>
-        <div><dt>Game</dt><dd>{row.game.label}</dd></div>
-        {row.warriors.length > 0 && <div><dt>Warrior</dt><dd>{row.warriors.map(w => w.name).join(', ')}</dd></div>}
-      </dl>
+      <EntryFacts row={row} playerLabel={row.playerLabel} />
 
       <section className="led-section">
         <label className="led-label" htmlFor={`led-note-${e.id}`}>Note</label>

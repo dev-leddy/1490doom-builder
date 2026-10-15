@@ -35,10 +35,50 @@ function AfterGame({ title, lines, cap = Infinity }) {
   )
 }
 
-export default function GameLogCards({ log, legacyGames, campaign, onEditGame, onResurrect, readOnly = false }) {
+// The fallen of one company as memorial tiles. Tiles are buttons (resurrect) only when
+// onResurrect is given and not readOnly. Hidden when nobody fell. title: the section heading.
+export function FallenSection({ log = [], title = 'The fallen', onResurrect, readOnly = false, id = 'cmp-fallen-title' }) {
   const fallenRoll = log.flatMap(r => (r.fallen || []).map(f => ({
     ...f, game: r.gameNumber, captain: !!r.roster?.find(x => x.uid === f.uid)?.wasCaptain, back: campaignRules.isResurrected(f),
   })))
+  if (!fallenRoll.length) return null
+  return (
+    <section className={`cmp-fallen-roll${readOnly ? ' is-readonly' : ''}`} aria-labelledby={id}>
+      <h3 className="cmp-fallen-title" id={id}>{title}</h3>
+      <ul className="cmp-fallen-grid">
+        {fallenRoll.map(f => {
+          const body = (
+            <>
+              <span className="cmp-fallen-portrait">
+                {WARRIOR_IMAGES[f.type] && <img src={WARRIOR_IMAGES[f.type]} alt="" />}
+                {f.captain && !f.back && <span className="cmp-fallen-captain">Captain</span>}
+              </span>
+              <span className="cmp-fallen-name">{fallenName(f)}</span>
+              <span className="cmp-fallen-meta">Fell in game {f.game} · {f.earnedIP || 0} IP</span>
+              {f.back && <span className="cmp-fallen-back">Back in the company</span>}
+            </>
+          )
+          const canTap = onResurrect && !readOnly && !f.back
+          return (
+            <li key={`${f.uid}-${f.game}`} className="cmp-fallen-item">
+              {canTap ? (
+                <button type="button" className="cmp-fallen-tile is-tappable" onClick={() => onResurrect(f)}
+                  aria-label={`${fallenName(f)}, fell in game ${f.game}. Resurrect`}>
+                  {body}
+                </button>
+              ) : (
+                <div className={`cmp-fallen-tile${f.back ? ' is-back' : ''}`}>{body}</div>
+              )}
+            </li>
+          )
+        })}
+      </ul>
+    </section>
+  )
+}
+
+// showFallen: false when the log shows the fallen of every player itself (shared campaigns)
+export default function GameLogCards({ log, legacyGames, campaign, onEditGame, onResurrect, readOnly = false, showFallen = true }) {
   const starting = afterGameLines(campaign, 0)
   const editable = !!onEditGame && !readOnly
   return (
@@ -85,39 +125,7 @@ export default function GameLogCards({ log, legacyGames, campaign, onEditGame, o
           )
         })}
       </ol>
-      {fallenRoll.length > 0 && (
-        <section className="cmp-fallen-roll" aria-labelledby="cmp-fallen-title">
-          <h3 className="cmp-fallen-title" id="cmp-fallen-title">The fallen</h3>
-          <ul className="cmp-fallen-grid">
-            {fallenRoll.map(f => {
-              const body = (
-                <>
-                  <span className="cmp-fallen-portrait">
-                    {WARRIOR_IMAGES[f.type] && <img src={WARRIOR_IMAGES[f.type]} alt="" />}
-                    {f.captain && !f.back && <span className="cmp-fallen-captain">Captain</span>}
-                  </span>
-                  <span className="cmp-fallen-name">{fallenName(f)}</span>
-                  <span className="cmp-fallen-meta">Fell in game {f.game} · {f.earnedIP || 0} IP</span>
-                  {f.back && <span className="cmp-fallen-back">Back in the company</span>}
-                </>
-              )
-              const canTap = onResurrect && !readOnly && !f.back
-              return (
-                <li key={`${f.uid}-${f.game}`} className="cmp-fallen-item">
-                  {canTap ? (
-                    <button type="button" className="cmp-fallen-tile is-tappable" onClick={() => onResurrect(f)}
-                      aria-label={`${fallenName(f)}, fell in game ${f.game}. Resurrect`}>
-                      {body}
-                    </button>
-                  ) : (
-                    <div className={`cmp-fallen-tile${f.back ? ' is-back' : ''}`}>{body}</div>
-                  )}
-                </li>
-              )
-            })}
-          </ul>
-        </section>
-      )}
+      {showFallen && <FallenSection log={log} onResurrect={onResurrect} readOnly={readOnly} />}
     </>
   )
 }

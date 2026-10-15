@@ -1,6 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useActivityLog } from './useActivityLog'
+import { useActivityLog, useGroupLog } from './useActivityLog'
 import {
   KINDS, DEFAULT_LOG_FILTERS, DEFAULT_LOG_SORT, buildRows, gameOptions, warriorOptions, filterRows, activeFilterCount, rowsToCsv, eventTime,
 } from './activityLog'
@@ -8,7 +8,7 @@ import { IconDownload } from './icons'
 import { useBuilderStore } from '../store/builderStore'
 import { campaignProgress } from '../store/campaign'
 import { campaignLogText } from './campaignUi'
-import GameLogCards, { ResurrectSheet } from './GameLogCards'
+import GameLogCards, { ResurrectSheet, FallenSection } from './GameLogCards'
 import LogEntryDetail, { confirmFor } from './LogEntryDetail'
 import EditOutcomeFlow from './OutcomeEditor'
 import BottomSheet from '../shared/BottomSheet'
@@ -18,7 +18,9 @@ import './styles/activity-log.css'
 // ── Campaign log, full screen ─────────────────────────────────────────────────
 // Two views: All entries (every event as a table at >= 768px, two-line rows on phones,
 // with filters by game, warrior, kind and text; undone entries struck through) and
-// By game (one card per recorded game, then the fallen). A tapped entry opens its detail
+// By game (one card per recorded game, then the fallen). In a shared campaign, All entries
+// also has every other member's entries (read-only, with a Player column and filter), By game
+// can show each player's cards, and the fallen come in one section per player. A tapped entry opens its detail
 // (side panel on wide screens, bottom sheet on phones): its note and what can still be changed.
 
 const VIEWS = [['entries', 'All entries'], ['games', 'By game']]
@@ -127,6 +129,16 @@ export default function ActivityLogView({ companyId, companyName, onClose }) {
 
   const { events, error, retry, refresh } = useActivityLog(companyId)
   const { slots, campaign, companyMode, campaignGame } = useBuilderStore()
+  const grp = useGroupLog(companyId, { enabled: companyMode === 'campaign' })
+  const inGroup = grp.inGroup
+  // Who's who in a shared campaign: your company is "You"
+  const player = id => {
+    if (id === companyId) return { companyName: companyName || 'Your company', playerName: 'You', mine: true }
+    const m = grp.others.find(x => x.companyId === id)
+    return { companyName: m?.companyName || 'A company', playerName: m?.playerName || 'A player', mine: false }
+  }
+  const playerLabel = id => { const p = player(id); return `${p.companyName} · ${p.playerName}` }
+  const [cardsOf, setCardsOf] = useState(companyId) // By game: whose cards
   const { completed, total } = campaignProgress({ slots, campaign, companyMode, campaignGame })
   const log = campaign?.log || []
   const [view, setViewState] = useState(lastView)
@@ -138,8 +150,20 @@ export default function ActivityLogView({ companyId, companyName, onClose }) {
   const sortBy = key => setSort(sort.key === key ? { key, dir: sort.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: key === 'time' ? 'desc' : 'asc' })
   const [filtersOpen, setFiltersOpen] = useState(false)
 
-  const rows = useMemo(() => (events ? buildRows(events) : []), [events])
-  const games = useMemo(() => (events ? gameOptions(events) : []), [events])
+  // Your rows, and in a shared campaign each other member's (built per company: undos and
+  // names belong to their own company), tagged with owner and a player label
+  const rows = useMemo(() => {
+    const own = events ? buildRows(events).map(r => ({ ...r, owner: companyId })) : []
+    if (!inGroup) return own
+    const byCompany = new Map()
+    for (const e of grp.events) byCompany.set(e.companyId, [...(byCompany.get(e.companyId) || []), e])
+    const theirs = [...byCompany.entries()].flatMap(([id, list]) => buildRows(list).map(r => ({ ...r, owner: id, note: null })))
+    return [...own, ...theirs].map(r => {
+      const label = playerLabel(r.owner)
+      return { ...r, playerLabel: label, haystack: `${r.haystack} ${label.toLowerCase()}` }
+    })
+  }, [events, inGroup, grp.events, grp.others, companyName]) // eslint-disable-line react-hooks/exhaustive-deps
+  const games = useMemo(() => gameOptions(rows.map(r => r.e)), [rows])
   const warriors = useMemo(() => warriorOptions(rows), [rows])
   const shown = useMemo(() => filterRows(rows, f, { sort }), [rows, f, sort])
   const active = activeFilterCount(f)
@@ -169,6 +193,16 @@ export default function ActivityLogView({ companyId, companyName, onClose }) {
   )
   const filters = (
     <div className="alv-filters" id={panelId}>
+      {inGroup && (
+        <div className="alv-field">
+          <label className="alv-field-label" htmlFor={`${panelId}-player`}>Player</label>
+          <select id={`${panelId}-player`} className="alv-select" value={f.player} onChange={e => set({ player: e.target.value })}>
+            <option value="all">All players</option>
+            <option value={companyId}>{playerLabel(companyId)}</option>
+            {grp.others.map(m => <option key={m.companyId} value={m.companyId}>{playerLabel(m.companyId)}</option>)}
+          </select>
+        </div>
+      )}
       <div className="alv-field">
         <label className="alv-field-label" htmlFor={`${panelId}-game`}>Game</label>
         <select id={`${panelId}-game`} className="alv-select" value={f.game} onChange={e => set({ game: e.target.value })}>
@@ -180,7 +214,11 @@ export default function ActivityLogView({ companyId, companyName, onClose }) {
         <label className="alv-field-label" htmlFor={`${panelId}-warrior`}>Warrior</label>
         <select id={`${panelId}-warrior`} className="alv-select" value={f.warrior} onChange={e => set({ warrior: e.target.value })}>
           <option value="all">All warriors</option>
-          {warriors.map(w => <option key={w.uid} value={w.uid}>{w.name}{w.fell ? `, fell in game ${w.fell}` : ''}</option>)}
+          {warriors.map(w => (
+            <option key={w.uid} value={w.uid}>
+              {w.name}{inGroup && w.owner !== companyId ? ` · ${player(w.owner).companyName}` : ''}{w.fell ? `, fell in game ${w.fell}` : ''}
+            </option>
+          ))}
         </select>
       </div>
       <div className="alv-field alv-field--kinds">
@@ -201,9 +239,43 @@ export default function ActivityLogView({ companyId, companyName, onClose }) {
 
   let body
   if (view === 'games') {
+    const whose = inGroup && cardsOf !== companyId && grp.others.some(m => m.companyId === cardsOf) ? cardsOf : companyId
+    const theirs = whose !== companyId ? grp.companies[whose] : null
+    const theirLog = theirs?.company?.campaign?.log || []
     body = (
       <div className="alv-cards">
-        <GameLogCards log={log} legacyGames={Math.max(0, completed - log.length)} campaign={campaign} onEditGame={setEditing} onResurrect={setResurrecting} />
+        {inGroup && (
+          <div className="alv-players" role="group" aria-label="Whose games">
+            {[companyId, ...grp.others.map(m => m.companyId)].map(id => (
+              <button key={id} type="button" className="alv-chip alv-player-chip" aria-pressed={whose === id} onClick={() => setCardsOf(id)}>
+                {id === companyId ? 'You' : playerLabel(id)}
+              </button>
+            ))}
+          </div>
+        )}
+        {whose === companyId ? (
+          <GameLogCards log={log} legacyGames={Math.max(0, completed - log.length)} campaign={campaign}
+            onEditGame={setEditing} onResurrect={setResurrecting} showFallen={!inGroup} />
+        ) : theirs?.status === 'ready' || theirs?.company ? (
+          <>
+            <p className="led-owner alv-owner-note">{player(whose).playerName}&apos;s company. Only {player(whose).playerName} can change it.</p>
+            <GameLogCards log={theirLog} legacyGames={Math.max(0, (theirs.company.campaignGame || 0) - theirLog.length)}
+              campaign={theirs.company.campaign} readOnly showFallen={false} />
+          </>
+        ) : theirs?.status === 'error' ? (
+          <div className="alv-empty"><p>Couldn&apos;t load {player(whose).companyName}.</p><button type="button" className="alv-btn" onClick={grp.retry}>Try again</button></div>
+        ) : (
+          <p className="alv-empty" role="status">Loading {player(whose).companyName}…</p>
+        )}
+        {inGroup && (
+          <div className="alv-fallen-all">
+            <FallenSection log={log} title="Your fallen" onResurrect={setResurrecting} id="cmp-fallen-mine" />
+            {grp.others.map(m => (
+              <FallenSection key={m.companyId} id={`cmp-fallen-${m.companyId}`} readOnly
+                log={grp.companies[m.companyId]?.company?.campaign?.log || []} title={playerLabel(m.companyId)} />
+            ))}
+          </div>
+        )}
       </div>
     )
   } else if (error) {
@@ -226,11 +298,12 @@ export default function ActivityLogView({ companyId, companyName, onClose }) {
     )
   } else if (wide) {
     body = (
-      <table className="alv-table">
+      <table className={`alv-table${inGroup ? ' has-player' : ''}`}>
         <caption className="alv-hidden">Campaign log. {sortLabel}. Sort by a column with its header button.</caption>
         <thead>
           <tr>
             {sortTh('time', 'Time', 'alv-col-time')}
+            {inGroup && <th scope="col" className="alv-col-player">Player</th>}
             {sortTh('game', 'Game', 'alv-col-game')}
             {sortTh('warrior', 'Warrior', 'alv-col-warrior')}
             <th scope="col" className="alv-col-event">Event</th>
@@ -242,6 +315,12 @@ export default function ActivityLogView({ companyId, companyName, onClose }) {
             <tr key={r.e.id} className={`alv-row${rowClass(r)}${r.e.id === selectedId ? ' is-selected' : ''}`} data-type={r.e.type}
               onClick={ev => openRow(r, ev.currentTarget.querySelector('.alv-open'))}>
               <td className="alv-time"><time dateTime={Number.isFinite(r.at) ? new Date(r.at).toISOString() : undefined}>{eventTime(r.at)}</time></td>
+              {inGroup && (
+                <td className={`alv-player${r.owner === companyId ? ' is-you' : ''}`}>
+                  <span className="alv-player-co">{player(r.owner).companyName}</span>
+                  <span className="alv-player-name">{player(r.owner).playerName}</span>
+                </td>
+              )}
               <td className="alv-game">{r.game.label}</td>
               <td className="alv-warrior">{names(r)}</td>
               <td className="alv-event">
@@ -272,6 +351,7 @@ export default function ActivityLogView({ companyId, companyName, onClose }) {
               <Note r={r} />
               <span className="alv-item-meta">
                 <time dateTime={Number.isFinite(r.at) ? new Date(r.at).toISOString() : undefined}>{eventTime(r.at)}</time>
+                {inGroup && <span className={`alv-meta-player${r.owner === companyId ? ' is-you' : ''}`}>{r.owner === companyId ? 'You' : playerLabel(r.owner)}</span>}
                 <span>{r.game.label}</span>
                 {r.warriors.length > 0 && <span>{names(r)}</span>}
               </span>
@@ -296,7 +376,13 @@ export default function ActivityLogView({ companyId, companyName, onClose }) {
         {view === 'games' ? (
           <button type="button" className="alv-btn alv-export" title="Download the roster and every game as a text file"
             aria-label="Export the games as text"
-            onClick={() => download(campaignLogText({ companyName, slots, campaign, completed, total }), 'text/plain', `${slug(companyName)}-campaign.txt`)}>
+            onClick={() => {
+              const other = inGroup && cardsOf !== companyId ? grp.companies[cardsOf]?.company : null
+              if (other) {
+                const n = Math.max(other.campaignGame || 0, other.campaign?.log?.length || 0)
+                download(campaignLogText({ companyName: other.companyName, slots: other.slots, campaign: other.campaign, completed: n, total: null }), 'text/plain', `${slug(other.companyName)}-campaign.txt`)
+              } else download(campaignLogText({ companyName, slots, campaign, completed, total }), 'text/plain', `${slug(companyName)}-campaign.txt`)
+            }}>
             <IconDownload /><span>Export</span>
           </button>
         ) : (
@@ -329,6 +415,13 @@ export default function ActivityLogView({ companyId, companyName, onClose }) {
             {events ? `${shown.length} of ${rows.length} ${rows.length === 1 ? 'entry' : 'entries'}` : ''}
           </span>
           {active > 0 && <button type="button" className="alv-link" onClick={() => setF(DEFAULT_LOG_FILTERS)}>Clear filters</button>}
+          {grp.status === 'loading' && <span className="alv-group-note" role="status">Loading the other players…</span>}
+          {grp.error && grp.status !== 'none' && (
+            <span className="alv-group-note is-error">
+              Couldn&apos;t load the other players&apos; logs.{' '}
+              <button type="button" className="alv-link" onClick={grp.retry}>Try again</button>
+            </span>
+          )}
           {!wide && events && rows.length > 0 && (
             <label className="alv-sort-phone">
               <span className="alv-sort-phone-label">Sort</span>
@@ -349,19 +442,21 @@ export default function ActivityLogView({ companyId, companyName, onClose }) {
               <h3 className="alv-detail-title" id={`${titleId}-entry`}>Log entry</h3>
               <button type="button" className="alv-close" onClick={closeDetail} aria-label="Close the entry">✕</button>
             </div>
-            <LogEntryDetail row={selected} onAsk={setAsk} onChanged={refresh} onEditGame={setEditing} headingRef={detailHeading} />
+            <LogEntryDetail row={selected} onAsk={setAsk} onChanged={refresh} onEditGame={setEditing} headingRef={detailHeading}
+              readOnly={selected.owner && selected.owner !== companyId ? player(selected.owner) : null} />
           </aside>
         )}
       </div>
       {view === 'entries' && selected && !wide && (
         <BottomSheet title="LOG ENTRY" onClose={closeDetail} zIndex={1100} className="alv-entry-sheet"
           footer={<button type="button" className="co-sheet-done" onClick={closeDetail}>Done</button>}>
-          <LogEntryDetail row={selected} onAsk={setAsk} onChanged={refresh} onEditGame={setEditing} headingRef={detailHeading} />
+          <LogEntryDetail row={selected} onAsk={setAsk} onChanged={refresh} onEditGame={setEditing} headingRef={detailHeading}
+              readOnly={selected.owner && selected.owner !== companyId ? player(selected.owner) : null} />
         </BottomSheet>
       )}
       {resurrecting && <ResurrectSheet fallen={resurrecting} onClose={() => setResurrecting(null)} onDone={refresh} />}
       {editing && <EditOutcomeFlow editing={editing} onClose={() => setEditing(null)} onSaved={refresh} />}
-      {ask && selected && (
+      {ask && selected && selected.owner === companyId && (
         <ConfirmModal zIndex={1200} {...confirmFor(ask, {
           company: { slots, campaign, companyMode, campaignGame }, row: selected,
           onDone: () => { setAsk(null); refresh() },

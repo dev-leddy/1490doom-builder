@@ -238,24 +238,31 @@ export function buildRows(events = [], total = CAMPAIGN_RULES.games) {
 }
 
 // Warrior filter options: everyone who appears, by their latest name, with the fallen marked
+// In a shared campaign, rows carry owner (the company id) and the options keep it, so two
+// players' Brutes stay apart.
 export function warriorOptions(rows) {
   const byUid = new Map()
-  for (const r of rows) for (const w of r.warriors) if (w.name) byUid.set(w.uid, { uid: w.uid, name: w.name, fell: byUid.get(w.uid)?.fell || null })
+  for (const r of rows) {
+    for (const w of r.warriors) {
+      if (w.name) byUid.set(w.uid, { uid: w.uid, name: w.name, owner: r.owner ?? null, fell: byUid.get(w.uid)?.fell || null })
+    }
+  }
   for (const r of rows) {
     if (r.e.type !== 'game.recorded' || r.undone || r.rejected) continue
     for (const f of r.e.payload?.fallen || []) {
-      const w = [...byUid.values()].find(x => x.name === f)
+      const w = [...byUid.values()].find(x => x.name === f && x.owner === (r.owner ?? null))
       if (w) w.fell = r.e.payload.gameNumber
     }
   }
   return [...byUid.values()].sort((a, b) => a.name.localeCompare(b.name))
 }
 
-export const DEFAULT_LOG_FILTERS = { game: 'all', warrior: 'all', kinds: [], q: '', showUndone: true }
+// player: 'all' or a company id (shared campaigns)
+export const DEFAULT_LOG_FILTERS = { player: 'all', game: 'all', warrior: 'all', kinds: [], q: '', showUndone: true }
 
 // How many filters differ from the defaults (search included)
 export function activeFilterCount(f) {
-  return (f.game !== 'all') + (f.warrior !== 'all') + (f.kinds.length > 0) + (f.q.trim() !== '') + (!f.showUndone)
+  return ((f.player ?? 'all') !== 'all') + (f.game !== 'all') + (f.warrior !== 'all') + (f.kinds.length > 0) + (f.q.trim() !== '') + (!f.showUndone)
 }
 
 // sort: { key: 'time' | 'game' | 'warrior', dir: 'asc' | 'desc' } (newest first by default)
@@ -284,6 +291,7 @@ export function sortRows(rows, sort = DEFAULT_LOG_SORT) {
 export function filterRows(rows, f, { sort = DEFAULT_LOG_SORT, newestFirst } = {}) {
   const q = f.q.trim().toLowerCase()
   const out = rows.filter(r =>
+    ((f.player ?? 'all') === 'all' || r.owner === f.player) &&
     (f.game === 'all' || r.game.key === f.game) &&
     (f.warrior === 'all' || r.warriors.some(w => w.uid === f.warrior)) &&
     (!f.kinds.length || f.kinds.includes(r.kind)) &&
@@ -293,12 +301,13 @@ export function filterRows(rows, f, { sort = DEFAULT_LOG_SORT, newestFirst } = {
   return sortRows(out, by)
 }
 
-// The rows shown, as CSV (Export)
+// The rows shown, as CSV (Export). A Player column when the rows come from a shared campaign.
 export function rowsToCsv(rows) {
   const cell = v => `"${String(v ?? '').replace(/"/g, '""')}"`
-  const head = ['Time', 'Game', 'Warrior', 'Event type', 'Event', 'Details', 'Note', 'Status']
+  const players = rows.some(r => r.playerLabel)
+  const head = ['Time', ...(players ? ['Player'] : []), 'Game', 'Warrior', 'Event type', 'Event', 'Details', 'Note', 'Status']
   const lines = rows.map(r => [
-    Number.isFinite(r.at) ? new Date(r.at).toISOString() : '', r.game.label, r.warriors.map(w => w.name).join('; '),
+    Number.isFinite(r.at) ? new Date(r.at).toISOString() : '', ...(players ? [r.playerLabel || ''] : []), r.game.label, r.warriors.map(w => w.name).join('; '),
     r.tag, r.text, r.sub, r.note, r.rejected ? 'Not saved' : r.undone ? 'Undone' : '',
   ].map(cell).join(','))
   return [head.map(cell).join(','), ...lines].join('\r\n') + '\r\n'

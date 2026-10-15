@@ -393,3 +393,27 @@
 .res-ip-hint { font-size: 0.84rem; color: #b4b4b4; }
 .res-ip-val { min-width: 3.2rem; }
 .res-ip-val small { font-size: 0.7rem; color: #b4b4b4; }
+
+/* Shared campaigns: whose entry, whose cards, whose fallen */
+.alv-col-player { width: 9rem; }
+.alv-player { line-height: 1.3; }
+.alv-player-co { display: block; color: var(--parchment); }
+.alv-player-name { display: block; font-size: 0.8rem; color: #b4b4b4; }
+.alv-player.is-you .alv-player-name { color: var(--blood-text); font-family: 'Oswald', sans-serif; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; }
+.alv-meta-player { color: #cfcfcf; }
+.alv-meta-player.is-you { color: var(--blood-text); }
+.alv-group-note { font-size: 0.84rem; color: #b4b4b4; }
+.alv-group-note.is-error { color: #ff9a85; }
+.alv-group-note .alv-link { min-height: 32px; }
+.alv-players { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.9rem; }
+.alv-player-chip { min-height: 40px; text-transform: none; letter-spacing: 0.02em; font-size: 0.86rem; }
+.led-owner { margin: 1rem 0 0; padding: 0.55rem 0.75rem; border-left: 3px solid #555; background: #1c1c1c; font-size: 0.9rem; line-height: 1.4; color: #cfcfcf; }
+.alv-owner-note { margin: 0 0 0.9rem; }
+.alv-fallen-all { display: grid; gap: 0.25rem; }
+.cmp-fallen-roll.is-readonly .cmp-fallen-title { color: #cfcfcf; }
+@media (max-width: 1023px) { .alv-col-player { width: 7.5rem; } }
+/* With a Player column, the other columns give way so Event stays readable */
+.alv-table.has-player .alv-col-game { width: 5.5rem; }
+.alv-table.has-player .alv-col-warrior { width: 9rem; }
+.alv-table.has-player .alv-col-details { width: 24%; }
+@media (min-width: 1024px) { .alv-table.has-player .alv-col-warrior { width: 10rem; } .alv-table.has-player .alv-col-details { width: 26%; } }
