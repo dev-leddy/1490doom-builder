@@ -88,7 +88,8 @@ export default function NewCompanyPage({ onStart, onBack }) {
   }
 
   function handleRandomize() {
-    const result = useBuilderStore.getState().buildRandomResult({ warriors: warriorCount, ipLimit: ip })
+    // Campaigns start with no IP, so a random campaign company gets no upgrades
+    const result = useBuilderStore.getState().buildRandomResult({ warriors: warriorCount, ipLimit: isCampaign ? 0 : ip })
     setAvatar(randomAvatarKey())
     setName(result.companyName)
     if (result.mark) setMark(result.mark)
@@ -383,14 +384,12 @@ export default function NewCompanyPage({ onStart, onBack }) {
 
       {/* Sticky footer */}
       <div className="ncp-footer">
-        {!isCampaign && (
-          <button className="ncp-btn ncp-btn--ghost" onClick={handleRandomize}>
-            <svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15" style={{ marginRight: '0.4em', flexShrink: 0 }}>
-              <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7 7c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm0 10c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm5-4c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm5 4c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm0-8c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z"/>
-            </svg>
-            {randomPreview ? 'Roll Again' : 'Randomize'}
-          </button>
-        )}
+        <button className="ncp-btn ncp-btn--ghost" onClick={handleRandomize}>
+          <svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15" style={{ marginRight: '0.4em', flexShrink: 0 }}>
+            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7 7c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm0 10c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm5-4c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm5 4c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm0-8c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z"/>
+          </svg>
+          {randomPreview ? 'Roll Again' : 'Randomize'}
+        </button>
         <div className="ncp-footer-hint" aria-live="polite">{hasWarrior ? '' : 'Choose at least one warrior'}</div>
         <button className="ncp-btn ncp-btn--primary" onClick={handleStart} disabled={!hasWarrior}>
           {randomPreview ? 'Accept & Build →' : `Begin ${isCampaign ? 'Campaign' : 'Build'} →`}

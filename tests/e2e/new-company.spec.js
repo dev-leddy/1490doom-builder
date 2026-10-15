@@ -59,6 +59,16 @@ test.describe('New Company wizard', () => {
     await expect(page.getByText(name, { exact: true }).first()).toBeVisible()
   })
 
+  test('campaign: Randomize works on the new company screen and gives no IP', async ({ page }) => {
+    await openWizard(page)
+    await page.getByRole('button', { name: 'Campaign' }).click()
+    await page.locator('.ncp-btn--ghost', { hasText: 'Randomize' }).click()
+    await expect(page.locator('.ncp-btn--ghost')).toHaveText(/Roll Again/)
+    await page.locator('.ncp-btn--primary').click()
+    await expect(page.locator('[data-testid="campaign-panel"] .ch-camp-title')).toHaveText(/Game 1/i)
+    await expect(page.locator('.lr-ip-summary.is-due')).toHaveCount(0)
+  })
+
   test('campaign: starting IP, then record a game through the End of Game steps', async ({ page }) => {
     await openWizard(page)
     await page.getByRole('button', { name: 'Campaign' }).click()
