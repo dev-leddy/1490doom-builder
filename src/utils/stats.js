@@ -3,15 +3,18 @@
 // card, play mode, the print roster and both Discord exports, so they always agree.
 //
 // `unit` is a builder slot or a play-mode warrior: { type, weapon1, weapon2, ip,
-// statImprove, statImproves }. `statuses` (play mode) apply temporary penalties.
+// statImprove, statImproves, companion }. `statuses` (play mode) apply temporary penalties;
+// `companionAlive: false` drops a companion's bonus (play mode, when the animal is down).
 //
 // Returns, per stat: { base, value, display, net, mods }
-//   mods:  [{ source, delta, label }] — every modifier that applied (+1 = better)
+//   mods:  [{ source, delta, label }] — every modifier that applied (+1 = better);
+//          source: 'dualWield' | 'statImprove' | 'companion' | 'polearm' | 'status'
 //   net:   sum of deltas (> 0 improved, < 0 debuffed, 0 with mods = cancelled out)
 //   value: the resulting number (for SKL/DEF/COM a better result is a LOWER target)
 //   display: '3+' for check stats, a plain number otherwise
 
 import { WARRIORS } from '../data/warriors.js'
+import { COMPANIONS } from '../data/companions.js'
 
 export const STAT_KEYS = ['MOV', 'ATK', 'VIT', 'SKL', 'DEF', 'COM']
 const CHECK_STATS = new Set(['SKL', 'DEF', 'COM']) // rolled targets: "4+" — lower is better
@@ -30,11 +33,20 @@ export function isDualWielding(unit, wdata = WARRIORS[unit.type]) {
   return unit.weapon1 === 'Light Weapon' && unit.weapon2 === 'Light Weapon' && !wdata?.fixedDualWield
 }
 
-function modifiersFor(unit, wdata, statuses) {
+function modifiersFor(unit, wdata, statuses, companionAlive) {
   const mods = Object.fromEntries(STAT_KEYS.map(s => [s, []]))
   if (isDualWielding(unit, wdata)) mods.ATK.push({ source: 'dualWield', delta: 1, label: 'Dual wield' })
   for (const s of improvedStats(unit)) {
     if (mods[s]) mods[s].push({ source: 'statImprove', delta: 1, label: 'Stat improvement' })
+  }
+  // A living companion's bonus (stacks with purchased improvements)
+  // builder slots store the animal's name; play mode stores { name, currentVit, ... }
+  const companionName = typeof unit.companion === 'string' ? unit.companion : unit.companion?.name
+  const companion = wdata.companion && COMPANIONS[companionName]
+  if (companion && companionAlive) {
+    for (const [s, delta] of Object.entries(companion.bonus)) {
+      if (mods[s]) mods[s].push({ source: 'companion', delta, label: `+${delta} from ${companionName}` })
+    }
   }
   if (unit.weapon1 === 'Polearm (one-handed)') mods.COM.push({ source: 'polearm', delta: -1, label: 'One-handed polearm' })
   const has = name => statuses.some(st => st.name === name)
@@ -46,10 +58,10 @@ function modifiersFor(unit, wdata, statuses) {
   return mods
 }
 
-export function getEffectiveStats(unit, { statuses = [] } = {}) {
+export function getEffectiveStats(unit, { statuses = [], companionAlive = true } = {}) {
   const wdata = WARRIORS[unit?.type]
   if (!wdata) return null
-  const mods = modifiersFor(unit, wdata, statuses)
+  const mods = modifiersFor(unit, wdata, statuses, companionAlive)
   const out = {}
   for (const s of STAT_KEYS) {
     const base = parseInt(wdata.stats[s])

@@ -3,16 +3,18 @@ import { STATUS_DEFS } from '../data/items'
 import { ITEM_ICONS } from '../data/images'
 import BottomSheet from '../shared/BottomSheet'
 
-export default function StatusModal({ wi }) {
-  const { addStatus, closeStatusModal, warriors } = useTrackerStore()
-  const target = warriors[wi]
-  const targetName = target?.customName || target?.type
+export default function StatusModal({ wi, companion = false }) {
+  const { addStatus, closeStatusModal, addCompanionStatus, closeCompanionStatus, warriors } = useTrackerStore()
+  const pick = companion ? addCompanionStatus : addStatus
+  const close = companion ? closeCompanionStatus : closeStatusModal
+  const target = companion ? warriors[wi]?.companion : warriors[wi]
+  const targetName = companion ? target?.name : (target?.customName || target?.type)
   const active = new Set((target?.statuses || []).map(s => s.name))
 
   return (
     <BottomSheet
       title="APPLY STATUS"
-      onClose={closeStatusModal}
+      onClose={close}
       className="tk-sheet tk-sheet--status"
     >
       <p className="tk-sheet-intro">
@@ -24,7 +26,7 @@ export default function StatusModal({ wi }) {
         <button
           key={name}
           className={`status-item-btn${active.has(name) ? ' is-active' : ''}`}
-          onClick={() => addStatus(wi, name)}
+          onClick={() => pick(wi, name)}
         >
           <strong className="status-item-name">
             {ITEM_ICONS[name] && (

@@ -32,15 +32,16 @@ function StatusDetailModal({ status, onClose, onClear, dead }) {
   )
 }
 
-export default function StatusBlock({ wi, warrior: w }) {
-  const { statuses, dead } = w
+// A warrior's statuses, or any other list (a companion's) via statuses + onClear
+export default function StatusBlock({ wi, warrior: w, statuses = w?.statuses || [], onClear, dead = w?.dead }) {
   const [detail, setDetail] = useState(null)
   const removeStatus = useTrackerStore(s => s.removeStatus)
 
   const handleClear = () => {
     const d = detail
     setDetail(null)
-    removeStatus(wi, d.id)
+    if (onClear) onClear(d.id)
+    else removeStatus(wi, d.id)
   }
 
   return (

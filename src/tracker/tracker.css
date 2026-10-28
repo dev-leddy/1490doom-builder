@@ -849,7 +849,7 @@
 
 
 /* ── BOTTOM TAB BAR ─────────────────────────────────────── */
-/* One tab per warrior: vitality (☠ when slain), type,
+/* One tab per warrior: vitality (☠ when slain), companion value, type,
    and a green ✓ badge once activated. Activated warriors' numbers
    dim so the ones still to act stand out. Selected = lifted with a blood top bar. */
 .tk-tab-bar {
@@ -1245,7 +1245,7 @@
 }
 
 /* Status compact grid (Active Statuses section on tracker card) */
-/* Statuses: compact pills under the header, styles at the end of the file */
+/* Statuses: compact pills under the header (warrior and companion), styles at the end of the file */
 .tk-detail-btn--clear { background: #1e1e4a; color: #9a9add; border: 1px solid #4a4a9a; flex: 1; }
 .tk-detail-btn--clear:hover { background: #2a2a6a; }
 
@@ -1354,7 +1354,92 @@
 .tk-name { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tk-hdr-btn-group { flex-shrink: 0; }
 
-/* App toast while in play mode: floats just above the tab bar */
+/* Once-per-game ability that a status currently prevents */
+.tk-ability-blocked { opacity: 0.55; }
+.tk-opg-blocked { color: rgba(255, 255, 255, 0.6); border-color: rgba(255, 255, 255, 0.25); }
+
+/* ── COMPANION (an owner's animal: a compact card right under the owner's vitality track) ──
+   Same parts as a warrior card, tighter: header (label, name, state, STATUS), stats strip,
+   vitality track, statuses, ability. No portrait for now; no Activated button (it
+   activates with its owner). */
+.tk-companion {
+  margin: -0.2rem 0 0.2rem;
+  padding: 0.5rem 0.6rem 0.55rem;
+  background: #0c0c0c;
+  border: 1px solid #2a2a2a;
+  border-left: 3px solid #4a8a4a;
+}
+.tk-companion-header { display: flex; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.45rem; }
+.tk-companion-title { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.1rem; }
+.tk-companion-line { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0.1rem 0.5rem; }
+.tk-companion-kicker {
+  font-family: 'Oswald', sans-serif; font-size: 0.68rem; letter-spacing: 0.12em;
+  text-transform: uppercase; color: rgba(255, 255, 255, 0.55);
+}
+.tk-companion-name {
+  font-family: 'Oswald', sans-serif; font-size: 1.1rem; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: #fff; line-height: 1.15;
+}
+.tk-companion-state {
+  align-self: center;
+  font-family: 'Oswald', sans-serif; font-size: 0.62rem; letter-spacing: 0.12em;
+  padding: 1px 6px; background: #5a0000; color: #ff8888;
+}
+.tk-companion-note { font-size: 0.82rem; font-style: italic; color: #c07070; line-height: 1.3; }
+.tk-companion .tk-hdr-btn { padding: 0.25rem 0.55rem; font-size: 0.66rem; }
+
+/* Compact strip and track: same parts as the warrior's, a little smaller */
+.tk-companion .tk-companion-stats { margin-bottom: 0.45rem; }
+.tk-companion-stats .tk-stat { padding: 3px 2px; }
+.tk-companion-stats .tk-stat-lbl { font-size: 0.62rem; margin-bottom: 2px; }
+.tk-companion-stats .tk-stat-val { font-size: 1rem; }
+.tk-companion-vit { margin-bottom: 0.45rem; }
+.tk-companion-statuses { margin-bottom: 0.45rem; }
+.tk-companion-ability { padding-top: 0.45rem; padding-bottom: 0.5rem; }
+.tk-companion-ability .tk-ability-name { font-size: 0.95rem; }
+.tk-companion-ability .tk-ability-desc { font-size: 0.88rem; line-height: 1.4; }
+
+/* Slain / removed: the model is out of play; the track stays tappable (heal / undo) */
+.tk-companion--slain, .tk-companion--removed { border-left-color: #5a2020; }
+.tk-companion--slain .tk-companion-kicker, .tk-companion--removed .tk-companion-kicker { color: #a06060; }
+.tk-companion--slain .tk-companion-name, .tk-companion--removed .tk-companion-name { color: #999; }
+.tk-companion--slain .tk-companion-stats, .tk-companion--removed .tk-companion-stats { opacity: 0.4; filter: grayscale(1); }
+.tk-companion--removed .tk-companion-vit .tk-vit-box:not(.lost) { opacity: 0.45; }
+
+/* Tab bar: the animal's vitality under its owner's */
+.tk-tab-vit-sub { display: inline-flex; align-items: center; gap: 2px; padding: 1px 4px 1px 3px; border: 1px solid #24402a; border-radius: 8px; font-family: 'Oswald', sans-serif; font-size: 0.6rem; font-weight: 600; color: #8fc08f; line-height: 1; align-self: center; }
+.tk-tab-vit-sub--slain, .tk-tab-vit-sub--removed { color: #a05a5a; border-color: #402424; }
+
+/* Undo toast (e.g. an animal removed with its owner), floating just above the tab bar */
+.tk-undo-toast {
+  position: fixed; left: 50%; transform: translateX(-50%);
+  bottom: calc(4.9rem + env(safe-area-inset-bottom, 0px)); z-index: 950;
+  display: flex; align-items: center; gap: 0.5rem; width: min(26rem, calc(100vw - 1.5rem)); box-sizing: border-box;
+  padding: 0.35rem 0.35rem 0.35rem 0.95rem; border: 1px solid #3a3a3a; border-radius: 10px;
+  background: #161616; color: #e6dcc8;
+  box-shadow: inset 3px 0 0 #be4127, 0 10px 28px rgba(0, 0, 0, 0.7);
+  font-family: 'Oswald', sans-serif; font-size: 0.74rem; letter-spacing: 0.1em; text-transform: uppercase; line-height: 1.3;
+  animation: tk-toast-in 0.25s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+.tk-undo-msg { flex: 1; min-width: 0; }
+.tk-undo-btn {
+  flex-shrink: 0; min-height: 44px; padding: 0 1rem; border: 1px solid rgba(190, 65, 39, 0.75); border-radius: 7px;
+  background: rgba(190, 65, 39, 0.14); color: #f08a70;
+  font: inherit; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer; transition: background 0.15s, color 0.15s;
+}
+.tk-undo-btn:active { background: #be4127; color: #fff; }
+@media (hover: hover) { .tk-undo-btn:hover { background: rgba(190, 65, 39, 0.28); color: #fff; } }
+.tk-undo-close {
+  flex-shrink: 0; width: 44px; height: 44px; border-radius: 7px; background: none; border: 0;
+  color: #777; font-size: 1.25rem; line-height: 1; cursor: pointer;
+}
+.tk-undo-close:hover { color: #fff; }
+@keyframes tk-toast-in {
+  from { opacity: 0; transform: translate(-50%, 8px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+/* App toast while in play mode: same family as the undo toast, above the tab bar */
 .tracker-shell ~ .toast {
   bottom: calc(4.9rem + env(safe-area-inset-bottom, 0px));
   padding: 0.75rem 1.1rem;
@@ -1369,8 +1454,30 @@
   line-height: 1.3;
 }
 
+/* Companion holds (the Monkey): items it carries until a warrior takes them */
+.tk-companion-holds { margin-top: 0.5rem; }
+.tk-companion-held {
+  display: flex; align-items: center; gap: 0.5rem; width: 100%; min-height: 44px; margin-top: 0.3rem;
+  padding: 0.4rem 0.6rem; background: #0f140f; border: 1px solid #2a4a2a; border-left: 3px solid #4a8a4a;
+  color: #e6dcc8; text-align: left; cursor: pointer; font: inherit;
+}
+.tk-companion-held img { width: 1.1rem; height: 1.1rem; filter: brightness(0) invert(1); opacity: 0.85; }
+.tk-companion-held-name { flex: 1; font-family: 'Oswald', sans-serif; font-size: 0.82rem; letter-spacing: 0.08em; text-transform: uppercase; }
+.tk-companion-held-badge { font-family: 'Oswald', sans-serif; font-size: 0.6rem; letter-spacing: 0.12em; padding: 0.15rem 0.4rem; border: 1px solid #2a5a2a; color: #6fbf6f; }
+.tk-companion-held-rule { font-size: 0.8rem; color: #a09070; font-style: italic; margin: 0.6rem 0; }
+.tk-companion-takers { display: flex; flex-direction: column; gap: 0.4rem; }
+.tk-companion-taker {
+  min-height: 44px; padding: 0 0.9rem; background: #141414; border: 1px solid #3a3a3a; color: #e6dcc8;
+  font-family: 'Oswald', sans-serif; font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; text-align: left; cursor: pointer;
+}
+.tk-companion-taker:hover { border-color: #4a8a4a; }
 .tk-hdr-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-/* SLAIN marker beside a fallen warrior's name */
+
+/* Reliquary sheet: companions can't EXPEND, so their abilities are never offered */
+.reliquary-note { display: block; margin-top: 0.8rem; font-family: 'Caslon Antique', serif; font-size: 0.85rem; font-style: italic; color: #b8a888; }
+.cache-item-btn .reliquary-note { margin-top: 0.3rem; }
+
+/* SLAIN marker beside a fallen warrior's name (same look as the companion's) */
 .tk-name-line { display: flex; align-items: center; gap: 0.5rem; min-width: 0; }
 .tk-name-line .tk-name { min-width: 0; }
 .tk-slain-pill { flex-shrink: 0; font-family: 'Oswald', sans-serif; font-size: 0.62rem; letter-spacing: 0.12em; padding: 1px 6px; background: #5a0000; color: #ff8888; }
@@ -1409,3 +1516,4 @@
 /* Once-per-game ability on an item sheet (The Shattered Shield on the Shield): accent edge */
 .tk-opr-row--opg { border-left-color: #be4127; }
 .tk-opr-row--opg .tk-opr-row-state { border-color: rgba(190,65,39,0.6); color: #e0674d; }
+.tk-companion-statuses .tk-status-row { margin: 0 0 0.45rem; }

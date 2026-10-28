@@ -7,6 +7,8 @@ import { CAMPAIGN_RULES } from '../data/campaign'
 import { validateEndOfGame, endOfGameWarnings, spendableCapacity, campaignProgress, undoLastGame, draftFromRecord } from '../store/campaign'
 import BottomSheet from '../shared/BottomSheet'
 import { fallenName } from './campaignUi'
+import CompanionIcon from './CompanionIcon'
+import { WARRIORS } from '../data/warriors'
 import './styles/activity-log.css'
 
 // ── End of a campaign game: a stepped sheet ───────────────────────────────────
@@ -81,6 +83,16 @@ export default function EndOfGameModal({ onClose, onConfirm, initialResult = nul
       .map(s => s.index)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Animals (the Beastmaster's) that died in play while their owner stood
+  const animalPrefill = useMemo(() => {
+    if (edit) return null
+    const tracker = useTrackerStore.getState()
+    if (tracker.companyId !== companyId || !tracker.warriors.length) return null
+    return active
+      .filter(s => { const w = tracker.warriors.find(t => t.index === s.index); return s.companion && w?.companion && w.companion.currentVit <= 0 })
+      .map(s => s.index)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   const [result, setResult] = useState(editDraft?.result ?? initialResult)
   const [fallen, setFallen] = useState(() => new Set(editDraft?.fallenIndices || prefill || []))
   const [newCaptainIndex, setNewCaptainIndex] = useState(editDraft?.newCaptainIndex ?? null)
@@ -89,8 +101,14 @@ export default function EndOfGameModal({ onClose, onConfirm, initialResult = nul
   const [bonusOpen, setBonusOpen] = useState(!!editDraft?.bonus?.length)
   const [scenario, setScenario] = useState(editDraft?.scenario || '')
   const [step, setStep] = useState(initialResult ? 'fallen' : 'result')
+  // An animal that died while its owner survived sits out the next game; companionNext is the one that goes instead
+  const [animalFell, setAnimalFell] = useState(() => new Set(editDraft?.companionFallen || animalPrefill || []))
+  const [companionNext, setCompanionNext] = useState(() => editDraft?.companionNext || {})
+  const standIns = s => (WARRIORS[s.type]?.companion?.options || []).filter(o => o !== s.companion)
+  const nextAnimal = s => companionNext[s.index] || standIns(s)[0]
 
   const survivors = active.filter(s => !fallen.has(s.index))
+  const animalsDown = survivors.filter(s => s.companion && animalFell.has(s.index))
   const captain = active.find(s => s.isCaptain) || null
   const captainFell = !!captain && fallen.has(captain.index)
   const earns = result !== 'retreat' || CAMPAIGN_RULES.retreatGivesIP
@@ -110,6 +128,8 @@ export default function EndOfGameModal({ onClose, onConfirm, initialResult = nul
     newCaptainIndex: captainFell && survivors.length ? newCaptainIndex : null,
     survivorPick: earns && survivors.length ? survivorPick : null,
     bonus: earns ? Object.entries(bonus).filter(([i, ip]) => ip > 0 && !fallen.has(+i)).map(([i, ip]) => ({ index: +i, ip })) : [],
+    companionFallen: animalsDown.map(s => s.index),
+    companionNext: Object.fromEntries(animalsDown.map(s => [s.index, nextAnimal(s)])),
   }
   const errors = validateEndOfGame(company, draft)
   const { captainCantSpend } = endOfGameWarnings(company, draft)
@@ -139,6 +159,14 @@ export default function EndOfGameModal({ onClose, onConfirm, initialResult = nul
       if (survivorPick === i) setSurvivorPick(null)
       if (newCaptainIndex === i) setNewCaptainIndex(null)
     }
+  }
+
+  function toggleAnimal(i, fell) {
+    setAnimalFell(prev => {
+      const next = new Set(prev)
+      if (fell) next.add(i); else next.delete(i)
+      return next
+    })
   }
 
   function stepBonus(i, delta) {
@@ -247,13 +275,39 @@ export default function EndOfGameModal({ onClose, onConfirm, initialResult = nul
           {prefill && <span className="eog-from-play"><span aria-hidden="true">●</span> Filled in from play mode</span>}
           {active.map(s => {
             const fell = fallen.has(s.index)
+            const animalDown = animalFell.has(s.index)
             return (
-              <div key={s.index} className={`eog-fate-row${fell ? ' is-fell' : ''}`} data-slot={s.index}>
-                <Identity s={s} star={s.isCaptain} meta={`${s.isCaptain ? 'Captain · ' : ''}${s.earnedIP || 0} IP`} />
-                <span className="eog-fate" role="group" aria-label={nameOf(s)}>
-                  <button type="button" className="is-standing" aria-pressed={!fell} onClick={() => toggleFate(s.index, false)}>Standing</button>
-                  <button type="button" className="is-fell" aria-pressed={fell} onClick={() => toggleFate(s.index, true)}>Fell</button>
-                </span>
+              <div key={s.index} className="eog-fate-group">
+                <div className={`eog-fate-row${fell ? ' is-fell' : ''}`} data-slot={s.index}>
+                  <Identity s={s} star={s.isCaptain} meta={`${s.isCaptain ? 'Captain · ' : ''}${s.earnedIP || 0} IP`} />
+                  <span className="eog-fate" role="group" aria-label={nameOf(s)}>
+                    <button type="button" className="is-standing" aria-pressed={!fell} onClick={() => toggleFate(s.index, false)}>Standing</button>
+                    <button type="button" className="is-fell" aria-pressed={fell} onClick={() => toggleFate(s.index, true)}>Fell</button>
+                  </span>
+                </div>
+                {/* The animal leaves with a fallen owner; it only needs asking about when the owner stood */}
+                {s.companion && !fell && (
+                  <div className={`eog-companion-row${animalDown ? ' fallen' : ''}`} data-companion={s.index}>
+                    <CompanionIcon name={s.companion} size={18} />
+                    <span className="eog-companion-name">{s.companion}</span>
+                    <span className="eog-fate" role="group" aria-label={s.companion}>
+                      <button type="button" className="is-standing" aria-pressed={!animalDown} onClick={() => toggleAnimal(s.index, false)}>Standing</button>
+                      <button type="button" className="is-fell" aria-pressed={animalDown} onClick={() => toggleAnimal(s.index, true)}>Fell</button>
+                    </span>
+                  </div>
+                )}
+                {s.companion && !fell && animalDown && (
+                  <div className="eog-companion-next" role="radiogroup" aria-label={`Animal for game ${gameNumber + 1}`}>
+                    <span className="eog-companion-next-label">{s.companion} sits out game {gameNumber + 1}. Instead:</span>
+                    {standIns(s).map(name => (
+                      <button key={name} type="button" role="radio" aria-checked={nextAnimal(s) === name}
+                        className={`eog-companion-chip${nextAnimal(s) === name ? ' chosen' : ''}`}
+                        onClick={() => setCompanionNext(prev => ({ ...prev, [s.index]: name }))}>
+                        <CompanionIcon name={name} size={14} />{name}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             )
           })}
@@ -373,6 +427,9 @@ export default function EndOfGameModal({ onClose, onConfirm, initialResult = nul
               )
             })}
           </div>
+          {animalsDown.map(s => (
+            <p key={s.index} className="eog-perm" data-companion-note={s.index}>{nameOf(s)}'s {s.companion} fell and sits out game {gameNumber + 1}. The {nextAnimal(s)} goes instead.</p>
+          ))}
           {!earns && <p className="eog-perm">You retreated: no IP this game. Your opponent takes all victory points.</p>}
 
           <label className="eog-field">

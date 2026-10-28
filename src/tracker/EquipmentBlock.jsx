@@ -174,8 +174,8 @@ export default function EquipmentBlock({ wi, warrior: w }) {
       desc,
       sheet,
       keys: weaponKeys(wd, sheet),
-      // Bow: OVERDRAW toggles from its sheet (same state as the Abilities list)
-      ...(w.weapon1 === 'Bow' && { opr: [{ key: 'OVERDRAW', name: wd.abilityName, desc: wd.abilityDesc }] }),
+      // Bow: OVERDRAW toggles from its sheet (same state as the Abilities list); the Longbow has Broadhead Squall instead
+      ...(w.weapon1 === 'Bow' && !(WARRIORS[w.type]?.replacesWeaponAbilities || []).includes('OVERDRAW') && { opr: [{ key: 'OVERDRAW', name: wd.abilityName, desc: wd.abilityDesc }] }),
       ...(isCrossbow && { variant: 'crossbow', state: loaded ? 'Loaded' : 'Reload', loaded }),
       mirror: w.weapon1 !== 'Heavy Weapon',
     })

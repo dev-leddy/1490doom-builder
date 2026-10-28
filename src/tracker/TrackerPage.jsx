@@ -19,6 +19,7 @@ export default function TrackerPage() {
     markPopupOpen, markAbilityModal,
     reliquaryModal,
     refOpen,
+    companionStatusTarget, companionLootTarget, undoToast, doUndo, dismissUndo,
   } = useTrackerStore()
 
   const activeWarrior = warriors[activeWarriorIdx]
@@ -55,6 +56,15 @@ export default function TrackerPage() {
       )}
       {cacheLootTarget !== null && <CacheLootModal wi={cacheLootTarget} />}
       {statusTarget !== null && <StatusModal wi={statusTarget} />}
+      {companionStatusTarget !== null && <StatusModal wi={companionStatusTarget} companion />}
+      {companionLootTarget !== null && <CacheLootModal wi={companionLootTarget} companion />}
+      {undoToast && (
+        <div className="tk-undo-toast" role="status">
+          <span className="tk-undo-msg">{undoToast.message}</span>
+          <button className="tk-undo-btn" onClick={doUndo}>Undo</button>
+          <button className="tk-undo-close" onClick={dismissUndo} aria-label="Dismiss">×</button>
+        </div>
+      )}
       {markPopupOpen && <MarkPopup />}
       {markAbilityModal && <MarkAbilityModal />}
       {reliquaryModal !== null && <ReliquaryModal />}

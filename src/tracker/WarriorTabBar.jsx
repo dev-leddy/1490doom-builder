@@ -1,4 +1,5 @@
-import { useTrackerStore } from '../store/trackerStore'
+import { useTrackerStore, companionState } from '../store/trackerStore'
+import CompanionIcon from '../builder/CompanionIcon'
 
 export default function WarriorTabBar() {
   const { warriors, activeWarriorIdx, refOpen, selectWarrior, toggleActivated } = useTrackerStore()
@@ -25,6 +26,12 @@ export default function WarriorTabBar() {
           >
             <span className="tk-tab-vit-row">
               <span className="tk-tab-vit">{isDead ? '☠' : w.currentVit}</span>
+              {w.companion && !isDead && (
+                <span className={`tk-tab-vit-sub tk-tab-vit-sub--${companionState(w)}`} aria-label={`${w.companion.name} vitality ${w.companion.currentVit}`}>
+                  <CompanionIcon name={w.companion.name} size={10} />
+                  {companionState(w) === 'alive' ? w.companion.currentVit : '✕'}
+                </span>
+              )}
             </span>
             <span className="tk-tab-name">
               {w.isCaptain && <span className="tk-tab-captain-dot">★</span>}

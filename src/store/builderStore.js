@@ -19,6 +19,7 @@ import {
   reRecordLatestGame, editOutcome, resurrectWarrior as resurrectWarriorOf,
 } from './campaign'
 import { encodeCompany, decodeCompany } from './builderEncoding'
+import { defaultCompanion, withCompanion } from '../data/companions'
 import { fetchCloudSaves, removeCloudCompany, createSaver, migrateLocalData, snapshotCompany } from './builderPersistence'
 import { useAuthStore } from './authStore'
 import { makeEvent, makeBaselineEvent, newEventId, MAX_NOTE_LENGTH } from './campaignEvents'
@@ -98,12 +99,13 @@ function emptySlot(i, isCaptain) {
     climbing: null, ip: [], isCaptain: isCaptain ?? (i === 0),
     notes: [], customName: null,
     earnedIP: 0, statImproves: [],
+    companion: null,
   }
 }
 
 // The old end-of-game modal hands out one pool of IP; split it into the engine's draft
 // (survivor point, bonus) and leave out the winner's Captain point, which the engine adds
-function allocationToDraft(slots, { survivorIndices = [], ipAllocations = {}, newCaptainIndex = null, result, scenario = null }) {
+function allocationToDraft(slots, { survivorIndices = [], ipAllocations = {}, newCaptainIndex = null, result, scenario = null, companionFallen = [], companionNext = {} }) {
   const fallenIndices = slots.map((s, i) => (s.type && !survivorIndices.includes(i) ? i : -1)).filter(i => i >= 0)
   const alloc = { ...ipAllocations }
   const captainIdx = slots.findIndex(s => s.type && s.isCaptain)
@@ -115,7 +117,7 @@ function allocationToDraft(slots, { survivorIndices = [], ipAllocations = {}, ne
   const bonus = given
     .map(([index, n]) => ({ index, ip: index === survivorPick ? n - 1 : n }))
     .filter(b => b.ip > 0)
-  return { result, scenario, fallenIndices, newCaptainIndex, survivorPick, bonus }
+  return { result, scenario, fallenIndices, newCaptainIndex, survivorPick, bonus, companionFallen, companionNext }
 }
 
 function defaultState() {
@@ -329,6 +331,7 @@ export const useBuilderStore = create((set, get) => {
         ip: [],
         // Spent IP is refunded on a class change, so campaign stat picks go with it (no free stats)
         statImproves: [],
+        companion: defaultCompanion(type),
       }
       set({ slots })
       get()._autoDraft()
@@ -416,6 +419,7 @@ export const useBuilderStore = create((set, get) => {
           climbing,
           statImprove,
           ip,
+          companion: defaultCompanion(type, { random: true }),
         }
       })
 
@@ -458,6 +462,11 @@ export const useBuilderStore = create((set, get) => {
         '☠ Another rabble thrown into the fog.',
       ]
       get()._toast(randomToasts[Math.floor(Math.random() * randomToasts.length)])
+    },
+    setCompanion(slotIndex, name) {
+      const slots = get().slots.map((slot, i) => i === slotIndex ? withCompanion({ ...slot, companion: name }) : slot)
+      set({ slots })
+      get()._autoDraft()
     },
     setWarriorProp(slotIndex, prop, value) {
       const allSlotsBefore = get().slots
@@ -633,7 +642,7 @@ export const useBuilderStore = create((set, get) => {
       if (!save) return
       const { mark: m, companyName: n, companyAvatar: a = null, ipLimit: ip, slots: sl, companyId: cid, companyMode: cm = 'standard', campaignGame: cg = 0, campaign: cp = null } = save
       // Every saved field must be listed here, or the next auto-save drops it (campaign holds the game log)
-      const loaded = normalizeCampaign({ companyMode: cm, campaignGame: cg, campaign: cp, slots: sl })
+      const loaded = normalizeCampaign({ companyMode: cm, campaignGame: cg, campaign: cp, slots: (sl || []).map(withCompanion) })
       set({ mark: m, companyName: n, companyAvatar: a, ipLimit: ip, companyId: cid || randomUUID(), ...loaded, viewingShare: false })
     },
     async deleteCompany(index) {
@@ -780,7 +789,7 @@ export const useBuilderStore = create((set, get) => {
           }
         }
 
-        return { type, weapon1, weapon2, consumable, climbing, statImprove, ip, isCaptain: i === 0, notes: [] }
+        return { type, weapon1, weapon2, consumable, climbing, statImprove, ip, isCaptain: i === 0, notes: [], companion: defaultCompanion(type, { random: true }) }
       })
       return { mark, companyName: generateCompanyName(), ipLimit, slots }
     },
@@ -826,7 +835,7 @@ export const useBuilderStore = create((set, get) => {
         companyMode: get().companyMode,
         mark,
         companyName,
-        slots,
+        slots: slots.map(withCompanion),
         companyId: randomUUID(),
         campaignGame: 0,
         campaign: null,
@@ -986,9 +995,9 @@ export const useBuilderStore = create((set, get) => {
       return { ok: true, reason: null, deltas, warnings }
     },
     // Older entry point (pooled IP allocation); maps onto recordCampaignGame
-    awardEndOfGame({ survivorIndices, ipAllocations = {}, newCaptainIndex = null, retreat = false, result, scenario = null }) {
+    awardEndOfGame({ survivorIndices, ipAllocations = {}, newCaptainIndex = null, retreat = false, result, scenario = null, companionFallen = [], companionNext = {} }) {
       const draft = allocationToDraft(get().slots, {
-        survivorIndices, ipAllocations, newCaptainIndex, scenario,
+        survivorIndices, ipAllocations, newCaptainIndex, scenario, companionFallen, companionNext,
         result: retreat ? 'retreat' : (result || 'loss'),
       })
       return get().recordCampaignGame(draft).ok

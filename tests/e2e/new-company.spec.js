@@ -14,10 +14,12 @@ test.describe('New Company wizard', () => {
 
   test('a class can only be picked once', async ({ page }) => {
     await openWizard(page)
-    await pickWarrior(page, 0, 'Fighter')
-    await page.locator('.ncp-tile-main').nth(1).click()
+    await page.locator('.ncp-party .ncp-tile-main').nth(0).click()
+    const allClasses = await page.locator('.wcp-item').count()
+    await page.locator('.wcp-item').filter({ has: page.locator('.wcp-name', { hasText: /^fighter$/i }) }).click()
+    await page.locator('.ncp-party .ncp-tile-main').nth(1).click()
     await expect(page.locator('.wcp-name', { hasText: /^fighter$/i })).toHaveCount(0)
-    await expect(page.locator('.wcp-item')).toHaveCount(13)
+    await expect(page.locator('.wcp-item')).toHaveCount(allClasses - 1)
   })
 
   test('IP is capped at 20 and the counter tracks company size', async ({ page }) => {

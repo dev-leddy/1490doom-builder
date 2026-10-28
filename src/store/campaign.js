@@ -21,6 +21,7 @@ import { WARRIORS, STAT_IMPROVEMENT } from '../data/warriors.js'
 import { CAMPAIGN_RULES, GAME_RESULTS } from '../data/campaign.js'
 import { getEffectiveStats, improvedStats } from '../utils/stats.js'
 import { getAllowedWeapons, getSecondWeaponOptions, defaultLoadout } from '../utils/loadout.js'
+import { withCompanion } from '../data/companions.js'
 
 // iOS Safari <15.4 doesn't have crypto.randomUUID
 const newId = () =>
@@ -166,6 +167,8 @@ export function spendableCapacity(slot) {
 //   newCaptainIndex: surviving slot index to promote when the Captain fell (and someone survived)
 //   survivorPick:    slot index of the survivor who gets the survivor IP (null if nobody survived / retreat)
 //   bonus:           [{ index, ip }] scenario / objective IP to survivors (any amount)
+//   companionFallen: slot indices of survivors whose animal died; it sits out the next game
+//   companionNext:   { index: animal } the one each of those takes into the next game instead
 // }
 
 function planGame(company, draft) {
@@ -274,6 +277,18 @@ export function applyEndOfGame(company, draft, { now = Date.now(), eventId = nul
   for (const a of plan.awards) gained[a.index] = (gained[a.index] || 0) + a.ip
   let slots = c.slots.map((s, i) => (gained[i] ? { ...s, earnedIP: (s.earnedIP || 0) + gained[i] } : s))
 
+  // Animals: one that died while its owner survived sits out the next game, and the owner takes
+  // another; an animal that sat this game out is back
+  const animalDied = new Set((draft.companionFallen || []).filter(i => plan.survivors.includes(i) && c.slots[i].companion))
+  const companionsFallen = []
+  slots = slots.map((s, i) => {
+    if (!s.companion || !plan.survivors.includes(i)) return s
+    if (!animalDied.has(i)) return s.restingCompanion ? withCompanion({ ...s, restingCompanion: null }) : s
+    const next = withCompanion({ ...s, restingCompanion: s.companion, companion: draft.companionNext?.[i] || null })
+    companionsFallen.push({ uid: s.uid, name: s.companion, next: next.companion })
+    return next
+  })
+
   // Deaths: the slot becomes a vacancy that remembers who fell there
   const fallenIdx = [...plan.fallen].sort((a, b) => a - b)
   // A full snapshot of each fallen warrior, so resurrectWarrior can bring them back exactly
@@ -321,6 +336,7 @@ export function applyEndOfGame(company, draft, { now = Date.now(), eventId = nul
     awards: plan.awards.map(a => ({ uid: c.slots[a.index].uid, ip: a.ip, reason: a.reason })),
     captainChange,
     fallen,
+    ...(companionsFallen.length ? { companionsFallen } : {}),
     before,
   }
 
@@ -392,6 +408,10 @@ export function draftFromRecord(company, record = company?.campaign?.log?.at(-1)
     newCaptainIndex: record.captainChange?.reason === 'promoted' && valid(indexOf(record.captainChange.to)) ? indexOf(record.captainChange.to) : null,
     survivorPick: survivor && valid(indexOf(survivor.uid)) ? indexOf(survivor.uid) : null,
     bonus: award('bonus').map(a => ({ index: indexOf(a.uid), ip: a.ip })).filter(b => valid(b.index)),
+    ...(record.companionsFallen?.length ? {
+      companionFallen: record.companionsFallen.map(a => indexOf(a.uid)).filter(valid),
+      companionNext: Object.fromEntries(record.companionsFallen.filter(a => valid(indexOf(a.uid))).map(a => [indexOf(a.uid), a.next])),
+    } : {}),
   }
 }
 
@@ -538,7 +558,7 @@ export function hireIntoVacancy(company, slotIndex, type, { startIP = 0, makeCap
       needsCaptain = false
     }
   }
-  slots[slotIndex] = hired
+  slots[slotIndex] = withCompanion({ ...hired, companion: null, restingCompanion: null })
 
   if (!c.campaign) return { ...c, slots }
   const entry = {
@@ -779,6 +799,7 @@ export function resurrectWarrior(company, { gameNumber, uid } = {}, { slotIndex 
     uid,
     isCaptain: false,
   }
+  Object.assign(warrior, withCompanion({ ...warrior, companion: null, restingCompanion: null }))
 
   let slots = c.slots.map((s, i) => {
     if (i === target) return warrior

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useTrackerStore } from '../store/trackerStore'
+import { useTrackerStore, companionAlive } from '../store/trackerStore'
 import { playUnit } from '../store/trackerLoadout'
 import { WARRIORS, STAT_IMPROVEMENT } from '../data/warriors'
 import { WARRIOR_IMAGES } from '../data/images'
@@ -9,6 +9,7 @@ import VitalityTrack from './VitalityTrack'
 import EquipmentBlock from './EquipmentBlock'
 import AbilityBlock from './AbilityBlock'
 import StatusBlock from './StatusBlock'
+import CompanionPanel from './CompanionPanel'
 import { getEffectiveStats, improvedStats, statTone, STAT_KEYS } from '../utils/stats'
 
 // IP upgrades in play: their effects already show (stats, gear), so the header only says how
@@ -103,9 +104,9 @@ export default function WarriorTrackerCard({ warrior: w, wi }) {
   const wdata = WARRIORS[w.type]
   const portrait = WARRIOR_IMAGES[w.type]
   // The warrior with its current gear (an ability like The Shattered Shield can change it);
-  // store actions still take wi
+  // store actions still take wi. The animal's bonus counts only while it's alive
   const pw = playUnit(w)
-  const stats = getEffectiveStats(pw, { statuses: w.statuses })
+  const stats = getEffectiveStats(pw, { statuses: w.statuses, companionAlive: companionAlive(w) })
   const changedStats = useChangedStats(wi, stats)
 
   return (
@@ -169,6 +170,9 @@ export default function WarriorTrackerCard({ warrior: w, wi }) {
       {/* Vitality Track */}
       <div className="tk-section-label">Vitality Track</div>
       <VitalityTrack wi={wi} warrior={w} />
+
+      {/* Companion (e.g. the Beastmaster's animal): its own model, a compact card under its owner's track */}
+      {w.companion && <CompanionPanel wi={wi} warrior={w} />}
 
       {/* Equipment (weapons, climbing, consumable, cache items) */}
       <div className="tk-section-label" style={{ marginTop: '0.7rem' }}>Equipment</div>

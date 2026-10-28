@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { WARRIORS, NO_RESTORE_OPG } from '../data/warriors'
+import { WARRIORS, canRestoreWithReliquary } from '../data/warriors'
 import { STATUS_DEFS, CACHE_ITEMS } from '../data/items'
 import { useBuilderStore } from './builderStore'
 import { saveGame, deleteGame } from '../api/games'
@@ -7,6 +7,7 @@ import { getEffectiveStats } from '../utils/stats'
 import { expendHerbs, expendReliquary, expendCacheItem, undoCacheItem, undoCacheItemNote } from './trackerItems'
 import { afterUseOf, playUnit } from './trackerLoadout'
 import { campaignProgress } from './campaign'
+import { COMPANIONS, companionAlive, ownerDown } from '../data/companions'
 
 // ── HELPERS ──────────────────────────────────────────────────────────────────
 
@@ -28,9 +29,27 @@ export function getOPGAbilities(warriorType) {
   return wdata.abilities.filter(ab => ab.desc.toLowerCase().includes('once per game'))
 }
 
-export function canRestoreWithReliquary(abilityName) {
-  return !NO_RESTORE_OPG.has(abilityName)
+// Pure helpers live with their data (unit-testable); re-exported for the tracker UI
+export { canRestoreWithReliquary } from '../data/warriors'
+export { ownerDown, companionState, companionAlive } from '../data/companions'
+
+function buildCompanion(slot) {
+  const def = WARRIORS[slot.type]?.companion
+  if (!def || !COMPANIONS[slot.companion]) return null
+  return { name: slot.companion, maxVit: def.vit, currentVit: def.vit, statuses: [], cacheItems: [] }
 }
+
+// Same tap rule as the owner's track: tap the last box to lose it, a lost box to heal up to it
+function tapVit(current, max, vi) {
+  const next = vi === current - 1 || vi < current ? vi : vi + 1
+  return Math.max(0, Math.min(max, next))
+}
+
+// What a game remembers of each builder slot, to spot roster changes (the animal counts)
+const rosterKey = s => (s.companion ? `${s.type}:${s.companion}` : s.type)
+
+let _undoTimer = null
+const UNDO_MS = 6000
 
 function buildWarriorTrackerState(slot, index, builderState) {
   if (!slot.type) return null
@@ -60,6 +79,7 @@ function buildWarriorTrackerState(slot, index, builderState) {
     statuses: [],
     isCaptain: slot.isCaptain,
     notes: slot.notes || [],
+    companion: buildCompanion(slot),
   }
 }
 
@@ -132,6 +152,9 @@ export const useTrackerStore = create((set, get) => ({
   markPopupOpen: false,
   reliquaryModal: null,    // { wi, cacheItemId: number|null }
   markAbilityModal: null,  // { type: 'ashbound'|'doomed-choir'|'graveborn', warriorIdx?: number }
+  companionStatusTarget: null, // warrior index whose companion gets a status
+  companionLootTarget: null,   // warrior index whose companion (e.g. the Monkey) inspects a cache
+  undoToast: null,         // { message, undo }: a short-lived toast with an Undo button
 
   // Company mark ability tracking (resets on new game)
   doomedChoirUsed: false,
@@ -158,7 +181,7 @@ export const useTrackerStore = create((set, get) => ({
       refOpen: false,
       companyId: builderState.companyId,
       sessionId: Date.now().toString(36),
-      savedBuilderSlots: builderState.slots.map(s => s.type),
+      savedBuilderSlots: builderState.slots.map(rosterKey),
       restored: false,
       campaign: builderState.companyMode === 'campaign'
         ? { gameNumber: campaignProgress(builderState).nextGame }
@@ -178,7 +201,7 @@ export const useTrackerStore = create((set, get) => ({
   checkMismatch(builderSlots) {
     const state = get()
     if (!state.sessionId) return null
-    const currentSlots = builderSlots.map(s => s.type)
+    const currentSlots = builderSlots.map(rosterKey)
     const savedSlots = state.savedBuilderSlots
     if (!savedSlots) return null
 
@@ -231,6 +254,7 @@ export const useTrackerStore = create((set, get) => ({
         crossbowLoaded: true,
         cacheItems: [],
         statuses: [],
+        companion: w.companion ? { ...w.companion, currentVit: w.companion.maxVit, statuses: [], cacheItems: [] } : null,
       })),
     }))
     persistState(get)
@@ -276,23 +300,18 @@ export const useTrackerStore = create((set, get) => ({
 
   // ── VITALITY ───────────────────────────────────────────────────────────────
   hit(wi, vi) {
-    const prevVit = get().warriors[wi]?.currentVit ?? 1
+    const before = get().warriors[wi]
+    const prevVit = before?.currentVit ?? 1
     set(state => {
       const warriors = [...state.warriors]
       const w = { ...warriors[wi] }
       if (w.dead) return state
-      if (vi === w.currentVit - 1) {
-        w.currentVit = vi
-      } else if (vi < w.currentVit) {
-        w.currentVit = vi
-      } else {
-        w.currentVit = vi + 1
-      }
-      w.currentVit = Math.max(0, Math.min(w.maxVit, w.currentVit))
+      w.currentVit = tapVit(w.currentVit, w.maxVit, vi)
       warriors[wi] = w
       return { warriors }
     })
     persistState(get)
+    if (get().warriors[wi]?.currentVit === 0 && prevVit > 0) get()._companionPerishes(wi, before)
     // Graveborn: prompt when a warrior drops to 0 VIT (only on the downward transition)
     const { warriors, mark, gravebornUsed } = get()
     const w = warriors[wi]
@@ -301,11 +320,126 @@ export const useTrackerStore = create((set, get) => ({
     }
   },
 
+  // ── COMPANION ──────────────────────────────────────────────────────────────
+  // The owner perished: the animal is removed as perished (its VIT goes to 0). Reviving the
+  // owner doesn't bring it back; each model is revived on its own.
+  _companionPerishes(wi, before) {
+    const c = before?.companion
+    if (!c || c.currentVit <= 0) return
+    get()._setCompanion(wi, { currentVit: 0, cacheItems: [] })
+    const name = before.customName || before.type
+    get().showUndoToast(`${c.name} removed with ${name}`, () => {
+      // put both models back exactly as they were (including anything the animal held)
+      set(state => {
+        const warriors = [...state.warriors]
+        warriors[wi] = { ...warriors[wi], currentVit: before.currentVit, dead: before.dead, companion: { ...warriors[wi].companion, currentVit: c.currentVit, cacheItems: c.cacheItems || [] } }
+        return { warriors }
+      })
+      persistState(get)
+    })
+  },
+  _setCompanion(wi, patch) {
+    set(state => {
+      const warriors = [...state.warriors]
+      const w = warriors[wi]
+      if (!w?.companion) return state
+      warriors[wi] = { ...w, companion: { ...w.companion, ...patch } }
+      return { warriors }
+    })
+    persistState(get)
+  },
+  hitCompanion(wi, vi) {
+    const c = get().warriors[wi]?.companion
+    if (!c) return
+    const currentVit = tapVit(c.currentVit, c.maxVit, vi)
+    const dropped = currentVit === 0 && c.currentVit > 0 ? c.cacheItems || [] : []
+    get()._setCompanion(wi, dropped.length ? { currentVit, cacheItems: [] } : { currentVit })
+    if (dropped.length) {
+      get().showUndoToast(`${c.name} dropped ${dropped.map(i => i.name).join(', ')}`, () => {
+        get()._setCompanion(wi, { currentVit: c.currentVit, cacheItems: dropped })
+      })
+    }
+  },
+  // Companions that hold items (the Monkey): inspect a cache, hand items to a warrior, drop them
+  openCompanionLoot(wi) {
+    set({ companionLootTarget: wi })
+  },
+  closeCompanionLoot() {
+    set({ companionLootTarget: null })
+  },
+  addCompanionCacheItem(wi, roll) {
+    const item = CACHE_ITEMS.find(c => c.roll === roll)
+    const c = get().warriors[wi]?.companion
+    set({ companionLootTarget: null })
+    if (!item || !c) return
+    get()._setCompanion(wi, { cacheItems: [...(c.cacheItems || []), { id: Date.now(), name: item.name, desc: item.desc, used: false }] })
+  },
+  // Animals can't HANDOFF: a friendly warrior takes the item from it
+  takeCompanionItem(wi, itemId, toWi) {
+    const c = get().warriors[wi]?.companion
+    const item = c?.cacheItems?.find(i => i.id === itemId)
+    const to = get().warriors[toWi]
+    if (!item || !to || to.dead || to.currentVit <= 0) return
+    set(state => {
+      const warriors = [...state.warriors]
+      warriors[wi] = { ...warriors[wi], companion: { ...c, cacheItems: c.cacheItems.filter(i => i.id !== itemId) } }
+      warriors[toWi] = { ...warriors[toWi], cacheItems: [...warriors[toWi].cacheItems, item] }
+      return { warriors }
+    })
+    persistState(get)
+    useBuilderStore.getState()._toast(`${to.customName || to.type} takes ${item.name} from the ${c.name}`)
+  },
+  dropCompanionItem(wi, itemId) {
+    const c = get().warriors[wi]?.companion
+    if (!c?.cacheItems?.some(i => i.id === itemId)) return
+    get()._setCompanion(wi, { cacheItems: c.cacheItems.filter(i => i.id !== itemId) })
+  },
+  openCompanionStatus(wi) {
+    set({ companionStatusTarget: wi })
+  },
+  closeCompanionStatus() {
+    set({ companionStatusTarget: null })
+  },
+  addCompanionStatus(wi, statusName) {
+    const def = STATUS_DEFS.find(s => s[0] === statusName)
+    const c = get().warriors[wi]?.companion
+    set({ companionStatusTarget: null })
+    if (!def || !c || c.statuses.some(s => s.name === statusName)) return
+    get()._setCompanion(wi, { statuses: [...c.statuses, { id: Date.now(), name: statusName, desc: def[1] }] })
+  },
+  removeCompanionStatus(wi, statusId) {
+    const c = get().warriors[wi]?.companion
+    const status = c?.statuses.find(s => s.id === statusId)
+    if (!status) return
+    // No confirm: clearing is quick to redo; the toast makes it obvious it happened
+    get()._setCompanion(wi, { statuses: c.statuses.filter(s => s.id !== statusId) })
+    useBuilderStore.getState()._toast(`${status.name} cleared from ${c.name}`)
+  },
+
+  // ── UNDO TOAST ─────────────────────────────────────────────────────────────
+  showUndoToast(message, undo) {
+    clearTimeout(_undoTimer)
+    _undoTimer = setTimeout(() => set({ undoToast: null }), UNDO_MS)
+    set({ undoToast: { message, undo } })
+  },
+  doUndo() {
+    const t = get().undoToast
+    clearTimeout(_undoTimer)
+    set({ undoToast: null })
+    t?.undo?.()
+  },
+  dismissUndo() {
+    clearTimeout(_undoTimer)
+    set({ undoToast: null })
+  },
+
   // ── OPG ABILITIES ──────────────────────────────────────────────────────────
   toggleOPG(wi, abilityName) {
     const w = get().warriors[wi]
-    if (w.dead) return
-    const label = abilityName === '__captain__' ? 'Captain Re-Roll' : abilityName
+    const isCompanionAbility = abilityName.startsWith('companion:')
+    if (isCompanionAbility ? !companionAlive(w) : w.dead) return
+    const label = abilityName === '__captain__' ? 'Captain Re-Roll'
+      : isCompanionAbility ? COMPANIONS[w.companion.name].ability.name : abilityName
     const isUsed = !!w.opgUsed[abilityName]
     if (afterUseOf(w.type, abilityName)) return get()._confirmGearOPG(wi, abilityName)
     get().openConfirm(
@@ -602,6 +736,7 @@ export const useTrackerStore = create((set, get) => ({
 
   // ── DEAD TOGGLE ────────────────────────────────────────────────────────────
   toggleDead(wi) {
+    const before = get().warriors[wi]
     set(state => {
       const warriors = [...state.warriors]
       const w = { ...warriors[wi] }
@@ -611,6 +746,7 @@ export const useTrackerStore = create((set, get) => ({
       return { warriors }
     })
     persistState(get)
+    if (get().warriors[wi].dead && !ownerDown(before)) get()._companionPerishes(wi, before)
   },
 
   // ── CONFIRM MODAL ──────────────────────────────────────────────────────────

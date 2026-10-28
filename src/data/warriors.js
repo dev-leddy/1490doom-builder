@@ -19,7 +19,7 @@ export const WARRIORS = {
       { name: 'STINGING CLOUD', desc: 'Whenever an enemy model within 2 inches of the Beekeeper causes the Beekeeper to lose VITALITY, that enemy model must pass a SKILL Check or lose 1 VITALITY.' },
       { name: 'BUZZING MANTLE', desc: 'Enemy models within 1 inch of the Beekeeper suffer -1 to all COMBAT Checks.' },
     ],
-    restrictions: 'Only comes equipped with a two-handed Polearm. No substitution.',
+    restrictions: 'Only comes equipped with a two-handed Polearm.',
     allowedWeapons: ['Polearm (two-handed)'],
     cantHave: ['Light Weapon', 'Heavy Weapon', 'Bow', 'Crossbow', 'Shield'],
     fixedWeapon: 'Polearm (two-handed)',
@@ -166,6 +166,46 @@ export const WARRIORS = {
     allowedWeapons: ['Light Weapon', 'Bow', 'Crossbow', 'Shield'],
     cantHave: ['Heavy Weapon', 'Polearm'],
   },
+  // New classes go at the END: key order is the share-link index (append only).
+  Longbow: {
+    stats: { MOV: 3, ATK: 1, VIT: 5, SKL: '5+', COM: '3+', DEF: '4+' },
+    abilities: [
+      { name: 'GRAPPLING SHOT', blockedBy: ['STUNNED'], desc: 'Once per game, the Longbow may select a point on top of any STRUCTURE within 6 inches of its base. Measure this distance in a straight line from the base to that point, at an angle if needed. Place the Longbow on top of that STRUCTURE, in base contact with the edge and at least 1 inch from any enemy model. This ability requires all of the Longbow\'s actions this turn.' },
+      // Replaces the Bow's OVERDRAW for this class (one decision, one toggle in play mode)
+      { name: 'BROADHEAD SQUALL', desc: 'Once per round, the Longbow may spend an action so that this turn its bow has a range of 12 inches and deals 2 damage on a PIERCING BLOW.' },
+      { name: 'THUNDEROUS SALVO', desc: 'Once per game, when the Longbow rolls a natural 5 on a COMBAT Check, it may score a PIERCING BLOW.' },
+    ],
+    restrictions: 'Only comes equipped with a Bow.',
+    allowedWeapons: ['Bow'],
+    cantHave: ['Light Weapon', 'Heavy Weapon', 'Crossbow', 'Polearm', 'Shield'],
+    fixedWeapon: 'Bow',
+    replacesWeaponAbilities: ['OVERDRAW'],
+  },
+  Beastmaster: {
+    stats: { MOV: 4, ATK: 1, VIT: 5, SKL: '4+', COM: '5+', DEF: '4+' },
+    abilities: [
+      {
+        name: 'BONDED COMPANION',
+        desc: "The Beastmaster deploys with one animal from THE MENAGERIE in base contact. It is a separate model sharing all the Beastmaster's stats, except its VITALITY is 4. It activates with the Beastmaster and may only MOVE, DASH, CLIMB, SCALE, and use its listed ability. It auto-passes CLIMB SKILL Checks and may CLIMB structures up to 6 inches. While it lives, the Beastmaster gains its bonus. If the Beastmaster perishes, remove the animal.",
+      },
+      {
+        name: 'GOAD',
+        requiresCompanion: true,
+        desc: 'The Beastmaster may make its ATTACK action originate from its companion if the companion is within 4 inches and in base contact with the target. If it does, ATTACK with one additional bonus die.',
+      },
+    ],
+    restrictions: 'Only comes equipped with a two-handed Polearm.',
+    allowedWeapons: ['Polearm (two-handed)'],
+    cantHave: ['Light Weapon', 'Heavy Weapon', 'Bow', 'Crossbow', 'Shield'],
+    fixedWeapon: 'Polearm (two-handed)',
+    // THE MENAGERIE: a free, required animal (see src/data/companions.js)
+    companion: {
+      label: 'THE MENAGERIE',
+      options: ['Raptor', 'Monkey', 'Cat'],
+      vit: 4,
+      rulesText: "Choose one: RAPTOR (+1 MOVEMENT): Flies over all terrain, never falls. Once per game, spend an action to Sunder an enemy's weapon while in base contact. MONKEY (+1 SKILL): Once per game, spend an action to either auto-inspect a Resource Cache or use HANDOFF on an enemy, both requiring base contact. The Monkey holds what it takes. CAT (+1 COMBAT): Once per game, spend an action to Stun an enemy in base contact.",
+    },
+  },
 }
 
 export const MARKS_MAP = {
@@ -203,3 +243,9 @@ export const IP_OPTIONS = [
 ]
 
 export const NO_RESTORE_OPG = new Set(['THE SHATTERED SHIELD']);
+
+export function canRestoreWithReliquary(abilityName) {
+  // Companions can't EXPEND, so a Reliquary never restores their once-per-game ability
+  if (abilityName.startsWith('companion:')) return false
+  return !NO_RESTORE_OPG.has(abilityName)
+}

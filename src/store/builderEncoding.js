@@ -4,6 +4,7 @@
 import { WARRIORS, MARKS, STAT_IMPROVEMENT, IP_OPTIONS } from '../data/warriors'
 import { WEAPONS, WEAPON_NAMES, CLIMBING_ITEMS, CONSUMABLES, CONSUMABLE_NAMES } from '../data/weapons'
 import { _ENC } from '../data/encoding'
+import { COMPANION_NAMES, withCompanion } from '../data/companions'
 
 const _ENC_MAP = _ENC
 const _DEC_MAP = Object.fromEntries(Object.entries(_ENC_MAP).map(([k, v]) => [v, k]))
@@ -54,7 +55,9 @@ export function encodeCompany(s) {
     const statImpsEnc = isCampaign
       ? (slot.statImproves?.length ? slot.statImproves.map(st => _idx(ALL_STAT_KEYS, st).toString(36)).join('') : '-')
       : (slot.statImprove ? _idx(ALL_STAT_KEYS, slot.statImprove).toString(36) : '-')
-    parts.push([wIdx, w1Idx, w2Idx, cIdx, clIdx, ipStr, cap, notesEnc, nameEnc, earnedEnc, statImpsEnc].join(':'))
+    const compEnc = slot.companion && COMPANION_NAMES.includes(slot.companion) ? COMPANION_NAMES.indexOf(slot.companion).toString(36) : '-'
+    const restEnc = slot.restingCompanion && COMPANION_NAMES.includes(slot.restingCompanion) ? COMPANION_NAMES.indexOf(slot.restingCompanion).toString(36) : '-'
+    parts.push([wIdx, w1Idx, w2Idx, cIdx, clIdx, ipStr, cap, notesEnc, nameEnc, earnedEnc, statImpsEnc, compEnc, restEnc].join(':'))
   })
   const encoded = btoa(parts.join('|')).replace(/=/g, '')
   return isCampaign ? `v2c_${s.campaignGame || 0}_${encoded}` : encoded
@@ -92,8 +95,10 @@ export function decodeCompany(code) {
     const slots = Array.from({ length: slotCount }, (_, i) => {
       const slotRaw = parts[3 + i]
       if (!slotRaw || slotRaw === '_') return emptySlot(i)
-      const [wIdx, w1Idx, w2Idx, cIdx, clIdx, ipStr, cap, notesEnc, nameEnc, earnedEnc, statImpsEnc] = slotRaw.split(':')
+      const [wIdx, w1Idx, w2Idx, cIdx, clIdx, ipStr, cap, notesEnc, nameEnc, earnedEnc, statImpsEnc, compEnc, restEnc] = slotRaw.split(':')
       const type      = ALL_WARRIORS[parseInt(wIdx, 36)] || null
+      const companion = compEnc && compEnc !== '-' ? COMPANION_NAMES[parseInt(compEnc, 36)] || null : null
+      const restingCompanion = restEnc && restEnc !== '-' ? COMPANION_NAMES[parseInt(restEnc, 36)] || null : null
       const weapon1   = WEAPON_NAMES[parseInt(w1Idx, 36)] || null
       const weapon2   = w2Idx === '-' ? null : WEAPON_NAMES[parseInt(w2Idx, 36)] || null
       const consumable = cIdx === '-' ? null : ALL_CONSUMABLES[parseInt(cIdx, 36)] || null
@@ -114,7 +119,7 @@ export function decodeCompany(code) {
         } catch {}
       }
       const customName = nameEnc && nameEnc !== '-' ? decodeURIComponent(nameEnc) : null
-      return { type, weapon1, weapon2, consumable, climbing, ip, isCaptain: cap === '1', notes, customName, earnedIP, statImproves, statImprove }
+      return withCompanion({ type, weapon1, weapon2, consumable, climbing, ip, isCaptain: cap === '1', notes, customName, earnedIP, statImproves, statImprove, companion, ...(restingCompanion && { restingCompanion }) })
     })
     if (!slots.some(sl => sl.type)) return null
     return { mark, companyName, ipLimit, companyMode: isCampaign ? 'campaign' : 'standard', campaignGame, slots }

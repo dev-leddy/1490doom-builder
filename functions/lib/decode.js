@@ -1,10 +1,14 @@
 // Server-side company decoder for Cloudflare Workers.
 // Data arrays are inlined from src/data/ since Workers can't import Vite/React source.
 
+// Companions (src/data/companions.js COMPANION_NAMES) — append only
+const COMPANION_NAMES = ['Raptor', 'Monkey', 'Cat']
+
 const ALL_WARRIORS = [
   'Assassin', 'Beekeeper', 'Blacksmith', 'Brute', 'Doom Hunter',
   'Executioner', 'Fighter', 'Hedge Knight', 'Knight', 'Saboteur',
   'Scavenger', 'Scout', 'Reaver', 'Warrior Priest',
+  'Longbow', 'Beastmaster', // new classes appended (share-link index order)
 ]
 
 const ALL_MARKS = [
@@ -70,7 +74,7 @@ function decodeCompany(code) {
       const slotRaw = parts[3 + i]
       if (!slotRaw || slotRaw === '_') continue
 
-      const [wIdx, w1Idx, w2Idx, cIdx, clIdx, ipStr, cap, notesEnc, nameEnc, earnedEnc, statImpsEnc] = slotRaw.split(':')
+      const [wIdx, w1Idx, w2Idx, cIdx, clIdx, ipStr, cap, notesEnc, nameEnc, earnedEnc, statImpsEnc, compEnc, restEnc] = slotRaw.split(':')
 
       const type = ALL_WARRIORS[parseInt(wIdx, 36)] || null
       if (!type) continue
@@ -111,6 +115,10 @@ function decodeCompany(code) {
       const warrior = { type, name, isCaptain, weapon1, weapon2, consumable, climbing, ipUpgrades }
       if (notes.length) warrior.notes = notes
       if (isCampaign) warrior.earnedIP = earnedIP ?? 0
+      const companion = compEnc && compEnc !== '-' ? COMPANION_NAMES[parseInt(compEnc, 36)] : null
+      if (companion) warrior.companion = companion
+      const restingCompanion = restEnc && restEnc !== '-' ? COMPANION_NAMES[parseInt(restEnc, 36)] : null
+      if (restingCompanion) warrior.restingCompanion = restingCompanion
 
       warriors.push(warrior)
     }

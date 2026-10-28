@@ -1,7 +1,8 @@
 // ── Discord Image Roster ───────────────────────────────────────────────────────
 // The "Copy as image" roster, captured off-screen by html2canvas (see ShareModal).
 // One card per warrior: portrait, name, an aligned stat grid, gear chips, ability
-// names. Full rules live behind the share link; the image is for reading a list at a glance.
+// names, and the companion (if any) with its short rule. Full rules live behind the
+// share link; the image is for reading a list at a glance.
 //
 // html2canvas notes: inline styles only, solid colours, no CSS variables or filters.
 // Portraits are background images (html2canvas has no object-fit).
@@ -9,6 +10,7 @@
 import { forwardRef, useMemo } from 'react'
 import { WARRIORS, MARKS_MAP } from '../data/warriors'
 import { WEAPONS, CLIMBING_ITEMS } from '../data/weapons'
+import { COMPANIONS, companionBonusLabel } from '../data/companions'
 import { WARRIOR_IMAGES, MARK_IMAGES } from '../data/images'
 import { getEffectiveStats, improvedStats, STAT_KEYS } from '../utils/stats'
 
@@ -117,6 +119,18 @@ const S = {
   abilitySep: { color: C.mist, padding: '0 2px' },
   abilitySource: { color: C.mist, textTransform: 'none', letterSpacing: '0.02em' },
 
+  // Companion: a separate model under its owner (shares the owner's stats)
+  companion: {
+    marginTop: '8px', padding: '6px 8px 7px',
+    background: C.well, borderLeft: `2px solid ${C.blood}`,
+  },
+  companionHead: { display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px' },
+  companionName: { fontFamily: SERIF, fontSize: '14px', lineHeight: lh(14, 1.4), fontWeight: '700', color: C.parchment },
+  companionKind: { ...label(C.mist, 8), marginLeft: '6px' },
+  companionStats: { ...label(C.bone, 9), whiteSpace: 'nowrap' },
+  companionRule: { marginTop: '2px', fontSize: '10px', lineHeight: lh(10), color: C.soft },
+  companionAbility: { color: C.bone, fontWeight: '700', letterSpacing: '0.05em' },
+
   // Footer
   footer: {
     display: 'flex', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap',
@@ -165,7 +179,7 @@ function abilitiesFor(slot, wdata) {
   const list = (wdata.abilities || []).map(a => ({ name: a.name, source: null }))
   for (const key of [slot.weapon1, slot.weapon2]) {
     const w = key && WEAPONS[key]
-    if (w?.abilityName) {
+    if (w?.abilityName && !(wdata.replacesWeaponAbilities || []).includes(w.abilityName)) {
       list.push({ name: w.abilityName, source: key })
       if (w.ability2Name) list.push({ name: w.ability2Name, source: key })
     }
@@ -173,6 +187,15 @@ function abilitiesFor(slot, wdata) {
   // Never list the same ability twice (names are also the React keys)
   const seen = new Set()
   return list.filter(a => (seen.has(a.name) ? false : seen.add(a.name)))
+}
+
+function companionFor(slot, wdata) {
+  const name = typeof slot.companion === 'string' ? slot.companion : slot.companion?.name
+  const data = wdata.companion && COMPANIONS[name]
+  if (!data) return null
+  // Ability names are stored as "MONKEY · THIEF!"; the card already says Monkey
+  const abilityName = data.ability.name.replace(new RegExp(`^${name.toUpperCase()}\\s*·\\s*`), '')
+  return { name, data, abilityName, bonus: companionBonusLabel(name), vit: wdata.companion.vit }
 }
 
 // ── Pieces ────────────────────────────────────────────────────────────────────
@@ -200,6 +223,7 @@ function WarriorCard({ slot, isCaptain }) {
   const spent = (slot.ip || []).length
   const gear = gearFor(slot)
   const abilities = abilitiesFor(slot, wdata)
+  const companion = companionFor(slot, wdata)
   const portrait = WARRIOR_IMAGES[slot.type]
 
   return (
@@ -243,6 +267,32 @@ function WarriorCard({ slot, isCaptain }) {
               </span>
             </span>
           ))}
+        </div>
+      )}
+
+      {companion && (
+        <div style={S.companion}>
+          <div style={S.companionHead}>
+            <div>
+              <span style={S.companionName}>{companion.name}</span>
+              <span style={S.companionKind}>Companion</span>
+            </div>
+            <div style={S.companionStats}>
+              <span style={{ color: C.green }}>{companion.bonus}</span>
+              <span style={S.metaSep}>·</span>
+              VIT {companion.vit}
+            </div>
+          </div>
+          {companion.data.passive && (
+            <div style={S.companionRule}>
+              <span style={S.companionAbility}>{companion.data.passive.name}</span>
+              {' — '}{companion.data.passive.desc}
+            </div>
+          )}
+          <div style={S.companionRule}>
+            <span style={S.companionAbility}>{companion.abilityName}</span>
+            {' — '}{companion.data.ability.desc}
+          </div>
         </div>
       )}
     </div>

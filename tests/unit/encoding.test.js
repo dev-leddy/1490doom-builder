@@ -96,3 +96,20 @@ describe('campaign share links', () => {
     expect(serverDecode(encodeCompany(company)).warriors[0].ipUpgrades).toContain('stat_COM')
   })
 })
+
+describe('new warrior classes', () => {
+  it('are appended after the existing 14 in both the browser and server lists', async () => {
+    const client = Object.keys(WARRIORS)
+    const { readFileSync } = await import('node:fs')
+    const server = [...readFileSync('functions/lib/decode.js', 'utf8').match(/const ALL_WARRIORS = \[([\s\S]*?)\]/)[1].matchAll(/'([^']+)'/g)].map(m => m[1])
+    expect(server).toEqual(client)
+    expect(client.indexOf('Longbow')).toBe(14)
+  })
+
+  it('a Longbow survives a share link (browser and server)', async () => {
+    const { decodeCompany: serverDecode } = await import('../../functions/lib/decode.js')
+    const code = encodeCompany({ mark: '', companyName: 'Archers', ipLimit: 3, slots: [slot('Longbow', 'Bow', true), slot('Scout', 'Bow')] })
+    expect(decodeCompany(code).slots.filter(s => s.type).map(s => [s.type, s.weapon1])).toEqual([['Longbow', 'Bow'], ['Scout', 'Bow']])
+    expect(serverDecode(code).warriors[0].type).toBe('Longbow')
+  })
+})

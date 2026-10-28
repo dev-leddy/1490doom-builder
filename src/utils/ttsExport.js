@@ -31,6 +31,7 @@ export function buildTTSPayload({ mark, companyName, companyMode, campaignGame, 
       }
       if (companyMode === 'campaign') w.earnedIP = s.earnedIP ?? 0
       if (s.notes?.length) w.notes = s.notes
+      if (s.companion) w.companion = s.companion
       return w
     })
 

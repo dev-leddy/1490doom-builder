@@ -1,6 +1,10 @@
-import { useTrackerStore } from '../store/trackerStore'
+import { useTrackerStore, companionAlive } from '../store/trackerStore'
 import { WEAPONS } from '../data/weapons'
 
+// Ability data can say which statuses stop it (blockedBy)
+function blockingStatus(ab, w) {
+  return (ab.blockedBy || []).find(name => w.statuses?.some(st => st.name === name)) || null
+}
 // "Shield destroyed · Polearm two-handed": what a used ability changed on this warrior
 // (w is the play-mode unit, so its gear is already swapped)
 function gearChangeNote(gear, w) {
@@ -17,7 +21,7 @@ export default function AbilityBlock({ wi, warrior: w, wdata }) {
 
   const abilities = wdata.abilities || []
   const hasShield = w.weapon2 === 'Shield'
-  const hasBow = w.weapon1 === 'Bow'
+  const hasBow = w.weapon1 === 'Bow' && !(wdata.replacesWeaponAbilities || []).includes('OVERDRAW')
 
   // Sort: passive (0) → OPR (1) → TPG (2) → OPG (3)
   const sorted = [...abilities].sort((a, b) => {
@@ -93,21 +97,24 @@ export default function AbilityBlock({ wi, warrior: w, wdata }) {
           const isUsed = !!w.opgUsed[ab.name]
           // Abilities that change the gear (The Shattered Shield) say what changed, and that a mis-tap can be undone
           const changesGear = isUsed && !!ab.afterUse
+          // Ability data can name statuses that stop it (Grappling Shot while Stunned)
+          const blockedBy = !isUsed && blockingStatus(ab, w)
+          const canTap = !w.dead && !blockedBy
           const activate = () => toggleOPG(wi, ab.name)
           return (
             <div
               key={i}
-              className={`tk-ability${isUsed ? ' tk-ability-used' : ''}`}
-              onClick={!w.dead ? activate : undefined}
-              onKeyDown={!w.dead ? e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate() } } : undefined}
-              role={!w.dead ? 'button' : undefined}
-              tabIndex={!w.dead ? 0 : undefined}
-              aria-pressed={!w.dead ? isUsed : undefined}
-              style={!w.dead ? { cursor: 'pointer' } : {}}
+              className={`tk-ability${isUsed ? ' tk-ability-used' : ''}${blockedBy ? ' tk-ability-blocked' : ''}`}
+              onClick={canTap ? activate : undefined}
+              onKeyDown={canTap ? e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate() } } : undefined}
+              role={canTap ? 'button' : undefined}
+              tabIndex={canTap ? 0 : undefined}
+              aria-pressed={canTap ? isUsed : undefined}
+              style={canTap ? { cursor: 'pointer' } : {}}
             >
               <div className="tk-ability-header">
                 <span className="tk-ability-name">{ab.name}</span>
-                <span className={`tk-opg-badge${isUsed ? ' tk-opg-used' : ''}`}>{isUsed ? '✓ USED' : 'ONCE PER GAME'}</span>
+                <span className={`tk-opg-badge${isUsed ? ' tk-opg-used' : blockedBy ? ' tk-opg-blocked' : ''}`}>{isUsed ? '✓ USED' : blockedBy ? `UNAVAILABLE · ${blockedBy}` : 'ONCE PER GAME'}</span>
               </div>
               {changesGear && <span className="tk-ability-note">{gearChangeNote(ab.afterUse.gear, w)}</span>}
               <div className="tk-ability-desc">{ab.desc}</div>
@@ -116,10 +123,12 @@ export default function AbilityBlock({ wi, warrior: w, wdata }) {
         }
 
         // ── PASSIVE ─────────────────────────────────────────────
+        const needsCompanion = ab.requiresCompanion && !companionAlive(w)
         return (
-          <div key={i} className="tk-ability">
+          <div key={i} className={`tk-ability${needsCompanion ? ' tk-ability-blocked' : ''}`}>
             <div className="tk-ability-header">
               <span className="tk-ability-name">{ab.name}</span>
+              {needsCompanion && <span className="tk-opg-badge tk-opg-blocked">NEEDS COMPANION</span>}
             </div>
             <div className="tk-ability-desc">{ab.desc}</div>
           </div>

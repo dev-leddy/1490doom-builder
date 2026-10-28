@@ -16,12 +16,15 @@ function StatsRow({ slot }) {
   const toneClass = { improved: 'modified', debuffed: 'debuffed' }
   return (
     <div className="stats-row">
-      {STAT_KEYS.map(s => (
-        <div key={s} className="stat-box">
+      {STAT_KEYS.map(s => {
+        const fromCompanion = stats[s].mods.find(m => m.source === 'companion')
+        return (
+        <div key={s} className={`stat-box${fromCompanion ? ' stat-box--companion' : ''}`} title={fromCompanion ? fromCompanion.label : undefined}>
           <span className="stat-label">{s}</span>
           <span className={`stat-val ${toneClass[statTone(stats[s])] || ''}`}>{stats[s].display}</span>
         </div>
-      ))}
+        )
+      })}
     </div>
   )
 }
@@ -69,15 +72,18 @@ export default function WarriorCard({ slotIndex, slot }) {
 
   const allAbilities = [...(wdata?.abilities || [])]
   const w1d = WEAPONS[slot.weapon1]
-  if (w1d?.abilityName) {
+  // A class can replace a weapon's ability with its own version (e.g. the Longbow's Overdraw)
+  const replaced = new Set(wdata?.replacesWeaponAbilities || [])
+  if (w1d?.abilityName && !replaced.has(w1d.abilityName)) {
     allAbilities.push({ name: w1d.abilityName, desc: w1d.abilityDesc, source: `from ${slot.weapon1}` })
     if (w1d.ability2Name) allAbilities.push({ name: w1d.ability2Name, desc: w1d.ability2Desc, source: `from ${slot.weapon1}` })
   }
   const w2d = WEAPONS[slot.weapon2]
-  if (w2d?.abilityName) {
+  if (w2d?.abilityName && !replaced.has(w2d.abilityName)) {
     allAbilities.push({ name: w2d.abilityName, desc: w2d.abilityDesc, source: `from ${slot.weapon2}` })
     if (w2d.ability2Name) allAbilities.push({ name: w2d.ability2Name, desc: w2d.ability2Desc, source: `from ${slot.weapon2}` })
   }
+  // (the companion's abilities are shown in its own block, under the loadout)
   if (slot.isCaptain) {
     allAbilities.unshift({
       name: '★ Captain Re-Roll',

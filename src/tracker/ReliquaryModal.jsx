@@ -61,6 +61,7 @@ export default function ReliquaryModal() {
           </div>
         </>
       )}
+      {w.companion && <div className="reliquary-note">Can't restore companion abilities.</div>}
     </BottomSheet>
   )
 }

@@ -6,6 +6,24 @@ import { ITEM_ICONS } from '../data/images'
 import { SvgWeapon1, SvgOffhand, SvgClimbing, SvgConsumable, SvgStat } from './icons'
 import WarriorUpgradeModal from './WarriorUpgradeModal'
 import { spendableNow } from './campaignUi'
+import { COMPANIONS, companionBonusLabel } from '../data/companions'
+import { getEffectiveStats, statTone, STAT_KEYS } from '../utils/stats'
+
+// The animal's stats: the owner's (bonus and improvements included), except its own VITALITY
+function CompanionStats({ slot, vit }) {
+  const stats = getEffectiveStats(slot)
+  const toneClass = { improved: 'modified', debuffed: 'debuffed' }
+  return (
+    <span className="stats-row eq-companion-stats">
+      {STAT_KEYS.map(s => (
+        <span key={s} className="stat-box">
+          <span className="stat-label">{s}</span>
+          <span className={`stat-val ${s === 'VIT' ? '' : toneClass[statTone(stats[s])] || ''}`}>{s === 'VIT' ? vit : stats[s].display}</span>
+        </span>
+      ))}
+    </span>
+  )
+}
 
 const TWO_HANDED = new Set(['Heavy Weapon', 'Polearm (two-handed)', 'Crossbow', 'Bow'])
 const IP_ROW_IDS = ['weapon2', 'climbing', 'consumable', 'stat']
@@ -267,9 +285,51 @@ export default function WarriorLoadout({ slotIndex, slot, wdata, poolFull }) {
         ) : openSlot('stat')}
       </div>
 
-      {/* Class restriction: explains what can't be added, so it sits right under the loadout */}
+      {/* Class restriction: explains what can't be added, so it sits right under the loadout (above a companion) */}
       {wdata?.restrictions && (
         <div className="restriction-note">{wdata.restrictions}</div>
+      )}
+
+      {/* Companion: free and required, part of the class — not an IP upgrade */}
+      {wdata.companion && slot.companion && COMPANIONS[slot.companion] && (
+        // Laid out like a warrior: name, portrait + stats, then its trait and ability. Tap to change.
+        <div
+          className="eq-companion-row"
+          role="button"
+          tabIndex={0}
+          onClick={() => setModalCategory('companion')}
+          onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setModalCategory('companion') } }}
+          aria-label={`Companion: ${slot.companion}. Change`}
+        >
+          {/* A section like ABILITIES below: header, then the animal */}
+          <div className="lr-section-header eq-companion-head">
+            <span className="lr-section-title">COMPANION</span>
+          </div>
+          <div className="eq-companion-name">
+            {slot.companion}
+            <span className="eq-companion-bonus">{companionBonusLabel(slot.companion)}</span>
+          </div>
+          <div className="eq-companion-header">
+            <CompanionStats slot={slot} vit={wdata.companion.vit} />
+          </div>
+          <div className="bd-abilities eq-companion-abilities">
+            {COMPANIONS[slot.companion].passive && (
+              <div className="bd-ability">
+                <span className="bd-ability-name">{COMPANIONS[slot.companion].passive.name}</span>
+                <div className="bd-ability-desc">{COMPANIONS[slot.companion].passive.desc}</div>
+              </div>
+            )}
+            <div className="bd-ability">
+              <span className="bd-ability-name">{COMPANIONS[slot.companion].ability.name.split('·').pop().trim()}</span>
+              <div className="bd-ability-desc">{COMPANIONS[slot.companion].ability.desc}</div>
+            </div>
+          </div>
+        </div>
+      )}
+      {wdata.companion && slot.restingCompanion && (
+        <div className="eq-companion-resting">
+          <span>{slot.restingCompanion} died last game · sits this one out</span>
+        </div>
       )}
 
       <WarriorUpgradeModal
@@ -280,7 +340,8 @@ export default function WarriorLoadout({ slotIndex, slot, wdata, poolFull }) {
           modalCategory === 'weapon2' ? `Select ${weapon2Label}` :
           modalCategory === 'climbing' ? 'Select Gear' :
           modalCategory === 'consumable' ? 'Select Item' :
-          modalCategory === 'stat' ? 'Select Stat Upgrade' : ''
+          modalCategory === 'stat' ? 'Select Stat Upgrade' :
+          modalCategory === 'companion' ? 'Choose Companion' : ''
         }
         onClose={() => setModalCategory(null)}
         slotIndex={slotIndex}

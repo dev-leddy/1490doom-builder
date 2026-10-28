@@ -4768,3 +4768,240 @@ button.eq-slot:focus-visible { outline: 2px solid var(--blood); outline-offset: 
 /* Spacer keeps side-by-side cards aligned; cards stack at ≤1024px, so it's not needed there */
 .slot-class-sub--spacer { visibility: hidden; }
 @media (max-width: 1024px) { .slot-class-sub--spacer { display: none; } }
+
+/* ── COMPANION (free, required animal that comes with a class) ── */
+/* Styled as a card section like ABILITIES (no box); tap anywhere to change the animal */
+.eq-companion-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  width: 100%;
+  margin-top: 0.85rem;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.eq-companion-row .eq-companion-head { margin-bottom: 0; }
+@media (hover: hover) { .eq-companion-row:hover .eq-companion-name { text-decoration: underline; text-decoration-color: rgba(255, 255, 255, 0.3); text-underline-offset: 3px; } }
+.eq-companion-row:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
+.eq-companion-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--parchment);
+}
+.eq-companion-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.2rem; }
+.eq-companion-name {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--parchment);
+}
+.eq-companion-bonus {
+  padding: 0.05rem 0.4rem;
+  border-radius: 10px;
+  background: rgba(74, 154, 74, 0.18);
+  color: #6fbf6f;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+}
+
+/* Bonus stat from a living companion: small dot (tells it apart from a bought improvement) */
+.stat-box--companion { position: relative; }
+.stat-box--companion::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #6fbf6f;
+}
+
+/* End of game: did the animal survive? (only asked when its owner survived) */
+.eog-fate-group + .eog-fate-group { margin-top: 0.4rem; }
+.eog-companion-row {
+  display: flex; align-items: center; gap: 0.5rem;
+  margin: 0.25rem 0 0 1.6rem; padding: 0.3rem 0.3rem 0.3rem 0.7rem; min-height: 44px;
+  background: var(--ash); border: 1px dashed var(--fog); border-left: 3px solid #4a8a4a; border-radius: 3px;
+  color: var(--bone);
+}
+.eog-companion-row .eog-fate { margin-left: auto; }
+.eog-companion-row.fallen { border-left-color: #6a2a2a; }
+.eog-companion-row.fallen .eog-companion-name { opacity: 0.6; text-decoration: line-through; }
+.eog-companion-name { font-family: 'Oswald', sans-serif; font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; }
+.eog-companion-note { margin-left: auto; font-size: 0.7rem; color: #c06060; }
+
+.eog-companion-next { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; margin: 0.3rem 0 0 1.6rem; }
+.eog-companion-next-label { flex-basis: 100%; font-family: 'Oswald', sans-serif; font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: #a8a8a8; }
+.eog-companion-chip {
+  display: inline-flex; align-items: center; gap: 0.3rem; min-height: 36px; padding: 0 0.7rem;
+  background: var(--ash); border: 1px solid var(--fog); border-radius: 18px; color: var(--bone); cursor: pointer;
+  font-family: 'Oswald', sans-serif; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase;
+}
+.eog-companion-chip.chosen { border-color: #4a8a4a; background: rgba(60, 110, 60, 0.18); color: #b8e0b8; }
+
+/* Builder card: the animal sitting out this campaign game */
+.eq-companion-resting {
+  display: flex; align-items: center; gap: 0.4rem; margin-top: 0.35rem; padding: 0.35rem 0.6rem;
+  border: 1px dashed #5a2a2a; border-radius: 0; color: #c88; font-size: 0.75rem;
+}
+.eq-companion-resting .companion-icon { opacity: 0.6; }
+
+/* Companion stats row: same boxes as the warrior's, compact and on one line */
+.eq-companion-stats { flex: 1; min-width: 0; flex-wrap: nowrap; gap: 0.25rem; margin: 0; }
+.eq-companion-stats .stat-box { min-width: 0; padding: 0.2rem 0.15rem; }
+.eq-companion-stats .stat-label { font-size: 0.58rem; letter-spacing: 0.08em; }
+.eq-companion-stats .stat-val { font-size: 0.85rem; }
+
+.eq-companion-header { display: flex; align-items: center; gap: 0.6rem; }
+.eq-companion-abilities { margin: 0; }
+/* Companion name and portrait match the warrior's (serif name, round framed portrait) */
+.eq-companion-row .eq-companion-name { font-family: 'Caslon Antique', serif; font-size: 1.2rem; letter-spacing: normal; text-transform: none; color: #fff; margin-top: 0.2rem; }
+.eq-companion-row .eq-companion-icon {
+  width: 58px; height: 58px; border-radius: 50%;
+  background: #141414; color: #e6dcc8;
+  border: 2px solid var(--mist); box-shadow: 0 0 0 1px var(--dim), inset 0 0 8px rgba(0, 0, 0, 0.5);
+}
+.eq-companion-row .eq-companion-bonus { font-family: 'Oswald', sans-serif; font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; }
+
+/* ── COMPANION PICKER (sheet opened from the companion block) ──
+   One card per animal, laid out like the builder's companion block: round framed
+   portrait, serif name + green bonus pill, the ability in the play-mode ability style. */
+.cp-intro {
+  margin: 0 0 0.8rem;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--bone);
+}
+.cp-intro-label {
+  margin-right: 0.4rem;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--blood);
+}
+.cp-list { display: flex; flex-direction: column; gap: 0.55rem; }
+
+.cp-card {
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: start;
+  gap: 0.8rem;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.7rem 0.8rem 0.75rem 0.7rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--mist);
+  border-radius: 8px;
+  color: var(--parchment);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.15s, background 0.15s;
+}
+@media (hover: hover) {
+  .cp-card:not(:disabled):not(.is-bonded):hover { border-color: #777; background: rgba(255, 255, 255, 0.07); }
+}
+.cp-card:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
+.cp-card:not(:disabled):active { transform: scale(0.99); }
+
+.cp-portrait {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #141414;
+  color: #e6dcc8;
+  border: 2px solid var(--mist);
+  box-shadow: 0 0 0 1px var(--dim), inset 0 0 8px rgba(0, 0, 0, 0.5);
+}
+.cp-main { min-width: 0; display: flex; flex-direction: column; gap: 0.4rem; }
+.cp-head { display: flex; align-items: center; flex-wrap: wrap; gap: 0.2rem 0.5rem; min-height: 28px; }
+.cp-name { font-family: 'Caslon Antique', serif; font-size: 1.3rem; line-height: 1.1; color: #fff; }
+.cp-bonus {
+  padding: 0.1rem 0.45rem;
+  border-radius: 10px;
+  background: rgba(74, 154, 74, 0.18);
+  color: #6fbf6f;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.cp-status {
+  margin-left: auto;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.cp-status:empty { display: none; }
+.cp-ability {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.4rem 0.6rem;
+  background: var(--ash);
+  border-left: 3px solid var(--dim);
+}
+.cp-ability-name {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--bone);
+}
+.cp-ability-desc { font-size: 0.88rem; line-height: 1.45; color: var(--parchment); }
+
+/* Chosen animal */
+.cp-card.is-bonded {
+  background: rgba(190, 65, 39, 0.12);
+  border-color: var(--blood);
+  box-shadow: inset 3px 0 0 var(--blood);
+  cursor: default;
+}
+.cp-card.is-bonded .cp-portrait { border-color: var(--blood); }
+.cp-card.is-bonded .cp-ability { border-left-color: var(--blood); }
+.cp-card.is-bonded .cp-status {
+  padding: 0.15rem 0.5rem;
+  border-radius: 3px;
+  background: var(--blood);
+  color: #fff;
+}
+
+/* Campaign: died last game, sits this one out */
+.cp-card.is-resting {
+  background: transparent;
+  border-style: dashed;
+  border-color: #5a2a2a;
+  cursor: not-allowed;
+}
+.cp-card.is-resting .cp-portrait { color: #6a6a6a; border-style: dashed; border-color: #5a2a2a; box-shadow: none; }
+.cp-card.is-resting .cp-name { color: #8a8a8a; text-decoration: line-through; text-decoration-color: rgba(192, 96, 96, 0.7); }
+.cp-card.is-resting .cp-bonus,
+.cp-card.is-resting .cp-ability { opacity: 0.4; }
+.cp-card.is-resting .cp-status { color: #c06060; }
+.cp-resting-note {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #d07070;
+}
