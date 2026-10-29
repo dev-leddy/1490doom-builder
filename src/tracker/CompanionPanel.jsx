@@ -5,6 +5,7 @@ import { useState } from 'react'
 import StatusBlock from './StatusBlock'
 import BottomSheet from '../shared/BottomSheet'
 import { ITEM_ICONS } from '../data/images'
+import CompanionPortrait from '../builder/CompanionPortrait'
 
 // Statuses that stop the animal spending an action on its ability
 const BLOCKING = ['STUNNED']
@@ -27,28 +28,30 @@ export default function CompanionPanel({ wi, warrior: w }) {
   const used = !!w.opgUsed[key]
   const blocker = state !== 'alive' ? STATE_LABEL[state] : BLOCKING.find(n => c.statuses.some(s => s.name === n))
   const canTap = !used && !blocker
+  const label = c.nick || c.name
   const abilityName = def.ability.name.split('·').pop().trim()
   // The owner's stats (its bonus and bought improvements included), changed only by the
   // animal's own statuses; VITALITY is its own track
   const stats = getEffectiveStats({ ...w, companion: c }, { statuses: c.statuses, companionAlive: true })
 
   return (
-    <section className={`tk-companion tk-companion--${state}`} aria-label={`Companion: ${c.name}`}>
+    <section className={`tk-companion tk-companion--${state}`} aria-label={`Companion: ${label}`}>
       <div className="tk-companion-header">
+        <CompanionPortrait name={c.name} className={`tk-companion-portrait${def.holdsItems ? ' tk-companion-portrait--tall' : ''}`} />
         <div className="tk-companion-title">
           {/* Mirrors the warrior header above: name, then what it is underneath */}
           <span className="tk-companion-line">
-            <span className="tk-companion-name">{c.name}</span>
+            <span className="tk-companion-name">{label}</span>
             {state !== 'alive' && <span className="tk-companion-state">{STATE_LABEL[state]}</span>}
           </span>
-          <span className="tk-companion-kicker">Companion</span>
+          <span className="tk-companion-kicker">{c.nick ? `${c.name} · Companion` : 'Companion'}</span>
           {state !== 'alive' && <span className="tk-companion-note">{stateNote(state, w.customName || w.type)}</span>}
         </div>
         <div className="tk-hdr-btn-group">
           {def.holdsItems && (
-            <button className="tk-hdr-btn tk-hdr-btn-cache" onClick={() => openCompanionLoot(wi)} disabled={state !== 'alive'} aria-label={`Add cache item to ${c.name}`}>+ CACHE</button>
+            <button className="tk-hdr-btn tk-hdr-btn-cache" onClick={() => openCompanionLoot(wi)} disabled={state !== 'alive'} aria-label={`Add cache item to ${label}`}>+ CACHE</button>
           )}
-          <button className="tk-hdr-btn tk-hdr-btn-status" onClick={() => openCompanionStatus(wi)} aria-label={`Add status to ${c.name}`}>+ STATUS</button>
+          <button className="tk-hdr-btn tk-hdr-btn-status" onClick={() => openCompanionStatus(wi)} aria-label={`Add status to ${label}`}>+ STATUS</button>
         </div>
       </div>
 
@@ -79,7 +82,7 @@ export default function CompanionPanel({ wi, warrior: w }) {
             key={i}
             className={`tk-vit-box ${i >= c.currentVit ? 'lost' : ''}`}
             onClick={() => hitCompanion(wi, i)}
-            aria-label={`${c.name} vitality ${i + 1}`}
+            aria-label={`${label} vitality ${i + 1}`}
           />
         ))}
         <span className="tk-vit-count">{c.currentVit}/{c.maxVit}</span>

@@ -33,7 +33,7 @@ export default defineConfig(({ command }) => ({
       workbox: {
         cacheId: 'doom-builder-v3',
         importScripts: ['sw-redirect.js'],
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}', 'companions/*.webp'], // companion portraits: play mode works offline
         globIgnores: ['quiz/Art/**', 'quiz/music/**'],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/quiz/, /^\/api\//, /^\/s\//, /^\/go\//, /^\/j\//, /^\/api-docs/],

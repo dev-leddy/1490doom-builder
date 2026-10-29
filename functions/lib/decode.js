@@ -4,6 +4,17 @@
 // Companions (src/data/companions.js COMPANION_NAMES) — append only
 const COMPANION_NAMES = ['Raptor', 'Monkey', 'Cat']
 
+// The animals' names (14th slot field): one URI-encoded name per COMPANION_NAMES index,
+// comma-separated (encodeURIComponent escapes commas, colons and bars), '-' when none
+function decodeCompanionNames(enc) {
+  if (!enc || enc === '-') return null
+  const names = {}
+  enc.split(',').forEach((n, i) => {
+    try { const v = decodeURIComponent(n).trim(); if (v && COMPANION_NAMES[i]) names[COMPANION_NAMES[i]] = v } catch {}
+  })
+  return Object.keys(names).length ? names : null
+}
+
 const ALL_WARRIORS = [
   'Assassin', 'Beekeeper', 'Blacksmith', 'Brute', 'Doom Hunter',
   'Executioner', 'Fighter', 'Hedge Knight', 'Knight', 'Saboteur',
@@ -74,7 +85,7 @@ function decodeCompany(code) {
       const slotRaw = parts[3 + i]
       if (!slotRaw || slotRaw === '_') continue
 
-      const [wIdx, w1Idx, w2Idx, cIdx, clIdx, ipStr, cap, notesEnc, nameEnc, earnedEnc, statImpsEnc, compEnc, restEnc] = slotRaw.split(':')
+      const [wIdx, w1Idx, w2Idx, cIdx, clIdx, ipStr, cap, notesEnc, nameEnc, earnedEnc, statImpsEnc, compEnc, restEnc, compNamesEnc] = slotRaw.split(':')
 
       const type = ALL_WARRIORS[parseInt(wIdx, 36)] || null
       if (!type) continue
@@ -119,6 +130,8 @@ function decodeCompany(code) {
       if (companion) warrior.companion = companion
       const restingCompanion = restEnc && restEnc !== '-' ? COMPANION_NAMES[parseInt(restEnc, 36)] : null
       if (restingCompanion) warrior.restingCompanion = restingCompanion
+      const companionNames = decodeCompanionNames(compNamesEnc)
+      if (companionNames) warrior.companionNames = companionNames
 
       warriors.push(warrior)
     }

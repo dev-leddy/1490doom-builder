@@ -10,7 +10,7 @@ export const CACHE_ITEMS = [
 ]
 
 export const STATUS_DEFS = [
-  ['BREACHED', 'At the start of each activation, roll a SKILL Check. On a failure, lose 1 VITALITY — this ignores DEFENSE. Breached is permanent until removed by an ability.'],
+  ['BREACHED', 'At the start of each activation, roll a SKILL Check. On a failure, lose 1 VITALITY. This ignores DEFENSE. Breached is permanent until removed by an ability.'],
   ['STUNNED', 'The model cannot take any actions until the end of their next activation.'],
   ['IMMOBILIZED', 'The model cannot move or climb until the end of their next activation.'],
   ['HINDERED', 'The model loses their next action. The status then clears.'],
@@ -38,3 +38,16 @@ export const ACTION_DEFS = [
   ['OPEN DOOR', 'A model makes a SKILL Check. If they succeed, they can open or close a door they are in base contact with. This skill can also open a portcullis, a trap door, a lock, or anything agreed upon prior to the start of a game.'],
   ['PIERCING BLOW', 'When a model rolls a 6 on a COMBAT Check, the hit ignores DEFENSE. The first time a model is hit by a Piercing Blow, they become Breached.'],
 ]
+
+// ── FALLING (updated rulebook) ───────────────────────────────────────────────
+// Fell 2″ or more: roll a D6. Add 1 if it fell 4″ or more; add 3 if it fell 6″ or more
+// (the +3 replaces the +1) and the model becomes Immobilized.
+// Total 1–2: 0 · 3–4: 1 · 5–6: 2 · 7: 3 · 8+: perished.
+// The tables show the D6 against how far the model fell, so nobody adds anything mid-game.
+export const FALL_BANDS = [
+  { label: '2–3″', bonus: 0 },
+  { label: '4–5″', bonus: 1 },
+  { label: '6″+', bonus: 3, immobilized: true },
+]
+// VIT lost for a total, or 'dead'
+export const fallDamage = total => (total >= 8 ? 'dead' : total <= 2 ? 0 : total <= 4 ? 1 : total <= 6 ? 2 : 3)

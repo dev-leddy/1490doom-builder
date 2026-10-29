@@ -4,7 +4,7 @@ import { useBuilderStore } from '../store/builderStore'
 import { MARK_IMAGES } from '../data/images'
 import { MARKS } from '../data/warriors'
 import { getAvatarSrc } from '../data/avatars'
-import MarkPicker from './MarkPicker'
+import MarkPicker, { MarkDescription } from './MarkPicker'
 import CampaignPanel from './CampaignPanel'
 
 export default function CompanyHeader({ onSettings, onEndOfGame, onShare, onPrint }) {
@@ -128,19 +128,7 @@ export default function CompanyHeader({ onSettings, onEndOfGame, onShare, onPrin
             <MarkPicker value={tempMark} onChange={setTempMark} />
           </div>
           {/* The chosen mark's ability, at the bottom just above Cancel / Done */}
-          <div className="mark-sheet-desc">
-            {(() => {
-              const preview = MARKS.find(m => m.name === tempMark)
-              return preview ? (
-                <>
-                  <div className="mark-sheet-desc-name">{preview.label}</div>
-                  <div className="mark-sheet-desc-text">{preview.desc}</div>
-                </>
-              ) : (
-                <div className="mark-sheet-desc-placeholder">Select a mark to see its battlefield ability.</div>
-              )
-            })()}
-          </div>
+          <MarkDescription value={tempMark} />
         </BottomSheet>
       )}
     </div>

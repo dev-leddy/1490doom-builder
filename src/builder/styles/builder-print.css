@@ -495,6 +495,15 @@
     .pr-fall-table td:last-child {
       text-align: left;
     }
+    /* Falling grid: D6 rows against the distance fallen; the note comes after it */
+    .pr-fall-grid { table-layout: fixed; margin-bottom: 2pt; }
+    .pr-fall-grid th {
+      padding: 2pt 3pt; border: 0.5pt solid #000;
+      font-family: 'Oswald', sans-serif; text-transform: uppercase; font-weight: 700;
+      background: #222; color: #fff; text-align: center; white-space: nowrap;
+    }
+    .pr-fall-grid td, .pr-fall-grid td:last-child { text-align: center; font-weight: 700; padding: 2pt 3pt; }
+    .pr-fall-grid td.pr-fall-dead { background: #000; color: #fff; letter-spacing: 0.08em; }
 
     /* COMPACT PAGE FOOTER (both pages) */
     .pr-page-footer {

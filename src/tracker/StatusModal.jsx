@@ -8,7 +8,7 @@ export default function StatusModal({ wi, companion = false }) {
   const pick = companion ? addCompanionStatus : addStatus
   const close = companion ? closeCompanionStatus : closeStatusModal
   const target = companion ? warriors[wi]?.companion : warriors[wi]
-  const targetName = companion ? target?.name : (target?.customName || target?.type)
+  const targetName = companion ? (target?.nick || target?.name) : (target?.customName || target?.type)
   const active = new Set((target?.statuses || []).map(s => s.name))
 
   return (

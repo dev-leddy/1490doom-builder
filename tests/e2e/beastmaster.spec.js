@@ -17,7 +17,8 @@ test.describe('Beastmaster', () => {
     // default animal: Raptor (+1 MOV), marked on the stat, no IP spent
     const row = card.locator('.eq-companion-row')
     await expect(row).toContainText('Raptor')
-    await expect(row).toContainText('+1 MOV')
+    await expect(row.locator('.bd-ability', { hasText: '+1 MOVEMENT' })).toContainText('While the Raptor lives, the Beastmaster has +1 MOVEMENT.')
+    await expect(row.locator('.eq-companion-bonus')).toHaveCount(0)
     await expect(statVal(card, 'MOV')).toHaveText('5')
     await expect(card.locator('.stat-box--companion')).toHaveCount(1)
     // the animal's own stats: the Beastmaster's (bonus included), VIT always 4
@@ -33,11 +34,23 @@ test.describe('Beastmaster', () => {
     await expect(card.locator('.bd-abilities:not(.eq-companion-abilities)')).not.toContainText('SUNDER WEAPON') // not repeated in the class list
 
     // the picker: free and required, so there is no Remove
-    await row.click()
+    await row.locator('.eq-companion-pick').click()
     await expect(page.locator('.companion-pick')).toHaveCount(3)
+    // like the Company Mark sheet: no explainer, the picked animal's stats and rules, Cancel / Done
+    await expect(page.locator('.companion-sheet')).not.toContainText('Free and required')
+    await expect(page.locator('.companion-sheet .companion-sheet-card.is-picked').locator('.eq-companion-stats .stat-box', { hasText: 'VIT' })).toContainText('4')
+    await expect(page.locator('.companion-sheet').locator('svg.companion-icon')).toHaveCount(0)
     await expect(page.getByRole('button', { name: /remove/i })).toHaveCount(0)
     await expect(page.locator('.companion-pick', { hasText: 'Cat' })).not.toContainText('→') // no stat preview
     await page.locator('.companion-pick', { hasText: 'Cat' }).click()
+    await expect(page.locator('.companion-sheet .companion-sheet-card.is-picked').locator('.eq-companion-stats .stat-box', { hasText: 'COM' })).toContainText('4+')
+    await expect(row).toContainText('Raptor') // nothing changes until Done
+    const sheetHeight = async () => (await page.locator('.companion-sheet').boundingBox()).height
+    const catHeight = await sheetHeight()
+    await page.locator('.companion-pick', { hasText: 'Monkey' }).click()
+    expect(await sheetHeight()).toBe(catHeight)
+    await page.locator('.companion-pick', { hasText: 'Cat' }).click()
+    await page.getByRole('button', { name: 'Done', exact: true }).click()
 
     await expect(row).toContainText('Cat')
     await expect(statVal(card, 'MOV')).toHaveText('4')
@@ -49,8 +62,9 @@ test.describe('Beastmaster', () => {
   test('the chosen animal survives a share link', async ({ page }) => {
     await createCompany(page, { name: 'Menagerie Co', warriors: ['Beastmaster', 'Fighter'] })
     const card = page.locator('.warrior-slot').first()
-    await card.locator('.eq-companion-row').click()
+    await card.locator('.eq-companion-pick').click()
     await page.locator('.companion-pick', { hasText: 'Monkey' }).click()
+    await page.getByRole('button', { name: 'Done', exact: true }).click()
     await expect(card.locator('.eq-companion-row')).toContainText('Monkey')
     await waitForSaved(page)
 
@@ -62,6 +76,56 @@ test.describe('Beastmaster', () => {
     const shared = guest.locator('.warrior-slot').first()
     await expect(shared.locator('.eq-companion-row')).toContainText('Monkey')
     await expect(statVal(shared, 'SKL')).toHaveText('3+')
+  })
+
+  test('each animal can be renamed; the name follows it into play and share links', async ({ page }) => {
+    await createCompany(page, { name: 'Named Co', warriors: ['Beastmaster', 'Fighter'] })
+    const card = page.locator('.warrior-slot').first()
+    const row = card.locator('.eq-companion-row')
+    // named in the companion sheet; Cancel throws the name away
+    await row.locator('.eq-companion-pick').click()
+    await page.locator('.companion-sheet').getByRole('button', { name: 'Rename Raptor' }).click()
+    await page.locator('.companion-sheet').getByRole('textbox', { name: 'Name your Raptor' }).fill('Nope')
+    await page.getByRole('button', { name: 'Cancel', exact: true }).click()
+    await expect(row.locator('.eq-companion-name-text')).toHaveText('Raptor')
+
+    await row.locator('.eq-companion-pick').click()
+    await page.locator('.companion-sheet').getByRole('button', { name: 'Rename Raptor' }).click()
+    await page.locator('.companion-sheet').getByRole('textbox', { name: 'Name your Raptor' }).fill('Clawfoot')
+    await page.getByRole('button', { name: 'Done', exact: true }).click()
+    await expect(row.locator('.eq-companion-name-text')).toHaveText('Clawfoot')
+    await expect(row.locator('.eq-companion-kind')).toHaveText('Raptor')
+
+    // swapping animals: the Cat has its own (no) name, the Raptor keeps its name
+    await row.locator('.eq-companion-pick').click()
+    // the selector always says what the animal is; its name shows in the panel below
+    await expect(page.locator('.companion-pick')).toHaveText(['Raptor', 'Monkey', 'Cat'])
+    await expect(page.locator('.companion-sheet-name')).toHaveText('Clawfoot')
+    await page.locator('.companion-pick', { hasText: 'Cat' }).click()
+    await expect(page.locator('.companion-sheet').locator('.companion-sheet-name')).toHaveText('Cat')
+    await expect(page.locator('.companion-sheet').getByRole('button', { name: 'Rename Cat' })).toBeVisible()
+    await page.getByRole('button', { name: 'Done', exact: true }).click()
+    await expect(row.locator('.eq-companion-name-text')).toHaveText('Cat')
+    await row.locator('.eq-companion-pick').click()
+    await page.locator('.companion-pick', { hasText: 'Raptor' }).click()
+    await page.getByRole('button', { name: 'Done', exact: true }).click()
+    await expect(row.locator('.eq-companion-name-text')).toHaveText('Clawfoot')
+    await waitForSaved(page)
+
+    const { payload } = await shareLink(page)
+    const guest = await (await page.context().browser().newContext({ viewport: { width: 420, height: 900 } })).newPage()
+    await guest.goto('/#' + payload)
+    const shared = guest.locator('.warrior-slot').first().locator('.eq-companion-row')
+    await expect(shared.locator('.eq-companion-name-text')).toHaveText('Clawfoot')
+    await expect(shared.locator('.eq-companion-chevron')).toBeHidden()
+
+    await page.locator('.co-settings-sheet .co-sheet-close').click() // close the share sheet
+    await expect(page.locator('.co-settings-sheet')).toHaveCount(0)
+
+    await page.locator('.builder-play-pill').click()
+    await dismissMarkPopup(page)
+    await expect(page.locator('.tk-companion .tk-companion-name')).toHaveText('Clawfoot')
+    await expect(page.locator('.tk-companion .tk-companion-kicker')).toHaveText(/Raptor · Companion/i)
   })
 
   test('play: the animal has its own track; stats, GOAD and its ability follow it', async ({ page }) => {
@@ -182,9 +246,10 @@ test.describe('Beastmaster', () => {
     const card = page.locator('.warrior-slot').first()
     await expect(card.locator('.eq-companion-row')).toContainText('Cat')
     await expect(card.locator('.eq-companion-resting')).toContainText('Raptor died last game')
-    await card.locator('.eq-companion-row').click()
+    await card.locator('.eq-companion-pick').click()
     await expect(page.locator('.companion-pick', { hasText: 'Raptor' })).toBeDisabled()
-    await expect(page.locator('.companion-pick', { hasText: 'Raptor' })).toContainText('sits this one out')
+    await expect(page.locator('.companion-pick', { hasText: 'Raptor' })).toContainText('Resting')
+    await expect(page.locator('.companion-sheet')).toContainText('Raptor died last game')
     await page.getByRole('button', { name: 'Done', exact: true }).click()
 
     // the next game starts with the Cat, not the resting Raptor (the survivor point is still unspent)

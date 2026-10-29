@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { useBuilderStore } from '../store/builderStore'
 import { WARRIORS, MARKS_MAP } from '../data/warriors'
 import { WEAPONS, CLIMBING_ITEMS, CLIMBING_DESCS, CONSUMABLES } from '../data/weapons'
-import { ACTION_DEFS, STATUS_DEFS, CACHE_ITEMS } from '../data/items'
+import { ACTION_DEFS, STATUS_DEFS, CACHE_ITEMS, FALL_BANDS, fallDamage } from '../data/items'
 import { WARRIOR_IMAGES, MARK_IMAGES, ITEM_ICONS } from '../data/images'
 import { getEffectiveStats, improvedStats, statTone } from '../utils/stats'
 
@@ -252,17 +252,29 @@ export default function PrintRoster() {
             </div>
 
             <div className="pr-ref-col-right">
-              <div className="pr-ref-panel-header">Falling (D6, 2″+ fall)</div>
-              <div className="pr-ref-fall-note">
-                +1 if fell 4″+. +3 if fell 6″+, model becomes Immobilized. 8+ = Death.
-              </div>
-              <table className="pr-fall-table">
+              <div className="pr-ref-panel-header">Falling</div>
+              {/* Same grid as the in-app quick reference: the D6 against the distance fallen */}
+              <table className="pr-fall-table pr-fall-grid">
+                <thead>
+                  <tr><th>D6</th>{FALL_BANDS.map(b => <th key={b.label}>{b.label}</th>)}</tr>
+                </thead>
                 <tbody>
-                  {[['1–2','0 dmg'],['3–4','1 dmg'],['5–6','2 dmg'],['7','3 dmg'],['8+','☠ Death']].map(([roll, result]) => (
-                    <tr key={roll}><td>{roll}</td><td>{result}</td></tr>
+                  {[1, 2, 3, 4, 5, 6].map(roll => (
+                    <tr key={roll}>
+                      <th>{roll}</th>
+                      {FALL_BANDS.map(b => {
+                        const r = fallDamage(roll + b.bonus)
+                        return r === 'dead'
+                          ? <td key={b.label} className="pr-fall-dead">DEAD</td>
+                          : <td key={b.label}>{r}</td>
+                      })}
+                    </tr>
                   ))}
                 </tbody>
               </table>
+              <div className="pr-ref-fall-note">
+                Roll a D6 to determine vitality loss from falling. If falling more than 6″ the model is also IMMOBILIZED.
+              </div>
 
               <div className="pr-ref-panel-header" style={{marginTop:'6pt'}}>Resource Caches (D6)</div>
               <table className="pr-fall-table">
@@ -270,7 +282,7 @@ export default function PrintRoster() {
                   {CACHE_ITEMS.map(item => (
                     <tr key={item.roll}>
                       <td>{item.roll}</td>
-                      <td><strong>{item.name}</strong>{' — '}{item.desc}</td>
+                      <td><strong>{item.name}</strong>{': '}{item.desc}</td>
                     </tr>
                   ))}
                 </tbody>

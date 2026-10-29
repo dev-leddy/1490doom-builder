@@ -1,4 +1,4 @@
-import { ACTION_DEFS, STATUS_DEFS, CACHE_ITEMS } from '../data/items'
+import { ACTION_DEFS, STATUS_DEFS, CACHE_ITEMS, FALL_BANDS, fallDamage } from '../data/items'
 import { ITEM_ICONS } from '../data/images'
 import './quickref.css'
 
@@ -39,17 +39,31 @@ export default function QuickRef({ onBack }) {
       </div>
 
       <div className="qr-section">
-        <div className="qr-section-title">Falling (D6, 2″+ fall)</div>
-        <p className="qr-fall-note">
-          +1 if fell 4″+. &nbsp;+3 if fell 6″+ (model becomes Immobilized). &nbsp;8+ = Death.
+        <div className="qr-section-title">Falling</div>
+        <p className="qr-fall-lead">
+          Roll a D6 to determine vitality loss from falling.<br />If falling more than 6″ the model is also IMMOBILIZED.
         </p>
-        <table className="qr-table">
+        {/* The D6 against the distance: the rulebook's bonuses are built into the columns */}
+        <table className="qr-table qr-fall-grid">
+          <thead>
+            <tr>
+              <th scope="col" rowSpan={2}>D6</th>
+              <th scope="colgroup" colSpan={FALL_BANDS.length} className="qr-fall-axis">Distance fallen</th>
+            </tr>
+            <tr>{FALL_BANDS.map(b => <th key={b.label} scope="col">{b.label}</th>)}</tr>
+          </thead>
           <tbody>
-            <tr><td>1–2</td><td>0 dmg</td></tr>
-            <tr><td>3–4</td><td>1 dmg</td></tr>
-            <tr><td>5–6</td><td>2 dmg</td></tr>
-            <tr><td>7</td><td>3 dmg</td></tr>
-            <tr><td>8+</td><td>☠ Death</td></tr>
+            {[1, 2, 3, 4, 5, 6].map(roll => (
+              <tr key={roll}>
+                <th scope="row">{roll}</th>
+                {FALL_BANDS.map(b => {
+                  const r = fallDamage(roll + b.bonus)
+                  return r === 'dead'
+                    ? <td key={b.label} className="qr-fall-dead">Dead</td>
+                    : <td key={b.label} className={r === 0 ? 'qr-fall-none' : undefined}>{r}</td>
+                })}
+              </tr>
+            ))}
           </tbody>
         </table>
         {/* Optional rule: falling or jumping onto a model below */}
@@ -83,7 +97,7 @@ export default function QuickRef({ onBack }) {
                     )}
                     {item.name}
                   </strong>
-                  {' — '}{item.desc}
+                  {': '}{item.desc}
                 </td>
               </tr>
             ))}

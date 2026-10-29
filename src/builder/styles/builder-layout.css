@@ -623,6 +623,10 @@
     flex-direction: column;
     justify-content: center;
   }
+  /* All descriptions in one cell, only the chosen one visible: a fixed-height panel */
+  .mark-sheet-stack { display: grid; }
+  .mark-sheet-stack-item { grid-area: 1 / 1; display: flex; flex-direction: column; justify-content: center; visibility: hidden; }
+  .mark-sheet-stack-item.is-shown { visibility: visible; }
   .mark-sheet-desc-name {
     font-family: 'Oswald', sans-serif;
     font-size: 0.85rem;

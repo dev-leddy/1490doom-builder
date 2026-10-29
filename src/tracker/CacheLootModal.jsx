@@ -16,7 +16,7 @@ export default function CacheLootModal({ wi, companion = false }) {
     >
       <p className="tk-sheet-intro">
         <span className="tk-sheet-intro-label">Roll 1D6</span>
-        Tap the result to give it to {companion ? warriors[wi]?.companion?.name : (warriors[wi]?.customName || warriors[wi]?.type)}.
+        Tap the result to give it to {companion ? (warriors[wi]?.companion?.nick || warriors[wi]?.companion?.name) : (warriors[wi]?.customName || warriors[wi]?.type)}.
       </p>
       <div className="tk-sheet-list">
       {CACHE_ITEMS.map(item => (

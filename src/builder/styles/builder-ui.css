@@ -4770,7 +4770,7 @@ button.eq-slot:focus-visible { outline: 2px solid var(--blood); outline-offset: 
 @media (max-width: 1024px) { .slot-class-sub--spacer { display: none; } }
 
 /* ── COMPANION (free, required animal that comes with a class) ── */
-/* Styled as a card section like ABILITIES (no box); tap anywhere to change the animal */
+/* Styled as a card section like ABILITIES (no box); the animal itself is the button */
 .eq-companion-row {
   display: flex;
   flex-direction: column;
@@ -4779,42 +4779,37 @@ button.eq-slot:focus-visible { outline: 2px solid var(--blood); outline-offset: 
   margin-top: 0.85rem;
   color: inherit;
   text-align: left;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
 }
 .eq-companion-row .eq-companion-head { margin-bottom: 0; }
-@media (hover: hover) { .eq-companion-row:hover .eq-companion-name { text-decoration: underline; text-decoration-color: rgba(255, 255, 255, 0.3); text-underline-offset: 3px; } }
-.eq-companion-row:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
-.eq-companion-icon {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--parchment);
+/* Companion miniature photo: square, rounded, a hairline frame like the portrait family */
+.companion-portrait {
+  display: block; flex-shrink: 0; overflow: hidden; border-radius: 8px;
+  background: #e9d8d4; border: 1px solid rgba(255, 255, 255, 0.14);
 }
-.eq-companion-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.2rem; }
-.eq-companion-name {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-family: 'Oswald', sans-serif;
-  font-size: 0.95rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--parchment);
+.companion-portrait img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.eq-companion-portrait { width: 56px; height: 56px; border-color: rgba(190, 65, 39, 0.75); box-shadow: 0 0 0 1px rgba(190, 65, 39, 0.18); transition: border-color 0.2s; }
+@media (hover: hover) { .eq-companion-pick:hover .eq-companion-portrait { border-color: var(--blood); } }
+.companion-option-portrait { width: 52px; height: 52px; }
+@media (max-width: 480px) { .companion-option-portrait { width: 44px; height: 44px; } }
+.companion-pick.is-resting .companion-option-portrait { filter: grayscale(1); }
+.eog-companion-portrait { width: 28px; height: 28px; border-radius: 4px; }
+.eog-companion-row.fallen .eog-companion-portrait { filter: grayscale(1); opacity: 0.6; }
+
+/* The animal, a button like the Company Mark: name, kind and bonus; tap to choose or name it */
+.eq-companion-pick {
+  display: flex; align-items: center; gap: 0.7rem; width: 100%; min-height: 48px;
+  padding: 0.35rem 0.4rem 0.35rem 0; margin: 0;
+  background: none; border: 0; border-radius: 2px; color: inherit; text-align: left;
+  cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background 0.2s;
 }
-.eq-companion-bonus {
-  padding: 0.05rem 0.4rem;
-  border-radius: 10px;
-  background: rgba(74, 154, 74, 0.18);
-  color: #6fbf6f;
-  font-size: 0.7rem;
-  letter-spacing: 0.05em;
-}
+@media (hover: hover) { .eq-companion-pick:hover { background: rgba(255, 255, 255, 0.025); } }
+.eq-companion-pick:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
+.eq-companion-ident { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.25rem; }
+.eq-companion-name-text { font-family: 'Caslon Antique', serif; font-size: 1.2rem; line-height: 1.15; color: #fff; overflow-wrap: anywhere; }
+.eq-companion-chevron { flex-shrink: 0; color: #777; transition: color 0.2s, transform 0.2s; }
+@media (hover: hover) { .eq-companion-pick:hover .eq-companion-chevron { color: #fff; transform: translateX(2px); } }
+.eq-companion-kind { font-family: 'Oswald', sans-serif; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: #a8a8a8; }
+.builder-readonly .eq-companion-chevron { display: none; }
 
 /* Bonus stat from a living companion: small dot (tells it apart from a bought improvement) */
 .stat-box--companion { position: relative; }
@@ -4857,7 +4852,6 @@ button.eq-slot:focus-visible { outline: 2px solid var(--blood); outline-offset: 
   display: flex; align-items: center; gap: 0.4rem; margin-top: 0.35rem; padding: 0.35rem 0.6rem;
   border: 1px dashed #5a2a2a; border-radius: 0; color: #c88; font-size: 0.75rem;
 }
-.eq-companion-resting .companion-icon { opacity: 0.6; }
 
 /* Companion stats row: same boxes as the warrior's, compact and on one line */
 .eq-companion-stats { flex: 1; min-width: 0; flex-wrap: nowrap; gap: 0.25rem; margin: 0; }
@@ -4867,141 +4861,42 @@ button.eq-slot:focus-visible { outline: 2px solid var(--blood); outline-offset: 
 
 .eq-companion-header { display: flex; align-items: center; gap: 0.6rem; }
 .eq-companion-abilities { margin: 0; }
-/* Companion name and portrait match the warrior's (serif name, round framed portrait) */
-.eq-companion-row .eq-companion-name { font-family: 'Caslon Antique', serif; font-size: 1.2rem; letter-spacing: normal; text-transform: none; color: #fff; margin-top: 0.2rem; }
-.eq-companion-row .eq-companion-icon {
-  width: 58px; height: 58px; border-radius: 50%;
-  background: #141414; color: #e6dcc8;
-  border: 2px solid var(--mist); box-shadow: 0 0 0 1px var(--dim), inset 0 0 8px rgba(0, 0, 0, 0.5);
-}
-.eq-companion-row .eq-companion-bonus { font-family: 'Oswald', sans-serif; font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; }
 
-/* ── COMPANION PICKER (sheet opened from the companion block) ──
-   One card per animal, laid out like the builder's companion block: round framed
-   portrait, serif name + green bonus pill, the ability in the play-mode ability style. */
-.cp-intro {
-  margin: 0 0 0.8rem;
-  font-size: 0.9rem;
-  line-height: 1.45;
-  color: var(--bone);
+/* ── COMPANION SHEET (works like the Company Mark sheet) ──
+   Grid of animals (mark tiles, names only), the picked one's name field, stats and rules
+   pinned above Cancel / Done. */
+.mark-picker-grid.companion-grid { grid-template-columns: repeat(3, 1fr); }
+.companion-pick { justify-content: center; min-height: 64px; }
+.companion-pick .mark-option-label { margin-top: 0.1rem; }
+.companion-pick .mark-option-label { font-family: 'Caslon Antique', serif; font-size: 1.05rem; letter-spacing: normal; text-transform: none; color: #fff; }
+.companion-sheet-desc .eq-companion-stats { flex: none; margin: 0.15rem 0 0.2rem; }
+.companion-sheet-stack { display: grid; }
+.companion-sheet-card { grid-area: 1 / 1; display: flex; flex-direction: column; gap: 0.4rem; visibility: hidden; }
+.companion-sheet-card.is-picked { visibility: visible; }
+.companion-option-sub { font-family: 'Oswald', sans-serif; font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: #6fbf6f; }
+.companion-pick.is-resting { opacity: 0.5; cursor: not-allowed; border-style: dashed; border-color: #5a2a2a; }
+.companion-pick.is-resting .companion-option-sub { color: #d07070; }
+.companion-pick.is-resting:hover { border-color: #5a2a2a; }
+.companion-sheet-desc { gap: 0.4rem; margin-top: 0.5rem; }
+/* The grid takes only its own height, so the animal's panel sits right under it */
+.companion-sheet .mark-grid-scroll { flex: none; padding-bottom: 0; }
+.companion-sheet .mark-picker-grid { padding-bottom: 0; }
+.companion-sheet-head { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.5rem; min-height: 38px; }
+.companion-sheet-name { font-family: 'Caslon Antique', serif; font-size: 1.25rem; line-height: 1.15; color: #fff; overflow-wrap: anywhere; }
+.companion-rename {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; margin: -4px 0 -4px -0.3rem; padding: 0;
+  background: transparent; border: 0; border-radius: 50%;
+  color: #8a8a8a; cursor: pointer; -webkit-tap-highlight-color: transparent;
 }
-.cp-intro-label {
-  margin-right: 0.4rem;
-  font-family: 'Oswald', sans-serif;
-  font-size: 0.68rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--blood);
+@media (hover: hover) { .companion-rename:hover { color: #fff; background: rgba(255, 255, 255, 0.06); } }
+.companion-rename:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
+.companion-sheet-abilities { margin: 0.15rem 0 0; }
+.companion-sheet-resting { font-family: 'Oswald', sans-serif; font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: #d07070; }
+.companion-name-input {
+  flex: 1; min-width: 0; max-width: 16rem; height: 38px; padding: 0 0.6rem;
+  background: var(--ash); border: 1px solid var(--dim); border-radius: 4px; color: #fff;
+  font-family: 'Caslon Antique', serif; font-size: 1.05rem;
 }
-.cp-list { display: flex; flex-direction: column; gap: 0.55rem; }
-
-.cp-card {
-  display: grid;
-  grid-template-columns: 1fr;
-  align-items: start;
-  gap: 0.8rem;
-  width: 100%;
-  min-height: 44px;
-  padding: 0.7rem 0.8rem 0.75rem 0.7rem;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--mist);
-  border-radius: 8px;
-  color: var(--parchment);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  transition: border-color 0.15s, background 0.15s;
-}
-@media (hover: hover) {
-  .cp-card:not(:disabled):not(.is-bonded):hover { border-color: #777; background: rgba(255, 255, 255, 0.07); }
-}
-.cp-card:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
-.cp-card:not(:disabled):active { transform: scale(0.99); }
-
-.cp-portrait {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: #141414;
-  color: #e6dcc8;
-  border: 2px solid var(--mist);
-  box-shadow: 0 0 0 1px var(--dim), inset 0 0 8px rgba(0, 0, 0, 0.5);
-}
-.cp-main { min-width: 0; display: flex; flex-direction: column; gap: 0.4rem; }
-.cp-head { display: flex; align-items: center; flex-wrap: wrap; gap: 0.2rem 0.5rem; min-height: 28px; }
-.cp-name { font-family: 'Caslon Antique', serif; font-size: 1.3rem; line-height: 1.1; color: #fff; }
-.cp-bonus {
-  padding: 0.1rem 0.45rem;
-  border-radius: 10px;
-  background: rgba(74, 154, 74, 0.18);
-  color: #6fbf6f;
-  font-family: 'Oswald', sans-serif;
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.cp-status {
-  margin-left: auto;
-  font-family: 'Oswald', sans-serif;
-  font-size: 0.66rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-.cp-status:empty { display: none; }
-.cp-ability {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-  padding: 0.4rem 0.6rem;
-  background: var(--ash);
-  border-left: 3px solid var(--dim);
-}
-.cp-ability-name {
-  font-family: 'Oswald', sans-serif;
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--bone);
-}
-.cp-ability-desc { font-size: 0.88rem; line-height: 1.45; color: var(--parchment); }
-
-/* Chosen animal */
-.cp-card.is-bonded {
-  background: rgba(190, 65, 39, 0.12);
-  border-color: var(--blood);
-  box-shadow: inset 3px 0 0 var(--blood);
-  cursor: default;
-}
-.cp-card.is-bonded .cp-portrait { border-color: var(--blood); }
-.cp-card.is-bonded .cp-ability { border-left-color: var(--blood); }
-.cp-card.is-bonded .cp-status {
-  padding: 0.15rem 0.5rem;
-  border-radius: 3px;
-  background: var(--blood);
-  color: #fff;
-}
-
-/* Campaign: died last game, sits this one out */
-.cp-card.is-resting {
-  background: transparent;
-  border-style: dashed;
-  border-color: #5a2a2a;
-  cursor: not-allowed;
-}
-.cp-card.is-resting .cp-portrait { color: #6a6a6a; border-style: dashed; border-color: #5a2a2a; box-shadow: none; }
-.cp-card.is-resting .cp-name { color: #8a8a8a; text-decoration: line-through; text-decoration-color: rgba(192, 96, 96, 0.7); }
-.cp-card.is-resting .cp-bonus,
-.cp-card.is-resting .cp-ability { opacity: 0.4; }
-.cp-card.is-resting .cp-status { color: #c06060; }
-.cp-resting-note {
-  font-family: 'Oswald', sans-serif;
-  font-size: 0.72rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: #d07070;
-}
+.companion-name-input::placeholder { color: #777; }
+.companion-name-input:focus { outline: none; border-color: var(--mist); }

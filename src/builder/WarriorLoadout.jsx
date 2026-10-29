@@ -6,22 +6,23 @@ import { ITEM_ICONS } from '../data/images'
 import { SvgWeapon1, SvgOffhand, SvgClimbing, SvgConsumable, SvgStat } from './icons'
 import WarriorUpgradeModal from './WarriorUpgradeModal'
 import { spendableNow } from './campaignUi'
-import { COMPANIONS, companionBonusLabel } from '../data/companions'
-import { getEffectiveStats, statTone, STAT_KEYS } from '../utils/stats'
+import { COMPANIONS, companionDisplayName } from '../data/companions'
+import CompanionSheet, { CompanionStats, CompanionAbilities } from './CompanionSheet'
+import CompanionPortrait from './CompanionPortrait'
 
-// The animal's stats: the owner's (bonus and improvements included), except its own VITALITY
-function CompanionStats({ slot, vit }) {
-  const stats = getEffectiveStats(slot)
-  const toneClass = { improved: 'modified', debuffed: 'debuffed' }
+// The animal, a button like the Company Mark: its miniature, its name (and what it is, once renamed). Tap to choose or name it (CompanionSheet).
+function CompanionButton({ slot, onOpen }) {
+  const animal = slot.companion
+  const shown = companionDisplayName(slot)
   return (
-    <span className="stats-row eq-companion-stats">
-      {STAT_KEYS.map(s => (
-        <span key={s} className="stat-box">
-          <span className="stat-label">{s}</span>
-          <span className={`stat-val ${s === 'VIT' ? '' : toneClass[statTone(stats[s])] || ''}`}>{s === 'VIT' ? vit : stats[s].display}</span>
-        </span>
-      ))}
-    </span>
+    <button type="button" className="eq-companion-pick" onClick={onOpen} aria-label={`Companion: ${shown}. Change or rename`}>
+      <CompanionPortrait name={animal} className="eq-companion-portrait" />
+      <span className="eq-companion-ident">
+        <span className="eq-companion-name-text">{shown}</span>
+        {shown !== animal && <span className="eq-companion-kind">{animal}</span>}
+      </span>
+      <svg className="eq-companion-chevron" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 6 6 6-6 6" /></svg>
+    </button>
   )
 }
 
@@ -292,56 +293,36 @@ export default function WarriorLoadout({ slotIndex, slot, wdata, poolFull }) {
 
       {/* Companion: free and required, part of the class — not an IP upgrade */}
       {wdata.companion && slot.companion && COMPANIONS[slot.companion] && (
-        // Laid out like a warrior: name, portrait + stats, then its trait and ability. Tap to change.
-        <div
-          className="eq-companion-row"
-          role="button"
-          tabIndex={0}
-          onClick={() => setModalCategory('companion')}
-          onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setModalCategory('companion') } }}
-          aria-label={`Companion: ${slot.companion}. Change`}
-        >
-          {/* A section like ABILITIES below: header, then the animal */}
+        // A section like ABILITIES below: header, the animal (tap to choose or name it), stats, abilities
+        <section className="eq-companion-row" aria-label={`Companion: ${companionDisplayName(slot)}`}>
           <div className="lr-section-header eq-companion-head">
             <span className="lr-section-title">COMPANION</span>
           </div>
-          <div className="eq-companion-name">
-            {slot.companion}
-            <span className="eq-companion-bonus">{companionBonusLabel(slot.companion)}</span>
-          </div>
+          <CompanionButton slot={slot} onOpen={() => setModalCategory('companion')} />
           <div className="eq-companion-header">
             <CompanionStats slot={slot} vit={wdata.companion.vit} />
           </div>
-          <div className="bd-abilities eq-companion-abilities">
-            {COMPANIONS[slot.companion].passive && (
-              <div className="bd-ability">
-                <span className="bd-ability-name">{COMPANIONS[slot.companion].passive.name}</span>
-                <div className="bd-ability-desc">{COMPANIONS[slot.companion].passive.desc}</div>
-              </div>
-            )}
-            <div className="bd-ability">
-              <span className="bd-ability-name">{COMPANIONS[slot.companion].ability.name.split('·').pop().trim()}</span>
-              <div className="bd-ability-desc">{COMPANIONS[slot.companion].ability.desc}</div>
-            </div>
-          </div>
-        </div>
+          <CompanionAbilities animal={slot.companion} ownerType={slot.type} className="eq-companion-abilities" />
+        </section>
       )}
       {wdata.companion && slot.restingCompanion && (
         <div className="eq-companion-resting">
-          <span>{slot.restingCompanion} died last game · sits this one out</span>
+          <span>{companionDisplayName(slot, slot.restingCompanion)} died last game · sits this one out</span>
         </div>
       )}
 
+      {modalCategory === 'companion' && wdata.companion && (
+        <CompanionSheet slotIndex={slotIndex} slot={slot} wdata={wdata} onClose={() => setModalCategory(null)} />
+      )}
       <WarriorUpgradeModal
-        isOpen={!!modalCategory}
+        isOpen={!!modalCategory && modalCategory !== 'companion'}
         category={modalCategory}
         title={
           modalCategory === 'weapon1' ? 'Select Weapon' :
           modalCategory === 'weapon2' ? `Select ${weapon2Label}` :
           modalCategory === 'climbing' ? 'Select Gear' :
           modalCategory === 'consumable' ? 'Select Item' :
-          modalCategory === 'stat' ? 'Select Stat Upgrade' :
-          modalCategory === 'companion' ? 'Choose Companion' : ''
+          modalCategory === 'stat' ? 'Select Stat Upgrade' : ''
         }
         onClose={() => setModalCategory(null)}
         slotIndex={slotIndex}

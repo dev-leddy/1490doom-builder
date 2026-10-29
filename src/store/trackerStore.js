@@ -36,7 +36,8 @@ export { ownerDown, companionState, companionAlive } from '../data/companions'
 function buildCompanion(slot) {
   const def = WARRIORS[slot.type]?.companion
   if (!def || !COMPANIONS[slot.companion]) return null
-  return { name: slot.companion, maxVit: def.vit, currentVit: def.vit, statuses: [], cacheItems: [] }
+  const nick = (slot.companionNames?.[slot.companion] || '').trim()
+  return { name: slot.companion, ...(nick && { nick }), maxVit: def.vit, currentVit: def.vit, statuses: [], cacheItems: [] }
 }
 
 // Same tap rule as the owner's track: tap the last box to lose it, a lost box to heal up to it

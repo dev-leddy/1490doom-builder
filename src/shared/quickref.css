@@ -90,6 +90,22 @@
 .qr-fall-landing { margin: 0.75rem 0 0; }
 .qr-fall-landing strong { font-style: normal; font-family: 'Oswald', sans-serif; letter-spacing: 0.08em; text-transform: uppercase; font-size: 0.85rem; color: #e2dccf; }
 
+/* Falling Damage grid: D6 down the side, distance fallen across the top */
+.qr-fall-lead { font-size: 0.95rem; color: #c8b890; line-height: 1.45; margin: 0 0 0.5rem; }
+.qr-fall-lead strong { font-family: 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.85rem; font-weight: 700; color: #fff; }
+.qr-table.qr-fall-grid { table-layout: fixed; }
+.qr-table.qr-fall-grid th, .qr-table.qr-fall-grid td {
+  padding: 0.3rem 0.25rem; border: 1px solid #2a2a2a; text-align: center;
+  font-family: 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 0.06em; line-height: 1.25;
+}
+.qr-table.qr-fall-grid thead th { background: #1e1e1e; color: #fff; font-size: 0.72rem; font-weight: 700; }
+.qr-table.qr-fall-grid thead .qr-fall-axis { color: #c8b890; font-weight: 400; font-size: 0.65rem; letter-spacing: 0.14em; }
+.qr-table.qr-fall-grid tbody th { background: #1e1e1e; color: #fff; font-size: 0.95rem; font-weight: 700; width: 18%; }
+.qr-table.qr-fall-grid td { color: #fff; font-size: 0.95rem; font-weight: 700; }
+.qr-table.qr-fall-grid td.qr-fall-none { color: #c8b890; font-weight: 400; }
+/* must out-rank .qr-table tr:nth-child(even) td */
+.qr-table.qr-fall-grid tbody tr td.qr-fall-dead { background: #5c180e; color: #fff; font-size: 0.78rem; letter-spacing: 0.12em; }
+
 .qr-table {
   width: 100%;
   border-collapse: collapse;

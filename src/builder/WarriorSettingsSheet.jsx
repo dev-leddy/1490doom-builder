@@ -164,7 +164,7 @@ export default function WarriorSettingsSheet({ slotIndex, slot, allSlots, isOpen
           <p className="ws-class-locked">{slot.type}. Class is locked in a campaign.</p>
         ) : (
         <div className="wcp-grid">
-          {[...available, ...(slot.type && !available.includes(slot.type) ? [slot.type] : [])].map(wt => (
+          {[...available, ...(slot.type && !available.includes(slot.type) ? [slot.type] : [])].sort().map(wt => (
             <button
               key={wt}
               className={`wcp-item ${tempType === wt ? 'selected' : ''}`}

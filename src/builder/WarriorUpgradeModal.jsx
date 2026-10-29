@@ -5,7 +5,6 @@ import { WEAPONS, CLIMBING_ITEMS, CLIMBING_DESCS, CONSUMABLES, CONSUMABLE_NAMES 
 import { ITEM_ICONS } from '../data/images'
 import { getEffectiveStats } from '../utils/stats'
 import BottomSheet from '../shared/BottomSheet'
-import { COMPANIONS, companionBonusLabel } from '../data/companions'
 import './styles/builder-picker.css'
 
 // ── Shared option card ───────────────────────────────────────────────────────
@@ -403,53 +402,6 @@ export default function WarriorUpgradeModal({
                 }}
               />
             ))}
-          </div>
-        </>
-      )}
-
-      {category === 'companion' && wdata.companion && (
-        <>
-          <p className="cp-intro">
-            <span className="cp-intro-label">{wdata.companion.label}</span>
-            Free and required. Shares your {slot.type}&rsquo;s stats, with its own {wdata.companion.vit} Vitality.
-          </p>
-          <div className="cp-list">
-            {wdata.companion.options.map(name => {
-              const c = COMPANIONS[name]
-              const active = slot.companion === name
-              const resting = slot.restingCompanion === name
-              return (
-                <button
-                  key={name}
-                  type="button"
-                  className={`companion-pick cp-card${active ? ' is-bonded' : ''}${resting ? ' is-resting' : ''}`}
-                  disabled={resting}
-                  aria-pressed={active}
-                  onClick={() => { useBuilderStore.getState().setCompanion(slotIndex, name); onClose() }}
-                >
-                  <span className="cp-main">
-                    <span className="cp-head">
-                      <span className="cp-name">{name}</span>
-                      <span className="cp-bonus">{companionBonusLabel(name)}</span>
-                      <span className="cp-status">
-                        {active ? '✓ Bonded' : resting ? 'Resting' : ''}
-                      </span>
-                    </span>
-                    {c.passive && (
-                      <span className="cp-ability">
-                        <span className="cp-ability-name">{c.passive.name}</span>
-                        <span className="cp-ability-desc">{c.passive.desc}</span>
-                      </span>
-                    )}
-                    <span className="cp-ability">
-                      <span className="cp-ability-name">{c.ability.name.split('·').pop().trim()}</span>
-                      <span className="cp-ability-desc">{c.ability.desc}</span>
-                    </span>
-                    {resting && <span className="cp-resting-note">Died last game · sits this one out</span>}
-                  </span>
-                </button>
-              )
-            })}
           </div>
         </>
       )}

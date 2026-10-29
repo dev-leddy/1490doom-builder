@@ -27,23 +27,37 @@ export const COMPANIONS = {
 
 export const COMPANION_NAMES = ['Raptor', 'Monkey', 'Cat']
 
-// Placeholder silhouettes for companion icons (24x24 SVG paths), until official art exists
-export const COMPANION_ICON_PATHS = {
-  // bird of prey: head, hooked beak, swept wing
-  Raptor: 'M3 13c3-1 5-4 6-8 1 2 1 4 0 6 2-2 4-3 7-3l-2 2 4 1-4 1c-1 3-4 5-8 5l-1 3-1-3c-1 0-2-1-1-2z M14 8.6a.8.8 0 1 0 0 .01z',
-  // monkey: round head, ears, muzzle
-  Monkey: 'M12 4a6 6 0 0 0-5.6 3.8 2.3 2.3 0 1 0 0 4.4A6 6 0 0 0 12 20a6 6 0 0 0 5.6-7.8 2.3 2.3 0 1 0 0-4.4A6 6 0 0 0 12 4zm-2.5 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm5 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2zM12 14c1.6 0 2.8.8 2.8 1.8S13.6 17.6 12 17.6 9.2 16.8 9.2 15.8 10.4 14 12 14z',
-  // cat: head with pointed ears
-  Cat: 'M5 3l3.5 4.2A7 7 0 0 1 12 6.5a7 7 0 0 1 3.5.7L19 3v8a7 7 0 1 1-14 0zm4.5 8a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm5 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2zM12 14.5l-1 1h2z',
+// Photos of the miniatures (public/companions), square crops
+export const COMPANION_PORTRAITS = {
+  Raptor: '/companions/raptor.webp',
+  Monkey: '/companions/monkey.webp',
+  Cat: '/companions/cat.webp',
 }
 
 // Key for the companion's once-per-game use in play mode (can't clash with a class ability)
 export const companionKey = name => `companion:${name}`
 
+// A player can name each animal of a menagerie (slot.companionNames, keyed by animal), so a
+// renamed Raptor keeps its name when the Beastmaster swaps to the Cat and back
+export const COMPANION_NAME_MAX = 24
+export function companionDisplayName(slot, animal = typeof slot?.companion === 'string' ? slot.companion : slot?.companion?.name) {
+  return (slot?.companionNames?.[animal] || '').trim() || animal
+}
+
 // "+1 MOV" style label for a companion's bonus
 export function companionBonusLabel(name) {
   const bonus = COMPANIONS[name]?.bonus || {}
   return Object.entries(bonus).map(([stat, n]) => `+${n} ${stat}`).join(' ')
+}
+
+// The bonus written as a skill, the way the rules print it ("+1 MOVEMENT"), for the
+// ability lists in build mode
+const STAT_WORDS = { MOV: 'MOVEMENT', ATK: 'ATTACK', VIT: 'VITALITY', SKL: 'SKILL', DEF: 'DEFENSE', COM: 'COMBAT' }
+export function companionBonusSkill(name, ownerType) {
+  const entries = Object.entries(COMPANIONS[name]?.bonus || {})
+  if (!entries.length) return null
+  const label = entries.map(([stat, n]) => `+${n} ${STAT_WORDS[stat] || stat}`).join(', ')
+  return { name: label, desc: `While the ${name} lives, the ${ownerType || 'owner'} has ${label}.` }
 }
 
 // The animal a slot of this class starts with (null for classes without one)

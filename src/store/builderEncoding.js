@@ -57,10 +57,23 @@ export function encodeCompany(s) {
       : (slot.statImprove ? _idx(ALL_STAT_KEYS, slot.statImprove).toString(36) : '-')
     const compEnc = slot.companion && COMPANION_NAMES.includes(slot.companion) ? COMPANION_NAMES.indexOf(slot.companion).toString(36) : '-'
     const restEnc = slot.restingCompanion && COMPANION_NAMES.includes(slot.restingCompanion) ? COMPANION_NAMES.indexOf(slot.restingCompanion).toString(36) : '-'
-    parts.push([wIdx, w1Idx, w2Idx, cIdx, clIdx, ipStr, cap, notesEnc, nameEnc, earnedEnc, statImpsEnc, compEnc, restEnc].join(':'))
+    const named = COMPANION_NAMES.map(n => (slot.companionNames?.[n] || '').trim())
+    const compNamesEnc = named.some(Boolean) ? named.map(encodeURIComponent).join(',').replace(/,+$/, '') : '-'
+    parts.push([wIdx, w1Idx, w2Idx, cIdx, clIdx, ipStr, cap, notesEnc, nameEnc, earnedEnc, statImpsEnc, compEnc, restEnc, compNamesEnc].join(':'))
   })
   const encoded = btoa(parts.join('|')).replace(/=/g, '')
   return isCampaign ? `v2c_${s.campaignGame || 0}_${encoded}` : encoded
+}
+
+// The animals' names (14th slot field): one URI-encoded name per COMPANION_NAMES index,
+// comma-separated (encodeURIComponent escapes commas, colons and bars), '-' when none
+function decodeCompanionNames(enc) {
+  if (!enc || enc === '-') return null
+  const names = {}
+  enc.split(',').forEach((n, i) => {
+    try { const v = decodeURIComponent(n).trim(); if (v && COMPANION_NAMES[i]) names[COMPANION_NAMES[i]] = v } catch {}
+  })
+  return Object.keys(names).length ? names : null
 }
 
 export function decodeCompany(code) {
@@ -95,7 +108,8 @@ export function decodeCompany(code) {
     const slots = Array.from({ length: slotCount }, (_, i) => {
       const slotRaw = parts[3 + i]
       if (!slotRaw || slotRaw === '_') return emptySlot(i)
-      const [wIdx, w1Idx, w2Idx, cIdx, clIdx, ipStr, cap, notesEnc, nameEnc, earnedEnc, statImpsEnc, compEnc, restEnc] = slotRaw.split(':')
+      const [wIdx, w1Idx, w2Idx, cIdx, clIdx, ipStr, cap, notesEnc, nameEnc, earnedEnc, statImpsEnc, compEnc, restEnc, compNamesEnc] = slotRaw.split(':')
+      const companionNames = decodeCompanionNames(compNamesEnc)
       const type      = ALL_WARRIORS[parseInt(wIdx, 36)] || null
       const companion = compEnc && compEnc !== '-' ? COMPANION_NAMES[parseInt(compEnc, 36)] || null : null
       const restingCompanion = restEnc && restEnc !== '-' ? COMPANION_NAMES[parseInt(restEnc, 36)] || null : null
@@ -119,7 +133,7 @@ export function decodeCompany(code) {
         } catch {}
       }
       const customName = nameEnc && nameEnc !== '-' ? decodeURIComponent(nameEnc) : null
-      return withCompanion({ type, weapon1, weapon2, consumable, climbing, ip, isCaptain: cap === '1', notes, customName, earnedIP, statImproves, statImprove, companion, ...(restingCompanion && { restingCompanion }) })
+      return withCompanion({ type, weapon1, weapon2, consumable, climbing, ip, isCaptain: cap === '1', notes, customName, earnedIP, statImproves, statImprove, companion, ...(restingCompanion && { restingCompanion }), ...(companionNames && { companionNames }) })
     })
     if (!slots.some(sl => sl.type)) return null
     return { mark, companyName, ipLimit, companyMode: isCampaign ? 'campaign' : 'standard', campaignGame, slots }

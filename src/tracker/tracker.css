@@ -1370,6 +1370,10 @@
   border-left: 3px solid #4a8a4a;
 }
 .tk-companion-header { display: flex; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.45rem; }
+.tk-companion-portrait { width: 36px; height: 36px; border-radius: 6px; } /* same height as + CACHE / + STATUS */
+/* An animal with + CACHE and + STATUS stacked: the portrait fills both buttons' height */
+.tk-companion-portrait--tall { width: calc(72px + 0.25rem); height: calc(72px + 0.25rem); }
+.tk-companion--slain .tk-companion-portrait, .tk-companion--removed .tk-companion-portrait { filter: grayscale(1); opacity: 0.55; }
 .tk-companion-title { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.1rem; }
 .tk-companion-line { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0.1rem 0.5rem; }
 .tk-companion-kicker {
@@ -1409,6 +1413,7 @@
 /* Tab bar: the animal's vitality under its owner's */
 .tk-tab-vit-sub { display: inline-flex; align-items: center; gap: 2px; padding: 1px 4px 1px 3px; border: 1px solid #24402a; border-radius: 8px; font-family: 'Oswald', sans-serif; font-size: 0.6rem; font-weight: 600; color: #8fc08f; line-height: 1; align-self: center; }
 .tk-tab-vit-sub--slain, .tk-tab-vit-sub--removed { color: #a05a5a; border-color: #402424; }
+.tk-tab-vit-sub-tag { opacity: 0.75; font-weight: 500; }
 
 /* Undo toast (e.g. an animal removed with its owner), floating just above the tab bar */
 .tk-undo-toast {

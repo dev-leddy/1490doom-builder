@@ -10,7 +10,7 @@
 import { forwardRef, useMemo } from 'react'
 import { WARRIORS, MARKS_MAP } from '../data/warriors'
 import { WEAPONS, CLIMBING_ITEMS } from '../data/weapons'
-import { COMPANIONS, companionBonusLabel } from '../data/companions'
+import { COMPANIONS, companionBonusLabel, companionDisplayName } from '../data/companions'
 import { WARRIOR_IMAGES, MARK_IMAGES } from '../data/images'
 import { getEffectiveStats, improvedStats, STAT_KEYS } from '../utils/stats'
 
@@ -195,7 +195,7 @@ function companionFor(slot, wdata) {
   if (!data) return null
   // Ability names are stored as "MONKEY · THIEF!"; the card already says Monkey
   const abilityName = data.ability.name.replace(new RegExp(`^${name.toUpperCase()}\\s*·\\s*`), '')
-  return { name, data, abilityName, bonus: companionBonusLabel(name), vit: wdata.companion.vit }
+  return { name: companionDisplayName(slot, name), data, abilityName, bonus: companionBonusLabel(name), vit: wdata.companion.vit }
 }
 
 // ── Pieces ────────────────────────────────────────────────────────────────────

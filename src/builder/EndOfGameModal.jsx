@@ -7,7 +7,8 @@ import { CAMPAIGN_RULES } from '../data/campaign'
 import { validateEndOfGame, endOfGameWarnings, spendableCapacity, campaignProgress, undoLastGame, draftFromRecord } from '../store/campaign'
 import BottomSheet from '../shared/BottomSheet'
 import { fallenName } from './campaignUi'
-import CompanionIcon from './CompanionIcon'
+import { companionDisplayName } from '../data/companions'
+import CompanionPortrait from './CompanionPortrait'
 import { WARRIORS } from '../data/warriors'
 import './styles/activity-log.css'
 
@@ -288,8 +289,8 @@ export default function EndOfGameModal({ onClose, onConfirm, initialResult = nul
                 {/* The animal leaves with a fallen owner; it only needs asking about when the owner stood */}
                 {s.companion && !fell && (
                   <div className={`eog-companion-row${animalDown ? ' fallen' : ''}`} data-companion={s.index}>
-                    <CompanionIcon name={s.companion} size={18} />
-                    <span className="eog-companion-name">{s.companion}</span>
+                    <CompanionPortrait name={s.companion} className="eog-companion-portrait" />
+                    <span className="eog-companion-name">{companionDisplayName(s)}</span>
                     <span className="eog-fate" role="group" aria-label={s.companion}>
                       <button type="button" className="is-standing" aria-pressed={!animalDown} onClick={() => toggleAnimal(s.index, false)}>Standing</button>
                       <button type="button" className="is-fell" aria-pressed={animalDown} onClick={() => toggleAnimal(s.index, true)}>Fell</button>
@@ -298,12 +299,12 @@ export default function EndOfGameModal({ onClose, onConfirm, initialResult = nul
                 )}
                 {s.companion && !fell && animalDown && (
                   <div className="eog-companion-next" role="radiogroup" aria-label={`Animal for game ${gameNumber + 1}`}>
-                    <span className="eog-companion-next-label">{s.companion} sits out game {gameNumber + 1}. Instead:</span>
+                    <span className="eog-companion-next-label">{companionDisplayName(s)} sits out game {gameNumber + 1}. Instead:</span>
                     {standIns(s).map(name => (
                       <button key={name} type="button" role="radio" aria-checked={nextAnimal(s) === name}
                         className={`eog-companion-chip${nextAnimal(s) === name ? ' chosen' : ''}`}
                         onClick={() => setCompanionNext(prev => ({ ...prev, [s.index]: name }))}>
-                        <CompanionIcon name={name} size={14} />{name}
+                        {companionDisplayName(s, name)}
                       </button>
                     ))}
                   </div>
@@ -428,7 +429,7 @@ export default function EndOfGameModal({ onClose, onConfirm, initialResult = nul
             })}
           </div>
           {animalsDown.map(s => (
-            <p key={s.index} className="eog-perm" data-companion-note={s.index}>{nameOf(s)}'s {s.companion} fell and sits out game {gameNumber + 1}. The {nextAnimal(s)} goes instead.</p>
+            <p key={s.index} className="eog-perm" data-companion-note={s.index}>{nameOf(s)}'s {companionDisplayName(s)} fell and sits out game {gameNumber + 1}. {companionDisplayName(s, nextAnimal(s)) === nextAnimal(s) ? `The ${nextAnimal(s)}` : companionDisplayName(s, nextAnimal(s))} goes instead.</p>
           ))}
           {!earns && <p className="eog-perm">You retreated: no IP this game. Your opponent takes all victory points.</p>}
 

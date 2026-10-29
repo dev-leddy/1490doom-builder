@@ -8,7 +8,7 @@ import { WARRIOR_IMAGES, MARK_IMAGES, ITEM_ICONS } from '../data/images'
 import { WEAPONS, CLIMBING_ITEMS } from '../data/weapons'
 import EmblemSheet from './EmblemSheet'
 import BottomSheet from '../shared/BottomSheet.jsx'
-import MarkPicker from './MarkPicker.jsx'
+import MarkPicker, { MarkDescription } from './MarkPicker.jsx'
 
 function randomAvatarKey() {
   return COMPANY_AVATARS[Math.floor(Math.random() * COMPANY_AVATARS.length)].key
@@ -366,19 +366,7 @@ export default function NewCompanyPage({ onStart, onBack }) {
             <MarkPicker value={tempMark} onChange={setTempMark} />
           </div>
           {/* The chosen mark's ability, at the bottom just above Cancel / Done */}
-          <div className="mark-sheet-desc">
-            {(() => {
-              const preview = MARKS.find(m => m.name === tempMark)
-              return preview ? (
-                <>
-                  <div className="mark-sheet-desc-name">{preview.label}</div>
-                  <div className="mark-sheet-desc-text">{preview.desc}</div>
-                </>
-              ) : (
-                <div className="mark-sheet-desc-placeholder">Select a mark to see its battlefield ability.</div>
-              )
-            })()}
-          </div>
+          <MarkDescription value={tempMark} />
         </BottomSheet>
       )}
 

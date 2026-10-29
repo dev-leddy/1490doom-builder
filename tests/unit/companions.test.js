@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { encodeCompany, decodeCompany } from '../../src/store/builderEncoding.js'
 import { decodeCompany as serverDecode } from '../../functions/lib/decode.js'
 import { WARRIORS, canRestoreWithReliquary } from '../../src/data/warriors.js'
-import { COMPANIONS, COMPANION_NAMES, defaultCompanion, withCompanion, companionState } from '../../src/data/companions.js'
+import { COMPANIONS, COMPANION_NAMES, defaultCompanion, withCompanion, companionState, companionDisplayName } from '../../src/data/companions.js'
 import { getEffectiveStats } from '../../src/utils/stats.js'
 import { normalizeCampaign, applyEndOfGame, undoLastGame, draftFromRecord, hireIntoVacancy, reRecordLatestGame } from '../../src/store/campaign.js'
 
@@ -57,6 +57,25 @@ describe('companion share links', () => {
     const slots = decodeCompany(old).slots.filter(s => s.type)
     expect(slots.map(s => s.type)).toEqual(['Beastmaster', 'Fighter'])
     expect(slots[0].companion).toBe('Raptor')
+  })
+})
+
+describe('companion names', () => {
+  it('names survive a share link (browser and server), including commas and colons', () => {
+    const names = { Raptor: 'Clawfoot', Cat: 'Mrs: Whiskers, the Third|' }
+    const code = encodeCompany({ mark: '', companyName: 'Named', ipLimit: 3, slots: [slot('Beastmaster', { isCaptain: true, companion: 'Cat', companionNames: names }), slot('Fighter')] })
+    const client = decodeCompany(code).slots.filter(s => s.type)
+    expect(client[0].companionNames).toEqual(names)
+    expect(client[0].companion).toBe('Cat')
+    expect(client[1].companionNames).toBeUndefined()
+    expect(serverDecode(code).warriors[0].companionNames).toEqual(names)
+  })
+
+  it('an unnamed animal shows its own name', () => {
+    expect(companionDisplayName(slot('Beastmaster', { companion: 'Raptor' }))).toBe('Raptor')
+    expect(companionDisplayName(slot('Beastmaster', { companion: 'Raptor', companionNames: { Raptor: '  ' } }))).toBe('Raptor')
+    expect(companionDisplayName(slot('Beastmaster', { companion: 'Raptor', companionNames: { Cat: 'Tom' } }), 'Cat')).toBe('Tom')
+    expect(companionDisplayName({ companion: { name: 'Cat' }, companionNames: { Cat: 'Tom' } })).toBe('Tom')
   })
 })
 

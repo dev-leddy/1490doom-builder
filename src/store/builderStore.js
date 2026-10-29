@@ -19,7 +19,7 @@ import {
   reRecordLatestGame, editOutcome, resurrectWarrior as resurrectWarriorOf,
 } from './campaign'
 import { encodeCompany, decodeCompany } from './builderEncoding'
-import { defaultCompanion, withCompanion } from '../data/companions'
+import { defaultCompanion, withCompanion, COMPANION_NAME_MAX } from '../data/companions'
 import { fetchCloudSaves, removeCloudCompany, createSaver, migrateLocalData, snapshotCompany } from './builderPersistence'
 import { useAuthStore } from './authStore'
 import { makeEvent, makeBaselineEvent, newEventId, MAX_NOTE_LENGTH } from './campaignEvents'
@@ -37,7 +37,8 @@ export function getAvailableWarriorTypes(slotIndex, slots) {
   const usedTypes = slots
     .filter((_, i) => i !== slotIndex && slots[i]?.type)
     .map(s => s.type)
-  return Object.keys(WARRIORS).filter(t => !usedTypes.includes(t))
+  // Alphabetical for the pickers (Object.keys(WARRIORS) is share-link order, new classes last)
+  return Object.keys(WARRIORS).filter(t => !usedTypes.includes(t)).sort()
 }
 
 export function getBaseIP(slotIndex) {
@@ -465,6 +466,18 @@ export const useBuilderStore = create((set, get) => {
     },
     setCompanion(slotIndex, name) {
       const slots = get().slots.map((slot, i) => i === slotIndex ? withCompanion({ ...slot, companion: name }) : slot)
+      set({ slots })
+      get()._autoDraft()
+    },
+    // Name one animal of the slot's menagerie; an empty name goes back to the animal's own
+    setCompanionName(slotIndex, animal, name) {
+      const clean = (name || '').trim().slice(0, COMPANION_NAME_MAX)
+      const slots = get().slots.map((slot, i) => {
+        if (i !== slotIndex) return slot
+        const { [animal]: _old, ...rest } = slot.companionNames || {}
+        const companionNames = clean ? { ...rest, [animal]: clean } : rest
+        return { ...slot, companionNames: Object.keys(companionNames).length ? companionNames : undefined }
+      })
       set({ slots })
       get()._autoDraft()
     },
