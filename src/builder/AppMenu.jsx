@@ -85,7 +85,7 @@ export default function AppMenu({
 
         <Section title="More">
           <Row icon={<DiscordIcon />} label="Discord" href="https://discord.gg/hqTdqGBJyg" onClick={onClose} />
-          <Row icon={<Icon name="shop" />} label="1490 DOOM Shop" href="https://buergames.com/collections/1490-doom-physical" onClick={onClose} />
+          <Row icon={<Icon name="shop" />} label="1490 DOOM Shop" href="/go/shop/physical?from=menu" onClick={onClose} />
         </Section>
       </div>
     </BottomSheet>

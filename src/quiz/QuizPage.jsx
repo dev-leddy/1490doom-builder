@@ -152,7 +152,7 @@ export default function QuizPage({ onComplete, onLightboxToggle }) {
           <div className="qz-footer-main">
             <a
               className={`qz-doom-logo-corner${engine.phase !== 'hero' ? ' visible' : ''}`}
-              href="https://buergames.com/pages/1490doom"
+              href="/go/shop/game?from=quiz-footer"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -160,7 +160,7 @@ export default function QuizPage({ onComplete, onLightboxToggle }) {
             </a>
             <div className="qz-footer-cta" />
             <a
-              href="https://buergames.com/"
+              href="/go/shop/home?from=quiz-footer"
               target="_blank"
               rel="noopener noreferrer"
               className="qz-footer-buer-logo-link"

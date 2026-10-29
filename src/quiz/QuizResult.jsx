@@ -158,7 +158,7 @@ export default function QuizResult({ winner, onComplete, onRestart, audioState, 
         <div className="qz-footer-main">
           <a
             className="qz-doom-logo-corner visible"
-            href="https://buergames.com/pages/1490doom"
+            href="/go/shop/game?from=quiz-result-footer"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -187,7 +187,7 @@ export default function QuizResult({ winner, onComplete, onRestart, audioState, 
           </div>
 
           <a
-            href="https://buergames.com/"
+            href="/go/shop/home?from=quiz-result-footer"
             target="_blank"
             rel="noopener noreferrer"
             className="qz-footer-buer-logo-link"

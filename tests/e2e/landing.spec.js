@@ -8,7 +8,7 @@ test.describe('landing (guest)', () => {
     await expect(page.locator('.landing-start-card').last()).toContainText('Build your company')
     await expect(page.locator('.landing-world')).toContainText('What is 1490 DOOM?')
     await expect(page.locator('.landing-world-btn')).toHaveAttribute('href', 'https://1490doom.com')
-    await expect(page.locator('.landing-shop-pill')).toHaveAttribute('href', 'https://buergames.com/collections/1490-doom-physical')
+    await expect(page.locator('.landing-shop-pill')).toHaveAttribute('href', '/go/shop/physical?from=landing') // counted, then on to the store
   })
 
   test('building asks a guest to sign in, opening on the email form', async ({ page }) => {
@@ -27,7 +27,7 @@ test.describe('landing (guest)', () => {
     await expect(page.locator('.app-menu-signin')).toBeVisible()
     await expect(page.locator('.app-menu-row', { hasText: 'My companies' })).toHaveCount(0)
     await expect(page.getByText('This company')).toHaveCount(0)
-    await expect(page.locator('.app-menu-row', { hasText: '1490 DOOM Shop' })).toHaveAttribute('href', 'https://buergames.com/collections/1490-doom-physical')
+    await expect(page.locator('.app-menu-row', { hasText: '1490 DOOM Shop' })).toHaveAttribute('href', '/go/shop/physical?from=menu')
   })
 
   test('a non-company #hash does not open a "shared company"', async ({ page }) => {

@@ -62,6 +62,21 @@ npx wrangler d1 execute doom-builder --remote --file=db/migrations/<file>.sql
 
 The same with `--local` instead of `--remote` updates the local database used by `wrangler pages dev` and the e2e tests.
 
+## Usage metrics
+
+`npm run metrics` prints a usage report from the production database (read-only SELECTs; needs
+`wrangler login`). Add `-- --local` for the local database or `-- --json` for raw rows.
+
+- From tables the app already keeps, so covering all history: accounts, active players (last
+  visit), companies by type, warrior classes, marks, campaign games, campaign groups, share links.
+- From `metric_events` (migration `008_metrics.sql`), counting from when it goes live: games
+  started and ended (company type, scenario, rounds, minutes), companies created, and clicks on
+  store links.
+- Store links go through `/go/shop/:dest?from=<place>` and `/go/product/:handle`, which count
+  the click and add `utm_source=doom-builder` tags so Buer Games' Shopify reports show orders
+  from the app.
+- No names or company contents are logged: classes, marks, modes and counts only.
+
 ## Project structure
 
 ```

@@ -78,10 +78,20 @@ CREATE TABLE IF NOT EXISTS campaign_group_members (
   PRIMARY KEY (group_id, company_id)
 );
 
+-- Usage metrics (008): store clicks, games started/ended, companies created
+CREATE TABLE IF NOT EXISTS metric_events (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  kind       TEXT    NOT NULL,                      -- 'store_click' | 'game_start' | 'game_end' | 'company_create'
+  user_id    TEXT    REFERENCES users(id) ON DELETE SET NULL, -- NULL for guests
+  props      TEXT    NOT NULL DEFAULT '{}',         -- JSON, small
+  created_at INTEGER NOT NULL                       -- unix ms
+);
+
 CREATE UNIQUE INDEX IF NOT EXISTS idx_short_links_encoded ON short_links(encoded);
 CREATE INDEX IF NOT EXISTS idx_campaign_events_company ON campaign_events(company_id, seq);
 CREATE INDEX IF NOT EXISTS idx_game_sessions_user ON game_sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_companies_user ON companies(user_id);
 CREATE INDEX IF NOT EXISTS idx_sessions_user  ON sessions(user_id);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_group_members_active_company ON campaign_group_members(company_id) WHERE left_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_metric_events_kind ON metric_events(kind, created_at);
 CREATE INDEX IF NOT EXISTS idx_group_members_user ON campaign_group_members(user_id);

@@ -32,7 +32,7 @@ export default function LandingPage({ onLoad, onNew, onQuizComplete }) {
 
       <a
         className="landing-shop-pill"
-        href="https://buergames.com/collections/1490-doom-physical"
+        href="/go/shop/physical?from=landing"
         target="_blank"
         rel="noopener noreferrer"
       >

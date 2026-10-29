@@ -15,6 +15,7 @@
 // 'system.unlogged' event, so the activity log shows that something happened.
 import { json } from '../../_middleware.js'
 import { validateEvents, insertEventStatements, unloggedEvent } from '../../lib/campaignEvents.js'
+import { logEvent, companyProps } from '../../lib/metrics.js'
 
 export async function onRequestGet(context) {
   const user = context.data.user
@@ -83,6 +84,7 @@ export async function onRequestPost(context) {
      WHERE companies.user_id = ?`
   ).bind(id, user.id, name, mode || 'standard', savedAt, JSON.stringify(data), user.id)
   await db.batch([upsert, ...insertEventStatements(db, { companyId: id, userId: user.id, events: logged, now: savedAt })])
+  if (!existing) logEvent(context, 'company_create', companyProps(data, mode)) // metrics
 
   return json({ ok: true, savedAt })
 }
