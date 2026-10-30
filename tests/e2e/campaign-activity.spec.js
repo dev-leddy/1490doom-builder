@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { signUp, createCompanyViaApi, waitForSaved } from './helpers.js'
+import { signUp, createCompanyViaApi, waitForSaved, openCompany } from './helpers.js'
 
 // Campaign activity log: things done in the builder reach the server as events, and undos
 // point back at what they took back. Local accounts only (signUp uses the local server).
@@ -198,7 +198,7 @@ test.describe('campaign activity log', () => {
       slots: [{ ...base, type: 'Fighter', weapon1: 'Light Weapon', isCaptain: true }, { ...base, type: 'Scout', weapon1: 'Bow', isCaptain: false }],
     } })
     await page.reload()
-    await page.getByText(name, { exact: true }).first().click()
+    await openCompany(page, name)
     await expect(page.getByLabel('Company Settings')).toBeVisible()
 
     await page.locator('.topbar-menu-btn').click()

@@ -320,7 +320,7 @@ const DiscordImageRoster = forwardRef(function DiscordImageRoster({ state }, ref
   const twoCol = orderedSlots.length >= 5
   const isCampaign = companyMode === 'campaign'
   const meta = [
-    isCampaign ? 'Campaign' : 'Standard',
+    isCampaign ? 'Campaign' : 'Skirmish',
     isCampaign ? `Game ${campaignGame + 1}` : `${ipLimit ?? 0} IP`,
     `${orderedSlots.length} Warrior${orderedSlots.length !== 1 ? 's' : ''}`,
   ]

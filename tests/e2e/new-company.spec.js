@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { signUp, openWizard, pickWarrior, setWizardIp, createCompany, waitForSaved } from './helpers.js'
+import { signUp, openWizard, pickWarrior, setWizardIp, createCompany, waitForSaved, openCompany, openCompanyList } from './helpers.js'
 
 test.describe('New Company wizard', () => {
   test.beforeEach(async ({ page }) => { await signUp(page) })
@@ -46,7 +46,7 @@ test.describe('New Company wizard', () => {
     await createCompany(page, { name: 'Persisted Co', warriors: ['Knight', 'Scout', 'Brute'], ip: 3 })
     await waitForSaved(page)
     await page.reload()
-    await page.getByText('Persisted Co', { exact: true }).first().click()
+    await openCompany(page, 'Persisted Co')
     for (const w of ['Knight', 'Scout', 'Brute']) await expect(page.locator('.slot-number', { hasText: w })).toBeVisible()
   })
 
@@ -58,6 +58,7 @@ test.describe('New Company wizard', () => {
     await page.locator('.ncp-btn--primary').click()
     await waitForSaved(page)
     await page.reload()
+    await openCompanyList(page)
     await expect(page.getByText(name, { exact: true }).first()).toBeVisible()
   })
 

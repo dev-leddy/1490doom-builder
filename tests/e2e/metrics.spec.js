@@ -26,8 +26,11 @@ test.describe('usage metrics', () => {
   })
 
   test('a new company, a game started and a game ended are counted (no names)', async ({ page }) => {
-    const since = Date.now()
     await signUp(page)
+    // only this account's events (a late save from an earlier test's page can't count)
+    const me = await page.evaluate(() => fetch('/api/auth/me', { credentials: 'include' }).then(r => r.json()))
+    expect(me.id).toMatch(/^[\w-]+$/)
+    const mine = `user_id = '${me.id}'`
     await createCompany(page, { name: 'Metrics Co', warriors: ['Fighter', 'Scout'] })
     await page.locator('.builder-play-pill').click()
     await expect(page.locator('.tk-card')).toBeVisible()
@@ -38,9 +41,9 @@ test.describe('usage metrics', () => {
     await expect(page.locator('.builder-play-pill')).toBeVisible()
 
     // (the company's debounced save can land after the game starts, so order doesn't matter)
-    await expect.poll(() => localRows(`SELECT kind FROM metric_events WHERE created_at >= ${since} AND kind != 'store_click'`).map(r => r.kind).sort(), { timeout: 15_000 })
+    await expect.poll(() => localRows(`SELECT kind FROM metric_events WHERE ${mine} AND kind != 'store_click'`).map(r => r.kind).sort(), { timeout: 15_000 })
       .toEqual(['company_create', 'game_end', 'game_start'])
-    const [start] = localRows(`SELECT props FROM metric_events WHERE created_at >= ${since} AND kind = 'game_start'`)
+    const [start] = localRows(`SELECT props FROM metric_events WHERE ${mine} AND kind = 'game_start'`)
     const props = JSON.parse(start.props)
     expect(props).toMatchObject({ mode: 'standard', scenario: 'skirmish:standard', warriors: ['Fighter', 'Scout'] })
     expect(start.props).not.toContain('Metrics Co')

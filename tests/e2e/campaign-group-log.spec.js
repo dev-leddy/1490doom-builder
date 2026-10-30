@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { signUp, createCompanyViaApi, waitForSaved } from './helpers.js'
+import { signUp, createCompanyViaApi, waitForSaved, openCompany } from './helpers.js'
 
 // The campaign log in a shared campaign: other players' entries and fallen show up in your
 // log, read-only. Every account here is made on the LOCAL server (signUp). Needs migration
@@ -50,7 +50,7 @@ test("another player's entries and fallen are in your log, read-only", async ({ 
 
     // Ann's log: Bo's game, with Bo's company in the Player column
     await ann.page.reload()
-    await ann.page.getByText('Ann Wolves', { exact: true }).first().click()
+    await openCompany(ann.page, 'Ann Wolves')
     await ann.page.getByTestId('campaign-menu').click()
     await ann.page.getByTestId('cmp-set-log').click()
     const view = ann.page.getByRole('dialog', { name: /campaign log/i })

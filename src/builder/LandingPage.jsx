@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useBuilderStore } from '../store/builderStore'
 import { useAuthStore } from '../store/authStore'
-import SaveLoadPanel from './SaveLoadPanel'
 import QuickRef from '../shared/QuickRef'
 import QuizOverlay from './QuizOverlay'
 import LandingAbout from './LandingAbout'
@@ -10,10 +9,14 @@ export function RefContent({ onBack }) {
   return <QuickRef onBack={onBack} />
 }
 
-export default function LandingPage({ onLoad, onNew, onQuizComplete }) {
-  const { saves } = useBuilderStore()
+// Returning players (signed in, with companies): a welcome, Your companies (opens their list,
+// see CompaniesPage) and the quiz. Newcomers: what this is, the quiz or Build your company.
+export default function LandingPage({ onNew, onCompanies, onQuizComplete }) {
+  const { saves, savesLoaded } = useBuilderStore()
   const user = useAuthStore(s => s.user)
   const [showQuiz, setShowQuiz] = useState(false)
+  // Signed in with companies (or still loading them): the returning layout
+  const returning = !!user && (saves.length > 0 || !savesLoaded)
 
   // Building from the quiz result needs an account; BuilderPage handles that
   const handleQuizComplete = (payload) => {
@@ -44,29 +47,20 @@ export default function LandingPage({ onLoad, onNew, onQuizComplete }) {
         </div>
       </a>
 
-      {saves.length > 0 ? (
+      {returning ? (
         <>
-          {/* Returning players: their companies first, one clear way to add another */}
-          <div className="landing-saves-head">
-            <h2 className="landing-saves-title">
-              Your companies <span className="landing-saves-count">{saves.length}</span>
-            </h2>
-            <button type="button" className="landing-new-company-btn" onClick={onNew}>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-                <path d="M12 5v14M5 12h14" />
-              </svg>
-              New company
+          <p className="landing-intro">Welcome back, {user.username}.</p>
+          <div className="landing-start">
+            <button type="button" className="landing-start-card" onClick={onCompanies}>
+              <span className="landing-start-title">Your companies</span>
+              <span className="landing-start-desc">{savesLoaded ? 'Open a company or build a new one' : 'Loading your companies…'}</span>
+              <span className="landing-start-arrow" aria-hidden="true">→</span>
             </button>
-          </div>
-
-          <div className="landing-saves">
-            <SaveLoadPanel onSelect={onLoad} />
-          </div>
-
-          {/* A quiet line below the list */}
-          <div className="quiz-card quiz-card--compact" onClick={() => setShowQuiz(true)}>
-            <span className="quiz-card-title">Not sure what to build next?</span>
-            <button type="button" className="quiz-card-cta">Take the quiz →</button>
+            <button type="button" className="landing-start-card" onClick={() => setShowQuiz(true)}>
+              <span className="landing-start-title">Take the quiz</span>
+              <span className="landing-start-desc">Five questions to find your next Doom Company</span>
+              <span className="landing-start-arrow" aria-hidden="true">→</span>
+            </button>
           </div>
         </>
       ) : (
@@ -94,8 +88,8 @@ export default function LandingPage({ onLoad, onNew, onQuizComplete }) {
         </>
       )}
 
-      {/* First-time visitors: what the game is and what the app does */}
-      {!user && <LandingAbout />}
+      {/* What the app does and what the game is: for everyone, below the main actions */}
+      <LandingAbout />
 
     </div>
   )

@@ -11,7 +11,7 @@ function describe(save) {
   return parts.join(' · ')
 }
 
-function SavedChip({ save, realIndex, onLoad, onDelete }) {
+function SavedChip({ save, realIndex, onLoad, onDelete, inSection }) {
   const avatarSrc = getAvatarSrc(save.companyAvatar)
   const name = save.companyName || 'Unnamed Company'
   const isCampaign = save.companyMode === 'campaign'
@@ -28,7 +28,7 @@ function SavedChip({ save, realIndex, onLoad, onDelete }) {
           <span className={`saved-chip-name${save.companyName ? '' : ' saved-chip-name--unnamed'}`}>{name}</span>
           <span className="saved-chip-meta">
             {isCampaign && (
-              <span className="saved-chip-mode">Campaign · Game {(save.campaignGame || 0) + 1}</span>
+              <span className="saved-chip-mode">{inSection ? '' : 'Campaign · '}Game {(save.campaignGame || 0) + 1}</span>
             )}
             <span className="saved-chip-detail">{describe(save)}</span>
           </span>
@@ -49,7 +49,9 @@ function SavedChip({ save, realIndex, onLoad, onDelete }) {
   )
 }
 
-export default function SaveLoadPanel({ onSelect }) {
+// items: [save, index in saves] pairs for one section of the list (Your companies); without
+// it, every company. Indexes stay the store's, so open and delete hit the right company.
+export default function SaveLoadPanel({ onSelect, items = null }) {
   const { saves, savesLoaded, loadCompany, deleteCompany } = useBuilderStore()
   const [deleteIndex, setDeleteIndex] = useState(null)
 
@@ -65,22 +67,24 @@ export default function SaveLoadPanel({ onSelect }) {
     }
   }
 
-  if (!saves.length) {
+  if (!items && !saves.length) {
     return <span className="no-saves">{savesLoaded ? 'No companies saved yet.' : 'Loading your companies…'}</span>
   }
 
-  // One list, most recently saved first (the order the server returns);
-  // campaign companies carry their own tag instead of a separate section
+  // Most recently saved first (the order the server returns). Within a section (Skirmish or
+  // Campaign) the campaign tag is left off: the heading already says it.
+  const list = items || saves.map((save, i) => [save, i])
   return (
     <div className="saved-section">
       <div className="saved-list">
-        {saves.map((save, i) => (
+        {list.map(([save, i]) => (
           <SavedChip
             key={save.companyId || i}
             save={save}
             realIndex={i}
             onLoad={handleLoad}
             onDelete={setDeleteIndex}
+            inSection={!!items}
           />
         ))}
       </div>

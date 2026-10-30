@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { signUp, createCompany, waitForSaved, dismissMarkPopup } from './helpers.js'
+import { signUp, createCompany, waitForSaved, dismissMarkPopup, openCompany } from './helpers.js'
 
 async function startPlay(page) {
   await page.locator('.builder-play-pill').click()
@@ -64,7 +64,7 @@ test.describe('play mode', () => {
     const after = await count.innerText()
     await page.waitForTimeout(1500) // game state save debounce
     await page.reload()
-    await page.getByText('Resume Co', { exact: true }).first().click()
+    await openCompany(page, 'Resume Co')
     await page.locator('.builder-play-pill').click()
     await expect(page.getByText('RESUME GAME?')).toBeVisible()
     await page.getByRole('button', { name: 'RESTORE GAME' }).click()

@@ -40,9 +40,10 @@ test.describe('signed-in menu and company list', () => {
     await expect(page.getByText('Statuses').first()).toBeVisible()
     await open()
     await page.locator('.app-menu-row', { hasText: 'My companies' }).click()
-    await expect(page.locator('.landing-saves')).toContainText('Menu Co')
+    await expect(page.locator('.companies-title')).toHaveText('Your companies') // the list page, not the landing
+    await expect(page.locator('.companies-section', { hasText: 'Skirmish' })).toContainText('Menu Co')
     await open()
-    await expect(page.getByText('This company')).toHaveCount(0) // landing: no open company
+    await expect(page.getByText('This company')).toHaveCount(0) // the list: no open company
   })
 
   test('deleting a company removes it from the account', async ({ page }) => {
@@ -52,7 +53,8 @@ test.describe('signed-in menu and company list', () => {
     await page.locator('.app-menu-row', { hasText: 'My companies' }).click()
     await page.locator('.saved-chip', { hasText: 'Doomed Co' }).locator('.chip-delete').click()
     await page.getByRole('button', { name: 'CONFIRM' }).click()
-    await expect(page.locator('.landing-saves')).toHaveCount(0)
+    await expect(page.locator('.saved-chip')).toHaveCount(0)
+    await expect(page.locator('.companies-empty').first()).toContainText('No skirmish companies yet.')
     await page.reload()
     await expect(page.getByText('Doomed Co', { exact: true })).toHaveCount(0)
   })

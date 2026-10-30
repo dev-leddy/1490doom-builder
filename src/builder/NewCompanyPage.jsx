@@ -36,16 +36,17 @@ function Stepper({ label, value, min, max, onChange }) {
   )
 }
 
-export default function NewCompanyPage({ onStart, onBack }) {
+// initialMode: 'campaign' opens with Campaign picked (Start a campaign, on Your companies)
+export default function NewCompanyPage({ onStart, onBack, initialMode = null }) {
   const WARRIOR_NAMES = Object.keys(WARRIORS).sort()
   const MAX_SLOTS = 8
 
-  const [mode, setMode] = useState('standard')
+  const [mode, setMode] = useState(initialMode === 'campaign' ? 'campaign' : 'standard')
   const [name, setName] = useState('')
   const [avatar, setAvatar] = useState(() => randomAvatarKey())
   const [slots, setSlots] = useState([null, null, null])
   const [slotIps, setSlotIps] = useState([0, 0, 0])
-  const [ip, setIp] = useState(3)
+  const [ip, setIp] = useState(initialMode === 'campaign' ? 0 : 3)
   const [mark, setMark] = useState('')
   const [tempMark, setTempMark] = useState('')
   const [showMarkPicker, setShowMarkPicker] = useState(false)
@@ -183,7 +184,7 @@ export default function NewCompanyPage({ onStart, onBack }) {
                 className={`ncp-mode-pill${mode === 'standard' ? ' active' : ''}`}
                 aria-pressed={mode === 'standard'}
                 onClick={() => handleModeChange('standard')}
-              >Standard</button>
+              >Skirmish</button>
               <button
                 className={`ncp-mode-pill${mode === 'campaign' ? ' active' : ''}`}
                 aria-pressed={mode === 'campaign'}

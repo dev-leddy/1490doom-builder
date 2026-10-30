@@ -1,5 +1,5 @@
 // "What is 1490 DOOM?" — context for first-time visitors, shown on the landing
-// page below the main actions (guests only). Lore and game copy is Buer Games'
+// page below the main actions (guests and signed-in players). Lore and game copy is Buer Games'
 // own wording from 1490doom.com.
 
 const FEATURES = [

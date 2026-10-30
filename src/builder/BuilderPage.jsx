@@ -17,6 +17,7 @@ import CompanyForm from './CompanyForm'
 import ModeSelectModal from './ModeSelectModal'
 import NewCompanyPage from './NewCompanyPage'
 import LandingPage, { RefContent } from './LandingPage'
+import CompaniesPage from './CompaniesPage'
 import AuthSheet from './AuthSheet'
 import AvatarPicker from './AvatarPicker'
 import JoinCampaignSheet from './JoinCampaignSheet'
@@ -158,6 +159,11 @@ export default function BuilderPage({ initialView = null }) {
 
   // Sync company header width to match warrior card width when only 1 card per row
   const builderMainRef = useRef(null)
+  // Each view starts at the top (the list shouldn't open part-way down after the builder)
+  const scrollAreaRef = useRef(null)
+  useEffect(() => { if (scrollAreaRef.current) scrollAreaRef.current.scrollTop = 0 }, [view])
+  // The wizard: a preset mode (Start a campaign) and where its Back returns to
+  const [newCompany, setNewCompany] = useState({ mode: null, from: 'landing' })
   useEffect(() => {
     if (view !== 'builder') return
     const main = builderMainRef.current
@@ -245,10 +251,18 @@ export default function BuilderPage({ initialView = null }) {
     setView('landing')
   }
 
+  // Your companies: the signed-in player's list (Skirmish and Campaign)
+  function goCompanies() {
+    setSidebarOpen(false)
+    setRefOpen(false)
+    if (!requireLogin('Sign in to see your companies.')) return
+    setView('companies')
+  }
+
   function handleLogoClick() {
     if (refOpen) {
       setRefOpen(false)
-    } else if (view === 'builder') {
+    } else if (view === 'builder' || view === 'companies') {
       handleGoHome()
     }
   }
@@ -279,9 +293,12 @@ export default function BuilderPage({ initialView = null }) {
   }
 
 
-  function handleNew() {
+  // mode: 'campaign' opens the wizard with Campaign picked. Also used as an onClick handler,
+  // so anything that isn't a mode string (the click event) means no preset.
+  function handleNew(mode) {
     setSidebarOpen(false)
     if (!requireLogin('Sign in to create and save companies.', { type: 'new' })) return
+    setNewCompany({ mode: mode === 'campaign' ? 'campaign' : null, from: view === 'companies' ? 'companies' : 'landing' })
     setView('new-company')
   }
 
@@ -347,17 +364,20 @@ export default function BuilderPage({ initialView = null }) {
       {!refOpen && view === 'new-company' && (
         <NewCompanyPage
           onStart={handleModeSelect}
-          onBack={() => setView('landing')}
+          onBack={() => setView(newCompany.from)}
+          initialMode={newCompany.mode}
         />
       )}
 
       {/* ── SCROLLABLE AREA ────────────────────────────── */}
       {(refOpen || view !== 'new-company') && (
-      <div className="builder-scroll-area">
+      <div className="builder-scroll-area" ref={scrollAreaRef}>
         {refOpen ? (
           <RefContent onBack={() => setRefOpen(false)} />
         ) : view === 'landing' ? (
-          <LandingPage onLoad={goBuilder} onNew={handleNew} onQuizComplete={handleQuizComplete} />
+          <LandingPage onNew={handleNew} onCompanies={goCompanies} onQuizComplete={handleQuizComplete} />
+        ) : view === 'companies' ? (
+          <CompaniesPage onLoad={goBuilder} onNew={handleNew} onBack={handleGoHome} />
         ) : (
           <main className="builder-main" ref={builderMainRef}>
             {viewingShare && (
@@ -414,7 +434,7 @@ export default function BuilderPage({ initialView = null }) {
           saveCount={builderState.saves.length}
           onClose={() => setSidebarOpen(false)}
           onSignIn={() => requireLogin(null)}
-          onMyCompanies={handleGoHome}
+          onMyCompanies={goCompanies}
           onNewCompany={handleNew}
           onQuickRef={() => setRefOpen(true)}
           onShare={openShare}

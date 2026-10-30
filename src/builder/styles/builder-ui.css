@@ -4041,6 +4041,35 @@ button.eq-slot:focus-visible { outline: 2px solid var(--blood); outline-offset: 
 .landing-start-arrow { margin-top: auto; padding-top: 0.4rem; font-size: 1.1rem; line-height: 1; color: var(--blood); transition: transform 0.15s; }
 @media (hover: hover) { .landing-start-card:hover .landing-start-arrow { transform: translateX(3px); } }
 
+/* ── YOUR COMPANIES (list page) + returning landing ─────── */
+.companies-page-head { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin: 0.25rem 0 1.25rem; }
+.companies-back {
+  display: inline-flex; align-items: center; gap: 0.4rem; min-height: 44px; padding: 0 0.5rem 0 0;
+  background: none; border: 0; color: var(--bone); cursor: pointer;
+  font-family: 'Oswald', sans-serif; font-size: 0.75rem; letter-spacing: 0.14em; text-transform: uppercase;
+}
+.companies-back:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
+.companies-title {
+  margin: 0 0 1rem; font-family: 'Oswald', sans-serif; font-size: 1.05rem; font-weight: normal;
+  letter-spacing: 0.16em; text-transform: uppercase; color: var(--parchment);
+}
+.companies-section { margin-bottom: 1.75rem; }
+.companies-section-head {
+  display: flex; align-items: baseline; gap: 0.6rem; margin: 0 0 0.6rem;
+  font-family: 'Oswald', sans-serif; font-size: 0.75rem; font-weight: normal; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--bone);
+}
+.companies-section-head::after { content: ''; flex: 1; height: 1px; background: rgba(255, 255, 255, 0.1); align-self: center; }
+.companies-empty {
+  margin: 0; padding: 0.85rem 1rem; border: 1px dashed rgba(255, 255, 255, 0.14); border-radius: 8px;
+  font-family: 'Caslon Antique', serif; font-size: 0.92rem; line-height: 1.45; color: #9a9a9a;
+}
+.companies-empty-btn {
+  display: inline-flex; align-items: center; min-height: 44px; padding: 0; background: none; border: 0; cursor: pointer;
+  font-family: 'Oswald', sans-serif; font-size: 0.76rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--bone);
+}
+.companies-empty-btn:focus-visible { outline: 2px solid var(--blood); outline-offset: 2px; }
+
 /* ── LANDING ABOUT (what is 1490 DOOM?) ──────────────────── */
 .landing-about {
   margin-top: 2.5rem;

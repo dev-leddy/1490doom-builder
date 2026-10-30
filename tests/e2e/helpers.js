@@ -80,8 +80,20 @@ export async function createCompanyViaApi(page, { name, mode = 'standard', ipLim
   }, { id, name, mode, data: { companyId: id, companyName: name, companyMode: mode, mark: '', companyAvatar: null, ipLimit, campaignGame: 0, slots: slots.map(fill) } })
   expect(status).toBe(200)
   await page.reload()
-  await page.getByText(name, { exact: true }).first().click()
+  await openCompany(page, name)
   await expect(page.getByLabel('Company Settings')).toBeVisible()
+}
+
+// Signed-in landing → Your companies (the list page)
+export async function openCompanyList(page) {
+  await page.locator('.landing-start-card', { hasText: 'Your companies' }).click()
+  await expect(page.locator('.companies-title')).toHaveText('Your companies')
+}
+
+// Signed-in landing → Your companies → that company
+export async function openCompany(page, name) {
+  await openCompanyList(page)
+  await page.locator('.landing-content').getByText(name, { exact: true }).first().click()
 }
 
 // Open the share window and resolve its short link → { code, payload, tts }.

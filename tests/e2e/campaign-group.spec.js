@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { signUp, createCompanyViaApi, waitForSaved } from './helpers.js'
+import { signUp, createCompanyViaApi, waitForSaved, openCompany } from './helpers.js'
 
 // Shared campaigns: two players join one campaign and see each other's company read-only.
 // Every account here is made on the LOCAL server (signUp). Needs migration 007 applied locally:
@@ -55,7 +55,7 @@ test('two players share a campaign; outsiders and leavers are kept out', async (
 
     // Ann records game 1: a Victory, everyone standing, survivor point to the Fighter
     await ann.page.reload()
-    await ann.page.getByText('Ann Wolves', { exact: true }).first().click()
+    await openCompany(ann.page, 'Ann Wolves')
     await ann.page.locator('.ch-camp-eog-btn').click()
     await ann.page.locator('[data-result="win"]').click()
     await ann.page.locator('.eog-next-btn').click()
