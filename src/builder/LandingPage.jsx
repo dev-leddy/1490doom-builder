@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useBuilderStore } from '../store/builderStore'
 import { useAuthStore } from '../store/authStore'
+import { usePollStore } from '../store/pollStore'
 import QuickRef from '../shared/QuickRef'
 import QuizOverlay from './QuizOverlay'
 import LandingAbout from './LandingAbout'
@@ -15,8 +16,17 @@ export default function LandingPage({ onNew, onCompanies, onQuizComplete }) {
   const { saves, savesLoaded } = useBuilderStore()
   const user = useAuthStore(s => s.user)
   const [showQuiz, setShowQuiz] = useState(false)
+  const { status: poll, openPoll } = usePollStore()
   // Signed in with companies (or still loading them): the returning layout
   const returning = !!user && (saves.length > 0 || !savesLoaded)
+
+  // The poll: a bar under the start cards for signed-in players until they answer (never a popup)
+  const pollCard = user && poll === 'open' && (
+    <div className="poll-card">
+      <h2 className="poll-card-title">Help pick what&apos;s next</h2>
+      <button type="button" className="poll-card-btn" onClick={openPoll}>Vote</button>
+    </div>
+  )
 
   // Building from the quiz result needs an account; BuilderPage handles that
   const handleQuizComplete = (payload) => {
@@ -49,7 +59,6 @@ export default function LandingPage({ onNew, onCompanies, onQuizComplete }) {
 
       {returning ? (
         <>
-          <p className="landing-intro">Welcome back, {user.username}.</p>
           <div className="landing-start">
             <button type="button" className="landing-start-card" onClick={onCompanies}>
               <span className="landing-start-title">Your companies</span>
@@ -62,6 +71,7 @@ export default function LandingPage({ onNew, onCompanies, onQuizComplete }) {
               <span className="landing-start-arrow" aria-hidden="true">→</span>
             </button>
           </div>
+          {pollCard}
         </>
       ) : (
         <>
@@ -85,6 +95,7 @@ export default function LandingPage({ onNew, onCompanies, onQuizComplete }) {
               <span className="landing-start-arrow" aria-hidden="true">→</span>
             </button>
           </div>
+          {pollCard}
         </>
       )}
 

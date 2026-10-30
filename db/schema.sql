@@ -87,6 +87,15 @@ CREATE TABLE IF NOT EXISTS metric_events (
   created_at INTEGER NOT NULL                       -- unix ms
 );
 
+-- In-app poll answers (009): one answer per player per poll
+CREATE TABLE IF NOT EXISTS poll_answers (
+  poll_id    TEXT    NOT NULL,
+  user_id    TEXT    NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  answers    TEXT    NOT NULL,                      -- JSON: { questionId: [optionId...], other: 'text' }
+  created_at INTEGER NOT NULL,                      -- unix ms
+  PRIMARY KEY (poll_id, user_id)
+);
+
 CREATE UNIQUE INDEX IF NOT EXISTS idx_short_links_encoded ON short_links(encoded);
 CREATE INDEX IF NOT EXISTS idx_campaign_events_company ON campaign_events(company_id, seq);
 CREATE INDEX IF NOT EXISTS idx_game_sessions_user ON game_sessions(user_id);

@@ -50,7 +50,7 @@ test.describe('landing (signed in)', () => {
     await signUp(page)
     await createCompanyViaApi(page, { name: 'Skirm Co', slots: [{ type: 'Fighter', weapon1: 'Light Weapon' }] })
     await page.goto('/')
-    await expect(page.locator('.landing-intro')).toContainText('Welcome back')
+    await expect(page.locator('.landing-intro')).toHaveCount(0) // no welcome line for returning players
     await expect(page.locator('.landing-start-card').first().locator('.landing-start-title')).toHaveText('Your companies') // no count
     await expect(page.locator('.saved-chip')).toHaveCount(0) // the list isn't on the landing page
 
@@ -67,6 +67,6 @@ test.describe('landing (signed in)', () => {
     await page.locator('.ncp-back-btn').first().click()
     await expect(page.locator('.companies-title')).toHaveText('Your companies')
     await page.locator('.companies-back').click()
-    await expect(page.locator('.landing-intro')).toContainText('Welcome back')
+    await expect(page.locator('.landing-start-title').first()).toHaveText('Your companies')
   })
 })

@@ -6,6 +6,7 @@ import Toast from './shared/Toast'
 import { useBuilderStore } from './store/builderStore'
 import { decodeCompany } from './store/builderEncoding'
 import RestorePromptModal from './shared/RestorePromptModal'
+import PollHost from './shared/PollSheet'
 
 export default function App() {
   const trackerActive = useTrackerStore(s => s.active)
@@ -47,6 +48,7 @@ export default function App() {
       {trackerActive ? <TrackerPage /> : <BuilderPage initialView={returnToBuilder ? 'builder' : undefined} />}
       {toast && <Toast message={toast} />}
       {showRestorePrompt && <RestorePromptModal />}
+      <PollHost />
       <span className="app-version">v{__APP_VERSION__}</span>
     </div>
   )

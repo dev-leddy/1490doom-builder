@@ -1,4 +1,5 @@
 import BottomSheet from '../shared/BottomSheet'
+import { usePollStore } from '../store/pollStore'
 
 // App menu (hamburger): navigation to the important places in the app, actions for
 // the open company, and outside links. Saved companies live on Your companies (My companies).
@@ -10,6 +11,7 @@ const ICONS = {
   share: 'M16 5l-1.42 1.42-1.59-1.59V16h-1.98V4.83L9.42 6.42 8 5l4-4 4 4zm4 5v11c0 1.1-.9 2-2 2H6c-1.11 0-2-.9-2-2V10c0-1.11.89-2 2-2h3v2H6v11h12V10h-3V8h3c1.1 0 2 .89 2 2z',
   print: 'M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z',
   flag: 'M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z',
+  poll: 'M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z',
   shop: 'M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-1.99.9-1.99 2S15.9 22 17 22s2-.9 2-2-.9-2-2-2zM5.21 4H2V2H0v2h2l3.6 7.59L4.25 14C4.09 14.32 4 14.65 4 15c0 1.1.9 2 2 2h14v-2H6.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63H19c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 23.42 4H5.21z',
 }
 
@@ -58,6 +60,7 @@ export default function AppMenu({
   onClose, onSignIn, onMyCompanies, onNewCompany, onQuickRef, onShare, onPrint, onEndCampaign,
 }) {
   const go = fn => () => { onClose(); fn() }
+  const { status: poll, openPoll } = usePollStore()
 
   return (
     <BottomSheet title="Menu" onClose={onClose}>
@@ -86,6 +89,7 @@ export default function AppMenu({
         <Section title="More">
           <Row icon={<DiscordIcon />} label="Discord" href="https://discord.gg/hqTdqGBJyg" onClick={onClose} />
           <Row icon={<Icon name="shop" />} label="1490 DOOM Shop" href="/go/shop/physical?from=menu" onClick={onClose} />
+          {user && poll === 'open' && <Row icon={<Icon name="poll" />} label="Help pick what's next" onClick={go(openPoll)} />}
         </Section>
       </div>
     </BottomSheet>
