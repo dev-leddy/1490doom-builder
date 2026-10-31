@@ -3,6 +3,7 @@
 //   npm run metrics              production (needs `wrangler login`)
 //   npm run metrics -- --local   the local database used by `wrangler pages dev`
 //   npm run metrics -- --json    raw rows as JSON (for a spreadsheet or dashboard)
+//   npm run poll                 just the poll results (same as npm run metrics -- --poll)
 //
 // Accounts, companies, classes, marks, campaign games and share links come from tables the app
 // already keeps, so they cover all history. Games started/ended and store clicks come from
@@ -15,6 +16,7 @@ import { POLL } from '../functions/lib/poll.js'
 const args = process.argv.slice(2)
 const where = args.includes('--local') ? '--local' : '--remote'
 const asJson = args.includes('--json')
+const pollOnly = args.includes('--poll')
 const wrangler = fileURLToPath(new URL('../node_modules/wrangler/bin/wrangler.js', import.meta.url))
 
 const DAY = 864e5
@@ -55,6 +57,7 @@ const QUERIES = [
   ['Poll: something else (newest first)', `SELECT json_extract(answers, '$.other') AS answer FROM poll_answers WHERE ${thisPoll} AND answer IS NOT NULL ORDER BY created_at DESC`],
 ]
 
+const SHOWN = pollOnly ? QUERIES.filter(([title]) => title.startsWith('Poll')) : QUERIES
 const MIGRATION = { metric_events: '008', poll_answers: '009' }
 
 function run(sql) {
@@ -77,8 +80,8 @@ function table(rows) {
 }
 
 const out = {}
-if (!asJson) console.log(`1490 DOOM Builder usage (${where === '--local' ? 'local' : 'production'}), ${new Date(now).toISOString().slice(0, 10)}\n`)
-for (const [title, sql] of QUERIES) {
+if (!asJson) console.log(`1490 DOOM Builder ${pollOnly ? 'poll' : 'usage'} (${where === '--local' ? 'local' : 'production'}), ${new Date(now).toISOString().slice(0, 10)}\n`)
+for (const [title, sql] of SHOWN) {
   let rows
   try { rows = run(sql) } catch (err) { rows = null; out[title] = { error: err.message } }
   if (rows) out[title] = rows

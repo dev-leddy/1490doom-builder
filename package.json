@@ -1,7 +1,7 @@
 {
   "name": "1490doom-builder",
   "private": true,
-  "version": "0.9.197",
+  "version": "0.9.198",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,7 +12,8 @@
     "check": "npm run lint && npm test && npm run build && npm run build:functions",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "metrics": "node scripts/metrics.mjs"
+    "metrics": "node scripts/metrics.mjs",
+    "poll": "node scripts/metrics.mjs --poll"
   },
   "dependencies": {
     "arctic": "^3.7.0",

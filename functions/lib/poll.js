@@ -13,7 +13,7 @@ export const POLL = {
         { id: 'campaign-rules', label: 'Campaign rules built into the app' },
         { id: 'scenario-rules', label: 'Scenario rules built into the app' },
         { id: 'draft', label: 'Draft mode: draft your warriors with 2 or more players' },
-        { id: 'live', label: 'Live games: follow your opponent’s warriors and health on your own phone' },
+        { id: 'live', label: 'Live games: view and track your opponent’s warriors' },
         { id: 'other', label: 'Something else', text: true }, // a short text box when picked
       ],
     },
